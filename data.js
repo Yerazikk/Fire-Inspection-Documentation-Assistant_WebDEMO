@@ -2,21 +2,34 @@
 window.CONFIG = {
   dept: 'Fire Prevention Bureau', unit: 'Vegetation Management Unit',
   inspector: { name: 'D. Alvarez', badge: 'VM-214', email: 'vegetation@cityfire.gov', phone: '(510) 555-0142' },
-  station: { name: 'Station 24', addr: '990 Hillcrest Blvd', x: 50, y: 56 },
+  // Headquarters. Every route starts here, from this real coordinate.
+  station: { name: 'Dept. HQ', addr: '250 Frank H. Ogawa Plaza, Oakland, CA', lat: 37.80612, lon: -122.27247 },
   correctionDays: 45, appealDays: 15, localCode: 'Municipal Fire Code §4907.4', portal: 'Accela Citizen Access',
 };
 
-// Known addresses for the typeahead. x,y are map-space (0–100). The demo location reuses the V2 photo.
+// The seeded typeahead entries. Addresses typed by hand are geocoded for real
+// (see geo.js) and appended to this list at runtime. lat/lon are real points on
+// the named Oakland streets — the router snaps each to the road network, so the
+// legs between them are genuine drives. x,y are only for the stylised fallback
+// map and the parcel sketch, and are derived from lat/lon below.
 window.ADDRESSES = [
-  { id: 'a1', addr: '123 Placeholder St', x: 34, y: 30, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
-  { id: 'a2', addr: '2210 Moraga Ave', x: 70, y: 24, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
-  { id: 'a3', addr: '77 Alvarado Pl', x: 78, y: 62, owner: { name: 'S. Patel', email: 's.patel@example.com' } },
-  { id: 'a4', addr: '5150 Broadway Ter', x: 22, y: 70, owner: { name: 'J. Romero', email: 'j.romero@example.com' } },
-  { id: 'a5', addr: '418 Skyline Crest Rd', x: 60, y: 82, owner: { name: 'A. Lindqvist', email: 'a.lindqvist@example.com' } },
-  { id: 'a6', addr: '9 Canyon View Ct', x: 14, y: 42, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
+  { id: 'a1', addr: '123 Placeholder St', where: 'Upper Rockridge, Oakland, CA', lat: 37.84543, lon: -122.23182, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
+  { id: 'a2', addr: '2210 Moraga Ave', where: 'North Oakland, CA', lat: 37.82884, lon: -122.24587, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
+  { id: 'a3', addr: '77 Alvarado Pl', where: 'Claremont, Oakland, CA', lat: 37.86203, lon: -122.23270, owner: { name: 'S. Patel', email: 's.patel@example.com' } },
+  { id: 'a4', addr: '5150 Broadway Ter', where: 'North Oakland, CA', lat: 37.83810, lon: -122.24705, owner: { name: 'J. Romero', email: 'j.romero@example.com' } },
+  { id: 'a5', addr: '418 Skyline Crest Rd', where: 'Oakland Hills, CA', lat: 37.80502, lon: -122.17911, owner: { name: 'A. Lindqvist', email: 'a.lindqvist@example.com' } },
+  { id: 'a6', addr: '9 Canyon View Ct', where: 'Montclair, Oakland, CA', lat: 37.83165, lon: -122.19564, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
 ];
-// AI "best route" order (hard-coded): nearest-neighbour from the station.
-window.BEST_ORDER = ['a6', 'a1', 'a2', 'a3', 'a5', 'a4'];
+
+// lat/lon → the 0–100 map space the fallback map and parcel sketch draw in.
+window.BBOX = { lat0: 37.88, lat1: 37.78, lon0: -122.30, lon1: -122.16 };
+window.toMapXY = (lat, lon) => {
+  const b = window.BBOX;
+  return { x: Math.max(-20, Math.min(120, (lon - b.lon0) / (b.lon1 - b.lon0) * 100)),
+           y: Math.max(-20, Math.min(120, (lat - b.lat0) / (b.lat1 - b.lat0) * 100)) };
+};
+window.placeXY = a => { const p = window.toMapXY(a.lat, a.lon); a.x = p.x; a.y = p.y; return a; };
+[window.CONFIG.station, ...window.ADDRESSES].forEach(window.placeXY);
 
 // Scan boxes in viewfinder % for the demo photo
 window.SCAN = {

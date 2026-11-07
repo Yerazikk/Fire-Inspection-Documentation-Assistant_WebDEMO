@@ -7,10 +7,19 @@ const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: P
     const hold = async (sel, ms) => { const bb = await p.locator(sel).boundingBox(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.mouse.down(); await p.waitForTimeout(ms); await p.mouse.up(); };
     await p.goto(`http://localhost:${PORT}/`); await p.waitForSelector('#addr'); ok(true, 'map landing with station pin'); ok((await p.locator('.station').count()) === 1, 'station pinned');
     // add three stops by typing
-    for (const q of ['Placeholder', 'Moraga', 'Alvarado']) { await p.fill('#addr', q); await p.waitForSelector('#sugg div'); await p.keyboard.press('Enter'); await p.waitForTimeout(150); }
+    for (const q of ['Placeholder', 'Moraga', 'Alvarado']) { await p.fill('#addr', q); await p.waitForSelector('#sugg [data-i]'); await p.keyboard.press('Enter'); await p.waitForTimeout(150); }
     ok((await p.locator('[data-pin]').count()) === 3 && (await p.locator('.srow').count()) === 3, 'three addresses → three pins and three rows');
-    await p.fill('#addr', 'Moraga'); await p.waitForSelector('#sugg div'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); ok((await p.locator('.srow').count()) === 3, 'duplicate address does not add a pin');
-    await p.click('#best'); await p.waitForTimeout(1700); ok(/Moraga|Placeholder/.test(await p.locator('.srow >> nth=0 >> .t').textContent()), 'best route reorders');
+    await p.fill('#addr', 'Moraga'); await p.waitForSelector('#sugg [data-i]'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); ok((await p.locator('.srow').count()) === 3, 'duplicate address does not add a pin');
+    // real routing: OSRM times each leg, so wait for the numbers rather than a fixed delay
+    await p.waitForSelector('.srow .leg', { timeout: 30000 }); ok((await p.locator('.srow .leg').count()) === 3, 'every leg carries a real driving time and distance');
+    ok(/\d/.test(await p.locator('#rstat').textContent()), 'the total drive for the day is reported');
+    const typedOrder = await p.locator('.srow .t').allTextContents();
+    await p.click('#best'); await p.waitForSelector('.rstat .good', { timeout: 60000 });
+    ok(/all 6 orders/i.test(await p.locator('.rstat .good').textContent()), 'best route reports trying every ordering');
+    const bestOrder = await p.locator('.srow .t').allTextContents();
+    ok(bestOrder.length === 3 && bestOrder.slice().sort().join() === typedOrder.slice().sort().join(), 'best route reorders the same three stops');
+    ok((await p.evaluate(() => S.route.duration <= S.best.baseline + 1)), 'the chosen order is no slower than the one typed');
+    ok((await p.evaluate(() => GEO.lookups.count() >= 3)), 'each address added is saved as a site lookup');
     // reorder by press-and-hold drag: move row 3 to top
     const r3 = await p.locator('.srow >> nth=2').boundingBox(); const r1 = await p.locator('.srow >> nth=0').boundingBox(); const before = await p.locator('.srow >> nth=2 >> .t').textContent(); await p.mouse.move(r3.x + 14, r3.y + 20); await p.mouse.down(); await p.waitForTimeout(120); ok((await p.locator('.srow.ghost').count()) === 1, 'row lifts immediately from the handle'); await p.mouse.move(r3.x + 14, r1.y + 8, { steps: 10 }); await p.waitForTimeout(150); await p.mouse.up(); await p.waitForTimeout(400); ok((await p.locator('.srow >> nth=0 >> .t').textContent()) === before, 'dragged row lands first and the route updates');
     // sheet detents

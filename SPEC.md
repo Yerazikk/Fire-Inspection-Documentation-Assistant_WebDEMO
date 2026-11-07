@@ -22,12 +22,14 @@ Generated from `spec.js`. The app implements exactly these screens and affordanc
 
 ## Map (landing) (`map`)
 
-Plan and run the day: the station, today’s stops, their order, and what is done.
+Plan and run the day: HQ, today’s stops, their order on real roads, and what is done.
 
 | Control | Gesture | Result |
 |---|---|---|
-| ☰ (top-left) | tap | Opens the menu: previous inspections, profile, settings. |
-| Address field | type | Typeahead over known addresses; Enter or tapping a suggestion adds the stop. A pin drops on the map and a row appears in the sheet. |
+| ☰ (top-left) | tap | Opens the menu: previous inspections, saved site lookups, profile, settings. |
+| Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
+| Address field | focus when empty | Lists recent site lookups — every address ever added to a day, kept on the device. |
+| Address field | Enter with nothing highlighted | Geocodes whatever was typed and adds the first match. |
 | Map pin | tap | Highlights the stop row in the sheet and scrolls to it. |
 | Sheet handle | drag or tap | Three detents: peek, half, full (Apple Maps style). |
 | Stop row | tap | Opens the Location home for that stop. |
@@ -35,13 +37,19 @@ Plan and run the day: the station, today’s stops, their order, and what is don
 | Stop row ≡ handle | drag | Lifts the row instantly and follows the finger; other rows slide out of the way; the route redraws on drop. |
 | Stop row | press-and-hold anywhere, then drag | Same lift after a short hold. |
 | Stop row ✕ | tap | Removes the stop (asks first if it already has entries). |
-| Best route ✦ | tap | AI proposes an order; rows and the route animate into it. Manual reorder still works afterwards. |
+| Best route ✦ | tap | Times every pair of points on the road network, drives every ordering of today’s stops from HQ, and keeps the fastest. The panel reports each stage and the running count; rows and the route animate into the winning order. Manual reorder still works afterwards. |
+| ◎ (top-right) | tap | Fits the map back around HQ and the whole route. |
 
 Edge cases
 
 - Completed stops show a green check and a struck-through address; they can still be opened and edited.
 - Adding a duplicate address flashes the existing row instead of adding a pin.
 - With no stops, the sheet shows a hint and the route button is disabled.
+- Every leg carries its real driving time and distance; the readout above the rows gives the day’s total.
+- Up to eight stops, every ordering is driven one by one; from nine to fourteen the same exact answer is reached over subsets; beyond that the search says it is no longer exact.
+- Reordering by hand or removing a stop re-times the day and retires the previous result.
+- When OpenStreetMap has the street but not the house number, the number typed is kept and the row says it is pinned on the street.
+- If the road network cannot be reached the readout says so and offers Retry; pins and rows still work.
 
 ## Menu (`menu`)
 
@@ -50,9 +58,14 @@ Everything that is not today’s route.
 | Control | Gesture | Result |
 |---|---|---|
 | Previous inspections | tap | Opens the Days screen. |
+| Saved site lookups | tap | Lists every address ever added to a day, with how often and how recently it was looked up. Tapping one puts it on today’s route; ✕ forgets it; Forget all clears the device. |
 | Profile | tap | Shows inspector name, badge, unit, contact. |
-| Settings | tap | Jurisdiction, correction window, notice defaults (read-only in the demo). |
+| Settings | tap | Jurisdiction, correction window, notice defaults, the HQ every route starts from (read-only in the demo). |
 | Scrim | tap | Closes the menu. |
+
+Edge cases
+
+- Lookups are kept on the device and survive a reload or a demo reset.
 
 ## Previous inspections (`days`)
 

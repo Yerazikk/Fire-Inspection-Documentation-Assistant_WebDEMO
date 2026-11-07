@@ -14,6 +14,7 @@ function img(src, ph) { return `<img src="${src}" onerror="this.style.display='n
 
 // ---------------- state ----------------
 const fresh = () => ({ screen: 'map', stack: [], stops: [], done: new Set(), sel: null, sheet: 'half', entries: {}, ver: {}, cur: null, tab: 'today', snapshot: null,
+  route: null, best: null, plan: null, routing: false,
   draft: null, rec: null, recDirty: false, deck: null, report: {}, notice: {}, wobble: false, posIdx: 0, menu: false, days: { q: '', cal: false } });
 let S = fresh();
 const POS = [[58, 46], [30, 40], [62, 30], [44, 64], [70, 58]];
@@ -32,20 +33,176 @@ function frame(title, sub, body, bottom, opts = {}) { return `<div class="sb"><s
 <div class="view" id="view">${body}</div>${bottom ? `<div class="bottom">${bottom}</div>` : ''}`; }
 
 // ---------------- map ----------------
-function mapSVG() { const st = CONFIG.station; const pts = [[st.x, st.y], ...S.stops.map(id => { const a = addrOf(id); return [a.x, a.y]; })];
+// The day plan runs on real data: addresses are geocoded, the legs between them
+// are real drives on the road network, and "best route" tries every ordering of
+// today's stops from HQ and keeps the fastest. See geo.js.
+const setKey = ids => ids.slice().sort().join('|');
+const ptOf = p => ({ lat: p.lat, lon: p.lon });
+const relDay = iso => { const d = iso.slice(0, 10); return d === todayISO() ? 'today' : d === dateISO(-1) ? 'yesterday' : fmtDate(d); };
+const dateISO = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+
+// A geocoded address gets a stable id from its OSM key, so a lookup saved last
+// week still points at the same property after a reload.
+const keyHash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h).toString(36); };
+const samePlace = (a, b) => Math.abs(a.lat - b.lat) < 1e-4 && Math.abs(a.lon - b.lon) < 1e-4;
+function registerAddress(r) {
+  const hit = ADDRESSES.find(a => (r.osm && a.osm && a.osm === r.osm) || samePlace(a, r));
+  if (hit) return hit.id;
+  const a = placeXY({ id: 'g' + keyHash(r.osm || r.lat.toFixed(5) + ',' + r.lon.toFixed(5)), addr: r.addr, where: r.where || '',
+    lat: r.lat, lon: r.lon, osm: r.osm || '', source: r.source || 'geocoded', approx: !!r.approx, owner: { name: 'Owner of record', email: '' } });
+  ADDRESSES.push(a); return a.id;
+}
+// Past site lookups come back out of localStorage and into the typeahead.
+function restoreLookups() {
+  GEO.lookups.all().forEach(l => {
+    if (!isFinite(l.lat) || !isFinite(l.lon) || ADDRESSES.some(a => a.id === l.id)) return;
+    ADDRESSES.push(placeXY({ id: l.id, addr: l.addr, where: l.where || '', lat: l.lat, lon: l.lon, osm: l.osm || '',
+      source: l.source || 'geocoded', owner: { name: 'Owner of record', email: '' } }));
+  });
+}
+const atStreet = 'house number not in OpenStreetMap — pinned on the street';
+const lookupSub = l => `${l.where ? l.where + ' · ' : ''}looked up ${l.count}× · last ${relDay(l.last)}${(addrOf(l.id) || {}).approx ? ' · street-level' : ''}`;
+const localSub = a => S.stops.includes(a.id) ? 'already on today’s route'
+  : (HISTORY[a.id] || []).length ? 'last inspected ' + fmtDate(HISTORY[a.id][0].date)
+  : GEO.lookups.get(a.id) ? 'saved lookup · ' + (a.where || 'no inspections on file')
+  : (a.where ? a.where + ' · never inspected' : 'never inspected');
+const approxNote = id => (addrOf(id) || {}).approx ? ` · ${atStreet}` : '';
+
+// ---- what OSRM says about the order on screen ----
+let routeToken = 0, rowDragging = false;
+async function syncRoute(force) {
+  const ids = S.stops.slice(), tk = ++routeToken;
+  if (!ids.length) { S.route = null; paintRoute(); return; }
+  if (S.route && S.route.ids.join() === ids.join() && !force) { paintRoute(); return; }
+  S.route = { ids, pending: true, error: null, line: S.route && S.route.line, duration: 0, distance: 0, legs: [] };
+  paintRoute();
+  let next;
+  try {
+    const r = await GEO.road([CONFIG.station, ...ids.map(addrOf)].map(ptOf));
+    next = { ids, pending: false, error: null, line: r.line, duration: r.duration, distance: r.distance, legs: r.legs };
+  } catch (e) {
+    next = { ids, pending: false, error: e.message, line: null, duration: 0, distance: 0, legs: [] };
+  }
+  if (tk !== routeToken) return;
+  S.route = next; paintRoute();
+}
+
+function routeStat() {
+  const r = S.route;
+  if (!S.stops.length) return '';   // the HQ line above and the hint below already say it
+  if (!r || r.pending) return `<span class="dim">Timing the drive on real roads…</span>`;
+  if (r.error) return `<span class="warn">Road network unreachable</span> <span class="dim">${esc(r.error)}</span><button class="mini" id="retry">Retry</button>`;
+  const head = `<b>${GEO.fmtTime(r.duration)}</b> driving · ${GEO.fmtDist(r.distance)} · from ${esc(CONFIG.station.name)}`;
+  const b = S.best;
+  if (!b) return head;
+  if (b.order.join() !== S.stops.join()) return head + `<br><span class="dim">Fastest order found was ${GEO.fmtTime(b.cost)} — tap ✦ to put it back.</span>`;
+  const saved = b.baseline - b.cost;
+  const how = b.method === 'exhaustive' ? `Fastest of all ${GEO.fmtNum(b.total)} orders` : b.method === 'exact' ? `Fastest of all ${GEO.fmtNum(b.total)} orders (exact)` : `Best of ${GEO.fmtNum(b.tried)} orders tried`;
+  return head + `<br><span class="good">${how}${saved > 45 ? ' · ' + GEO.fmtTime(saved) + ' faster than the order you typed' : ''}</span>`;
+}
+function planHTML() {
+  if (!S.plan || !S.plan.length) return '';
+  return `<div class="plan">${S.plan.map(l => `<div class="pl ${l.state}"><span>${l.state === 'go' ? '⟳' : l.state === 'bad' ? '✕' : '✓'}</span><div>${l.txt}</div></div>`).join('')}</div>`;
+}
+
+// ---- the map canvas: Leaflet over OSM tiles, with the stylised map as fallback ----
+let LWRAP = null, LMAP = null, LART = null, lastFit = '';
+function mountMap() {
+  const host = $('#map'); if (!host) return;
+  if (!window.L) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); return; }
+  if (!LWRAP) {
+    LWRAP = document.createElement('div'); LWRAP.className = 'lmap'; host.appendChild(LWRAP);
+    LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: .25, inertia: false });
+    // Standard OSM raster, darkened in CSS (.leaflet-tile-pane) to sit under the
+    // dark UI. Keyless, and detailed enough to read the street the route turns on.
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(LMAP);
+    // Top-right: the sheet covers the bottom of the map, and the attribution
+    // has to stay visible.
+    L.control.attribution({ prefix: false, position: 'topright' }).addAttribution('© OpenStreetMap · roads and times via OSRM').addTo(LMAP);
+    LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 12.5);
+    LART = L.layerGroup().addTo(LMAP);
+  } else if (LWRAP.parentElement !== host) host.appendChild(LWRAP);
+  LMAP.invalidateSize();
+  paintMap();
+}
+function paintMap() {
+  if (S.screen !== 'map') return;
+  if (!LMAP) { const host = $('#map'); if (host) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); } return; }
+  LART.clearLayers();
+  const st = CONFIG.station, r = S.route;
+  if (r && r.line) {                       // the actual roads, as driven
+    L.polyline(r.line, { color: '#061019', weight: 9, opacity: .85, lineCap: 'round', lineJoin: 'round' }).addTo(LART);
+    L.polyline(r.line, { color: '#35e0ff', weight: 4, opacity: .95, lineCap: 'round', lineJoin: 'round' }).addTo(LART);
+  } else if (S.stops.length) {             // waiting on OSRM: straight hint lines
+    L.polyline([[st.lat, st.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })],
+      { color: '#35e0ff', weight: 2, opacity: .4, dashArray: '5 7' }).addTo(LART);
+  }
+  const mk = (lat, lon, cls, txt, title) => L.marker([lat, lon], { icon: L.divIcon({ className: 'lpin ' + cls, html: `<i></i><b>${txt}</b>`, iconSize: [34, 34], iconAnchor: [17, 17] }), keyboard: false, title, riseOnHover: true }).addTo(LART);
+  mk(st.lat, st.lon, 'station', 'HQ', st.name + ' · ' + st.addr);
+  S.stops.forEach((id, i) => {
+    const a = addrOf(id), done = S.done.has(id);
+    const m = mk(a.lat, a.lon, (done ? 'done ' : '') + (S.sel === id ? 'sel' : ''), done ? '✓' : i + 1, a.addr);
+    m.on('click', () => selectStop(id));
+    const el = m.getElement(); if (el) el.setAttribute('data-pin', id);
+  });
+  fitMap();
+}
+function fitMap(force) {
+  if (!LMAP) return;
+  const key = S.stops.join('|') + '#' + (S.route && S.route.line ? S.route.line.length : 0);
+  if (key === lastFit && !force) return;
+  lastFit = key;
+  if (!S.stops.length) { LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 13, { animate: true }); return; }
+  const pts = [[CONFIG.station.lat, CONFIG.station.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })];
+  const sheet = $('#sheet'), sh = sheet ? sheet.offsetHeight : 320;
+  LMAP.fitBounds(L.latLngBounds(S.route && S.route.line ? S.route.line.concat(pts) : pts),
+    { paddingTopLeft: [44, 110], paddingBottomRight: [44, sh + 20], maxZoom: 16, animate: true });
+}
+function paintRoute() {
+  if (S.screen !== 'map') return;
+  if (S.best && S.best.set !== setKey(S.stops)) S.best = null;
+  const meta = $('#rmeta'), stat = $('#rstat'), rows = $('#rows');
+  if (meta) meta.textContent = S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr;
+  if (stat) { stat.innerHTML = routeStat(); const rt = $('#retry'); if (rt) rt.onclick = () => syncRoute(true); }
+  if (rows && !rowDragging) { rows.innerHTML = stopRows(); wireRows(); }
+  paintMap();
+}
+
+// Fallback map, used only when Leaflet or the tiles cannot load. The route is
+// the real road geometry, projected into the stylised 0–100 space.
+function mapSVG() {
+  const st = CONFIG.station;
+  const proj = (lat, lon) => { const p = toMapXY(lat, lon); return p.x.toFixed(2) + ',' + p.y.toFixed(2); };
+  const line = S.route && S.route.line ? S.route.line.map(p => proj(p[0], p[1])).join(' ')
+    : [st, ...S.stops.map(addrOf)].map(a => a.x.toFixed(2) + ',' + a.y.toFixed(2)).join(' ');
   const streets = ['M-20 20 L130 14', 'M-20 48 L130 42', 'M-20 76 L130 70', 'M-20 -10 L130 -18', 'M-20 108 L130 100', 'M-20 136 L130 130', 'M18 -60 L24 180', 'M46 -60 L52 180', 'M74 -60 L80 180', 'M-10 -60 L-4 180', 'M102 -60 L108 180', 'M-20 60 Q 50 66 130 58'];
-  return `<svg viewBox="-6 -40 112 186" preserveAspectRatio="xMidYMid slice"><rect x="-20" y="-60" width="160" height="240" fill="#0d1420"/><path d="M60 78 Q70 70 84 84 L84 100 L60 100Z" fill="#142a22"/><path d="M0 0 L22 0 L18 18 L0 20Z" fill="#132233"/>
-  ${streets.map(d => `<path d="${d}" stroke="#1b2636" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="${d}" stroke="#2a3850" stroke-width=".4" fill="none"/>`).join('')}
-  ${pts.length > 1 ? `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--cyan)" stroke-width=".9" stroke-dasharray="1.8 1.4" stroke-linejoin="round" opacity=".9"/>` : ''}
+  return `<svg viewBox="-6 -40 112 186" preserveAspectRatio="xMidYMid slice"><rect x="-20" y="-60" width="160" height="240" fill="#0d1420"/>
+  ${streets.map(d => `<path d="${d}" stroke="#161f2d" stroke-width="2.6" fill="none" stroke-linecap="round"/>`).join('')}
+  ${S.stops.length ? `<polyline points="${line}" fill="none" stroke="var(--cyan)" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>` : ''}
   <g class="station"><circle cx="${st.x}" cy="${st.y}" r="4" fill="rgba(255,182,72,.18)"/><circle cx="${st.x}" cy="${st.y}" r="2" fill="#ffb648"/><text x="${st.x}" y="${st.y + 6.5}" font-size="2.6" fill="#ffd79a" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="600">${esc(st.name)}</text></g>
   ${S.stops.map((id, i) => { const a = addrOf(id); const done = S.done.has(id); return `<g class="pin ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-pin="${id}" style="cursor:pointer"><circle class="halo" cx="${a.x}" cy="${a.y}" r="4.4"/><circle class="body" cx="${a.x}" cy="${a.y}" r="2.7" fill="${done ? '#1f6f49' : '#35e0ff'}" stroke="#0b0f17" stroke-width=".6"/><text x="${a.x}" y="${a.y + .95}" font-size="2.6" font-weight="700" fill="${done ? '#b9f5cf' : '#06101a'}" text-anchor="middle" font-family="-apple-system,sans-serif">${done ? '✓' : i + 1}</text></g>`; }).join('')}
-  </svg>`; }
-function stopRows() { if (!S.stops.length) return `<div class="hint">Type the addresses you are visiting today. They appear as pins and in this list, in the order you will drive them.</div>`;
-  return S.stops.map((id, i) => { const a = addrOf(id); const n = entriesOf(id).length; const done = S.done.has(id); return `<div class="srow ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-id="${id}"><span class="grip">≡</span><span class="num">${done ? '✓' : i + 1}</span><div><div class="t">${esc(a.addr)}</div><div class="s">${done ? 'Completed · ' + n + ' entr' + (n === 1 ? 'y' : 'ies') : n ? n + ' entr' + (n === 1 ? 'y' : 'ies') + ' so far' : 'Not started'}</div></div><button class="x nav" data-nav title="Navigate in Apple Maps">➚</button><button class="x" data-x="${id}" title="Remove stop">✕</button></div>`; }).join(''); }
+  </svg>`;
+}
+function selectStop(id) { S.sel = id; if (S.sheet === 'peek') S.sheet = 'half'; render(); later(() => { const r = $('#sheet .srow.sel'); r && r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60); }
+function wirePins() { $$('[data-pin]').forEach(p => p.onclick = () => selectStop(p.dataset.pin)); }
+
+function stopRows() {
+  if (!S.stops.length) return `<div class="hint">Type the addresses you are visiting today. They are geocoded, pinned, and timed as real drives from ${esc(CONFIG.station.name)}.</div>`;
+  const r = S.route;
+  const legs = (r && !r.pending && !r.error && r.ids.join() === S.stops.join()) ? r.legs : null;
+  return S.stops.map((id, i) => {
+    const a = addrOf(id), n = entriesOf(id).length, done = S.done.has(id);
+    const from = i === 0 ? CONFIG.station.name : addrOf(S.stops[i - 1]).addr;
+    const leg = legs && legs[i] ? `↳ ${GEO.fmtTime(legs[i].duration)} · ${GEO.fmtDist(legs[i].distance)} from ${esc(from)}` : '';
+    const state = (done ? 'Completed · ' + n + ' entr' + (n === 1 ? 'y' : 'ies') : n ? n + ' entr' + (n === 1 ? 'y' : 'ies') + ' so far' : 'Not started') + approxNote(id);
+    return `<div class="srow ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-id="${id}"><span class="grip">≡</span><span class="num">${done ? '✓' : i + 1}</span><div><div class="t">${esc(a.addr)}</div><div class="s">${state}</div>${leg ? `<div class="leg">${leg}</div>` : ''}</div><button class="x nav" data-nav title="Navigate in Apple Maps">➚</button><button class="x" data-x="${id}" title="Remove stop">✕</button></div>`;
+  }).join('');
+}
 VIEWS = {
-  map: () => `<div class="mapwrap" id="map">${mapSVG()}</div><div class="mtop"><div class="ib" id="menu">☰</div><div class="ib" id="recenter" title="Center on station">◎</div></div>
+  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="ib" id="recenter" title="Fit the route">◎</div></div>
   <div class="sheet ${S.sheet}" id="sheet"><div class="handle" id="handle"><i></i></div><div class="sbody"><div class="addr"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic">⌕</span><div class="sugg" id="sugg" style="display:none"></div></div>
-  <div class="routebar"><span class="meta" id="rmeta">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr}</span><button class="btn" id="best" style="width:auto;padding:12px 16px" ${S.stops.length < 2 ? 'disabled' : ''}>✦ Best route</button></div>
+  <div class="routebar"><span class="meta" id="rmeta">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr}</span><button class="btn" id="best" style="width:auto;padding:12px 16px" ${S.stops.length < 2 || S.routing ? 'disabled' : ''}>${S.routing ? '✦ Finding…' : '✦ Best route'}</button></div>
+  <div class="rstat" id="rstat">${routeStat()}</div><div id="plan">${planHTML()}</div>
   <div id="rows">${stopRows()}</div></div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
@@ -60,42 +217,176 @@ VIEWS = {
   kb: () => kbView(),
 };
 AFTER = {
-  map() { const inp = $('#addr'), sg = $('#sugg'); let hl = 0, list = [];
-    const show = () => { const q = inp.value.trim().toLowerCase(); list = q ? ADDRESSES.filter(a => a.addr.toLowerCase().includes(q)) : []; sg.style.display = list.length ? 'block' : 'none'; sg.innerHTML = list.map((a, i) => `<div class="${i === hl ? 'hl' : ''}" data-add="${a.id}">${esc(a.addr)}<small>${S.stops.includes(a.id) ? 'already on today’s route' : (HISTORY[a.id] || []).length ? 'last inspected ' + fmtDate(HISTORY[a.id][0].date) : 'never inspected'}</small></div>`).join(''); sg.querySelectorAll('[data-add]').forEach(d => d.onpointerdown = e => { e.preventDefault(); addStop(d.dataset.add); }); };
-    inp.oninput = () => { hl = 0; show(); }; inp.onkeydown = e => { if (e.key === 'ArrowDown') { hl = Math.min(hl + 1, list.length - 1); show(); } if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); show(); } if (e.key === 'Enter' && list[hl]) addStop(list[hl].id); if (e.key === 'Escape') { sg.style.display = 'none'; } }; inp.onblur = () => later(() => sg.style.display = 'none', 150);
-    const addStop = id => { if (S.stops.includes(id)) { S.sel = id; inp.value = ''; sg.style.display = 'none'; render(); later(() => $('#sheet .srow.sel') && $('#sheet .srow.sel').scrollIntoView({ block: 'center' }), 50); toast('Already on the route'); return; } S.stops.push(id); S.sel = null; inp.value = ''; sg.style.display = 'none'; if (S.sheet === 'peek') S.sheet = 'half'; render(); $('#addr').focus(); };
-    $('#menu').onclick = () => openMenu(); $('#recenter').onclick = () => toast('Centered on ' + CONFIG.station.name);
-    $$('[data-pin]').forEach(p => p.onclick = () => { S.sel = p.dataset.pin; if (S.sheet === 'peek') S.sheet = 'half'; render(); later(() => { const r = $('#sheet .srow.sel'); r && r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60); });
+  map() {
+    mountMap();
+    const inp = $('#addr'), sg = $('#sugg'); const near = [CONFIG.station.lat, CONFIG.station.lon];
+    let hl = 0, items = [], remote = [], remoteFor = null, searching = false, debT = null, qTok = 0;
+
+    const addStop = id => {
+      const a = addrOf(id); GEO.lookups.record(a);
+      inp.value = ''; sg.style.display = 'none';
+      if (S.stops.includes(id)) { S.sel = id; render(); later(() => { const r = $('#sheet .srow.sel'); r && r.scrollIntoView({ block: 'center' }); }, 50); return; }
+      S.stops.push(id); S.sel = null;
+      if (S.sheet === 'peek') S.sheet = 'half';
+      render(); $('#addr').focus();
+    };
+    const choose = it => { if (!it) return; addStop(it.kind === 'remote' ? registerAddress(it.r) : it.id); };
+
+    const build = () => {
+      const q = inp.value.trim(), lq = q.toLowerCase();
+      if (!q) { items = GEO.lookups.all().slice(0, 6).filter(l => addrOf(l.id)).map(l => ({ kind: 'local', id: l.id, addr: l.addr, sub: lookupSub(l) })); return { head: items.length ? 'Recent site lookups' : '' }; }
+      const local = ADDRESSES.filter(a => (a.addr + ' ' + (a.where || '')).toLowerCase().includes(lq)).map(a => ({ kind: 'local', id: a.id, addr: a.addr, sub: localSub(a) }));
+      const rem = (remoteFor === lq ? remote : []).filter(r => !local.some(it => samePlace(addrOf(it.id), r)))
+        .map(r => ({ kind: 'remote', r, addr: r.addr, sub: r.approx ? (r.where ? r.where + ' · ' : '') + atStreet : (r.where || 'OpenStreetMap') }));
+      items = local.concat(rem);
+      return { loading: q.length >= 3 && remoteFor !== lq };
+    };
+    const show = () => {
+      const st = build();
+      if (hl >= items.length) hl = Math.max(0, items.length - 1);
+      const head = st.head ? `<div class="sgh">${esc(st.head)}</div>` : '';
+      const extra = st.loading ? `<div class="searching">${searching ? 'Searching OpenStreetMap…' : 'Keep typing — addresses are looked up for real.'}</div>` : '';
+      sg.innerHTML = head + items.map((it, i) => `<div class="${i === hl ? 'hl' : ''}" data-i="${i}">${esc(it.addr)}<small>${esc(it.sub)}</small></div>`).join('') + extra;
+      sg.style.display = (items.length || extra) ? 'block' : 'none';
+      sg.querySelectorAll('[data-i]').forEach(d => d.onpointerdown = e => { e.preventDefault(); choose(items[+d.dataset.i]); });
+    };
+    const lookup = () => {
+      const q = inp.value.trim().toLowerCase(); clearTimeout(debT);
+      if (q.length < 3 || q === remoteFor) { searching = false; return; }
+      searching = true;
+      debT = later(async () => {
+        const tok = ++qTok; const res = await GEO.suggest(q, near);
+        if (tok !== qTok || inp.value.trim().toLowerCase() !== q) return;
+        remote = res; remoteFor = q; searching = false; show();
+      }, 340);
+    };
+    const enter = async () => {
+      if (items[hl]) return choose(items[hl]);
+      const q = inp.value.trim(); if (q.length < 4) return;
+      sg.innerHTML = `<div class="searching">Looking up “${esc(q)}”…</div>`; sg.style.display = 'block';
+      const r = await GEO.geocode(q, near);
+      if (inp.value.trim() !== q) return;
+      if (!r) { sg.innerHTML = `<div class="searching">No address found for “${esc(q)}”.</div>`; return; }
+      choose({ kind: 'remote', r });
+    };
+    inp.oninput = () => { hl = 0; lookup(); show(); };
+    inp.onfocus = () => show();
+    inp.onkeydown = e => {
+      if (e.key === 'ArrowDown') { hl = Math.min(hl + 1, items.length - 1); show(); }
+      if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); show(); }
+      if (e.key === 'Enter') { e.preventDefault(); enter(); }
+      if (e.key === 'Escape') sg.style.display = 'none';
+    };
+    inp.onblur = () => later(() => sg.style.display = 'none', 150);
+
+    $('#menu').onclick = () => openMenu();
+    $('#recenter').onclick = () => fitMap(true);
+    const rt = $('#retry'); if (rt) rt.onclick = () => syncRoute(true);
     // sheet detents
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
-    handle.onclick = () => { if (moved) return; S.sheet = order[(order.indexOf(S.sheet) + 1) % 3]; sheet.className = 'sheet ' + S.sheet; };
+    handle.onclick = () => { if (moved) return; S.sheet = order[(order.indexOf(S.sheet) + 1) % 3]; sheet.className = 'sheet ' + S.sheet; later(() => fitMap(true), 480); };
     handle.onpointerdown = e => { sy = e.clientY; sh = sheet.offsetHeight; moved = false; handle.setPointerCapture(e.pointerId); sheet.classList.add('drag'); };
     handle.onpointermove = e => { if (!sheet.classList.contains('drag')) return; const dy = sy - e.clientY; if (Math.abs(dy) > 4) moved = true; sheet.style.height = Math.max(120, Math.min(sheet.parentElement.offsetHeight * .9, sh + dy)) + 'px'; };
     handle.onpointerup = handle.onpointercancel = e => { if (!sheet.classList.contains('drag')) return; sheet.classList.remove('drag'); const h = sheet.offsetHeight / sheet.parentElement.offsetHeight; S.sheet = h < .3 ? 'peek' : h < .68 ? 'half' : 'full'; sheet.style.height = ''; sheet.className = 'sheet ' + S.sheet; later(() => moved = false, 50); };
-    wireRows(); $('#best').onclick = bestRoute; },
+    wireRows(); $('#best').onclick = bestRoute;
+    syncRoute();
+  },
   days() { const q = $('#dq'); q.oninput = () => { S.days.q = q.value; const pos = q.selectionStart; render(); const q2 = $('#dq'); q2.focus(); q2.setSelectionRange(pos, pos); };
     $$('[data-loc]').forEach(c => c.onclick = () => { const id = c.dataset.loc, date = c.dataset.date; S.cur = id; if (date === todayISO()) { S.snapshot = null; S.tab = 'today'; } else { const h = (HISTORY[id] || []).find(x => x.date === date); S.snapshot = h ? { date: h.date, entries: h.entries, outcome: h.outcome } : null; S.tab = 'today'; } go('location'); });
     $('#calbtn').onclick = () => { const have = new Set([todayISO(), ...DAYS.map(d => d.date)]); const first = new Date(2026, 10, 1); const dow = first.getDay(); const cells = []; for (let i = 0; i < dow; i++) cells.push('<span></span>'); for (let d = 1; d <= 30; d++) { const iso = `2026-11-${String(d).padStart(2, '0')}`; cells.push(`<span class="${have.has(iso) ? 'has' : ''} ${iso === todayISO() ? 'today' : ''}" data-day="${iso}">${d}</span>`); }
       const el = document.createElement('div'); el.className = 'cal'; el.innerHTML = `<div class="calbox"><h5><span>November 2026</span><span style="color:var(--faint);font-weight:500">October ‹ ›</span></h5><div class="calgrid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => `<span style="color:var(--faint)">${d}</span>`).join('')}${cells.join('')}</div><div style="font-size:12px;color:var(--faint);margin-top:10px">Highlighted days have inspections. October dates are listed below the November ones.</div></div>`; $('#app').appendChild(el); el.onclick = e => { if (e.target === el) el.remove(); }; el.querySelectorAll('.has').forEach(s => s.onclick = () => { el.remove(); const sec = $('#day-' + s.dataset.day); if (sec) sec.scrollIntoView({ block: 'start', behavior: 'smooth' }); else toast('That day is further down'); }); }; },
   location() { locationAfter(); }, camera() { cameraAfter(); }, record() { recordAfter(); }, deck() { deckAfter(); }, report() { reportAfter(); }, notice() { noticeAfter(); }, kb() { kbAfter(); },
 };
-function wireRows() { const rows = $('#rows'); const HOLD = 180;
+function wireRows() { const rows = $('#rows'); if (!rows) return; const HOLD = 180;
   rows.querySelectorAll('.srow').forEach(row => { const id = row.dataset.id;
     let holdT = null, lifted = false, sx = 0, sy = 0, offY = 0, ghost = null, order = null, moved = false;
-    const lift = e => { lifted = true; moved = true; const r = row.getBoundingClientRect(); offY = e.clientY - r.top; order = [...rows.querySelectorAll('.srow')]; row.classList.add('placeholder'); ghost = row.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('placeholder', 'open', 'sel'); ghost.style.width = r.width + 'px'; ghost.style.left = r.left + 'px'; ghost.style.top = r.top + 'px'; document.body.appendChild(ghost); requestAnimationFrame(() => ghost.classList.add('up')); if (navigator.vibrate) navigator.vibrate(10); document.addEventListener('pointermove', move); document.addEventListener('pointerup', drop); document.addEventListener('pointercancel', drop); };
+    const lift = e => { lifted = true; moved = true; rowDragging = true; const r = row.getBoundingClientRect(); offY = e.clientY - r.top; order = [...rows.querySelectorAll('.srow')]; row.classList.add('placeholder'); ghost = row.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('placeholder', 'open', 'sel'); ghost.style.width = r.width + 'px'; ghost.style.left = r.left + 'px'; ghost.style.top = r.top + 'px'; document.body.appendChild(ghost); requestAnimationFrame(() => ghost.classList.add('up')); if (navigator.vibrate) navigator.vibrate(10); document.addEventListener('pointermove', move); document.addEventListener('pointerup', drop); document.addEventListener('pointercancel', drop); };
     const move = e => { if (!lifted) return; const y = e.clientY - offY; ghost.style.top = y + 'px'; const mid = e.clientY; const others = order.filter(r => r !== row); for (const o of others) { const r = o.getBoundingClientRect(); if (mid < r.top + r.height / 2 && o.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING) { flip(() => rows.insertBefore(row, o)); break; } if (mid > r.top + r.height / 2 && o.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_PRECEDING) { flip(() => rows.insertBefore(row, o.nextSibling)); break; } } };
     const flip = fn => { const all = [...rows.querySelectorAll('.srow')]; const first = new Map(all.map(r => [r, r.getBoundingClientRect().top])); fn(); all.forEach(r => { if (r === row) return; const d = first.get(r) - r.getBoundingClientRect().top; if (!d) return; r.style.transition = 'none'; r.style.transform = 'translateY(' + d + 'px)'; requestAnimationFrame(() => { r.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; r.style.transform = ''; }); }); };
-    const drop = () => { if (!lifted) return; lifted = false; document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', drop); document.removeEventListener('pointercancel', drop); const r = row.getBoundingClientRect(); ghost.style.transition = 'top .18s cubic-bezier(.2,.8,.2,1),left .18s,transform .18s,box-shadow .18s'; ghost.style.top = r.top + 'px'; ghost.classList.remove('up'); setTimeout(() => { ghost.remove(); row.classList.remove('placeholder'); const next = [...rows.querySelectorAll('.srow')].map(x => x.dataset.id); const changed = next.join() !== S.stops.join(); S.stops = next; render(); if (changed) toast('Route updated'); }, 190); };
+    const drop = () => { if (!lifted) return; lifted = false; document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', drop); document.removeEventListener('pointercancel', drop); const r = row.getBoundingClientRect(); ghost.style.transition = 'top .18s cubic-bezier(.2,.8,.2,1),left .18s,transform .18s,box-shadow .18s'; ghost.style.top = r.top + 'px'; ghost.classList.remove('up'); setTimeout(() => { ghost.remove(); row.classList.remove('placeholder'); const next = [...rows.querySelectorAll('.srow')].map(x => x.dataset.id); S.stops = next; rowDragging = false; render(); }, 190); };
     row.onpointerdown = e => { if (e.target.closest('.x')) return; sx = e.clientX; sy = e.clientY; moved = false; if (e.target.closest('.grip')) { e.preventDefault(); lift(e); return; } holdT = setTimeout(() => lift(e), HOLD); };
     row.onpointermove = e => { if (lifted) return; if (Math.abs(e.clientY - sy) > 6 || Math.abs(e.clientX - sx) > 6) { clearTimeout(holdT); } };
     row.onpointerup = row.onpointercancel = () => { clearTimeout(holdT); };
     row.onclick = e => { if (moved || e.target.closest('.x')) return; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
-    row.querySelector('.x').onclick = e => { e.stopPropagation(); const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); if (S.sel === id) S.sel = null; render(); }; if (n) confirmSheet('Remove this stop?', `${addrOf(id).addr} has ${n} entr${n === 1 ? 'y' : 'ies'} today. They stay on file; the stop just leaves today’s route.`, [{ label: 'Remove', cls: 'danger', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); };
-        const nav = row.querySelector('[data-nav]'); if (nav) nav.onclick = e => { e.stopPropagation(); confirmSheet('Navigate with Apple Maps?', addrOf(id).addr + ' · turn-by-turn opens in Maps; this app stays here.', [{ label: 'Open Maps', fn: () => {} }, { label: 'Cancel', cls: 'ghost' }]); }; }); }
-function bestRoute() { const b = $('#best'); b.disabled = true; b.textContent = 'Finding the best route…'; later(() => { S.stops = BEST_ORDER.filter(id => S.stops.includes(id)); S.sel = null; render(); toast('Route optimized: ' + S.stops.length + ' stops, shortest drive'); }, 1400); }
-function openMenu() { const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:14px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div>
-  <div class="mi" data-m="days"><span class="ic">▤</span><div>Previous inspections<small>by day, date or search</small></div></div><div class="mi" data-m="profile"><span class="ic">◉</span><div>Profile<small>${esc(CONFIG.inspector.email)}</small></div></div><div class="mi" data-m="settings"><span class="ic">⚙</span><div>Settings<small>${esc(CONFIG.localCode)} · ${CONFIG.correctionDays}-day window</small></div></div></div>`;
-  $('#app').appendChild(el); el.querySelector('.scrim').onclick = () => el.remove(); el.querySelectorAll('[data-m]').forEach(m => m.onclick = () => { el.remove(); const k = m.dataset.m; if (k === 'days') go('days'); else if (k === 'profile') confirmSheet(CONFIG.inspector.name, `${CONFIG.inspector.badge} · ${CONFIG.unit}\n${CONFIG.inspector.email} · ${CONFIG.inspector.phone}`, [{ label: 'Close', cls: 'ghost' }]); else confirmSheet('Settings', `Jurisdiction: ${CONFIG.localCode}. Correction window: ${CONFIG.correctionDays} days. Appeal window: ${CONFIG.appealDays} days. Notices post to ${CONFIG.portal}. (Read-only in the demo.)`, [{ label: 'Close', cls: 'ghost' }]); }); }
+    row.querySelector('.x[data-x]').onclick = e => { e.stopPropagation(); const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); if (S.sel === id) S.sel = null; render(); }; if (n) confirmSheet('Remove this stop?', `${addrOf(id).addr} has ${n} entr${n === 1 ? 'y' : 'ies'} today. They stay on file; the stop just leaves today’s route.`, [{ label: 'Remove', cls: 'danger', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); };
+    const nav = row.querySelector('[data-nav]'); if (nav) nav.onclick = e => { e.stopPropagation(); const a = addrOf(id); const dest = encodeURIComponent(a.addr + (a.where ? ', ' + a.where : '')); const url = `https://maps.apple.com/?saddr=${CONFIG.station.lat},${CONFIG.station.lon}&daddr=${a.lat},${a.lon}&q=${dest}&dirflg=d`;
+      confirmSheet('Navigate with Apple Maps?', a.addr + ' · turn-by-turn opens in Maps; this app stays here.', [{ label: 'Open Maps', fn: () => window.open(url, '_blank', 'noopener') }, { label: 'Cancel', cls: 'ghost' }]); }; }); }
+
+// Try every ordering of today's stops on the real road network and keep the
+// fastest one. The panel reports the real stages and the live count.
+async function bestRoute() {
+  if (S.routing || S.stops.length < 2) return;
+  const ids = S.stops.slice(), n = ids.length;
+  S.routing = true; S.plan = []; render();
+  const lines = [];
+  const draw = () => { S.plan = lines.map(l => ({ txt: l.txt, state: l.state })); const p = $('#plan'); if (p) p.innerHTML = planHTML(); };
+  const step = txt => { lines.push({ txt, state: 'go' }); draw(); return lines.length - 1; };
+  const settle = (i, txt, state) => { lines[i] = { txt, state }; draw(); };
+  const stop = () => { S.routing = false; render(); };
+  let at = -1;
+  // What the order on screen actually costs to drive, if we already know it.
+  const wasReal = (S.route && !S.route.pending && !S.route.error && S.route.ids.join() === ids.join()) ? S.route.duration : null;
+  try {
+    const pts = [CONFIG.station, ...ids.map(addrOf)].map(ptOf);
+    at = step(`Timing every pair of ${n + 1} points on the road network…`);
+    const t = await GEO.table(pts);
+    settle(at, `${GEO.fmtNum(t.pairs)} road legs timed · OSRM car profile`, 'ok');
+
+    const baseline = GEO.costOf(t.durations, ids.map((_, k) => k + 1));
+    const total = GEO.factorial(n);
+    const label = tried => `Driving all ${GEO.fmtNum(total)} orders from ${esc(CONFIG.station.name)}… <b>${GEO.fmtNum(tried)}</b>`;
+    at = step(label(0));
+    const res = await GEO.fastestOrder(t.durations, n, tried => settle(at, label(tried), 'go'));
+    settle(at, res.method === 'exhaustive' ? `All ${GEO.fmtNum(res.tried)} orders driven and timed`
+      : res.method === 'exact' ? `All ${GEO.fmtNum(res.total)} orders ranked — too many to list one by one, so solved exactly over subsets`
+      : `${GEO.fmtNum(res.tried)} orders tried — more stops than an exact answer allows`, 'ok');
+
+    const order = res.order.map(k => ids[k - 1]);
+    at = step('Fetching the winning road route…');
+    const r = await GEO.road([CONFIG.station, ...order.map(addrOf)].map(ptOf));
+    // Compare like with like: both numbers are driven routes, not matrix cells.
+    // (The matrix is what the search ranks on; it rounds turn costs differently.)
+    const saved = wasReal == null ? baseline - res.cost : wasReal - r.duration;
+    settle(at, `${GEO.fmtTime(r.duration)} · ${GEO.fmtDist(r.distance)}${saved > 45 ? ' · saves ' + GEO.fmtTime(saved) + ' on the order you typed' : ' · the order you typed was already fastest'}`, 'ok');
+
+    S.stops = order; S.sel = null;
+    S.best = { set: setKey(order), order: order.slice(), cost: r.duration, baseline: wasReal == null ? baseline : wasReal, tried: res.tried, total: res.total, method: res.method };
+    S.route = { ids: order.slice(), pending: false, error: null, line: r.line, duration: r.duration, distance: r.distance, legs: r.legs };
+    S.routing = false; render();
+    setTimeout(() => { S.plan = null; if (S.screen === 'map') render(); }, 4200);
+  } catch (e) {
+    if (at >= 0) settle(at, 'Could not reach the road network · ' + esc(e.message), 'bad');
+    else { lines.push({ txt: 'Could not reach the road network · ' + esc(e.message), state: 'bad' }); draw(); }
+    stop();
+    setTimeout(() => { S.plan = null; if (S.screen === 'map') render(); }, 6000);
+  }
+}
+
+function openMenu() { const nLook = GEO.lookups.count(); const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:14px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div>
+  <div class="mi" data-m="days"><span class="ic">▤</span><div>Previous inspections<small>by day, date or search</small></div></div><div class="mi" data-m="looks"><span class="ic">⌕</span><div>Saved site lookups<small>${nLook ? nLook + ' address' + (nLook === 1 ? '' : 'es') + ' kept on this device' : 'none yet'}</small></div></div><div class="mi" data-m="profile"><span class="ic">◉</span><div>Profile<small>${esc(CONFIG.inspector.email)}</small></div></div><div class="mi" data-m="settings"><span class="ic">⚙</span><div>Settings<small>${esc(CONFIG.localCode)} · ${CONFIG.correctionDays}-day window</small></div></div></div>`;
+  $('#app').appendChild(el); el.querySelector('.scrim').onclick = () => el.remove(); el.querySelectorAll('[data-m]').forEach(m => m.onclick = () => { el.remove(); const k = m.dataset.m; if (k === 'days') go('days'); else if (k === 'looks') lookupsSheet(); else if (k === 'profile') confirmSheet(CONFIG.inspector.name, `${CONFIG.inspector.badge} · ${CONFIG.unit}\n${CONFIG.inspector.email} · ${CONFIG.inspector.phone}`, [{ label: 'Close', cls: 'ghost' }]); else confirmSheet('Settings', `Jurisdiction: ${CONFIG.localCode}. Correction window: ${CONFIG.correctionDays} days. Appeal window: ${CONFIG.appealDays} days. Notices post to ${CONFIG.portal}. Routes start at ${CONFIG.station.name}, ${CONFIG.station.addr}. (Read-only in the demo.)`, [{ label: 'Close', cls: 'ghost' }]); }); }
+
+// Every address that has ever been added to a day, kept on the device.
+function lookupsSheet() {
+  const all = GEO.lookups.all();
+  const el = document.createElement('div'); el.className = 'cal'; el.id = 'lookbox';
+  el.innerHTML = `<div class="calbox"><h5><span>Saved site lookups</span><span style="color:var(--faint);font-weight:500">${all.length || 'none'}</span></h5>
+    <div class="looks">${all.length ? all.map(l => `<div class="look" data-look="${esc(l.id)}"><div><div class="t">${esc(l.addr)}</div><div class="s">${esc(lookupSub(l))}</div></div><button class="x" data-drop="${esc(l.id)}" title="Forget this address">✕</button></div>`).join('') : '<div class="hint">Nothing saved yet. Every address you add to a day is kept here and comes back in the search field.</div>'}</div>
+    ${all.length ? `<button class="btn ghost" id="clrLook" style="margin-top:12px">Forget all ${all.length}</button>` : ''}</div>`;
+  $('#app').appendChild(el);
+  el.onclick = e => { if (e.target === el) el.remove(); };
+  el.querySelectorAll('[data-look]').forEach(row => row.onclick = e => {
+    if (e.target.closest('[data-drop]')) return;
+    const id = row.dataset.look; el.remove();
+    if (S.screen !== 'map') go('map', { replace: true });
+    if (!S.stops.includes(id)) { S.stops.push(id); GEO.lookups.record(addrOf(id)); }
+    S.sel = id; if (S.sheet === 'peek') S.sheet = 'half'; render();
+  });
+  el.querySelectorAll('[data-drop]').forEach(b => b.onclick = e => { e.stopPropagation(); GEO.lookups.forget(b.dataset.drop); el.remove(); lookupsSheet(); });
+  const clr = el.querySelector('#clrLook');
+  if (clr) clr.onclick = () => confirmSheet('Forget every saved lookup?', `${all.length} address${all.length === 1 ? '' : 'es'} will be removed from this device. Today’s stops stay where they are.`,
+    [{ label: 'Forget all', cls: 'danger', fn: () => { GEO.lookups.clear(); el.remove(); render(); } }, { label: 'Keep', cls: 'ghost' }]);
+}
 
 // ---------------- location ----------------
 function satSVG(id, entries, mini) { const a = addrOf(id); const seed = a.x * 7 + a.y * 3; const trees = Array.from({ length: 9 }, (_, i) => [((seed * (i + 3)) % 80) + 8, ((seed * (i + 7)) % 60) + 12, 4 + (i % 3) * 2]);
@@ -265,4 +556,6 @@ $('#helpbtn').onclick = () => $('#helpbox').classList.toggle('on');
 document.addEventListener('keydown', e => { if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable) return; if (e.key === 'r' || e.key === 'R') { S = fresh(); render(); return; } if (S.screen === 'deck') { if (e.key === 'ArrowRight') swipe(true); if (e.key === 'ArrowLeft') swipe(false); } if (S.screen === 'camera' && e.key === ' ') { e.preventDefault(); const sh = $('#shutter'); if (sh && !$('#cam').classList.contains('snap')) sh.click(); } });
 setInterval(() => { const sb = document.querySelector('.sb span'); if (sb) sb.textContent = clock(); }, 15000);
 // demo seed: nothing on the route yet (the inspector types addresses); press R to reset.
+// Past site lookups come back from localStorage first, so they are in the typeahead.
+restoreLookups();
 render();
