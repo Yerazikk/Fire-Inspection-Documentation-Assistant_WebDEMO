@@ -70,8 +70,9 @@ refuses to serve `.env` or anything under `ai/` whatever the URL asks for.
 
 ### Quota
 
-One finished inspection costs **two** generate-content requests (report +
-notice), every Refresh costs another, and `npm run ai:check` spends two more.
+Every entry now costs **one** request as it is saved, and the wrap-up costs
+**two** more (report + notice). So a three-entry inspection is five requests,
+every Refresh is another, and `npm run ai:check` spends two.
 
 A Vertex AI key draws on the Cloud project's own quota and is billed per token,
 so it is not the hard wall a free key is. A free AI Studio key is capped at
@@ -81,6 +82,12 @@ does not retry, because retrying spends requests against a quota that is already
 gone.
 
 ### Choosing the model
+
+`npm run ai:check -- record` drafts the per-entry records instead of the
+documents, and `npm run ai:check -- record building` runs them against a
+building-code fixture (painted sprinkler, chained exit, dark exit sign, expired
+extinguisher) — the fastest way to judge a prompt change without clicking
+through the app.
 
 `npm run ai:check -- --models` lists what the key can actually use. Which ids
 exist depends on the key: Google retires older ids for new keys, and on Vertex
@@ -104,6 +111,61 @@ app.js ──> drafts.js ──POST /api/draft──> serve.js ──> ai/draft.
                                                           ├── ai/prompts.js   what to ask for
                                                           └── ai/codes.js     what it may cite
 ```
+
+Three kinds of document come out of the same pipe:
+
+| kind | when | what it is |
+|---|---|---|
+| `record` | as the inspector saves one entry | the per-entry record screen — summary, severity band, categories, measurements needed, citations, and the recommendation deck |
+| `report` | at wrap-up | the internal report for the case file |
+| `notice` | at wrap-up | the plain-language email to the owner |
+
+A record is drafted from **the note the inspector actually typed or dictated**.
+The pre-typed demo memo (`MEMOS` in `data.js`) only fills the input box; what is
+submitted is what gets drafted. `window.AI` in `data.js` is now only the
+fallback, used when there is no key or the call fails, and a record built that
+way is labelled **Template · not this property** on its own card — a template
+is not a description of the property in front of the inspector.
+
+The severity number is not the model's. The model picks a **band**
+(`Immediate hazard` / `High` / `Moderate` / `Low` / `None`) from a rubric in
+`ai/prompts.js` and justifies it from the note; that file maps the band to the
+number the ring renders. The evidence rules forbid the model inventing a score,
+and this is how the screen keeps its dial without breaking that.
+
+## Two bodies of code
+
+`ai/codes.js` covers both halves of what an inspector looks at:
+
+- **Vegetation** — defensible space, ladder fuels, clearances, parcel abatement.
+  Transcribed from primary sources (`meta.sources`).
+- **Building and fire protection** — sprinklers, fire alarm and detection,
+  extinguishers, exit signs, egress and exit doors, emergency lighting,
+  fire-rated construction and fire doors, storage and housekeeping, electrical
+  hazards, premises identification, hydrant and FDC access, occupant load.
+
+Each entry carries a `domain`, and selection is domain-aware: a note about a
+painted sprinkler is grounded in the sprinkler sections and gets the sprinkler
+clearance tables, and never sees the defensible-space corpus. A note touching
+both — or neither — gets both. `codes.domainsFor(text)` is the whole decision
+and it is a list of regexes you can read.
+
+### The building corpus is not source-verified
+
+**Every building and fire-protection entry carries `provenance: 'unverified'`.**
+Section numbers follow the 2019 CFC chapter structure and the requirements are
+stated as accurately as they were known, but the operative text was **not**
+transcribed from a primary source — `codes.iccsafe.org` refuses automated
+access and the mirrors reachable did not carry the section text. The vegetation
+corpus *was* transcribed and is marked `provenance: 'transcribed'`.
+
+This is tracked, not hidden. A citation drawn from an unverified entry comes
+back flagged, the record screen marks it **verify source**, and
+`doc.audit.unsourcedCitations` lists them. Before any of it goes on an
+enforceable notice, replace the text with a transcription from the adopted code.
+A section the model invented outright is a different and worse thing, and is
+flagged separately as **not in library** — see `checkCitations` in
+`ai/draft.js`, which enforces in code the rule the prompt also states.
 
 | File | What it is | Edit it when |
 |---|---|---|

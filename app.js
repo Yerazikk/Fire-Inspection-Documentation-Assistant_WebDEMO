@@ -8,6 +8,10 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const addrOf = id => ADDRESSES.find(a => a.id === id);
 const clone = o => JSON.parse(JSON.stringify(o));
 let timers = []; const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; }; const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+// Drafting a record is a network call, so it outlives the scan animation and
+// can land after the inspector has cancelled or walked away. Every analysis
+// takes a token; a reply holding a stale one is dropped.
+let runSeq = 0; const newRun = () => ++runSeq; const isCurrentRun = n => n === runSeq;
 const toast = () => {};
 function confirmSheet(title, body, buttons) { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">${esc(title)}</div><div class="cb">${esc(body)}</div><div class="cbtns">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('')}</div></div>`; $('#app').appendChild(el); el.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { el.remove(); const fn = buttons[+b.dataset.i].fn; fn && fn(); }); el.onclick = e => { if (e.target === el) el.remove(); }; return el; }
 function img(src, ph) { return `<img src="${src}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="ph" style="display:none">${ph}</div>`; }
@@ -15,7 +19,8 @@ function img(src, ph) { return `<img src="${src}" onerror="this.style.display='n
 // ---------------- state ----------------
 const fresh = () => ({ screen: 'map', stack: [], stops: [], done: new Set(), sel: null, sheet: 'half', entries: {}, ver: {}, cur: null, tab: 'today', snapshot: null,
   route: null, best: null, plan: null, routing: false,
-  draft: null, rec: null, recDirty: false, deck: null, report: {}, notice: {}, wobble: false, posIdx: 0, menu: false, days: { q: '', cal: false } });
+  draft: null, rec: null, recDirty: false, deck: null, report: {}, notice: {}, wobble: false, posIdx: 0, menu: false, days: { q: '', cal: false },
+  satZoom: 'parcel', basemap: 'sat' });
 let S = fresh();
 const POS = [[58, 46], [30, 40], [62, 30], [44, 64], [70, 58]];
 const entriesOf = id => (S.entries[id] = S.entries[id] || []);
@@ -71,9 +76,14 @@ const approxNote = id => (addrOf(id) || {}).approx ? ` · ${atStreet}` : '';
 // ---- what OSRM says about the order on screen ----
 let routeToken = 0, rowDragging = false;
 async function syncRoute(force) {
-  const ids = S.stops.slice(), tk = ++routeToken;
-  if (!ids.length) { S.route = null; paintRoute(); return; }
+  const ids = S.stops.slice();
+  // Only a call that actually starts a request may claim the token. Taking it
+  // on every call orphaned the reply to a request already in flight — any
+  // re-render of the map while the route was being timed (re-adding a stop
+  // already on the list, switching basemap) left it pending for good.
+  if (!ids.length) { routeToken++; S.route = null; paintRoute(); return; }
   if (S.route && S.route.ids.join() === ids.join() && !force) { paintRoute(); return; }
+  const tk = ++routeToken;
   S.route = { ids, pending: true, error: null, line: S.route && S.route.line, duration: 0, distance: 0, legs: [] };
   paintRoute();
   let next;
@@ -106,24 +116,40 @@ function planHTML() {
 }
 
 // ---- the map canvas: Leaflet over OSM tiles, with the stylised map as fallback ----
-let LWRAP = null, LMAP = null, LART = null, lastFit = '';
+let LWRAP = null, LMAP = null, LART = null, LBASE = null, LCRED = null, LCREDTXT = '', lastFit = '';
 function mountMap() {
   const host = $('#map'); if (!host) return;
   if (!window.L) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); return; }
   if (!LWRAP) {
     LWRAP = document.createElement('div'); LWRAP.className = 'lmap'; host.appendChild(LWRAP);
     LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: .25, inertia: false });
-    // Standard OSM raster, darkened in CSS (.leaflet-tile-pane) to sit under the
-    // dark UI. Keyless, and detailed enough to read the street the route turns on.
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(LMAP);
+    // Two basemaps, both keyless. Esri World Imagery to see the vegetation on
+    // the way in; standard OSM raster, inverted in CSS (.leaflet-tile-pane) to
+    // sit under the dark UI, to read the street the route turns on.
+    LBASE = {
+      sat: L.tileLayer(SAT.TILES, { maxZoom: 19 }),
+      map: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
+    };
     // Top-right: the sheet covers the bottom of the map, and the attribution
     // has to stay visible.
-    L.control.attribution({ prefix: false, position: 'topright' }).addAttribution('© OpenStreetMap · roads and times via OSRM').addTo(LMAP);
+    LCRED = L.control.attribution({ prefix: false, position: 'topright' }).addTo(LMAP);
+    setBasemap();
     LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 12.5);
     LART = L.layerGroup().addTo(LMAP);
   } else if (LWRAP.parentElement !== host) host.appendChild(LWRAP);
   LMAP.invalidateSize();
   paintMap();
+}
+// The imagery is true colour, so the inversion that makes OSM dark has to come
+// off with it, and the credit changes with the source.
+function setBasemap() {
+  if (!LBASE) return;
+  const sat = S.basemap === 'sat';
+  Object.keys(LBASE).forEach(k => { const on = (k === 'sat') === sat; if (on) LBASE[k].addTo(LMAP); else LMAP.removeLayer(LBASE[k]); });
+  LWRAP.classList.toggle('imagery', sat);
+  const txt = (sat ? SAT.creditShort : '© OpenStreetMap') + ' · roads and times via OSRM';
+  if (LCREDTXT) LCRED.removeAttribution(LCREDTXT);
+  LCRED.addAttribution(txt); LCREDTXT = txt;
 }
 function paintMap() {
   if (S.screen !== 'map') return;
@@ -199,14 +225,14 @@ function stopRows() {
   }).join('');
 }
 VIEWS = {
-  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="ib" id="recenter" title="Fit the route">◎</div></div>
+  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="mtr"><div class="ib ${S.basemap === 'sat' ? 'on' : ''}" id="basemap" title="${S.basemap === 'sat' ? 'Showing satellite · switch to roads' : 'Showing roads · switch to satellite'}">◉</div><div class="ib" id="recenter" title="Fit the route">◎</div></div></div>
   <div class="sheet ${S.sheet}" id="sheet"><div class="handle" id="handle"><i></i></div><div class="sbody"><div class="addr"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic">⌕</span><div class="sugg" id="sugg" style="display:none"></div></div>
   <div class="routebar"><span class="meta" id="rmeta">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr}</span><button class="btn" id="best" style="width:auto;padding:12px 16px" ${S.stops.length < 2 || S.routing ? 'disabled' : ''}>${S.routing ? '✦ Finding…' : '✦ Best route'}</button></div>
   <div class="rstat" id="rstat">${routeStat()}</div><div id="plan">${planHTML()}</div>
   <div id="rows">${stopRows()}</div></div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
-    const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satSVG(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []), true)}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
+    const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
     return frame('Previous inspections', '', `<div class="search"><input id="dq" placeholder="Search address, finding, outcome…" value="${esc(S.days.q)}"><div class="ib" id="calbtn" title="Pick a date">▦</div></div>${body}`, ''); },
   location: () => locationView(),
   camera: () => cameraView(),
@@ -246,7 +272,12 @@ AFTER = {
       if (hl >= items.length) hl = Math.max(0, items.length - 1);
       const head = st.head ? `<div class="sgh">${esc(st.head)}</div>` : '';
       const extra = st.loading ? `<div class="searching">${searching ? 'Searching OpenStreetMap…' : 'Keep typing — addresses are looked up for real.'}</div>` : '';
-      sg.innerHTML = head + items.map((it, i) => `<div class="${i === hl ? 'hl' : ''}" data-i="${i}">${esc(it.addr)}<small>${esc(it.sub)}</small></div>`).join('') + extra;
+      // Every candidate carries a coordinate, so each row can show the property
+      // it would actually pin. The images are lazy and cached, so arrowing
+      // through the list costs one small request per row at most.
+      const where = it => it.kind === 'remote' ? it.r : addrOf(it.id);
+      sg.innerHTML = head + items.map((it, i) => { const c = where(it);
+        return `<div class="${i === hl ? 'hl' : ''}" data-i="${i}"><span class="sgt">${c ? satSpot(c.lat, c.lon) : ''}</span><span class="sgx">${esc(it.addr)}<small>${esc(it.sub)}</small></span></div>`; }).join('') + extra;
       sg.style.display = (items.length || extra) ? 'block' : 'none';
       sg.querySelectorAll('[data-i]').forEach(d => d.onpointerdown = e => { e.preventDefault(); choose(items[+d.dataset.i]); });
     };
@@ -270,7 +301,13 @@ AFTER = {
       choose({ kind: 'remote', r });
     };
     inp.oninput = () => { hl = 0; lookup(); show(); };
-    inp.onfocus = () => show();
+    // Focus alone must not open the panel. Adding a stop refocuses the field so
+    // the next address can be typed straight away (addStop), and popping the
+    // recent-lookup list on that refocus buries the route just added to — the
+    // one thing the tap was meant to change. A half-typed query still restores
+    // its matches on focus, and a deliberate tap still opens the list.
+    inp.onfocus = () => { if (inp.value.trim()) show(); };
+    inp.onpointerdown = () => show();
     inp.onkeydown = e => {
       if (e.key === 'ArrowDown') { hl = Math.min(hl + 1, items.length - 1); show(); }
       if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); show(); }
@@ -281,6 +318,7 @@ AFTER = {
 
     $('#menu').onclick = () => openMenu();
     $('#recenter').onclick = () => fitMap(true);
+    $('#basemap').onclick = () => { S.basemap = S.basemap === 'sat' ? 'map' : 'sat'; setBasemap(); render(); };
     const rt = $('#retry'); if (rt) rt.onclick = () => syncRoute(true);
     // sheet detents
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
@@ -389,37 +427,103 @@ function lookupsSheet() {
 }
 
 // ---------------- location ----------------
-function satSVG(id, entries, mini) { const a = addrOf(id); const seed = a.x * 7 + a.y * 3; const trees = Array.from({ length: 9 }, (_, i) => [((seed * (i + 3)) % 80) + 8, ((seed * (i + 7)) % 60) + 12, 4 + (i % 3) * 2]);
-  const you = POS[S.posIdx % POS.length]; const tone = k => k === 'violation' ? 'var(--red)' : k === 'compliance' ? 'var(--green)' : 'var(--amber)';
-  return `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><defs><pattern id="gr${mini ? 'm' : ''}" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".3"/></pattern><radialGradient id="sh${mini ? 'm' : ''}"><stop offset="0" stop-color="#1b2a20"/><stop offset="1" stop-color="#0d1614"/></radialGradient></defs>
-  <rect width="100" height="100" fill="url(#sh${mini ? 'm' : ''})"/><rect width="100" height="100" fill="url(#gr${mini ? 'm' : ''})"/>
+// The parcel view is real satellite imagery of the address, framed on its own
+// coordinate by sat.js, with everything else drawn over it. The overlay lives
+// in a 0–100 space cropped exactly as the image is, and the defensible-space
+// rings are sized from the real metres-per-pixel of that frame, so they are
+// true to scale rather than decorative.
+//
+// Entry pips still sit at the demo coordinate carried on the entry (e.geo).
+// When the real GPS fix lands (TODO.md §3) they become a v.xy(lat, lon) call
+// and nothing else here changes.
+const toneOf = k => k === 'violation' ? 'var(--red)' : k === 'compliance' ? 'var(--green)' : 'var(--amber)';
+// A pip's e.geo, and the simulated standing position in POS, are 0–100
+// coordinates in a notional parcel box this many metres across. Projecting
+// them through the view anchors them to the ground, so they stay on the same
+// patch of it as the inspector zooms instead of staying put on the glass.
+const PARCEL_M = 60;
+const geoXY = (v, at, g) => ({ x: at.x + v.pct((g[0] - 50) / 100 * PARCEL_M), y: at.y + v.pct((g[1] - 50) / 100 * PARCEL_M) });
+// The same offset as a coordinate, for the record footer. Still invented — see
+// TODO.md §3 — but invented about the property being inspected rather than a
+// fixed pair of degrees, and labelled as simulated so no document passes it
+// off as a fix. Real GPS replaces the whole function.
+function simFix(id, g) {
+  const a = addrOf(id); if (!a) return 'position unavailable';
+  const lat = a.lat + ((50 - g[1]) / 100 * PARCEL_M) / 111320;
+  const lon = a.lon + ((g[0] - 50) / 100 * PARCEL_M) / (111320 * Math.cos(a.lat * Math.PI / 180));
+  return `${Math.abs(lat).toFixed(5)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(5)}° ${lon < 0 ? 'W' : 'E'} · simulated`;
+}
+function pipSVG(entries, mini, v, at) {
+  return (entries || []).map(e => { const c = toneOf(e.kind), r = mini ? 3.2 : 3.6, p = geoXY(v, at, e.geo), x = p.x.toFixed(2), y = p.y.toFixed(2);
+    return `<g class="pip" data-pip="${e.id || e.n}"><circle cx="${x}" cy="${y}" r="${r + 2.2}" fill="${c}" opacity=".18"/><circle cx="${x}" cy="${y}" r="${r}" fill="#0b0f17" stroke="${c}" stroke-width=".8"/><text x="${x}" y="${(p.y + 1.2).toFixed(2)}" font-size="${mini ? 3.6 : 3.8}" font-weight="700" fill="${c}" text-anchor="middle" font-family="-apple-system,sans-serif">${e.n}</text></g>`; }).join('');
+}
+// What sits on top of the imagery: the point we geocoded and routed to, where
+// the inspector is standing, and a pip per entry. The three defensible-space
+// zones belong to the 100 ft zone view alone — over the parcel they cover the
+// ground the inspector is actually reading, so that view stays plain imagery.
+function satOverlay(id, entries, mini) {
+  const a = addrOf(id), v = SAT.view(a.lat, a.lon, SAT.spanOf(S.satZoom), 640), at = v.xy(a.lat, a.lon);
+  const you = geoXY(v, at, POS[S.posIdx % POS.length]);
+  const marks = mini ? '' : (S.satZoom === 'zone' ? SAT.zones(v, at) : '')
+    + `<g class="target"><circle cx="${at.x.toFixed(2)}" cy="${at.y.toFixed(2)}" r="1.6"/><path d="M${at.x.toFixed(2)} ${(at.y - 3.4).toFixed(2)}v1.2M${at.x.toFixed(2)} ${(at.y + 2.2).toFixed(2)}v1.2M${(at.x - 3.4).toFixed(2)} ${at.y.toFixed(2)}h1.2M${(at.x + 2.2).toFixed(2)} ${at.y.toFixed(2)}h1.2"/></g>`
+    + `<circle class="you" cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="6" fill="rgba(53,224,255,.12)" stroke="rgba(53,224,255,.6)" stroke-width=".5"/><circle cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="1.8" fill="#35e0ff"/>`;
+  return `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${marks}${pipSVG(entries, mini, v, at)}</svg>`;
+}
+// Shown only when every imagery provider has failed: the stylised parcel the
+// app drew before it had photographs to draw on.
+function sketchSVG(id, mini) { const a = addrOf(id); const seed = a.x * 7 + a.y * 3; const trees = Array.from({ length: 9 }, (_, i) => [((seed * (i + 3)) % 80) + 8, ((seed * (i + 7)) % 60) + 12, 4 + (i % 3) * 2]);
+  const u = mini ? 'm' : '';
+  return `<svg class="satsketch" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><defs><pattern id="gr${u}" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".3"/></pattern><radialGradient id="sh${u}"><stop offset="0" stop-color="#1b2a20"/><stop offset="1" stop-color="#0d1614"/></radialGradient></defs>
+  <rect width="100" height="100" fill="url(#sh${u})"/><rect width="100" height="100" fill="url(#gr${u})"/>
   ${trees.map(t => `<circle cx="${t[0]}" cy="${t[1]}" r="${t[2]}" fill="#1f3a2a" opacity=".85"/><circle cx="${t[0] - 1}" cy="${t[1] - 1}" r="${t[2] * .55}" fill="#27503a" opacity=".6"/>`).join('')}
   <rect x="0" y="84" width="100" height="16" fill="#151a22"/><path d="M0 92 L100 92" stroke="rgba(255,255,255,.18)" stroke-width=".4" stroke-dasharray="3 2"/>
-  <polygon points="10,10 90,8 92,80 8,82" fill="none" stroke="rgba(53,224,255,.45)" stroke-width=".5" stroke-dasharray="1.6 1.2"/>
-  <rect x="38" y="24" width="30" height="26" rx="1.5" fill="#1a1f29" stroke="rgba(53,224,255,.6)" stroke-width=".5"/><path d="M38 37 L68 37" stroke="rgba(53,224,255,.25)" stroke-width=".4"/><rect x="54" y="52" width="14" height="30" fill="#1c222c" stroke="rgba(255,255,255,.12)" stroke-width=".3"/>
+  <rect x="38" y="24" width="30" height="26" rx="1.5" fill="#1a1f29" stroke="rgba(53,224,255,.6)" stroke-width=".5"/><rect x="54" y="52" width="14" height="30" fill="#1c222c" stroke="rgba(255,255,255,.12)" stroke-width=".3"/>
   <rect x="12" y="56" width="34" height="6" rx="3" fill="#24422f" opacity=".9"/><rect x="12" y="62" width="34" height="3" rx="1.5" fill="#2c5238" opacity=".8"/>
-  ${mini ? '' : `<text x="39" y="22" font-size="2.6" fill="rgba(189,243,255,.8)" font-family="-apple-system,sans-serif" font-weight="600">Residence</text><text x="11" y="54" font-size="2.4" fill="rgba(189,243,255,.6)" font-family="-apple-system,sans-serif" font-weight="600">Hedge line</text><circle class="you" cx="${you[0]}" cy="${you[1]}" r="6" fill="rgba(53,224,255,.12)" stroke="rgba(53,224,255,.5)" stroke-width=".4"/><circle cx="${you[0]}" cy="${you[1]}" r="1.8" fill="#35e0ff"/>`}
-  ${entries.map(e => { const c = tone(e.kind); const r = mini ? 3.2 : 3.6; return `<g class="pip" data-pip="${e.id || e.n}"><circle cx="${e.geo[0]}" cy="${e.geo[1]}" r="${r + 2.2}" fill="${c}" opacity=".14"/><circle cx="${e.geo[0]}" cy="${e.geo[1]}" r="${r}" fill="#0b0f17" stroke="${c}" stroke-width=".8"/><text x="${e.geo[0]}" y="${e.geo[1] + 1.2}" font-size="${mini ? 3.6 : 3.8}" font-weight="700" fill="${c}" text-anchor="middle" font-family="-apple-system,sans-serif">${e.n}</text></g>`; }).join('')}</svg>`; }
+  ${mini ? '' : `<text x="50" y="97" font-size="3" fill="rgba(189,243,255,.55)" text-anchor="middle" font-family="-apple-system,sans-serif">Imagery unavailable · stylised parcel</text>`}</svg>`; }
+// A property thumbnail: imagery of the address, the sketch behind it, pips over it.
+function satThumb(id, entries) { const a = addrOf(id), span = 130, v = SAT.view(a.lat, a.lon, span, 200);
+  return SAT.tile(a.lat, a.lon, { span, px: 200, dead: sketchSVG(id, true) })
+    + `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${pipSVG(entries, true, v, v.xy(a.lat, a.lon))}</svg>`; }
+// The same, for a coordinate with no address record yet — a typeahead hit.
+const satSpot = (lat, lon) => SAT.tile(lat, lon, { span: 130, px: 200 });
 function kindChip(k) { return k === 'violation' ? '<span class="chip red">Violation</span>' : k === 'compliance' ? '<span class="chip green">Compliant</span>' : '<span class="chip amber">Note</span>'; }
 function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = snap ? snap.entries.map((e, i) => ({ ...e, id: 'h' + i })) : entriesOf(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
-  const stale = key => (S[key][id] && S[key][id].ver !== (S.ver[id] || 0)); const changed = key => S[key][id] ? (stale(key) ? '<span class="badge">changes since generated</span>' : '<span class="badge" style="color:#b9f5cf;border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.1)">up to date</span>') : '';
+  // Keyed on the document existing, not on the state object: visiting the
+  // notice screen creates the state before anything has been drafted into it.
+  const dst = key => { const st = S[key][id]; return st && st.doc ? st : null; };
+  const changed = key => { const st = dst(key); if (!st) return S[key][id] && S[key][id].status === 'pending' ? '<span class="badge">drafting…</span>' : '';
+    return st.ver !== (S.ver[id] || 0) ? '<span class="badge">changes since generated</span>' : '<span class="badge" style="color:#b9f5cf;border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.1)">up to date</span>'; };
   const today = (S.tab === 'today' || snap) ? (entries.length ? `<div id="elist" class="${S.wobble ? 'wobble' : ''}">${entries.map(e => `<div class="entry" data-e="${e.id}"><div class="th">${e.photo ? (e.photo === 'upload' ? 'IMG' : img(e.photo, 'photo')) : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${kindChip(e.kind)} <span style="color:var(--faint);font-size:12px;font-weight:500">${esc(e.time)}</span></div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : e.note)}</div></div>${snap ? '' : `<button class="x" data-del="${e.id}">✕</button>`}</div>`).join('')}</div>` : `<div class="hint" style="padding:34px 20px">${snap ? 'No entries were recorded that day.' : 'Nothing recorded here yet today.<br>Start with a photo and a note.'}</div>`)
     + (snap || !done ? '' : `<div id="docs"><div class="lbl" style="margin-top:18px">Documents</div><div class="docbtn" data-go="report"><span class="ic">▤</span><div><div class="t">Internal report</div><div class="s">Technical compilation of all entries</div></div>${changed('report')}</div><div class="docbtn" data-go="notice"><span class="ic">✉</span><div><div class="t">Notice to owner</div><div class="s">Plain-language email with approved fixes</div></div>${changed('notice')}</div></div>`)
-    : (hist.length ? hist.map(h => `<div class="loc" data-hist="${h.date}"><div class="thumb">${satSVG(id, h.entries, true)}</div><div><div class="t">${fmtDate(h.date)}</div><div class="s">${h.entries.length} entr${h.entries.length === 1 ? 'y' : 'ies'} · ${esc(h.outcome)}</div></div><div class="r">›</div></div>`).join('') : '<div class="hint">No previous inspections on file for this address.</div>');
-  const body = `<div class="sat">${satSVG(id, entries)}<div class="ban ${snap ? 'snap' : ''}">${snap ? 'Viewing ' + fmtDate(snap.date) + ' · read-only' : 'Live · you are here'}</div></div>
+    : (hist.length ? hist.map(h => `<div class="loc" data-hist="${h.date}"><div class="thumb">${satThumb(id, h.entries)}</div><div><div class="t">${fmtDate(h.date)}</div><div class="s">${h.entries.length} entr${h.entries.length === 1 ? 'y' : 'ies'} · ${esc(h.outcome)}</div></div><div class="r">›</div></div>`).join('') : '<div class="hint">No previous inspections on file for this address.</div>');
+  // The hero is wider than it is tall (376 × 300 in the frame), so the slice-
+  // cropped overlay shows the full width of the view and the scale bar below
+  // can be a straight percentage of it.
+  const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span);
+  const body = `<div class="sat">${SAT.tile(a.lat, a.lon, { span, px: 640, eager: true, dead: sketchSVG(id, false) })}${satOverlay(id, entries, false)}
+  <div class="ban ${snap ? 'snap' : ''}">${snap ? 'Viewing ' + fmtDate(snap.date) + ' · read-only' : 'Live · you are here'}</div>
+  <div class="satz">${SAT.ZOOMS.map(z => `<button class="${z.id === S.satZoom ? 'on' : ''}" data-sz="${z.id}">${esc(z.label)}</button>`).join('')}</div>
+  <div class="satn">N</div>
+  <div class="satfoot"><span class="sbar" style="width:${bar.pct.toFixed(2)}%">${esc(bar.label)}</span><span class="scred" data-cred>${esc(SAT.credit)}</span></div></div>
   ${snap ? '' : `<div class="tabs"><button class="${S.tab === 'today' ? 'on' : ''}" data-tab="today">Today${entries.length ? ' · ' + entries.length : ''}</button><button class="${S.tab === 'history' ? 'on' : ''}" data-tab="history">History${hist.length ? ' · ' + hist.length : ''}</button></div>`}
   ${snap ? `<div class="hero" style="margin-top:12px">${fmtDate(snap.date)}<small>${esc(snap.outcome)} · as recorded at the end of that inspection</small></div>` : ''}${today}`;
   const bottom = snap ? `<button class="btn ghost" id="exitSnap">Back to today</button>` : S.tab === 'today' ? (done ? `<div class="row2"><button class="btn ghost" id="finish">Reopen</button><button class="btn" id="toMap">Next stop →</button></div>` : `<div class="row2"><button class="btn ghost" id="finish">Finish</button><button class="btn" id="newEntry">+ New entry</button></div>`) : '';
   return frame(a.addr, snap ? 'history' : done ? 'Completed · documents ready' : 'inspection in progress', body, bottom); }
 function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = es.filter(e => e.kind === 'violation').length;
   const el = document.createElement('div'); el.className = 'wrap'; el.innerHTML = `<div class="wbox"><div class="wcheck">✓</div><div class="wt">Inspection complete</div><div class="ws">${esc(a.addr)} · ${es.length} entr${es.length === 1 ? 'y' : 'ies'} · ${v} violation${v === 1 ? '' : 's'}</div>
-  <div class="wdocs"><div class="wdoc" id="wd1"><span class="dot spin"></span><div><b>Internal report</b><small>compiling every entry, estimate and code reference…</small></div></div><div class="wdoc" id="wd2"><span class="dot spin"></span><div><b>Notice to owner</b><small>drafting plain-language email with the approved fixes…</small></div></div></div>
-  <button class="btn" id="wgo" disabled>Preparing…</button></div>`; $('#app').appendChild(el);
-  const done = (sel, text) => { const d = el.querySelector(sel); d.querySelector('.dot').classList.remove('spin'); d.querySelector('.dot').textContent = '✓'; d.querySelector('small').textContent = text; };
-  later(() => { genReport(); done('#wd1', es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled'); }, 1300);
-  later(() => { const ns = noticeState(); ns.ver = S.ver[id] || 0; done('#wd2', v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); const b = el.querySelector('#wgo'); b.disabled = false; b.textContent = 'See the documents'; }, 2400);
+  <div class="wdocs"><div class="wdoc" id="wd1"><span class="dot spin"></span><div><b>Internal report</b><small>drafting from every entry against the code library…</small></div></div><div class="wdoc" id="wd2"><span class="dot spin"></span><div><b>Notice to owner</b><small>drafting the plain-language email…</small></div></div></div>
+  <button class="btn" id="wgo" disabled>Drafting…</button></div>`; $('#app').appendChild(el);
+  // Both are real model calls, so this card reports what actually happened —
+  // including a failure, which must not read as a finished document.
+  const settle = (sel, st, okText) => { const d = el.querySelector(sel); if (!d) return; const dot = d.querySelector('.dot'); dot.classList.remove('spin');
+    const bad = st.status !== 'ok'; dot.textContent = bad ? '!' : '✓'; dot.style.color = bad ? 'var(--amber)' : 'var(--green)';
+    d.querySelector('small').textContent = bad ? 'could not be drafted · showing template text' : okText; };
+  let left = 2; const tickDown = () => { if (--left) return; const b = el.querySelector('#wgo'); if (b) { b.disabled = false; b.textContent = 'See the documents'; } };
+  genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); });
+  genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
+  $$('[data-sz]').forEach(b => b.onclick = () => { S.satZoom = b.dataset.sz; render(); });
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };
   const tm = $('#toMap'); if (tm) tm.onclick = () => { S.cur = null; S.stack = []; go('map', { replace: true }); };
@@ -449,7 +553,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   $('#noteOnly').onclick = () => { d.photo = null; showSheet(); };
   $('#camBack').onclick = () => backWithGuard();
   $('#retake').onclick = () => { d.photo = null; d.snapped = false; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
-  $('#cancelScan').onclick = () => { clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
+  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
   let t0 = 0, holding = false, wi = 0, wt = null;
   const speakStep = () => { if (!holding) return; const words = memoFor().split(' '); if (wi < words.length) { tx.innerHTML = esc(words.slice(0, ++wi).join(' ')) + '<span class="cur"></span>'; wt = setTimeout(speakStep, 140 + Math.random() * 120); } };
   pill.onpointerdown = e => { e.preventDefault(); t0 = Date.now(); holding = false; pill.setPointerCapture(e.pointerId); wt = setTimeout(() => { holding = true; grow(() => say.classList.add('hold')); wi = 0; speakStep(); }, 220); };
@@ -459,16 +563,56 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 1000; const sc = d.photo ? SCAN[d.kind === 'violation' ? 'violation' : d.kind === 'upload' ? 'upload' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
     if (sc) { later(() => $('#scan').classList.add('go'), 350); sc.boxes.forEach((b, i) => later(() => ar.insertAdjacentHTML('beforeend', `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), 2600 + i * 600)); later(() => ar.insertAdjacentHTML('beforeend', `<div class="issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%"><span>${esc(sc.issue.label)}</span></div>`), 2600 + sc.boxes.length * 600 + 300); }
     later(() => st.classList.add('on'), 500); steps.forEach((x, i) => later(() => { st.classList.remove('swap'); void st.offsetWidth; st.classList.add('swap'); st.querySelector('.t').textContent = x.t; st.querySelector('.d').textContent = x.d; }, 600 + i * stepMs));
-    later(() => { st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓'; st.querySelector('.t').textContent = 'Record drafted'; st.querySelector('.d').textContent = 'opening…'; }, 600 + steps.length * stepMs);
-    later(() => { createRecord(sc); }, 600 + steps.length * stepMs + 800); };
+    // The record is drafted by the model from the note that was just typed, so
+    // the call starts here, in parallel with the animation, and the last status
+    // step waits on the reply instead of on a timer. The animation is the floor
+    // on how fast this can feel, not the whole of it.
+    const run = newRun();
+    const entry = { n: entriesOf(S.cur).length + 1, kind: d.kind, time: clock(), photo: d.photo, spoken: d.spoken, memo: d.memo };
+    const pending = DRAFTS.record(addrOf(S.cur), entry);
+    const animMs = 600 + steps.length * stepMs;
+    later(() => { st.querySelector('.t').textContent = 'Drafting the record'; st.querySelector('.d').textContent = 'writing it up from your note…'; }, animMs);
+    const open = ai => { if (!isCurrentRun(run)) return;
+      const done = () => { st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓'; st.querySelector('.t').textContent = ai.source === 'template' ? 'Templates used' : 'Record drafted'; st.querySelector('.d').textContent = ai.source === 'template' ? 'the model could not be reached' : 'opening…'; later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, ai.source === 'template' ? 1100 : 700); };
+      // Never open sooner than the animation would have: a 2-second record
+      // reads as a stunt, and the status line has steps still to show.
+      const wait = Math.max(0, animMs + 300 - (Date.now() - t1));
+      later(done, wait); };
+    const t1 = Date.now();
+    pending.then(open, e => open(DRAFTS.recordFallback(d.kind, String((e && e.message) || e)))); };
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
-function createRecord(sc) { const d = S.draft; const ai = clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
-  S.rec = { id: 'e' + Date.now(), n, kind: d.kind === 'upload' ? 'compliance' : d.kind, kindRaw: d.kind, photo: d.photo, memo: d.memo, spoken: !!d.spoken, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', `37.84${(12 + pos[0] % 10)}° N, 122.21${(8 + pos[1] % 10)}° W · ±4 m`], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
+function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
+  S.rec = { id: 'e' + Date.now(), n, kind: d.kind === 'upload' ? 'compliance' : d.kind, kindRaw: d.kind, photo: d.photo, memo: d.memo, spoken: !!d.spoken, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', simFix(S.cur, pos)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
   S.recDirty = true; S.draft = null; go('record'); }
 function openRecord(eid) { const e = entriesOf(S.cur).find(x => x.id === eid); S.rec = clone(e); S.recDirty = false; go('record'); }
 function saveRecord() { const list = entriesOf(S.cur); const i = list.findIndex(x => x.id === S.rec.id); if (i >= 0) list[i] = S.rec; else list.push(S.rec); bump(S.cur); S.rec = null; S.recDirty = false; S.tab = 'today'; S.stack = S.stack.filter(s => s !== 'camera' && s !== 'record' && s !== 'deck'); go('location', { replace: true }); toast('Entry saved'); }
 
 // ---------------- record ----------------
+
+// Where the text on this screen came from. A template is not a draft of this
+// property, so it is never allowed to look like one.
+function provChip(ai) {
+  if (!ai || ai.source === 'template') return '<span class="chip amber" style="margin-left:8px;font-weight:600">Template · not this property</span>';
+  const m = ai.meta && ai.meta.model ? ai.meta.model : 'model';
+  return `<span class="chip cyan" style="margin-left:8px;font-weight:600">${esc(m)}</span>`;
+}
+
+function provNote(ai) {
+  if (!ai || ai.source !== 'template') return '';
+  return `<p style="margin-top:10px;color:var(--amber);font-size:12px">This is built-in example text, not a description of this property${ai.fallbackReason ? ' — ' + esc(ai.fallbackReason) : ''}. Edit it or try again when the model is reachable.</p>`;
+}
+
+// Citation caveats, in the order they matter: a section the model invented is a
+// defect, a section whose text was never source-checked is a task.
+function codeCaveat(ai) {
+  const a = (ai && ai.audit) || {};
+  const out = [];
+  if ((a.unknownCitations || []).length) out.push(`<p style="margin-top:10px;color:var(--red);font-size:12px">${a.unknownCitations.length} citation${a.unknownCitations.length === 1 ? ' is' : 's are'} not in the department code library. Do not rely on ${a.unknownCitations.length === 1 ? 'it' : 'them'}.</p>`);
+  if ((a.pendingCitations || []).length) out.push(`<p style="margin-top:8px;color:var(--amber);font-size:12px">${a.pendingCitations.length} cited section${a.pendingCitations.length === 1 ? ' is' : 's are'} adopted but not yet enforceable as a present violation.</p>`);
+  if ((a.unsourcedCitations || []).length) out.push(`<p style="margin-top:8px;color:var(--faint);font-size:12px">Marked <b>verify source</b>: in the library, but the wording was never checked against the adopted code. Confirm before this goes on a notice.</p>`);
+  return out.join('');
+}
+
 function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab'; return `<div class="ov ${cls || ''}">${sc.boxes.map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div></div>`; }
 function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const card = (title, body, delay, key) => `<div class="card edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</div>`;
   const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
@@ -476,10 +620,10 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   const inc = r.recs.filter(x => x.decision === 'in').length, dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
   <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? '<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">Voice · transcribed</span>' : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p></div>
-  ${card('AI summary', r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join(''), .1, 'summary')}
+  ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
   ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : '✓'}</i></div><div><div style="font-weight:650">${ed('severity.level', r.ai.severity.level)}</div><div style="font-size:12px;color:var(--faint)">${ed('severity.why', r.ai.severity.why)}</div></div></div><div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
-  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span><p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join(''), .4, 'codes') : ''}
+  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<div class="card" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<p>↳ ${esc(f)}</p>`).join('')}</div>` : ''}
   ${r.kind === 'violation' ? `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">Recommendations for the owner</div><div class="s">${dec ? inc + ' included · ' + (dec - inc) + ' left out of ' + r.recs.length : r.recs.length + ' suggested · swipe to decide'}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>` : ''}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
@@ -510,32 +654,162 @@ function swipe(yes) { const r = S.rec, dk = S.deck; const top = $('#deck .dcard:
 function deckAfter() { renderDeck(); $('#bNo').onclick = () => swipe(false); $('#bYes').onclick = () => swipe(true); $('#bUndo').onclick = () => { const dk = S.deck; if (!dk.idx) return; dk.idx--; S.rec.recs[dk.idx].decision = null; renderDeck(); }; $('#deckDone').onclick = () => back();
   $('#own').onclick = () => { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">Your recommendation</div><div class="cb">Describe what the owner should do. An AR card is generated for it and placed on top of the deck.</div><textarea class="memo" id="ownTx" rows="3" placeholder="e.g. Replace the wooden retaining wall cap with stone and keep the bed clear 5 ft out."></textarea><div class="cbtns" style="margin-top:12px"><button class="btn ghost" data-no>Cancel</button><button class="btn" data-yes>Generate card</button></div></div>`; $('#app').appendChild(el); el.querySelector('[data-no]').onclick = () => el.remove(); el.querySelector('[data-yes]').onclick = () => { const v = el.querySelector('#ownTx').value.trim(); if (!v) return; const b = el.querySelector('[data-yes]'); b.textContent = 'Generating…'; b.disabled = true; later(() => { el.remove(); const r = S.rec; const title = v.split(/[,.;]/)[0].slice(0, 40); r.recs.splice(S.deck.idx, 0, { id: 'own' + Date.now(), title, text: v, img: r.photo && r.photo !== 'upload' ? r.photo : null, own: true, decision: null }); S.recDirty = true; renderDeck(); toast('Your card is on top of the deck'); }, 1500); }; }; }
 
-// ---------------- report ----------------
-function reportView() { const id = S.cur; const es = entriesOf(id); const rp = S.report[id]; const stale = rp && rp.ver !== (S.ver[id] || 0); const a = addrOf(id);
-  const body = `${stale ? `<div class="stale">Entries changed since this report was generated.<button id="refresh">Refresh</button></div>` : ''}
-  <div class="card" style="animation-delay:0s"><h4>Inspection report</h4><div class="st"><b>Property</b><span>${esc(a.addr)}</span></div><div class="st"><b>Date</b><span>${fmtDate(todayISO())}</span></div><div class="st"><b>Inspector</b><span>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}</span></div><div class="st"><b>Entries</b><span>${es.length} · ${es.filter(e => e.kind === 'violation').length} violation(s), ${es.filter(e => e.kind === 'compliance').length} compliant, ${es.filter(e => e.kind === 'note').length} note(s)</span></div><div class="st"><b>Generated</b><span>${rp ? rp.at : '—'}</span></div></div>
-  ${(rp ? rp.entries : []).map((e, i) => `<div class="card edcard" data-key="rep${i}" style="animation-delay:${.1 + i * .1}s"><h4>Entry ${e.n} · ${e.kind}<button class="edbtn main" data-edit>Edit</button></h4>${e.summary.map((x, j) => `<div class="st"><b>${esc(x[0])}</b><span class="ed" data-path="${i}.summary.${j}.1">${esc(x[1])}</span></div>`).join('')}${e.estimates.length ? `<div class="lbl">Estimates</div>${e.estimates.map((x, j) => `<div class="st"><b>${esc(x[0])}</b><span class="ed" data-path="${i}.estimates.${j}.1">${esc(x[1])}</span></div>`).join('')}` : ''}${e.codes.length ? `<div class="lbl">Codes</div>${e.codes.map(c => `<span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>`).join('')}` : ''}<div class="lbl">Recommendations offered</div><p>${e.recs.length ? e.recs.map(r => esc(r.title)).join(' · ') : 'none'}</p><div class="lbl">Metadata</div>${e.meta.map(m => `<div class="st"><b>${esc(m[0])}</b><span>${esc(m[1])}</span></div>`).join('')}</div>`).join('')}`;
-  return frame('Internal report', a.addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="export">Export PDF</button></div>`); }
-function genReport() { const id = S.cur; S.report[id] = { ver: S.ver[id] || 0, at: clock(), entries: entriesOf(id).map(e => ({ n: e.n, kind: e.kind, summary: clone(e.ai.summary), estimates: clone(e.ai.estimates), codes: clone(e.ai.codes), recs: e.recs.filter(r => r.decision === 'in'), meta: clone(e.meta) })) }; }
-function reportAfter() { const id = S.cur; if (!S.report[id]) { genReport(); render(); return; } const rf = $('#refresh'); if (rf) rf.onclick = () => { genReport(); render(); toast('Report refreshed'); }; wireEdits(S.report[id].entries); $('#export').onclick = () => toast('PDF saved to the case file'); }
+// ---------------- documents (report + notice) ----------------
+// Both documents are drafted per property from the inspector's notes and the
+// code library — see drafts.js for the call and ai/ for the prompts and codes.
+// The app holds the result as a structured document, renders it with one
+// section renderer, and lets every line of it be edited in place. The AI
+// drafts; the inspector decides.
 
-// ---------------- notice ----------------
-function noticeState() { const id = S.cur; return (S.notice[id] = S.notice[id] || { ver: null, attached: new Set(), kbDone: false, own: [], draft: false }); }
-function noticeView() { const id = S.cur, a = addrOf(id), ns = noticeState(); const es = entriesOf(id); const viol = es.filter(e => e.kind === 'violation'); const stale = ns.ver !== null && ns.ver !== (S.ver[id] || 0); const att = KB.filter(k => ns.attached.has(k.id)); const canSend = viol.length ? viol.some(e => e.recs.some(r => r.decision === 'in')) : true;
-  const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); return inc.length ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${inc.length} option${inc.length === 1 ? '' : 's'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${s.img ? `<div class="eph">${img(s.img, '')}</div>` : ''}<b>Option ${i + 1}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}` : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
-  const body = `${stale ? `<div class="stale">Entries or decisions changed since this draft.<button id="refresh">Refresh</button></div>` : ''}<div class="mail fade"><div class="hd"><b>${viol.length ? 'Notice of Vegetation Violation' : 'Vegetation inspection result'} · ${fmtDate(todayISO())}</b><br>To: ${esc(a.owner.name)} &lt;${esc(a.owner.email)}&gt;<br>From: ${esc(CONFIG.inspector.name)}, ${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.email)}</div>
-  <p>Dear Property Owner,</p><p>We inspected <b>${esc(a.addr)}</b> today as part of the annual vegetation inspection.${viol.length ? ` We found ${viol.length} item${viol.length === 1 ? '' : 's'} that need${viol.length === 1 ? 's' : ''} to be fixed.` : ' Everything we checked meets the requirements. No action is needed.'}</p>
-  ${viol.map(e => `<h5>What we found${viol.length > 1 ? ' · entry ' + e.n : ''}</h5>${e.photo && e.photo !== 'upload' ? `<div class="eph">${img(e.photo, '')}</div>` : ''}<ul>${e.ai.summary.slice(0, 3).map(x => `<li>${esc(x[1])}</li>`).join('')}</ul><h5>What to do by ${dateIn(CONFIG.correctionDays)}</h5><p>You have <b>${CONFIG.correctionDays} days</b>. Any one of the options below will fix it.</p><h5>What to do next</h5>${optBlock(e)}`).join('')}
-  ${es.filter(e => e.kind === 'compliance').length ? `<h5>Also checked and fine</h5><ul>${es.filter(e => e.kind === 'compliance').map(e => `<li>${esc(e.ai.summary[0][1])}</li>`).join('')}</ul>` : ''}
-  <h5>Attached documents</h5>${att.length || ns.own.length ? `<div class="ctl-row"><span class="ctl" data-go="kb">${att.length + ns.own.length} attached · Edit ›</span><span class="ctl" id="addOwn">+ Add your own</span></div><div class="eatts">${att.map(k => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(k.title)}</b><span>${esc(k.src)} · ${esc(k.size)}</span></div></div>`).join('')}${ns.own.map(o => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(o)}</b><span>from this device</span></div></div>`).join('')}</div>` : `<div class="slot cta" data-go="kb"><span class="cta-ic">📎</span><span class="cta-t">Find supporting documents</span><span class="cta-ch">›</span></div><div class="ctl-row" style="justify-content:flex-start"><span class="ctl" id="addOwn">+ Add your own</span></div>`}
-  <h5>How to close this notice</h5><ul><li>Do the work, then send before-and-after photos to ${esc(CONFIG.inspector.email)} or upload them on ${esc(CONFIG.portal)} within ${CONFIG.correctionDays} days.</li><li>If the photos show the fix, the case closes with no visit and no fee.</li><li>Otherwise an inspector returns on or after ${dateIn(CONFIG.correctionDays + 1)} and a reinspection fee applies.</li><li>You may request a hearing in writing within ${CONFIG.appealDays} days.</li></ul>
-  <p>Thank you for helping keep the neighborhood safe.<br><br>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}<br>${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.phone)}</p></div>`;
-  return frame('Notice to owner', 'to ' + a.owner.email, body, `<div class="row2"><button class="btn ghost" id="saveDraft">Save draft</button><button class="btn" id="send" ${canSend ? '' : 'disabled'} title="${canSend ? '' : 'Choose at least one option first'}"><span class="fill"></span><span style="position:relative">Hold to send</span></button></div>`); }
-function noticeAfter() { const id = S.cur, ns = noticeState(); if (ns.ver === null) { ns.ver = S.ver[id] || 0; } const rf = $('#refresh'); if (rf) rf.onclick = () => { ns.ver = S.ver[id] || 0; render(); toast('Draft refreshed'); };
+const docState = (key, id) => (S[key][id] = S[key][id] || (key === 'notice'
+  ? { ver: null, status: 'idle', doc: null, error: null, at: null, attached: new Set(), kbDone: false, own: [], draft: false, sent: false }
+  : { ver: null, status: 'idle', doc: null, error: null, at: null }));
+const noticeState = () => docState('notice', S.cur);
+
+function docAttachments(id) { const ns = docState('notice', id); return KB.filter(k => ns.attached.has(k.id)).map(k => ({ title: k.title, src: k.src })); }
+
+// Draft (or refresh) one document. `silent` suppresses the re-render, for the
+// wrap-up card, which lives inside #app and would be wiped by one.
+async function genDoc(key, id, opts = {}) {
+  const st = docState(key, id);
+  st.ver = S.ver[id] || 0; st.status = 'pending'; st.error = null;
+  if (!opts.silent) render();
+  const ctx = DRAFTS.context(key, addrOf(id), entriesOf(id), { attachments: key === 'notice' ? docAttachments(id) : [] });
+  try {
+    st.doc = await DRAFTS.draft(key, ctx); st.status = 'ok';
+  } catch (e) {
+    st.doc = DRAFTS.fallback(key, ctx, e.message); st.status = 'fallback'; st.error = e.message;
+  }
+  st.at = clock();
+  if (!opts.silent) render();
+  return st;
+}
+
+// One renderer for both documents. `cls` lets the notice reuse it inside the
+// light mail styling.
+function docSection(s, i, cls, delay) {
+  const p = `sections.${i}`;
+  const ed = (path, v, tag, style) => `<${tag || 'span'} class="ed" data-path="${path}"${style ? ` style="${style}"` : ''}>${esc(v)}</${tag || 'span'}>`;
+  let inner = '';
+  if (s.type === 'prose') inner = ed(`${p}.body`, s.body, 'p', 'margin:0;white-space:pre-wrap');
+  else if (s.type === 'list') inner = `<ul class="dlist">${s.items.map((x, j) => ed(`${p}.items.${j}`, x, 'li')).join('')}</ul>`;
+  else if (s.type === 'fields') inner = s.fields.map((f, j) => `<div class="st"><b>${esc(f.label)}</b>${ed(`${p}.fields.${j}.value`, f.value)}</div>`).join('');
+  else inner = s.codes.map((c, j) => `<div class="cref"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.citation)}</span>${c.unverified ? '<span class="chip red">not in the code library</span>' : ''}${c.pending ? '<span class="chip amber">not yet enforceable</span>' : ''}<div class="ct2">${esc(c.title)}</div>${ed(`${p}.codes.${j}.relevance`, c.relevance, 'p', 'margin:3px 0 0')}</div>`).join('');
+  return `<div class="${cls || 'card'} edcard" data-key="${esc(s.id)}"${delay ? ` style="animation-delay:${delay}s"` : ''}><h4>${esc(s.heading)}<button class="edbtn main" data-edit>Edit</button></h4>${inner}</div>`;
+}
+
+// The banner above a document: drafting, failed-and-fell-back, or stale.
+function docBanner(key, id) {
+  const st = docState(key, id);
+  if (st.status === 'pending') return `<div class="stale work"><span class="spin"></span>Drafting from ${entriesOf(id).length} entr${entriesOf(id).length === 1 ? 'y' : 'ies'} and the ${CONFIG.dept} code library…</div>`;
+  const out = [];
+  // Exactly one #refresh in the document: a second element with the same id is
+  // unreachable, so the button would silently stop working.
+  const failed = st.status === 'fallback', stale = st.doc && st.ver !== (S.ver[id] || 0);
+  const btn = `<button id="refresh">${failed ? 'Retry' : 'Refresh'}</button>`;
+  if (failed) out.push(`<div class="stale bad"><div><b>Could not draft this document.</b><br>${esc(st.error || 'The drafting service did not answer.')}<br>Showing generic template text — it is <b>not</b> about this property. Do not send it.</div>${btn}</div>`);
+  if (stale) out.push(`<div class="stale">Entries or decisions changed since this draft.${failed ? '' : btn}</div>`);
+  if (st.doc && st.doc.audit && st.doc.audit.unknownCitations.length) out.push(`<div class="stale bad">Cites ${st.doc.audit.unknownCitations.length} section(s) that are not in the code library. Check them before this leaves the office.</div>`);
+  return out.join('');
+}
+
+function docFoot(key, id) {
+  const st = docState(key, id); const d = st.doc; if (!d) return '';
+  const a = d.audit || {};
+  return `<div class="metaf fade"><span><b>Drafted</b> ${esc(st.at || '—')}</span><span><b>Source</b> ${d.source === 'ai' ? esc((d.meta && d.meta.model) || 'model') : 'built-in template'}</span>${a.codeEdition ? `<span><b>Code edition</b> ${esc(a.codeEdition)}</span>` : ''}<span><b>Reviewed and edited by</b> ${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}</span></div>`;
+}
+
+// ---------------- internal report ----------------
+function reportView() {
+  const id = S.cur, a = addrOf(id), es = entriesOf(id), st = docState('report', id), d = st.doc;
+  const head = `<div class="card" style="animation-delay:0s"><h4>Inspection report</h4><div class="st"><b>Property</b><span>${esc(a.addr)}</span></div><div class="st"><b>Date</b><span>${fmtDate(todayISO())}</span></div><div class="st"><b>Inspector</b><span>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}</span></div><div class="st"><b>Entries</b><span>${es.length} · ${es.filter(e => e.kind === 'violation').length} violation(s), ${es.filter(e => e.kind === 'compliance').length} compliant, ${es.filter(e => e.kind === 'note').length} note(s)</span></div>${d && d.headline ? `<div class="st"><b>Outcome</b><span>${esc(d.headline)}</span></div>` : ''}</div>`;
+  const body = docBanner('report', id) + head
+    + (d ? d.sections.map((s, i) => docSection(s, i, 'card', .08 + i * .06)).join('') : st.status === 'pending' ? '' : '<div class="hint">Nothing drafted yet.</div>')
+    + docFoot('report', id);
+  return frame('Internal report', a.addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="export" ${d ? '' : 'disabled'}>Export</button></div>`);
+}
+function reportAfter() {
+  const id = S.cur, st = docState('report', id);
+  if (st.status === 'idle') { genDoc('report', id); return; }
+  const rd = $('#refresh'); if (rd) rd.onclick = () => genDoc('report', id);
+  if (st.doc) wireEdits(st.doc, () => { st.edited = true; });
+  const ex = $('#export'); if (ex) ex.onclick = () => exportDoc('report', id);
+}
+
+// A real file, rather than a toast claiming one was saved. Plain text, because
+// a PDF needs a renderer the project does not have yet (see TODO.md §7).
+function docToText(key, id) {
+  const d = docState(key, id).doc, a = addrOf(id); if (!d) return '';
+  const L = [];
+  if (key === 'report') L.push(`INTERNAL INSPECTION REPORT`, `${a.addr}${a.where ? ', ' + a.where : ''}`, `${fmtDate(todayISO())} · ${CONFIG.inspector.name} (${CONFIG.inspector.badge}) · ${CONFIG.unit}`, '', d.headline || '');
+  else L.push(`Subject: ${d.subject}`, `To: ${(a.owner && a.owner.email) || '(no address on file)'}`, `From: ${CONFIG.inspector.name} <${CONFIG.inspector.email}>`, '', d.greeting);
+  d.sections.forEach(s => {
+    L.push('', s.heading.toUpperCase());
+    if (s.type === 'prose') L.push(s.body);
+    if (s.type === 'list') s.items.forEach(x => L.push('  - ' + x));
+    if (s.type === 'fields') s.fields.forEach(f => L.push(`  ${f.label}: ${f.value}`));
+    if (s.type === 'codes') s.codes.forEach(c => L.push(`  [${c.scope}] ${c.citation} — ${c.title}`, `      ${c.relevance}`));
+  });
+  if (d.closing) L.push('', d.closing, '', `${CONFIG.inspector.name} · ${CONFIG.inspector.badge}`, `${CONFIG.unit} · ${CONFIG.inspector.phone}`);
+  const au = d.audit || {};
+  L.push('', '---', `Drafted ${docState(key, id).at || ''} · source: ${d.source === 'ai' ? (d.meta && d.meta.model) : 'built-in template'}`, au.codeEdition ? `Code edition: ${au.codeEdition}` : '');
+  return L.filter(x => x !== undefined).join('\n');
+}
+function exportDoc(key, id) {
+  const txt = docToText(key, id); if (!txt) return;
+  const name = `${key}-${addrOf(id).addr.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${todayISO()}.txt`;
+  const url = URL.createObjectURL(new Blob([txt], { type: 'text/plain;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  later(() => URL.revokeObjectURL(url), 4000);
+}
+
+// ---------------- notice to owner ----------------
+function noticeView() {
+  const id = S.cur, a = addrOf(id), ns = docState('notice', id), d = ns.doc;
+  const es = entriesOf(id), viol = es.filter(e => e.kind === 'violation');
+  const att = KB.filter(k => ns.attached.has(k.id));
+  const canSend = !!d && (viol.length ? viol.some(e => e.recs.some(r => r.decision === 'in')) : true) && !!(a.owner && a.owner.email);
+
+  // Blocks the app owns, dropped in under the section whose id names them.
+  const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); return inc.length
+    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${inc.length} option${inc.length === 1 ? '' : 's'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${s.img ? `<div class="eph">${img(s.img, '')}</div>` : ''}<b>Option ${i + 1}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
+    : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
+  const slots = {
+    'what-to-do': () => viol.map(optBlock).join(''),
+    'attached-documents': () => att.length || ns.own.length
+      ? `<div class="ctl-row"><span class="ctl" data-go="kb">${att.length + ns.own.length} attached · Edit ›</span><span class="ctl" id="addOwn">+ Add your own</span></div><div class="eatts">${att.map(k => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(k.title)}</b><span>${esc(k.src)} · ${esc(k.size)}</span></div></div>`).join('')}${ns.own.map(o => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(o)}</b><span>from this device</span></div></div>`).join('')}</div>`
+      : `<div class="slot cta" data-go="kb"><span class="cta-ic">📎</span><span class="cta-t">Find supporting documents</span><span class="cta-ch">›</span></div><div class="ctl-row" style="justify-content:flex-start"><span class="ctl" id="addOwn">+ Add your own</span></div>`,
+  };
+  const used = new Set();
+  const letter = d ? `<div class="mail fade"><div class="hd"><b>${esc(d.subject || '')}</b><br>To: ${esc((a.owner && a.owner.name) || 'Owner of record')} &lt;${esc((a.owner && a.owner.email) || 'no address on file')}&gt;<br>From: ${esc(CONFIG.inspector.name)}, ${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.email)}</div>
+    <p class="ed" data-path="greeting">${esc(d.greeting || '')}</p>
+    ${d.sections.map((s, i) => { used.add(s.id); return docSection(s, i, 'msec') + (slots[s.id] ? slots[s.id]() : ''); }).join('')}
+    ${Object.keys(slots).filter(k => !used.has(k)).map(k => slots[k]()).join('')}
+    <p class="ed" data-path="closing">${esc(d.closing || '')}</p>
+    <p>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}<br>${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.phone)}</p></div>` : '';
+
+  const warn = !(a.owner && a.owner.email) ? `<div class="stale bad">No mailing address is on file for this property, so this notice cannot be sent. Look the owner up on the assessor roll first.</div>` : '';
+  const sentLine = ns.sent ? `<div class="stale ok">Sent to ${esc(a.owner.email)} at ${esc(ns.sentAt)}.</div>` : ns.draft ? `<div class="stale ok">Saved to drafts at ${esc(ns.draftAt)} · not sent.</div>` : '';
+  const body = docBanner('notice', id) + warn + sentLine + letter
+    + (!d && ns.status !== 'pending' ? '<div class="hint">Nothing drafted yet.</div>' : '') + docFoot('notice', id);
+  return frame('Notice to owner', (a.owner && a.owner.email) ? 'to ' + a.owner.email : 'no recipient on file', body,
+    `<div class="row2"><button class="btn ghost" id="saveDraft" ${d ? '' : 'disabled'}>Save draft</button><button class="btn" id="send" ${canSend ? '' : 'disabled'} title="${canSend ? '' : !d ? 'Nothing drafted yet' : !(a.owner && a.owner.email) ? 'No address on file for the owner' : 'Choose at least one option first'}"><span class="fill"></span><span style="position:relative">Hold to send</span></button></div>`);
+}
+function noticeAfter() {
+  const id = S.cur, ns = docState('notice', id);
+  if (ns.status === 'idle') { genDoc('notice', id); return; }
+  const rd = $('#refresh'); if (rd) rd.onclick = () => genDoc('notice', id);
+  if (ns.doc) wireEdits(ns.doc, () => { ns.edited = true; });
   $$('[data-deck]').forEach(b => b.onclick = () => { const e = entriesOf(id).find(x => x.id === b.dataset.deck); S.rec = e; S.recDirty = false; S.deck = { idx: e.recs.findIndex(x => !x.decision) < 0 ? 0 : e.recs.findIndex(x => !x.decision) }; S.fromNotice = true; go('deck'); });
-  $('#addOwn').onclick = () => { ns.own.push('Owner-provided document ' + (ns.own.length + 1) + '.pdf'); render(); toast('Added from this device'); };
-  $('#saveDraft').onclick = () => { ns.draft = true; toast('Saved to Mail drafts · open it on your desktop'); };
-  const b = $('#send'); if (b.disabled) return; const fill = b.querySelector('.fill'); let t0 = 0, raf = 0; const HOLD = 900; const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; toast('Notice sent to ' + addrOf(id).owner.email); render(); } else raf = requestAnimationFrame(tick); }; const start = e => { e.preventDefault(); t0 = Date.now(); raf = requestAnimationFrame(tick); }; const stop = () => { cancelAnimationFrame(raf); fill.style.width = '0'; }; b.onpointerdown = start; b.onpointerup = stop; b.onpointerleave = stop; b.onpointercancel = stop; }
+  const ao = $('#addOwn'); if (ao) ao.onclick = () => { ns.own.push('Owner-provided document ' + (ns.own.length + 1) + '.pdf'); render(); };
+  const sd = $('#saveDraft'); if (sd) sd.onclick = () => { ns.draft = true; ns.draftAt = clock(); render(); };
+  const b = $('#send'); if (!b || b.disabled) return;
+  const fill = b.querySelector('.fill'); let t0 = 0, raf = 0; const HOLD = 900;
+  const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentAt = clock(); ns.draft = false; render(); } else raf = requestAnimationFrame(tick); };
+  const start = e => { e.preventDefault(); t0 = Date.now(); raf = requestAnimationFrame(tick); }; const stop = () => { cancelAnimationFrame(raf); fill.style.width = '0'; };
+  b.onpointerdown = start; b.onpointerup = stop; b.onpointerleave = stop; b.onpointercancel = stop;
+}
+
 // when the deck was opened from the notice, "back" should return there with decisions saved into the entry
 const _back = back; back = function () { if (S.screen === 'deck' && S.fromNotice) { S.fromNotice = false; bump(S.cur); S.rec = null; S.recDirty = false; } _back(); };
 
@@ -544,7 +818,7 @@ function kbView() { return frame('Department library', 'documents for this notic
 function kbAfter() { const ns = noticeState(); const hits = $('#hits'); const btn = $('#attach'); const row = k => `<div class="hit ${ns.attached.has(k.id) ? '' : 'off'}" data-id="${k.id}"><div class="ic">PDF</div><div><div class="t">${esc(k.title)}</div><div class="s">${esc(k.src)} · ${esc(k.size)}</div><div class="w">↳ ${esc(k.why)}</div></div><button class="chk">${ns.attached.has(k.id) ? '✓' : '○'}</button></div>`;
   const sync = () => { btn.disabled = false; btn.textContent = `Attach ${ns.attached.size} of ${KB.length} · back to notice`; };
   hits.onclick = e => { const h = e.target.closest('.hit'); if (!h) return; const id = h.dataset.id; if (ns.attached.has(id)) { ns.attached.delete(id); h.classList.add('off'); h.querySelector('.chk').textContent = '○'; } else { ns.attached.add(id); h.classList.remove('off'); h.querySelector('.chk').textContent = '✓'; } sync(); };
-  btn.onclick = () => { bump(S.cur); const ns2 = noticeState(); ns2.ver = S.ver[S.cur]; back(); };
+  btn.onclick = () => { bump(S.cur); back(); };
   if (ns.kbDone) { KB.forEach(k => hits.insertAdjacentHTML('beforeend', row(k).replace('class="hit', 'style="animation:none;opacity:1" class="hit'))); sync(); return; }
   const idx = $('#idx'); idx.innerHTML = [...KB_INDEX, ...KB_INDEX].map(l => `<div>${esc(l)}</div>`).join('');
   KB.forEach((k, i) => later(() => { ns.attached.add(k.id); hits.insertAdjacentHTML('beforeend', row(k)); idx.querySelectorAll('div').forEach((d, j) => { if (j % 3 === i % 3) d.classList.add('hl'); }); }, 700 + i * 600));

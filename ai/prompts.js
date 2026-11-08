@@ -8,11 +8,16 @@
 // Layout:
 //   MODEL        — model name and sampling settings
 //   GROUNDING    — how much of the code corpus to send
-//   SHARED       — rules that apply to both documents (the important ones)
+//   SHARED       — rules that apply to every document (the important ones)
+//   RECORD       — the per-entry record: role, fields, style
 //   REPORT       — the internal report: role, sections, style
 //   NOTICE       — the notice to the owner: role, sections, style
 //   SCHEMAS      — the JSON shape each document must come back in
 //   assemble()   — order of assembly; rarely needs changing
+//
+// THREE KINDS. 'record' is drafted once per entry, as the inspector saves it,
+// and is what the record screen renders. 'report' and 'notice' are compiled at
+// the end of the inspection from all the entries.
 //
 // V1 SCOPE: text only. No photo is sent and no image is generated. The model
 // is told it cannot see the photograph — see SHARED.noVision.
@@ -31,7 +36,11 @@ const MODEL = {
   // Low temperature: this is a legal-adjacent document, not prose.
   temperature: 0.3,
   topP: 0.95,
-  maxOutputTokens: 8192,
+  // Generous on purpose. Thinking tokens count against this ceiling, so a
+  // seven-section report over several entries ran into it and came back as
+  // truncated — and therefore malformed — JSON. Output is billed per token
+  // generated, not per token allowed, so a high ceiling costs nothing.
+  maxOutputTokens: Number(process.env.GEMINI_MAX_OUTPUT_TOKENS || 32768),
   // Gemini thinks by default. 0 disables it, -1 is dynamic. Some thinking
   // measurably helps the code-matching step, so leave it dynamic.
   thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET ?? -1),
@@ -64,10 +73,20 @@ const GROUNDING = {
 
 const SHARED = {
   persona:
-    'You are drafting documents for a fire inspector in the Vegetation Management Unit of the ' +
-    'Marin County Fire Department, California. The inspector has visited a property, recorded ' +
-    'one or more entries, and will read, edit and sign whatever you produce. You are a drafting ' +
-    'assistant, not the decision-maker: the inspector decides.',
+    'You are drafting documents for a fire inspector with the Marin County Fire Department, ' +
+    'California. The inspector has visited a property, recorded one or more entries, and will ' +
+    'read, edit and sign whatever you produce. You are a drafting assistant, not the ' +
+    'decision-maker: the inspector decides.\n' +
+    'Inspections cover two distinct bodies of code and an entry may fall under either:\n' +
+    '  • EXTERIOR VEGETATION — defensible space, ladder fuels, clearances, parcel abatement.\n' +
+    '  • BUILDING AND FIRE PROTECTION — sprinklers, fire alarm and detection, extinguishers, ' +
+    'standpipes, exit signs, egress and exit doors, emergency lighting, fire-rated construction ' +
+    'and fire doors, storage and housekeeping, electrical hazards, premises identification, ' +
+    'hydrant and fire department connection access, occupant load.\n' +
+    'Work out which one the entry is about from the inspector’s note and the CODE LIBRARY you ' +
+    'were given, and stay inside it. Do not reach for defensible-space reasoning on a sprinkler ' +
+    'finding, or the reverse. The library sent to you has already been narrowed to the relevant ' +
+    'body of code; if nothing in it fits the note, say so rather than citing the nearest thing.',
 
   // The single most important block in this file. Everything downstream of a
   // vegetation notice — a correction order, a reinspection fee, a lien, a
@@ -83,7 +102,9 @@ const SHARED = {
     '   measurement the note does not give, say what has to be measured and name the standard it',
     '   will be measured against. Write "not measured" rather than an estimate, and never write',
     '   a number with a "~" or "approximately" in front of it to cover for not knowing.',
-    '3. Never invent a severity score, a risk rating or a percentage.',
+    '3. Never invent a severity score, a risk rating or a percentage. Where a severity BAND is',
+    '   asked for, pick one of the exact values offered using the rubric given and justify the',
+    '   choice from the note. The app renders the band; it does not want a number from you.',
     '4. Cite only the code sections supplied in CODE LIBRARY below, and quote the citation string',
     '   exactly as given. Never cite a section that is not in the library, and never cite one',
     '   whose STATUS line says it is not currently enforceable as a present violation.',
@@ -105,6 +126,64 @@ const SHARED = {
     'Write in the active voice. No filler, no restating the instructions, no preamble, no markdown',
     'syntax inside field values (no **bold**, no bullet characters — the app renders structure from',
     'the JSON). Use "ft" and "in." for units. Dates as given to you.',
+  ].join('\n'),
+};
+
+// ---------------------------------------------------------------------------
+// RECORD — the per-entry record, drafted as the inspector saves one entry
+// ---------------------------------------------------------------------------
+
+// Bands the model may choose from, and what each one is rendered as. The model
+// picks the band and says why; the number is this file's, not the model's, so
+// nobody can accuse the assistant of inventing a risk score. Keep the wording
+// of each band tight — it is the whole rubric the model gets.
+const SEVERITY_BANDS = {
+  'Immediate hazard': { score: 92, rubric: 'A condition that endangers occupants right now: a locked, chained or blocked exit in an occupied building; a fire protection system out of service; overcrowding beyond the posted load; active ignition source against fuel.' },
+  High: { score: 74, rubric: 'A fire protection or life safety feature that would fail when called on, or fuel arranged so fire reaches a structure quickly. Nobody is in immediate danger but the margin is gone.' },
+  Moderate: { score: 52, rubric: 'A real deficiency with some margin left — degraded, overdue or partially obstructed, but still likely to function or still some distance from a structure.' },
+  Low: { score: 28, rubric: 'Technical non-compliance with little practical fire consequence on its own: a record not kept, a sign faded but legible, a minor accumulation.' },
+  None: { score: 0, rubric: 'Use for every compliant entry and every informational note. No corrective action is owed.' },
+};
+
+const RECORD = {
+  role:
+    'Draft the RECORD for ONE entry the inspector has just saved. This is the first thing the ' +
+    'inspector sees after recording it, on a phone, in the field, with the property in front of ' +
+    'them. They will correct it in place and it becomes part of the case file, so it feeds the ' +
+    'report and the notice later. Be useful and be brief: this is a field note, not a document.',
+
+  style: [
+    'Terse and concrete. The summary values are phrases and short sentences, not paragraphs —',
+    'this is read on a phone screen. Name what was observed in the inspector’s own terms before',
+    'reaching for code language. Where the note is thin, the record is short: do not pad it out',
+    'to look thorough. Never contradict the determination the inspector recorded.',
+  ].join('\n'),
+
+  // What each field is for. The schema enforces the shape; this is the brief.
+  fieldPlan: [
+    'summary — 2 to 4 rows, each a label and a value. Use the labels that fit the entry: for a',
+    '  violation, "Observed" / "Condition" / "Why it matters" / "Requirement"; for a compliant',
+    '  entry, "Observed" / "Condition" / "Result"; for a note, "Note" / "Follow-up". The first',
+    '  row is what the inspector sees in the day list, so it must stand alone as a description',
+    '  of this entry.',
+    'determination — `level` is the determination the inspector already recorded; repeat it',
+    '  exactly as given to you, do not re-decide it. `band` is the severity band from the rubric.',
+    '  `why` is one sentence justifying the band from the note. A compliant entry or a note takes',
+    '  band "None".',
+    'categories — 1 to 3 short chips naming the subject area, e.g. "Automatic sprinkler system",',
+    '  "Means of egress", "Zone 0 (0–5 ft)", "Surface fuel", "Housekeeping". Not sentences.',
+    'measurements — what would have to be measured to quantify this finding, and the standard it',
+    '  would be tested against, drawn from the NUMERIC STANDARDS block. If the note already gives',
+    '  a measurement, record it as given. If a measurement was not taken, say so in the value —',
+    '  "not measured; required 18 in. minimum below the deflector". Never estimate. Empty array',
+    '  when nothing turns on a measurement.',
+    'codes — the sections this entry turns on, from the library only, 1 to 4 of them. `relevance`',
+    '  is one plain line saying what this section requires of this entry. For a compliant entry,',
+    '  say what was checked and that it meets. Empty array for an informational note.',
+    'recommendations — ONLY for a violation: 2 to 5 alternative ways the owner could correct it,',
+    '  each a title and two or three sentences. They are alternatives, not steps: any one of them',
+    '  fixes the finding. Order them cheapest-and-simplest first. Empty array for anything that',
+    '  is not a violation.',
   ].join('\n'),
 };
 
@@ -199,7 +278,7 @@ const SECTION_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          scope: { type: 'string', enum: ['State', 'Local'] },
+          scope: { type: 'string', enum: ['State', 'Local', 'Standard'] },
           citation: { type: 'string', description: 'Copied exactly from the code library.' },
           title: { type: 'string' },
           relevance: { type: 'string', description: 'One line tying it to an entry number.' },
@@ -211,7 +290,53 @@ const SECTION_SCHEMA = {
   required: ['id', 'heading', 'type'],
 };
 
+const LABEL_VALUE = {
+  type: 'object',
+  properties: { label: { type: 'string' }, value: { type: 'string' } },
+  required: ['label', 'value'],
+};
+
 const SCHEMAS = {
+  record: {
+    type: 'object',
+    properties: {
+      summary: { type: 'array', description: '2 to 4 label/value rows. The first row stands alone as the description of this entry.', items: LABEL_VALUE },
+      determination: {
+        type: 'object',
+        properties: {
+          level: { type: 'string', enum: ['Violation', 'Compliant', 'Note'], description: 'Repeat the determination the inspector recorded. Do not re-decide it.' },
+          band: { type: 'string', enum: Object.keys(SEVERITY_BANDS), description: 'Severity band from the rubric. "None" for Compliant and Note.' },
+          why: { type: 'string', description: 'One sentence justifying the band from the note.' },
+        },
+        required: ['level', 'band', 'why'],
+      },
+      categories: { type: 'array', description: '1 to 3 short subject-area chips.', items: { type: 'string' } },
+      measurements: { type: 'array', description: 'What must be measured and the standard it is tested against. Never an estimate.', items: LABEL_VALUE },
+      codes: {
+        type: 'array',
+        description: 'Sections this entry turns on, from the library only.',
+        items: {
+          type: 'object',
+          properties: {
+            scope: { type: 'string', enum: ['State', 'Local', 'Standard'] },
+            citation: { type: 'string', description: 'Copied exactly from the code library.' },
+            relevance: { type: 'string', description: 'One plain line: what this section requires of this entry.' },
+          },
+          required: ['scope', 'citation', 'relevance'],
+        },
+      },
+      recommendations: {
+        type: 'array',
+        description: 'Alternative corrections, violations only. Any one of them fixes the finding.',
+        items: {
+          type: 'object',
+          properties: { title: { type: 'string' }, text: { type: 'string' } },
+          required: ['title', 'text'],
+        },
+      },
+    },
+    required: ['summary', 'determination', 'categories', 'measurements', 'codes', 'recommendations'],
+  },
   report: {
     type: 'object',
     properties: {
@@ -240,11 +365,25 @@ const planBlock = plan => plan
   .map(s => `- id "${s.id}" · heading "${s.heading}" · type ${s.type}\n    ${s.brief}`)
   .join('\n');
 
-/** The system instruction: persona + rules + section plan + code library. */
+const SPECS = { record: RECORD, report: REPORT, notice: NOTICE };
+
+/** The free text a kind's code selection is driven from. */
+function noteTextFor(kind, ctx) {
+  if (kind === 'record') {
+    const e = ctx.entry || {};
+    return [e.note, (e.categories || []).join(' ')].filter(Boolean).join(' \n');
+  }
+  return (ctx.entries || []).map(e => e.note || '').join(' \n');
+}
+
+/** The system instruction: persona + rules + plan + code library. */
 function systemFor(kind, ctx) {
-  const spec = kind === 'report' ? REPORT : NOTICE;
-  const noteText = (ctx.entries || []).map(e => e.note || '').join(' \n');
-  const picked = codes.select(noteText, { mode: GROUNDING.codeSelection });
+  const spec = SPECS[kind];
+  const noteText = noteTextFor(kind, ctx);
+  // Narrow by domain as well as by tag, so a sprinkler finding is not grounded
+  // in defensible space and does not get the fuel-spacing tables.
+  const domains = codes.domainsFor(noteText);
+  const picked = codes.select(noteText, { mode: GROUNDING.codeSelection, domains });
 
   const parts = [
     SHARED.persona,
@@ -262,29 +401,83 @@ function systemFor(kind, ctx) {
     'HOUSEKEEPING',
     SHARED.housekeeping,
     '',
-    'SECTION PLAN — return these sections, in this order, using these exact ids.',
-    'Omit a section only where its brief says you may. Add no sections of your own.',
-    planBlock(spec.sectionPlan),
-    '',
+  ];
+
+  if (kind === 'record') {
+    parts.push(
+      'FIELD PLAN — what each field in the schema is for.',
+      spec.fieldPlan,
+      '',
+      'SEVERITY BANDS — pick exactly one of these values for `determination.band`:',
+      Object.entries(SEVERITY_BANDS).map(([k, v]) => `  "${k}" — ${v.rubric}`).join('\n'),
+      '',
+    );
+  } else {
+    parts.push(
+      'SECTION PLAN — return these sections, in this order, using these exact ids.',
+      'Omit a section only where its brief says you may. Add no sections of your own.',
+      planBlock(spec.sectionPlan),
+      '',
+    );
+  }
+
+  parts.push(
     `JURISDICTION: ${codes.meta.jurisdiction}`,
     `CODE EDITION IN FORCE: ${codes.meta.edition}`,
     `EDITION CAVEAT: ${codes.meta.editionCaveat}`,
     '',
     'CODE LIBRARY — the only sections you may cite:',
     codes.pack(picked),
-  ];
+  );
 
   if (GROUNDING.includeNumericTables) {
-    parts.push('', 'NUMERIC STANDARDS — the only source for any number you write:', codes.packTables());
+    parts.push('', 'NUMERIC STANDARDS — the only source for any number you write:', codes.packTables(domains));
   }
-  if (GROUNDING.includeProcedure) {
+  // A record is one entry seen in the field; it does not state deadlines, fees
+  // or appeal windows, so it does not need the procedure block.
+  if (GROUNDING.includeProcedure && kind !== 'record') {
     parts.push('', 'PROCEDURE — the only source for deadlines, fees and appeal windows:', codes.packProcedure());
   }
   return parts.join('\n');
 }
 
+/** The user turn for one entry's record. */
+function recordUserFor(ctx) {
+  const e = ctx.entry || {};
+  const lines = [
+    `Date of inspection: ${ctx.date}`,
+    `Property: ${ctx.address}`,
+    ctx.inspector ? `Inspector: ${ctx.inspector.name}, badge ${ctx.inspector.badge}` : '',
+    '',
+    'THE ENTRY TO DRAFT THE RECORD FOR:',
+    `Entry number: ${e.n}`,
+    `Determination recorded by the inspector: ${e.level}`,
+    `Time: ${e.time}`,
+    `Photograph on file: ${e.hasPhoto ? 'yes (not provided to you)' : 'no'}`,
+    `Inspector’s note${e.spoken ? ' (spoken, transcribed)' : ''}: ${e.note ? '"' + e.note + '"' : '(none recorded)'}`,
+  ].filter(Boolean);
+
+  if (!e.note) {
+    lines.push(
+      '',
+      'The inspector recorded no note for this entry. You have nothing observed to work from, so',
+      'do not invent an observation. Say in the summary that no note was recorded and that the',
+      'record needs one, keep `codes` and `measurements` empty, and use band "None".',
+    );
+  }
+
+  if (ctx.history && ctx.history.length) {
+    lines.push('', 'PREVIOUS INSPECTIONS AT THIS PROPERTY (most recent first):');
+    ctx.history.forEach(h => lines.push(`  ${h.date} — ${h.outcome}${h.notes ? ' · ' + h.notes : ''}`));
+  }
+
+  lines.push('', 'Draft the record for this entry now, as JSON matching the schema.');
+  return lines.join('\n');
+}
+
 /** The user turn: the actual inspection data. */
 function userFor(kind, ctx) {
+  if (kind === 'record') return recordUserFor(ctx);
   const lines = [
     `Date of inspection: ${ctx.date}`,
     `Property: ${ctx.address}`,
@@ -341,4 +534,7 @@ function assemble(kind, ctx) {
   };
 }
 
-module.exports = { MODEL, GROUNDING, SHARED, REPORT, NOTICE, SCHEMAS, SECTION_SCHEMA, assemble, systemFor, userFor };
+module.exports = {
+  MODEL, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
+  SCHEMAS, SECTION_SCHEMA, assemble, systemFor, userFor,
+};

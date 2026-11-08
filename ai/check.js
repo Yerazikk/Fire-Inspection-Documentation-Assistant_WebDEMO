@@ -4,6 +4,8 @@
 //   npm run ai:check                 both documents, the violation fixture
 //   npm run ai:check -- notice       one document
 //   npm run ai:check -- report clean the compliance-only fixture
+//   npm run ai:check -- record       the per-entry records instead
+//   npm run ai:check -- record building   records for the building-code fixture
 //   npm run ai:check -- --prompt     print the assembled prompt and stop
 //   npm run ai:check -- --models     list the models this key can use
 //
@@ -59,6 +61,30 @@ const FIXTURES = {
     ...base,
     entries: [{ n: 1, kind: 'violation', time: '11:02', hasPhoto: true, note: '' }],
   },
+  // The building and fire-protection half of the corpus. Same shape; the
+  // domain is sniffed from the notes.
+  building: {
+    ...base,
+    address: '1180 Sir Francis Drake Blvd, Kentfield, CA',
+    entries: [
+      { n: 1, kind: 'violation', time: '09:20', hasPhoto: true, note: 'Sprinkler head in the back storage room is painted over, looks like the same white as the ceiling. Two more heads on that run look clean.' },
+      { n: 2, kind: 'violation', time: '09:34', hasPhoto: true, spoken: true, note: 'Rear exit door is chained shut with a padlock from the inside. Room was occupied, about a dozen people.' },
+      { n: 3, kind: 'violation', time: '09:41', hasPhoto: true, note: 'Exit sign above the rear door is dark, no light at all. Extinguisher by the kitchen door has a service tag dated 2023.' },
+      { n: 4, kind: 'compliance', time: '09:52', hasPhoto: true, note: 'Front exit is clear, panic bar works, sign is lit. Electrical panel has clear space in front of it.' },
+      { n: 5, kind: 'note', time: '09:58', hasPhoto: false, note: 'Manager says the chain goes on after close and comes off at open, will show the opening checklist at reinspection.' },
+    ],
+  },
+};
+
+const showRecord = (e, r) => {
+  console.log(`\n${'='.repeat(70)}\nENTRY ${e.n} · ${e.kind} · "${(e.note || '(no note)').slice(0, 60)}"\n${'='.repeat(70)}`);
+  r.summary.forEach(([a, b]) => console.log(`  ${(a + ':').padEnd(18)} ${b}`));
+  console.log(`  SEVERITY         ${r.severity.level} (${r.severity.score}) — ${r.severity.why}`);
+  console.log(`  CATEGORY         ${r.category.join(' | ')}`);
+  if (r.estimates.length) r.estimates.forEach(([a, b]) => console.log(`  ${(a + ':').padEnd(18)} ${b}`));
+  r.codes.forEach(c => console.log(`  [${c.scope}] ${c.c}${c.unverified ? '  <-- NOT IN LIBRARY' : ''}${c.unsourced ? '  (verify source)' : ''}\n      ${c.t}`));
+  r.recs.forEach(x => console.log(`  · ${x.title} — ${x.text}`));
+  console.log(`  -- ${r.meta.model} · ${r.meta.ms} ms · ${r.meta.tokens ? r.meta.tokens.in + ' in / ' + r.meta.tokens.out + ' out' : '?'}`);
 };
 
 const show = doc => {
@@ -81,9 +107,30 @@ const show = doc => {
   const args = process.argv.slice(2);
   if (args.includes('--models')) { console.log((await ai.listModels()).join('\n')); return; }
 
-  const kinds = args.filter(a => a === 'report' || a === 'notice');
+  const kinds = args.filter(a => a === 'report' || a === 'notice' || a === 'record');
   const fixName = args.find(a => FIXTURES[a]) || 'violation';
   const ctx = FIXTURES[fixName];
+
+  // Records are per entry, so they do not share the document loop.
+  if (kinds.includes('record')) {
+    const LEVEL = { violation: 'Violation', compliance: 'Compliant', note: 'Note' };
+    for (const e of ctx.entries) {
+      const rctx = {
+        date: ctx.date, address: ctx.address, inspector: ctx.inspector, history: ctx.history,
+        entry: { n: e.n, level: LEVEL[e.kind] || 'Note', time: e.time, hasPhoto: !!e.hasPhoto, spoken: !!e.spoken, note: e.note },
+      };
+      if (args.includes('--prompt')) {
+        const pr = prompts.assemble('record', rctx);
+        console.log(`\n${'='.repeat(70)}\nRECORD SYSTEM INSTRUCTION, entry ${e.n} (${pr.system.length} chars)\n${'='.repeat(70)}\n${pr.system}`);
+        console.log(`\n${'-'.repeat(70)}\nUSER TURN\n${'-'.repeat(70)}\n${pr.user}`);
+        continue;
+      }
+      try { showRecord(e, await ai.draft('record', rctx)); }
+      catch (err) { console.error(`ENTRY ${e.n} FAILED [${err.code}] ${err.message}`, err.detail || ''); process.exitCode = 1; }
+    }
+    return;
+  }
+
   const run = kinds.length ? kinds : ['report', 'notice'];
 
   if (args.includes('--prompt')) {

@@ -49,10 +49,11 @@ async function api(req, res, route) {
     let ctx;
     try { ctx = JSON.parse(await readBody(req)); } catch (e) { return json(res, 400, { error: 'bad request body' }); }
     const kind = ctx && ctx.kind;
-    if (kind !== 'report' && kind !== 'notice') return json(res, 400, { error: 'kind must be "report" or "notice"' });
+    if (!['record', 'report', 'notice'].includes(kind)) return json(res, 400, { error: 'kind must be "record", "report" or "notice"' });
     try {
       const doc = await ai.draft(kind, ctx);
-      console.log(`  drafted ${kind} for ${ctx.address} · ${doc.meta.ms} ms · ${doc.meta.tokens ? doc.meta.tokens.total + ' tokens' : 'usage unknown'}`);
+      const what = kind === 'record' ? `record for entry ${ctx.entry && ctx.entry.n}` : kind;
+      console.log(`  drafted ${what} at ${ctx.address} · ${doc.meta.ms} ms · ${doc.meta.tokens ? doc.meta.tokens.total + ' tokens' : 'usage unknown'}`);
       if (doc.audit.unknownCitations.length) console.warn('  ! citations not in the library:', doc.audit.unknownCitations.join('; '));
       return json(res, 200, { doc });
     } catch (e) {

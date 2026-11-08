@@ -94,22 +94,61 @@ function normalizeSection(s) {
 // the section numbers, which are the part that matters.
 const sectionNumbers = s => (String(s).match(/\d+[0-9.–-]*/g) || []).join(' ');
 
-function checkCitations(doc) {
-  const known = codes.codes.map(c => ({ id: c.id, citation: c.citation, nums: sectionNumbers(c.citation), status: c.status }));
+const KNOWN = codes.codes.map(c => ({
+  id: c.id, citation: c.citation, nums: sectionNumbers(c.citation),
+  status: c.status, provenance: c.provenance,
+}));
+
+function matchCitation(citation) {
+  const nums = sectionNumbers(citation);
+  return KNOWN.find(k => k.citation === citation) ||
+    KNOWN.find(k => nums && k.nums === nums) ||
+    KNOWN.find(k => nums && k.nums && (k.nums.includes(nums) || nums.includes(k.nums))) ||
+    null;
+}
+
+/**
+ * Audit a flat list of cited sections, flagging each in place.
+ *   unverified — not in the library at all. The model made it up.
+ *   pending    — in the library but not yet enforceable.
+ *   unsourced  — in the library but its text was never transcribed from a
+ *                primary source (the building corpus). Citable, but the UI
+ *                should say so; see ai/codes.js meta.provenanceCaveat.
+ */
+function auditList(list) {
   const unknown = [];
   const notEnforceable = [];
-  for (const s of doc.sections) {
-    if (s.type !== 'codes') continue;
-    for (const c of s.codes) {
-      const nums = sectionNumbers(c.citation);
-      const hit = known.find(k => k.citation === c.citation) ||
-        known.find(k => nums && k.nums === nums) ||
-        known.find(k => nums && k.nums && (k.nums.includes(nums) || nums.includes(k.nums)));
-      if (!hit) { unknown.push(c.citation); c.unverified = true; }
-      else if (hit.status !== 'current') { notEnforceable.push(c.citation); c.pending = true; }
-    }
+  const notSourced = [];
+  for (const c of list) {
+    const hit = matchCitation(c.citation);
+    if (!hit) { unknown.push(c.citation); c.unverified = true; continue; }
+    // The match is deliberately loose, so what came back may be the right
+    // section spelled differently — or with the title run onto the end of it.
+    // Store the library's string rather than the model's, so the citation the
+    // inspector reads is exactly the one on file.
+    c.citation = hit.citation;
+    if (hit.status !== 'current') { notEnforceable.push(c.citation); c.pending = true; }
+    if (hit.provenance === 'unverified') { notSourced.push(c.citation); c.unsourced = true; }
   }
-  return { unknown, notEnforceable };
+  return { unknown, notEnforceable, notSourced };
+}
+
+function checkCitations(doc) {
+  const all = [];
+  for (const s of doc.sections) if (s.type === 'codes') all.push(...s.codes);
+  return auditList(all);
+}
+
+function auditBlock(a) {
+  return {
+    unknownCitations: a.unknown,
+    pendingCitations: a.notEnforceable,
+    unsourcedCitations: a.notSourced,
+    codeEdition: codes.meta.edition,
+    codeEditionCaveat: codes.meta.editionCaveat,
+    provenanceCaveat: codes.meta.provenanceCaveat,
+    codesRetrieved: codes.meta.retrieved,
+  };
 }
 
 function validate(kind, raw) {
@@ -125,15 +164,87 @@ function validate(kind, raw) {
         closing: String(raw.closing || '').trim(),
         sections,
       };
-  const audit = checkCitations(doc);
-  doc.audit = {
-    unknownCitations: audit.unknown,
-    pendingCitations: audit.notEnforceable,
-    codeEdition: codes.meta.edition,
-    codeEditionCaveat: codes.meta.editionCaveat,
-    codesRetrieved: codes.meta.retrieved,
-  };
+  doc.audit = auditBlock(checkCitations(doc));
   return doc;
+}
+
+// ---------------------------------------------------------------------------
+// Record validation
+//
+// The record screen in app.js renders a fixed shape that predates the model
+// (it was fixture data in data.js). The model answers in its own schema and
+// this maps one to the other, so neither side has to know about the other:
+//   summary    [[label, value], ...]
+//   severity   { level, score, why }
+//   category   [chip, ...]
+//   estimates  [[label, value], ...]
+//   codes      [{ scope, c, t }, ...]
+//   recs       [{ id, title, text }, ...]
+// ---------------------------------------------------------------------------
+
+const LEVELS = { Violation: 'violation', Compliant: 'compliance', Note: 'note' };
+
+const pairs = (arr, cap) => (Array.isArray(arr) ? arr : [])
+  .map(x => [String((x && x.label) || '').trim(), String((x && x.value) || '').trim()])
+  .filter(([l, v]) => l || v)
+  .slice(0, cap);
+
+function validateRecord(raw, ctx) {
+  if (!raw || typeof raw !== 'object') throw new DraftError('Model returned no record', 'bad_shape');
+
+  const summary = pairs(raw.summary, 4);
+  if (!summary.length) throw new DraftError('Model returned no usable summary', 'bad_shape', raw);
+
+  const det = raw.determination || {};
+  // The inspector's determination wins. The model is told to repeat it, but if
+  // it re-decided anyway, the recorded one is the one that counts.
+  const recorded = ctx && ctx.entry && ctx.entry.level;
+  const level = LEVELS[String(det.level || '')] ? String(det.level) : (recorded || 'Note');
+  const band = prompts.SEVERITY_BANDS[String(det.band || '')] ? String(det.band) : 'None';
+  // A compliant entry or a note is never given a severity number, whatever the
+  // model said. And the number itself is ours: the model picks a band only.
+  const scored = level === 'Violation';
+  const score = scored ? prompts.SEVERITY_BANDS[band].score : 0;
+
+  const rec = {
+    kind: 'record',
+    summary,
+    severity: {
+      level: level === 'Violation' ? band === 'None' ? 'Violation' : band : level,
+      score,
+      why: String(det.why || '').trim() || 'No reason recorded.',
+      band,
+      determination: level,
+    },
+    category: (Array.isArray(raw.categories) ? raw.categories : [])
+      .map(c => String(c || '').trim()).filter(Boolean).slice(0, 3),
+    estimates: pairs(raw.measurements, 6),
+    codes: (Array.isArray(raw.codes) ? raw.codes : [])
+      .map(c => ({
+        scope: ['State', 'Local', 'Standard'].includes(c && c.scope) ? c.scope : 'State',
+        citation: String((c && c.citation) || '').trim(),
+        c: String((c && c.citation) || '').trim(),
+        t: String((c && c.relevance) || '').trim(),
+      }))
+      .filter(c => c.citation)
+      .slice(0, 4),
+    recs: level === 'Violation'
+      ? (Array.isArray(raw.recommendations) ? raw.recommendations : [])
+          .map((r, i) => ({
+            id: 'r' + (i + 1),
+            title: String((r && r.title) || '').trim(),
+            text: String((r && r.text) || '').trim(),
+          }))
+          .filter(r => r.title && r.text)
+          .slice(0, 5)
+      : [],
+  };
+
+  rec.audit = auditBlock(auditList(rec.codes));
+  // The audit canonicalised `citation`; the renderer reads `c`, so carry it
+  // across and drop the field it no longer needs.
+  rec.codes.forEach(c => { c.c = c.citation; delete c.citation; });
+  return rec;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,8 +321,19 @@ async function callGemini({ system, user, schema, model }) {
     // Structured output should make this impossible, but a truncated response
     // is still JSON-shaped garbage. Try the outermost object.
     const m = out.match(/\{[\s\S]*\}/);
-    if (!m) throw new DraftError('Model returned malformed JSON', 'bad_json', out.slice(0, 600));
-    try { parsed = JSON.parse(m[0]); } catch (_) { throw new DraftError('Model returned malformed JSON', 'bad_json', out.slice(0, 600)); }
+    let ok = false;
+    if (m) { try { parsed = JSON.parse(m[0]); ok = true; } catch (_) { /* fall through */ } }
+    if (!ok) {
+      // Say which failure this is. A response that stopped at the token
+      // ceiling is not malformed JSON — it is unfinished, and the fix is a
+      // higher ceiling or a shorter document, not a retry.
+      if (cand.finishReason === 'MAX_TOKENS') {
+        throw new DraftError(
+          `The model hit its output limit (${model.maxOutputTokens} tokens) and the document was cut off mid-sentence. Raise GEMINI_MAX_OUTPUT_TOKENS.`,
+          'truncated', { finish: 'MAX_TOKENS', chars: out.length });
+      }
+      throw new DraftError('Model returned malformed JSON', 'bad_json', out.slice(0, 600));
+    }
   }
 
   return { parsed, usage: payload.usageMetadata || null, finish: cand.finishReason || null };
@@ -240,15 +362,15 @@ async function callWithRetry(req) {
 
 /**
  * Draft one document.
- * @param {'report'|'notice'} kind
+ * @param {'record'|'report'|'notice'} kind
  * @param {object} ctx  inspection context, built by the client (see app.js draftCtx)
  */
 async function draft(kind, ctx) {
-  if (kind !== 'report' && kind !== 'notice') throw new DraftError('Unknown document kind', 'bad_kind');
+  if (!['record', 'report', 'notice'].includes(kind)) throw new DraftError('Unknown document kind', 'bad_kind');
   const req = prompts.assemble(kind, ctx);
   const t0 = Date.now();
   const { parsed, usage, finish } = await callWithRetry(req);
-  const doc = validate(kind, parsed);
+  const doc = kind === 'record' ? validateRecord(parsed, ctx) : validate(kind, parsed);
   doc.meta = {
     model: req.model.name,
     ms: Date.now() - t0,
@@ -313,4 +435,4 @@ async function listModels() {
   return results.filter(Boolean);
 }
 
-module.exports = { draft, listModels, keyPresent, backend, DraftError, validate };
+module.exports = { draft, listModels, keyPresent, backend, DraftError, validate, validateRecord };
