@@ -1,28 +1,47 @@
-// Hard-coded demo content. The oleander case (V2) is the live demo location; the others carry history only.
+// Hard-coded demo content. The oleander case (a1) is the live demo location; the others carry history only.
 window.CONFIG = {
-  dept: 'Fire Prevention Bureau', unit: 'Vegetation Management Unit',
-  inspector: { name: 'D. Alvarez', badge: 'VM-214', email: 'vegetation@cityfire.gov', phone: '(510) 555-0142' },
-  // Headquarters. Every route starts here, from this real coordinate.
-  station: { name: 'Dept. HQ', addr: '250 Frank H. Ogawa Plaza, Oakland, CA', lat: 37.80612, lon: -122.27247 },
-  correctionDays: 45, appealDays: 15, localCode: 'Municipal Fire Code §4907.4', portal: 'Accela Citizen Access',
+  dept: 'Marin County Fire Department', unit: 'Vegetation Management Unit',
+  inspector: { name: 'D. Alvarez', badge: 'VM-214', email: 'vegetation@marinfire.example.gov', phone: '(415) 555-0142' },
+  // Headquarters. Every route starts here, from this real coordinate — Marin
+  // County Fire's station on Castle Rock Ave in Woodacre.
+  station: { name: 'Marin County Fire HQ', addr: '33 Castle Rock Ave, Woodacre, CA', lat: 38.00715, lon: -122.63599 },
+  // Windows and citations verified against the Marin County ordinance that
+  // establishes Marin County Code ch. 16.16 (see ai/codes.js for the verbatim
+  // text and the source). They are much shorter than a generic "45 days":
+  //   correctionDays — CFC §322.9.1 as adopted by MCC §16.16.040: the Notice to
+  //     Abate requires removal within 10 days of the date of the notice.
+  //     §322.9.3 drops that to 5 days for an immediate hazard.
+  //   appealDays — MCC §16.16.055: 15 days to appeal the Hearing Officer's
+  //     decision. This is NOT 15 days from the notice; the informal hearing
+  //     before the Fire Chief comes first.
+  correctionDays: 10, appealDays: 15,
+  localCode: 'California Fire Code §4907.2 (Marin County Code §16.16.040)',
+  portal: 'Accela Citizen Access',
 };
 
 // The seeded typeahead entries. Addresses typed by hand are geocoded for real
-// (see geo.js) and appended to this list at runtime. lat/lon are real points on
-// the named Oakland streets — the router snaps each to the road network, so the
-// legs between them are genuine drives. x,y are only for the stylised fallback
-// map and the parcel sketch, and are derived from lat/lon below.
+// (see geo.js) and appended to this list at runtime. These ten are real houses
+// in the Marin County wildland-urban interface, geocoded to their true
+// coordinates: the router snaps each to the road network so the legs between
+// them are genuine drives, and sat.js frames satellite imagery on the same
+// point, so the picture is the actual property. Owners are invented.
+// x,y are only for the stylised fallback map, and are derived from lat/lon below.
 window.ADDRESSES = [
-  { id: 'a1', addr: '123 Placeholder St', where: 'Upper Rockridge, Oakland, CA', lat: 37.84543, lon: -122.23182, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
-  { id: 'a2', addr: '2210 Moraga Ave', where: 'North Oakland, CA', lat: 37.82884, lon: -122.24587, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
-  { id: 'a3', addr: '77 Alvarado Pl', where: 'Claremont, Oakland, CA', lat: 37.86203, lon: -122.23270, owner: { name: 'S. Patel', email: 's.patel@example.com' } },
-  { id: 'a4', addr: '5150 Broadway Ter', where: 'North Oakland, CA', lat: 37.83810, lon: -122.24705, owner: { name: 'J. Romero', email: 'j.romero@example.com' } },
-  { id: 'a5', addr: '418 Skyline Crest Rd', where: 'Oakland Hills, CA', lat: 37.80502, lon: -122.17911, owner: { name: 'A. Lindqvist', email: 'a.lindqvist@example.com' } },
-  { id: 'a6', addr: '9 Canyon View Ct', where: 'Montclair, Oakland, CA', lat: 37.83165, lon: -122.19564, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
+  { id: 'a1', addr: '40 Ridgecrest Rd', where: 'Kentfield, CA', lat: 37.94049, lon: -122.55568, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
+  { id: 'a2', addr: '100 Eldridge Ave', where: 'Mill Valley, CA', lat: 37.91280, lon: -122.54813, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
+  { id: 'a3', addr: '250 Madrone Ave', where: 'Baltimore Canyon, Larkspur, CA', lat: 37.93157, lon: -122.54500, owner: { name: 'S. Patel', email: 's.patel@example.com' } },
+  { id: 'a4', addr: '40 Idlewood Rd', where: 'Kent Woodlands, Kentfield, CA', lat: 37.94690, lon: -122.56282, owner: { name: 'J. Romero', email: 'j.romero@example.com' } },
+  { id: 'a5', addr: '60 Via Los Altos', where: 'Tiburon, CA', lat: 37.90442, lon: -122.50405, owner: { name: 'A. Lindqvist', email: 'a.lindqvist@example.com' } },
+  { id: 'a6', addr: '35 Wolfback Ridge Rd', where: 'Sausalito, CA', lat: 37.85132, lon: -122.49360, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
+  { id: 'a7', addr: '45 Scenic Ave', where: 'San Anselmo, CA', lat: 37.97820, lon: -122.57490, owner: { name: 'K. Abiodun', email: 'k.abiodun@example.com' } },
+  { id: 'a8', addr: '310 Butterfield Rd', where: 'San Anselmo, CA', lat: 37.99695, lon: -122.57637, owner: { name: 'P. Castellanos', email: 'p.castellanos@example.com' } },
+  { id: 'a9', addr: '120 Bolinas Rd', where: 'Fairfax, CA', lat: 37.98515, lon: -122.59020, owner: { name: 'L. Moreau', email: 'l.moreau@example.com' } },
+  { id: 'a10', addr: '150 Belvedere Ave', where: 'Belvedere Island, Belvedere, CA', lat: 37.86867, lon: -122.46673, owner: { name: 'H. Yamada', email: 'h.yamada@example.com' } },
 ];
 
-// lat/lon → the 0–100 map space the fallback map and parcel sketch draw in.
-window.BBOX = { lat0: 37.88, lat1: 37.78, lon0: -122.30, lon1: -122.16 };
+// lat/lon → the 0–100 map space the fallback map draws in. Marin County, from
+// Novato down to the Golden Gate.
+window.BBOX = { lat0: 38.04, lat1: 37.83, lon0: -122.67, lon1: -122.43 };
 window.toMapXY = (lat, lon) => {
   const b = window.BBOX;
   return { x: Math.max(-20, Math.min(120, (lon - b.lon0) / (b.lon1 - b.lon0) * 100)),
@@ -56,7 +75,10 @@ window.STREAM = [
   { t: 'Drafting the record', d: 'severity · estimates · recommendations' },
 ];
 
-// AI output templates per entry kind. {memo} is the inspector's note.
+// Fallback text, used only when the drafting server is unavailable (no key, or
+// offline). The real report and notice are drafted per property from the
+// inspector's notes and ai/codes.js — see drafts.js and ai/prompts.js. These
+// strings are generic by design: they are not findings about any property.
 window.AI = {
   violation: {
     summary: [
@@ -70,10 +92,10 @@ window.AI = {
     category: ['Ladder fuel', 'Zone 1 (5–30 ft)', 'Vertical clearance', 'Horizontal continuity'],
     estimates: [['Canopy height', '≈ 14 ft'], ['Hedge height', '≈ 5 ft'], ['Vertical gap', '0 ft (required ≥ 15 ft, 3 × 5 ft)'], ['Canopy base', '≈ 4 ft (required ≥ 6 ft)'], ['Hedge run', '≈ 40 ft unbroken'], ['Distance to structure', '≈ 22 ft'], ['Slope', '≈ 25 % · spacing class 20–40 %']],
     codes: [
-      { scope: 'State', c: '2025 California Fire Code, Ch. 49 §4906', t: 'Vegetation management in WUI Fire Areas.' },
-      { scope: 'State', c: 'PRC §4291 · Gov. Code §51182', t: '100 ft defensible space; intensified 5–30 ft; ember-resistant 0–5 ft.' },
-      { scope: 'State', c: '14 CCR §1299.03', t: 'Vertical clearance 3× lower fuel height; horizontal spacing by slope.' },
-      { scope: 'Local', c: 'Municipal Fire Code §4907.4', t: '30-ft defensible space; limb trees ≥ 6 ft; no contiguous vegetation to the structure.' },
+      { scope: 'State', c: 'California Fire Code §4906.2 (as amended by Marin County Code §16.16.040)', t: 'Hazardous vegetation and fuel management is required in SRA fire hazard severity zones, LRA very-high zones and designated WUI Fire Areas.' },
+      { scope: 'State', c: 'PRC §4291 · Gov. Code §§51175–51189', t: '100 ft of defensible space, intensified between 5 and 30 ft, with an ember-resistant zone within 5 ft (Zone 0 regulations adopted Aug 2026, phased in — not yet enforceable).' },
+      { scope: 'State', c: '14 CCR §1299.03', t: 'Zone 1 to 30 ft and Zone 2 from 30 to 100 ft; vertical clearance 3× the lower fuel height, horizontal spacing by slope.' },
+      { scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Cut and remove fire prone vegetation within 30 ft of structures, up to 150 ft where topography or fuel type requires; remove growth under 3 in. diameter from the ground to 10 ft, but no more than the lower one-third of the tree.' },
     ],
     recs: [
       { id: 's1', img: 'assets/s1.png', title: 'Raise the canopy', text: 'Trim the oleander branches up to 10 ft and cut the hedge down to 3 ft, so there is open space between the hedge and the canopy.' },
@@ -87,12 +109,12 @@ window.AI = {
     summary: [['Observed', 'Retaining-wall base and planting bed are clear of leaf litter and dead material.'], ['Condition', 'Succulents spaced on bare soil; no ladder from the bed into the hedge.'], ['Result', 'Meets the ember-resistant base requirement for this side of the property.']],
     severity: { level: 'Compliant', score: 0, why: 'No corrective action for this item.' },
     category: ['Zone 0 (0–5 ft)', 'Surface fuel'], estimates: [['Litter depth', '< 1 in.'], ['Plant spacing', '≈ 2 ft']],
-    codes: [{ scope: 'State', c: 'PRC §4291 (ember-resistant zone)', t: 'Checked · meets.' }, { scope: 'Local', c: 'Municipal Fire Code §4907.4', t: 'Checked · meets.' }], recs: [],
+    codes: [{ scope: 'State', c: 'PRC §4291 (ember-resistant zone)', t: 'Checked · meets.' }, { scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Checked · meets.' }], recs: [],
   },
   upload: {
     summary: [['Observed', 'Roof and north gutter free of needles and leaves; no branches within 10 ft of the roofline.'], ['Result', 'Meets roof and gutter clearance.']],
     severity: { level: 'Compliant', score: 0, why: 'No corrective action for this item.' }, category: ['Roof and gutters'], estimates: [['Branch distance to roof', '> 10 ft']],
-    codes: [{ scope: 'Local', c: 'Municipal Fire Code §4907.4', t: 'Checked · meets.' }], recs: [],
+    codes: [{ scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Checked · meets.' }], recs: [],
   },
   note: {
     summary: [['Note', 'Owner reports the north gutters were cleaned last week; not verified by photo today.'], ['Follow-up', 'Verify at reinspection or ask the owner for a photo.']],
@@ -131,6 +153,15 @@ window.HISTORY = {
        { date: '2025-11-05', outcome: '1 violation · corrected', entries: [{ n: 1, kind: 'violation', note: 'Dead pine limbs over the roof.', geo: [60, 28], time: '09:40' }] },
        { date: '2024-11-07', outcome: 'Compliant', entries: [{ n: 1, kind: 'compliance', note: 'Deck perimeter clear.', geo: [36, 64], time: '09:55' }] },
        { date: '2023-11-09', outcome: '3 violations · corrected', entries: [{ n: 1, kind: 'violation', note: 'Juniper against the deck.', geo: [36, 64], time: '08:50' }, { n: 2, kind: 'violation', note: 'Firewood under the deck.', geo: [40, 70], time: '08:58' }, { n: 3, kind: 'violation', note: 'Grass over 4 in. at the road edge.', geo: [50, 88], time: '09:05' }] }],
+  a7: [{ date: '2026-10-07', outcome: '1 violation · open', entries: [{ n: 1, kind: 'violation', note: 'Bay laurel limbs overhang the carport roof.', geo: [52, 30], time: '11:20' }] },
+       { date: '2025-10-09', outcome: 'Compliant', entries: [{ n: 1, kind: 'compliance', note: 'Chimney spark arrester fitted and clear.', geo: [52, 30], time: '11:05' }] }],
+  a8: [{ date: '2026-09-30', outcome: 'Compliant', entries: [{ n: 1, kind: 'compliance', note: 'Driveway clearance 14 ft; address numbers reflective.', geo: [46, 78], time: '13:25' }] },
+       { date: '2025-10-02', outcome: '1 violation · corrected', entries: [{ n: 1, kind: 'violation', note: 'Broom thicket along the creek bank within 30 ft.', geo: [24, 62], time: '13:40' }] },
+       { date: '2024-10-04', outcome: 'Compliant', entries: [{ n: 1, kind: 'compliance', note: 'Creek bank cleared and replanted low.', geo: [24, 62], time: '14:00' }] }],
+  a9: [{ date: '2026-10-02', outcome: '2 violations · open', entries: [{ n: 1, kind: 'violation', note: 'Eucalyptus bark litter piled against the fence.', geo: [68, 52], time: '08:45' }, { n: 2, kind: 'violation', note: 'Propane tank with grass to the base.', geo: [34, 44], time: '08:58' }] },
+       { date: '2025-10-06', outcome: '1 violation · corrected', entries: [{ n: 1, kind: 'violation', note: 'Eucalyptus bark litter piled against the fence.', geo: [68, 52], time: '09:10' }] }],
+  a10: [{ date: '2026-09-23', outcome: 'Compliant', entries: [{ n: 1, kind: 'compliance', note: 'Terraced beds gravelled; no fuel within 5 ft of the wall.', geo: [44, 56], time: '15:05' }, { n: 2, kind: 'note', note: 'Owner planning to re-roof in Class A next spring.', geo: [56, 32], time: '15:12' }] },
+       { date: '2025-09-25', outcome: '1 violation · corrected', entries: [{ n: 1, kind: 'violation', note: 'Ivy climbing the north elevation to the eaves.', geo: [30, 38], time: '15:20' }] }],
 };
 // Previous days for the Days screen (address ids per day)
 window.DAYS = [
@@ -138,4 +169,8 @@ window.DAYS = [
   { label: 'Oct 28, 2026', date: '2026-10-28', stops: ['a2'] },
   { label: 'Oct 21, 2026', date: '2026-10-21', stops: ['a3'] },
   { label: 'Oct 14, 2026', date: '2026-10-14', stops: ['a4'] },
+  { label: 'Oct 7, 2026', date: '2026-10-07', stops: ['a7'] },
+  { label: 'Oct 2, 2026', date: '2026-10-02', stops: ['a9'] },
+  { label: 'Sep 30, 2026', date: '2026-09-30', stops: ['a8'] },
+  { label: 'Sep 23, 2026', date: '2026-09-23', stops: ['a10'] },
 ];

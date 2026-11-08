@@ -10,6 +10,7 @@ Generated from `spec.js`. The app implements exactly these screens and affordanc
 - No confirmation pills or toasts: the result of an action is visible in the UI itself.
 - Generated text is always editable in place. The AI drafts, the inspector decides.
 - Stale derived documents (report, notice) say so and offer Refresh; they never silently change.
+- Drafted text says what drafted it and when. A document the model could not write is never dressed up as one it did.
 
 ## Global
 
@@ -27,7 +28,7 @@ Plan and run the day: HQ, today’s stops, their order on real roads, and what i
 | Control | Gesture | Result |
 |---|---|---|
 | ☰ (top-left) | tap | Opens the menu: previous inspections, saved site lookups, profile, settings. |
-| Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
+| Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap. Every suggestion carries a satellite thumbnail of the property it would pin, so the right one is recognised before it is chosen. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
 | Address field | focus when empty | Lists recent site lookups — every address ever added to a day, kept on the device. |
 | Address field | Enter with nothing highlighted | Geocodes whatever was typed and adds the first match. |
 | Map pin | tap | Highlights the stop row in the sheet and scrolls to it. |
@@ -38,6 +39,7 @@ Plan and run the day: HQ, today’s stops, their order on real roads, and what i
 | Stop row | press-and-hold anywhere, then drag | Same lift after a short hold. |
 | Stop row ✕ | tap | Removes the stop (asks first if it already has entries). |
 | Best route ✦ | tap | Times every pair of points on the road network, drives every ordering of today’s stops from HQ, and keeps the fastest. The panel reports each stage and the running count; rows and the route animate into the winning order. Manual reorder still works afterwards. |
+| ◉ (top-right) | tap | Switches the basemap between satellite imagery and roads. Satellite shows the vegetation on the way in; roads name the street the route turns on. |
 | ◎ (top-right) | tap | Fits the map back around HQ and the whole route. |
 
 Edge cases
@@ -89,13 +91,14 @@ Everything about one property today, and its history.
 | Control | Gesture | Result |
 |---|---|---|
 | ‹ (top-left) | tap | Back to the map. Nothing to save here: entries save themselves. |
-| Bird’s-eye view | look | Shows the parcel, the inspector’s live position (pulsing dot) and one numbered pip per entry at the spot it was captured. |
+| Satellite view | look | Real aerial imagery of this address, framed on its own coordinate. Over it: the three defensible-space zones (5 ft, 30 ft, 100 ft) drawn true to scale, the point that was geocoded and routed to, the inspector’s position (pulsing dot) and one numbered pip per entry at the spot it was captured. A scale bar and the imagery credit sit along the bottom. |
+| Parcel / 100 ft zone / Block | tap | Opens on Parcel. Reframes the imagery between the house, its whole defensible space, and the street around it. Pips stay on the ground as it rescales. The zone rings belong to the 100 ft zone view alone — Parcel and Block are plain imagery, so nothing is drawn over the ground being read. |
 | Pip | tap | Scrolls to that entry in the list. |
 | Today / History tabs | tap | Today lists this visit’s entries. History lists past inspection dates. |
 | New entry (+) | tap | Opens the camera. |
 | Entry card | tap | Opens its record for editing. |
 | Entry card | press-and-hold | Cards wobble and show ✕. Tap ✕ to delete (asks first). Tap anywhere else to stop wobbling. |
-| Finish | tap | Marks the stop complete and opens the wrap-up: a completion card compiles the Internal report and drafts the Notice in front of the inspector, then “See the documents” reveals them on the home with a highlight (asks first if there are no entries). |
+| Finish | tap | Marks the stop complete and opens the wrap-up: a completion card drafts the Internal report and the Notice in front of the inspector — real calls, so it reports what each one actually came back as — then “See the documents” reveals them on the home with a highlight (asks first if there are no entries). |
 | Internal report | tap | Opens the compiled technical document. Shown only after Finish. |
 | Notice to owner | tap | Opens the email draft. Shown only after Finish. |
 | Reopen | tap | Un-finishes the stop so entries can be added; documents hide again until the next Finish. |
@@ -104,6 +107,7 @@ Everything about one property today, and its history.
 
 Edge cases
 
+- If no imagery provider answers, the view falls back to a stylised parcel drawing and says so.
 - Empty Today shows one message and the New entry button; nothing else competes.
 - Report and Notice show a “changes since generated” badge when entries changed after they were made.
 - Finish with zero entries asks whether to mark the stop as visited with no findings.
@@ -170,18 +174,21 @@ Edge cases
 
 ## Internal report (`report`)
 
-A rigorous document compiled from every entry for the file.
+A rigorous document drafted from every entry, grounded in the code library, for the file.
 
 | Control | Gesture | Result |
 |---|---|---|
-| Refresh | tap | Shown when entries changed after the report was generated; recompiles. |
-| Section | tap Edit | Editable like the record. |
-| Export | tap | Saves a PDF to the case (demo: toast). |
+| Refresh | tap | Shown when entries changed after the report was drafted, or when drafting failed; redrafts. |
+| Section | tap Edit | Every drafted line is editable in place; Revert restores what was drafted. |
+| Export | tap | Writes the document to a text file on the device. |
 | ‹ | tap | Back to Location home. |
 
 Edge cases
 
-- Includes metadata per entry: time, position, inspector, address.
+- Drafted per property from the inspector’s notes and the jurisdiction’s fire code — it states no measurement that was not recorded, and cites only sections in the code library.
+- A citation outside the code library is flagged in red on the section that carries it.
+- The footer names when it was drafted, by which model, the code edition cited, and the inspector who reviewed it.
+- If drafting is unavailable the screen says so and shows generic template text, marked as not being about this property.
 
 ## Notice to owner (`notice`)
 
@@ -192,14 +199,18 @@ Plain-language email: what we found, what to do, with the approved visuals and a
 | Edit options | tap | Reopens the deck for that entry. |
 | Find attachments | tap | Searches the department library; each hit has an include toggle. |
 | Add your own | tap | Attach a file from the device (demo: adds a placeholder document). |
-| Refresh | tap | Shown when entries or decisions changed after the draft; redrafts, keeping manual edits where possible. |
-| Save draft | tap | Saves to the inspector’s Mail drafts for the desktop. |
-| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option. |
+| Refresh | tap | Shown when entries, decisions or attachments changed after the draft, or when drafting failed; redrafts. |
+| Save draft | tap | Saves to the inspector’s Mail drafts for the desktop; the screen then says it is saved and not sent. |
+| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option and the owner has a deliverable address. Afterwards the screen says who it went to and when. |
 | ‹ | tap | Back to Location home; the draft is kept. |
 
 Edge cases
 
+- Drafted in plain language per property; code citations stay out of the letter body.
+- The correction deadline, the hearing and the appeal windows come from the jurisdiction’s abatement procedure, not from a generic default.
 - Compliance-only visits produce a short “no action needed” notice.
+- With no mailing address on file the notice says so and Hold to send is disabled.
+- If drafting is unavailable the screen says so and shows generic template text, marked as not being about this property.
 
 ## Department library search (`kb`)
 

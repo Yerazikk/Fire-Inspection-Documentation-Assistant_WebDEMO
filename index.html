@@ -28,11 +28,12 @@
 .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:16px 2px 6px;font-weight:600}
 /* ---------- map ---------- */
 .mapwrap{position:absolute;inset:0;background:#0d1420;z-index:0;isolation:isolate}.mapwrap>svg{width:100%;height:100%;display:block}
-.mtop{position:absolute;left:0;right:0;top:54px;display:flex;justify-content:space-between;padding:6px 18px;z-index:5}.mtop .ib{width:40px;height:40px;border-radius:14px;background:rgba(11,15,23,.8);backdrop-filter:blur(14px);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);cursor:pointer;font-size:18px}
+.mtop{position:absolute;left:0;right:0;top:54px;display:flex;justify-content:space-between;padding:6px 18px;z-index:5}.mtop .mtr{display:flex;gap:8px}.mtop .ib.on{color:var(--cyan);border-color:rgba(53,224,255,.45);background:rgba(11,15,23,.85)}.mtop .ib{width:40px;height:40px;border-radius:14px;background:rgba(11,15,23,.8);backdrop-filter:blur(14px);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);cursor:pointer;font-size:18px}
 .pin{cursor:pointer}.pin circle.halo{fill:rgba(53,224,255,.18)}.pin.done circle.body{fill:#1f6f49}.pin.sel circle.halo{fill:rgba(53,224,255,.4)}
 /* real map: Leaflet over OSM tiles */
 .lmap{position:absolute;inset:0}.leaflet-container{background:#0d1420;font:inherit;outline:none}
 .lmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.68) contrast(1.08) saturate(.7)}
+.lmap.imagery .leaflet-tile-pane{filter:brightness(.78) saturate(.85) contrast(1.04)}
 .lmap .leaflet-top.leaflet-right{top:104px}.leaflet-control-attribution{margin:0!important;border-radius:6px 0 0 6px}
 .leaflet-control-attribution{background:rgba(5,7,12,.65)!important;color:var(--faint)!important;font-size:9px!important;padding:1px 6px!important;border-radius:6px 0 0 0}
 .leaflet-control-attribution a{color:var(--faint)!important;text-decoration:none}
@@ -76,10 +77,46 @@
 /* days */
 .search{display:flex;gap:10px;align-items:center;margin-bottom:6px}.search input{flex:1;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--glass2);color:var(--ink);font:inherit;outline:none}.search .ib{width:42px;height:42px;border-radius:14px;background:var(--glass);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
 .dsec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:16px 2px 6px}
-.loc{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--glass);border:1px solid var(--line);margin:8px 0;cursor:pointer}.loc .thumb{width:64px;height:48px;border-radius:10px;overflow:hidden;flex:none;background:#0d1614;border:1px solid var(--line)}.loc .thumb svg{width:100%;height:100%;display:block}.loc .t{font-size:14px;font-weight:600}.loc .s{font-size:12px;color:var(--faint)}.loc .r{margin-left:auto;font-size:12px;color:var(--faint);text-align:right}
+.loc{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--glass);border:1px solid var(--line);margin:8px 0;cursor:pointer}.loc .thumb{position:relative;width:64px;height:48px;border-radius:10px;overflow:hidden;flex:none;background:#0d1614;border:1px solid var(--line)}.loc .thumb svg{width:100%;height:100%;display:block}.loc .t{font-size:14px;font-weight:600}.loc .s{font-size:12px;color:var(--faint)}.loc .r{margin-left:auto;font-size:12px;color:var(--faint);text-align:right}
 .cal{position:absolute;inset:0;z-index:45;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);display:grid;place-items:center;padding:18px}.calbox{width:100%;background:#0f1520;border:1px solid var(--line);border-radius:22px;padding:16px}.calbox h5{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px}.calgrid span{padding:8px 0;border-radius:8px;color:var(--faint)}.calgrid span.has{color:var(--ink);background:rgba(53,224,255,.12);cursor:pointer;font-weight:600}.calgrid span.today{outline:1px solid var(--cyan)}
 /* location */
-.sat{position:relative;height:300px;border-radius:20px;overflow:hidden;background:#0d1614;flex:none;border:1px solid var(--line)}.sat svg{width:100%;height:100%;display:block}.sat .you{animation:ping 2.4s ease-in-out infinite}@keyframes ping{0%{r:5}50%{r:8;opacity:.6}100%{r:5}}.sat .pip{cursor:pointer}.sat .ban{position:absolute;left:10px;top:10px;background:rgba(11,15,23,.8);border:1px solid var(--line);border-radius:10px;padding:5px 9px;font-size:11px;color:var(--soft)}.sat .ban.snap{border-color:rgba(255,182,72,.5);color:#ffd79a}
+.sat{position:relative;height:300px;border-radius:20px;overflow:hidden;background:#0d1614;flex:none;border:1px solid var(--line)}
+/* ---- satellite imagery (sat.js) ---- */
+/* The tile fades in over whatever the caller put behind it — the stylised
+   sketch — which is what shows if every provider fails. */
+.satimg{position:absolute;inset:0;overflow:hidden}
+.satimg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease}
+.satimg.on>img{opacity:1}
+.satimg>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.satimg.on>.satsketch{opacity:0}
+.satsketch{transition:opacity .35s ease}
+.satover{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.satover .pip{pointer-events:auto;cursor:pointer}
+.satover .you{animation:ping 2.4s ease-in-out infinite}
+@keyframes ping{0%{r:5}50%{r:8;opacity:.6}100%{r:5}}
+/* Defensible space, to scale on the imagery: 5 ft, 30 ft, 100 ft. */
+.satover .zr{fill:none;stroke-width:.5;stroke-dasharray:2 1.6}
+.satover .zr.z0{stroke:rgba(255,92,108,.85);stroke-dasharray:none}
+.satover .zr.z1{stroke:rgba(255,182,72,.8)}
+.satover .zr.z2{stroke:rgba(53,224,255,.75)}
+.satover .zt{font:600 2.5px -apple-system,sans-serif;fill:rgba(224,247,255,.9);paint-order:stroke;stroke:rgba(5,8,14,.75);stroke-width:.9}
+.satover .target circle{fill:#fff;stroke:rgba(5,8,14,.8);stroke-width:.4}
+.satover .target path{stroke:#fff;stroke-width:.5}
+/* Parcel hero furniture. The hero is wider than tall, so the slice crop keeps
+   the full width in view and the scale bar is an honest percentage of it. */
+.sat .satz{position:absolute;right:10px;top:10px;display:flex;gap:4px;background:rgba(11,15,23,.8);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:12px;padding:3px;z-index:2}
+.sat .satz button{border:0;background:none;color:var(--faint);font:600 11px/1 -apple-system,sans-serif;padding:7px 9px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.sat .satz button.on{background:rgba(53,224,255,.14);color:var(--cyan)}
+.sat .satn{position:absolute;right:14px;bottom:40px;width:22px;height:22px;border-radius:50%;background:rgba(11,15,23,.72);border:1px solid var(--line);display:grid;place-items:center;font:700 10px/1 -apple-system,sans-serif;color:var(--soft);z-index:2}
+.sat .satfoot{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:8px 12px 7px;background:linear-gradient(transparent,rgba(5,8,14,.72));z-index:2}
+.sat .sbar{position:relative;min-width:40px;border-bottom:2px solid rgba(255,255,255,.85);border-left:2px solid rgba(255,255,255,.85);border-right:2px solid rgba(255,255,255,.85);padding-bottom:3px;font:600 10px/1.2 -apple-system,sans-serif;color:#fff;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.sat .scred{font-size:9px;color:rgba(224,247,255,.65);text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.9);line-height:1.3}
+/* Typeahead: the property each candidate would pin. */
+.sugg div[data-i]{display:flex;align-items:center;gap:11px;padding:8px 12px}
+.sugg .sgt{position:relative;width:46px;height:36px;border-radius:8px;overflow:hidden;flex:none;background:#0d1614;border:1px solid var(--line)}
+.sugg .sgx{min-width:0;flex:1}
+.sugg .sgx small{display:block;color:var(--faint);font-size:11px}
+.sat .ban{position:absolute;left:10px;top:10px;background:rgba(11,15,23,.8);border:1px solid var(--line);border-radius:10px;padding:5px 9px;font-size:11px;color:var(--soft)}.sat .ban:not(.snap){border-color:rgba(53,224,255,.5);color:#bdf3ff}.ban.snap{border-color:rgba(255,182,72,.5);color:#ffd79a}
 .tabs{display:flex;gap:6px;margin:12px 0 4px;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:4px}.tabs button{flex:1;border:0;background:none;color:var(--faint);font:600 13px/1 -apple-system,sans-serif;padding:10px;border-radius:11px;cursor:pointer}.tabs button.on{background:var(--glass2);color:var(--ink)}
 .entry{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--glass);border:1px solid var(--line);margin:8px 0;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none}.entry .th{width:56px;height:56px;border-radius:12px;overflow:hidden;flex:none;background:#131a26;display:grid;place-items:center;color:var(--faint);font-size:11px}.entry .th img{width:100%;height:100%;object-fit:cover;display:block}.entry .n{position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:50%;background:#0b0f17;border:1px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--cyan)}.entry .t{font-size:14px;font-weight:600}.entry .s{font-size:12px;color:var(--faint);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.entry .x{position:absolute;right:-6px;top:-8px;width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;border:0;display:none;place-items:center;font-size:13px;cursor:pointer;z-index:2}
 .wobble .entry{animation:wob .35s infinite alternate ease-in-out}.wobble .entry .x{display:grid}@keyframes wob{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
@@ -124,6 +161,21 @@
 .mail .slot.cta{display:flex;align-items:center;gap:12px;padding:14px;background:#0b0f17;color:var(--ink);border:1px solid rgba(53,224,255,.45);border-radius:14px;margin:6px 0 12px;cursor:pointer}.mail .cta-ic{width:34px;height:34px;border-radius:10px;background:rgba(53,224,255,.12);border:1px solid rgba(53,224,255,.35);color:var(--cyan);display:grid;place-items:center;flex:none}.mail .cta-t{font-size:14px;font-weight:600;flex:1}.mail .cta-ch{color:var(--cyan);font-size:20px;font-weight:600}
 .mail .eatts{display:grid;gap:6px;margin-bottom:10px}.mail .eatt{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px}.mail .eatt-ic{width:34px;height:38px;border-radius:6px;background:#fee2e2;color:#b91c1c;font:700 10px/38px ui-monospace,Menlo,monospace;text-align:center;flex:none}.mail .eatt b{display:block;font-size:13px}.mail .eatt span{font-size:11.5px;color:#6b7280}
 .stale{display:flex;align-items:center;gap:10px;background:rgba(255,182,72,.1);border:1px solid rgba(255,182,72,.4);border-radius:14px;padding:10px 12px;margin:0 0 10px;font-size:13px;color:#ffd79a}.stale button{margin-left:auto;border:0;background:var(--amber);color:#1b1200;font:600 12px/1 -apple-system,sans-serif;padding:8px 12px;border-radius:999px;cursor:pointer}
+/* documents: section renderer, drafting states, editable mail */
+.dlist{margin:4px 0 0;padding-left:18px;font-size:13.5px;line-height:1.5}.dlist li{margin:4px 0}
+.cref{margin:8px 0;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05)}.cref:last-child{border:0;padding-bottom:0}.cref .ct2{font-size:12px;color:var(--faint);margin-top:3px}.cref p{font-size:13px;margin:3px 0 0}
+.chip.red{color:#ffb3ba;border-color:rgba(255,92,108,.45);background:rgba(255,92,108,.12)}
+.stale.work{color:var(--cyan);background:rgba(53,224,255,.08);border-color:rgba(53,224,255,.4)}
+.stale.bad{color:#ffb3ba;background:rgba(255,92,108,.1);border-color:rgba(255,92,108,.45);align-items:flex-start}.stale.bad button{background:#ff5c6c;color:#fff}
+.stale.ok{color:#b9f5cf;background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.45)}
+.stale .spin{width:13px;height:13px;flex:none;border:2px solid var(--cyan);border-right-color:transparent;border-radius:50%;animation:rot .8s linear infinite}
+.mail .msec{margin:0 0 10px}.mail .msec h4{display:flex;align-items:center;margin:14px 0 6px;font-size:13.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#1b2330}
+.mail .msec .st{grid-template-columns:120px 1fr;border-bottom-color:#e5e7eb}
+.mail .msec .dlist,.mail .msec p,.mail .msec .ed{color:#374151}
+.mail .edbtn{border-color:#d1d5db;background:#fff;color:#6b7280}
+.mail .edcard.editing .edbtn.main{background:#1b2330;color:#fff;border-color:#1b2330}
+.mail .edcard.editing .ed{outline-color:rgba(27,35,48,.4);background:rgba(27,35,48,.05)}
+.mail .ed:focus{outline-color:#1b2330;background:rgba(27,35,48,.07)}
 /* help */
 .help{position:fixed;right:40px;top:40px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--glass);color:var(--soft);font:600 16px/1 -apple-system,sans-serif;cursor:pointer;z-index:99}.helpbox{position:fixed;right:40px;top:92px;width:360px;max-height:80vh;overflow:auto;background:#0f1520;border:1px solid var(--line);border-radius:18px;padding:16px;z-index:99;font-size:13px;display:none}.helpbox.on{display:block}.helpbox h3{margin:0 0 2px;font-size:15px}.helpbox .pur{color:var(--faint);margin-bottom:10px}.helpbox table{width:100%;border-collapse:collapse}.helpbox td{padding:5px 6px 5px 0;vertical-align:top;border-top:1px solid rgba(255,255,255,.06)}.helpbox td:first-child{color:var(--ink);font-weight:600;width:34%}.helpbox td:nth-child(2){color:var(--cyan);width:22%;font-size:12px}.helpbox td:last-child{color:var(--soft)}.helpbox .edge{margin-top:10px;color:var(--faint);font-size:12px}
 .fade{animation:in .4s forwards}
@@ -140,5 +192,5 @@
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 <button class="help" id="helpbtn" title="This screen’s affordances">?</button><div class="helpbox" id="helpbox"></div>
-<script src="data.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
+<script src="data.js"></script><script src="drafts.js"></script><script src="sat.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
 </body></html>
