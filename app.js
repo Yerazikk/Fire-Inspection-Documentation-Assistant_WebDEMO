@@ -524,8 +524,13 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
     const bad = st.status !== 'ok'; dot.textContent = bad ? '!' : '✓'; dot.style.color = bad ? 'var(--amber)' : 'var(--green)';
     d.querySelector('small').textContent = bad ? 'could not be drafted · showing template text' : okText; };
   let left = 2; const tickDown = () => { if (--left) return; const b = el.querySelector('#wgo'); if (b) { b.disabled = false; b.textContent = 'See the documents'; } };
-  genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); });
-  genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
+  // The documents are what the inspector needs before leaving the property,
+  // so they go first and alone. The recommendation pictures are drawn after
+  // both have landed and keep arriving while the inspector reads them —
+  // fifteen seconds a card is not something to hold a screen for.
+  let left2 = 2; const thenVisuals = () => { if (--left2) return; const q = VISUALS.start(id); if (q) console.log(`drawing ${q} recommendation visual${q === 1 ? '' : 's'} in the background`); };
+  genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); }).finally(thenVisuals);
+  genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); }).finally(thenVisuals);
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
   $$('[data-sz]').forEach(b => b.onclick = () => { S.satZoom = b.dataset.sz; render(); });
@@ -730,8 +735,12 @@ async function rescan(text) {
   r.feedback = entry.feedback;
   r.ai = ai;
   if (ai.scan) r.scan = ai.scan;
+  VISUALS.reset(r.id, r.recs);
   r.recs = own.concat(ai.recs.map(x => ({ ...x, decision: decided.get(x.title) || null })));
   S.recDirty = true;
+  // Only once Finish has been pressed: before that, nothing has been drawn
+  // yet and the queue starts on its own.
+  if (S.done.has(S.cur)) VISUALS.start(S.cur);
   return { ok: true };
 }
 function lightbox(html, wire) { const el = document.createElement('div'); el.className = 'lb'; el.innerHTML = html; $('#app').appendChild(el); el.querySelectorAll('[data-close]').forEach(b => b.onclick = () => el.remove()); wire && wire(el); return el; }
@@ -745,7 +754,8 @@ function wireEdits(root, onChange) { $$('.edcard').forEach(card => { const btn =
 // ---------------- deck ----------------
 function deckView() { return frame('Recommendations', 'swipe right to include · left to leave out', `<div class="deck" id="deck"></div><div class="dbtns"><button class="info" id="bUndo" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button class="no" id="bNo">✕</button><button class="yes" id="bYes">✓</button><span class="info spacer"></span></div><div style="text-align:center;font-size:12px;color:var(--faint);margin:8px 0 0" id="dcount"></div>`, `<button class="link" id="own" style="display:block;margin:0 auto 12px">✎ Write your own recommendation</button><button class="btn ghost" id="deckDone">Skip the rest</button>`); }
 function renderDeck() { const r = S.rec, dk = S.deck; const deck = $('#deck'); const rest = r.recs.slice(dk.idx, dk.idx + 3); const inc = r.recs.filter(x => x.decision === 'in').length;
-  deck.innerHTML = rest.map((s, i) => `<div class="dcard ${s.img ? '' : 'text'} ${i === 1 ? 'back' : i === 2 ? 'back2' : ''}" style="z-index:${10 - i}">${s.img ? `<div class="img">${img(s.img, 'AR visual')}${s.own ? `<div class="arph"><span>${esc(s.title)}</span></div>` : ''}</div>` : ''}<div class="body"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div><div class="stamp in">Include</div><div class="stamp out">Leave out</div></div>`).reverse().join('');
+  const eid = S.rec.id;
+  deck.innerHTML = rest.map((s, i) => `<div class="dcard ${VISUALS.has(eid, s) ? '' : 'text'} ${i === 1 ? 'back' : i === 2 ? 'back2' : ''}" style="z-index:${10 - i}">${VISUALS.has(eid, s) ? `<div class="img${s.img ? ' on' : ''}" data-vis="${VISUALS.key(eid, s.id)}">${VISUALS.cell(eid, s)}${s.own && s.img ? `<div class="arph"><span>${esc(s.title)}</span></div>` : ''}</div>` : ''}<div class="body"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div><div class="stamp in">Include</div><div class="stamp out">Leave out</div></div>`).reverse().join('');
   $('#dcount').textContent = dk.idx < r.recs.length ? `${dk.idx + 1} of ${r.recs.length} · ${inc} included` : `All reviewed · ${inc} included`; $('#deckDone').disabled = !inc; $('#deckDone').textContent = inc ? (dk.idx < r.recs.length ? `Skip the rest · use ${inc}` : `Back to the record · use ${inc}`) : 'Include at least one to continue';
   const top = deck.querySelector('.dcard:not(.back):not(.back2)'); if (!top) { deck.innerHTML = `<div class="deck-end"><div class="big">${inc}</div><div>included · ${r.recs.length - inc} left out</div></div>`; return; }
   let sx = 0, dx = 0, dragging = false; top.onpointerdown = e => { dragging = true; sx = e.clientX; top.setPointerCapture(e.pointerId); top.classList.add('drag'); };
@@ -873,7 +883,7 @@ function noticeView() {
 
   // Blocks the app owns, dropped in under the section whose id names them.
   const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); return inc.length
-    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${inc.length} option${inc.length === 1 ? '' : 's'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${s.img ? `<div class="eph">${img(s.img, '')}</div>` : ''}<b>Option ${i + 1}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
+    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${inc.length} option${inc.length === 1 ? '' : 's'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${VISUALS.has(e.id, s) ? `<div class="eph" data-vis="${VISUALS.key(e.id, s.id)}">${VISUALS.cell(e.id, s)}</div>` : ''}<b>Option ${i + 1}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
     : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
   const slots = {
     'what-to-do': () => viol.map(optBlock).join(''),

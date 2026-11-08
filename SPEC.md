@@ -146,7 +146,7 @@ The inspector’s technical record for one entry, editable, with recommendations
 | Original photo | tap | Expands it with a Retake button. Retake restarts the whole entry: new photo, new scan, new notes, new deck. |
 | Scanned photo | tap | Expands it with a feedback pill. Sending a correction puts the photograph back in front of the model with it and redrafts the whole record — boxes included — so a figure the inspector gives (“it is 3 ft, I measured it”) stops being “not measured” and anything they point out that was missed is picked up. Corrections accumulate on the entry; a recommendation the inspector wrote themselves, and the in/out decisions they already made, survive the redraft. |
 | Any text line | tap Edit on its card | Lines become editable; Done saves; Revert restores the generated text. |
-| Recommendations | tap | Opens the deck. |
+| Recommendations | tap | Opens the deck. Each card carries the property's own photograph with that correction marked on it in cyan. The pictures are drawn after Finish, so a card opened before its own has arrived says “Generating suggestion visual” and keeps its place in the deck; one that could not be drawn says so and keeps its text. |
 | Save | tap | Saves the entry and returns to Location home; a numbered pip appears at the capture position. |
 | ‹ | tap | If anything changed: Save / Discard / Keep editing. Otherwise just goes back. |
 

@@ -259,6 +259,61 @@ const RECORD = {
 };
 
 // ---------------------------------------------------------------------------
+// VISUAL — the annotated photo on a recommendation card
+// ---------------------------------------------------------------------------
+
+// Each recommendation card carries the property's own photograph with the work
+// drawn on it in cyan: a guide line where a cut goes, a dimension bar where a
+// distance matters, a label in the inspector's words. The owner receives this
+// in the notice, so the photograph underneath must stay the photograph — the
+// model is drawing over it, never repainting it, and never showing the work
+// already done. A doctored picture of someone's property inside an enforcement
+// notice is a different thing from a drawing over a true one.
+const VISUAL = {
+  model: process.env.GEMINI_IMAGE_MODEL || 'gemini-3-pro-image',
+  timeoutMs: Number(process.env.GEMINI_IMAGE_TIMEOUT_MS || 120000),
+  // An image endpoint rate-limits harder than a text one, and a run of five
+  // cards walks straight into it: observed 429 "resource has been exhausted"
+  // on the fourth consecutive call. These back off 4s, 8s, 16s, which clears
+  // it. Nothing is waiting on these, so patience is free.
+  retries: Number(process.env.GEMINI_IMAGE_RETRIES || 3),
+  retryBaseMs: 4000,
+  // Breathing room between one card and the next, for the same reason.
+  gapMs: Number(process.env.GEMINI_IMAGE_GAP_MS || 1200),
+
+  instruction: (rec, ctx) => [
+    'You are producing the visual for a fire inspector’s recommendation card. It is shown to the',
+    'inspector and sent to the property owner with the correction notice.',
+    '',
+    'Return the SAME photograph, unchanged, with annotation drawn on top of it showing the work',
+    'that has to be done.',
+    '',
+    'THE CORRECTION TO ILLUSTRATE',
+    `Title: ${rec.title}`,
+    `Detail: ${rec.text}`,
+    ctx && ctx.finding ? `What the inspector recorded here: ${ctx.finding}` : '',
+    '',
+    'HOW TO DRAW IT',
+    '- Do not alter the scene. Every plant, wall, window, roof and path stays exactly as',
+    '  photographed, in the same place, the same size, the same condition. You are drawing over',
+    '  the photo, not repainting it.',
+    '- Never show the work already done. This is the property as it is now, marked up with what',
+    '  must change — not a picture of it corrected. Do not remove, trim, tidy or replace anything.',
+    '- Draw in bright cyan (#35E0FF): thin guide lines along where a cut or a boundary goes, a',
+    '  dimension bar with a plain label such as "3 ft" where a distance matters, and short label',
+    '  pills joined to what they name by a leader line ending in a dot.',
+    '- Label text is the instruction in a few words — "Cut back 3 ft from wall", "Remove dead',
+    '  centre", "Clear to bare soil". Never a sentence.',
+    '- At most three annotations, and they must not overlap each other or hide the thing they',
+    '  point at. An unreadable diagram is worse than a plain photograph.',
+    '- No watermark, no title bar, no legend, no caption strip, no added border.',
+    '',
+    'If the correction is about something not visible in this photograph, return the photograph',
+    'with no annotation rather than inventing a place to put one.',
+  ].filter(Boolean).join('\n'),
+};
+
+// ---------------------------------------------------------------------------
 // REPORT — the internal technical document for the case file
 // ---------------------------------------------------------------------------
 
@@ -686,6 +741,6 @@ function assemble(kind, ctx) {
 }
 
 module.exports = {
-  MODEL, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
+  MODEL, VISUAL, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
   SCHEMAS, SECTION_SCHEMA, assemble, systemFor, userFor,
 };

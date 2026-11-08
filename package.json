@@ -9,7 +9,8 @@
     "spec": "node build_spec.js",
     "ai:check": "node ai/check.js",
     "test:ai": "node test_ai.js",
-    "test:photo": "node test_photo.js"
+    "test:photo": "node test_photo.js",
+    "test:visual": "node test_visual.js"
   },
   "devDependencies": {
     "playwright": "^1.49.1"

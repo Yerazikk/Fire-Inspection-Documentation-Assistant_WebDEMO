@@ -15,8 +15,9 @@ npm run serve      # http://localhost:8956
 ```
 
 Tests: `npm test` (interaction), `npm run test:route` (routing),
-`npm run test:photo` (photo input), `npm run test:ai` (document drafting).
-The server must be running first.
+`npm run test:photo` (photo input), `npm run test:visual` (recommendation
+visuals), `npm run test:ai` (document drafting). The server must be running
+first.
 
 ## Setup — the AI key
 
@@ -71,9 +72,18 @@ refuses to serve `.env` or anything under `ai/` whatever the URL asks for.
 
 ### Quota
 
-Every entry now costs **one** request as it is saved, and the wrap-up costs
-**two** more (report + notice). So a three-entry inspection is five requests,
-every Refresh is another, and `npm run ai:check` spends two.
+Every entry costs **one** request as it is saved, each Re-scan costs another,
+and the wrap-up costs **two** more (report + notice). On top of that, Finish
+queues **one image request per recommendation on every violation entry** — the
+annotated card photos — which is typically two to five per violation and is by
+far the largest share. A three-entry inspection with two violations is five
+text requests and perhaps six image ones. Every Refresh is another text
+request, and `npm run ai:check` spends two.
+
+Image requests go to `gemini-3-pro-image` and are rate-limited more tightly
+than text: a run of consecutive calls draws `429 resource has been exhausted`,
+which is why they are issued one at a time with a gap and backed off 4s/8s/16s.
+A card that still cannot be drawn says so and keeps its recommendation.
 
 A Vertex AI key draws on the Cloud project's own quota and is billed per token,
 so it is not the hard wall a free key is. A free AI Studio key is capped at
@@ -215,6 +225,19 @@ checked is a suggestion:
   whole record is drafted again. A figure they give is a measurement they took,
   so it stops being "not measured". Their own recommendation cards and the
   in/out decisions they already made survive the redraft.
+- **Recommendation cards are drawn on the property's own photograph.** Each
+  option gets the entry photo back with the work marked on it in cyan — a guide
+  line where a cut goes, a dimension bar, a label in the inspector's words —
+  and the owner receives it with the notice. The photograph underneath is never
+  altered and the work is never shown already done: the model draws over a true
+  picture rather than producing a false one. `gemini-3-pro-image`, overridable
+  with `GEMINI_IMAGE_MODEL`.
+- **Nothing waits on them.** One card takes 15–20 s and a violation can carry
+  five, so the queue starts only after Finish has drafted the report and the
+  notice, then runs on its own while the inspector keeps working. A card still
+  waiting says "Generating suggestion visual"; one that failed says so and
+  keeps its recommendation text. Cards are repainted in place, so pictures
+  landing never disturb a half-swiped card or the cursor in the notice.
 - **The inspector's determination is never overridden.** Violation, Compliant or
   Note is theirs, made on site with the whole property in view. But where the
   photograph disagrees with the note, the record says so in plain words, above

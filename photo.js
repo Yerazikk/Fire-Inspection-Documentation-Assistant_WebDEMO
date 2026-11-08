@@ -174,25 +174,40 @@ window.PHOTO = (() => {
    * @returns {Promise<{mimeType: string, data: string, w: number, h: number}|null>}
    */
   async function forModel(src) {
+    const u = await fit(src, MODEL_EDGE, MODEL_QUALITY);
+    return u ? { mimeType: 'image/jpeg', data: u.src.slice(u.src.indexOf(',') + 1), w: u.w, h: u.h } : null;
+  }
+
+  /**
+   * Re-encode any image source — a data URL, an assets/ path — to a JPEG data
+   * URL no larger than `edge` on its longest side. Returns null rather than
+   * throwing if the browser cannot decode it.
+   *
+   * Used for what goes to a model, and for what comes back: a generated
+   * annotation lands as a 2 MB PNG, and an entry holds one per recommendation
+   * for the life of the session.
+   */
+  async function fit(src, edge, quality) {
     if (!src) return null;
     let img;
     try {
       img = await new Promise((resolve, reject) => {
         const i = new Image();
-        i.onload = () => resolve({ width: i.naturalWidth, height: i.naturalHeight, img: i });
+        i.onload = () => resolve(i);
         i.onerror = () => reject(new Error('unreadable'));
         i.src = src;
       });
     } catch (e) { return null; }
-    const scale = Math.min(1, MODEL_EDGE / Math.max(img.width, img.height));
+    if (!img.naturalWidth || !img.naturalHeight) return null;
+    const scale = Math.min(1, edge / Math.max(img.naturalWidth, img.naturalHeight));
     const c = document.createElement('canvas');
-    c.width = Math.max(1, Math.round(img.width * scale));
-    c.height = Math.max(1, Math.round(img.height * scale));
+    c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    c.height = Math.max(1, Math.round(img.naturalHeight * scale));
     const g = c.getContext('2d');
     g.imageSmoothingQuality = 'high';
-    g.drawImage(img.img, 0, 0, c.width, c.height);
-    const url = c.toDataURL('image/jpeg', MODEL_QUALITY);
-    return { mimeType: 'image/jpeg', data: url.slice(url.indexOf(',') + 1), w: c.width, h: c.height };
+    g.drawImage(img, 0, 0, c.width, c.height);
+    const url = c.toDataURL('image/jpeg', quality);
+    return { src: url, w: c.width, h: c.height, bytes: Math.round((url.length - url.indexOf(',') - 1) * 3 / 4) };
   }
 
   /** One of the reference photos in assets/, described by data.js. */
@@ -217,5 +232,5 @@ window.PHOTO = (() => {
     return bits.join(' · ');
   }
 
-  return { fromFile, fromLibrary, forModel, caption, fmtBytes, MAX_EDGE };
+  return { fromFile, fromLibrary, forModel, fit, caption, fmtBytes, MAX_EDGE };
 })();

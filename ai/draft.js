@@ -480,4 +480,4 @@ async function listModels() {
   return results.filter(Boolean);
 }
 
-module.exports = { draft, listModels, keyPresent, backend, DraftError, validate, validateRecord };
+module.exports = { draft, listModels, keyPresent, backend, apiKey, DraftError, validate, validateRecord };

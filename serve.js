@@ -20,6 +20,7 @@ const http = require('http'), fs = require('fs'), path = require('path');
 
 const ai = require('./ai/draft');
 const codes = require('./ai/codes');
+const visual = require('./ai/visual');
 
 const PORT = Number(process.argv[2] || 8956), ROOT = __dirname;
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.md': 'text/plain; charset=utf-8', '.webp': 'image/webp' };
@@ -43,7 +44,7 @@ const readBody = req => new Promise((resolve, reject) => {
 
 async function api(req, res, route) {
   if (route === '/api/ai/status') {
-    const out = { key: ai.keyPresent(), backend: ai.backend().name, model: require('./ai/prompts').MODEL.name, jurisdiction: codes.meta.jurisdiction, edition: codes.meta.edition, retrieved: codes.meta.retrieved, codes: codes.codes.length };
+    const out = { key: ai.keyPresent(), backend: ai.backend().name, model: require('./ai/prompts').MODEL.name, imageModel: visual.model(), jurisdiction: codes.meta.jurisdiction, edition: codes.meta.edition, retrieved: codes.meta.retrieved, codes: codes.codes.length };
     if (ai.keyPresent() && req.url.includes('models=1')) {
       try { out.models = await ai.listModels(); } catch (e) { out.modelsError = e.message; }
     }
@@ -66,6 +67,25 @@ async function api(req, res, route) {
       return json(res, 200, { doc });
     } catch (e) {
       console.error(`  draft ${kind} failed [${e.code || 'error'}]: ${e.message}`);
+      return json(res, e.code === 'no_key' ? 503 : 502, { error: e.message, code: e.code || 'error' });
+    }
+  }
+
+  // One recommendation card's annotated photo. Slow — fifteen to twenty
+  // seconds — and deliberately off the critical path: the client queues these
+  // after the documents are drafted and the inspector keeps working.
+  if (route === '/api/visual') {
+    if (req.method !== 'POST') return json(res, 405, { error: 'POST only' });
+    let ctx;
+    try { ctx = JSON.parse(await readBody(req)); } catch (e) { return json(res, 400, { error: 'bad request body' }); }
+    if (!ctx || !ctx.photo || !ctx.photo.data) return json(res, 400, { error: 'no photograph to annotate' });
+    if (!ctx.rec || !ctx.rec.title) return json(res, 400, { error: 'no recommendation to illustrate' });
+    try {
+      const out = await visual.illustrate(ctx.photo, ctx.rec, { finding: ctx.finding });
+      console.log(`  drew "${String(ctx.rec.title).slice(0, 44)}" at ${ctx.address || 'unknown'} · ${out.ms} ms · ${Math.round(out.data.length * 3 / 4 / 1024)} KB`);
+      return json(res, 200, { image: { mimeType: out.mimeType, data: out.data }, model: out.model, ms: out.ms, gapMs: require('./ai/prompts').VISUAL.gapMs });
+    } catch (e) {
+      console.error(`  visual failed [${e.code || 'error'}]: ${e.message}`);
       return json(res, e.code === 'no_key' ? 503 : 502, { error: e.message, code: e.code || 'error' });
     }
   }
