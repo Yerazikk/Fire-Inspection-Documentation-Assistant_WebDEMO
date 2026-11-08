@@ -124,6 +124,23 @@ window.AI = {
 };
 window.MEMOS = { violation: 'Ladder fuels are required to be removed within 30 ft of homes per CA FC 2025 and local municipal code', compliance: 'Retaining wall base is clear, this side is compliant', upload: 'Roof and gutters clear, compliant', note: 'Owner says the north gutters were cleaned last week, verify at reinspection' };
 
+// Reference photos that ship with the app, offered alongside the device's own
+// photo library so an entry can be built without a camera to hand. `memo` is
+// what the voice transcription fills in for that picture — written per image,
+// because a transcript that describes a different photo is worse than none.
+// The last two are not vegetation; they are kept because an inspection turns
+// up building items too.
+window.PHOTOLIB = [
+  { id: 'v1', src: 'assets/v1.jpg', label: 'Leaf litter against siding', memo: 'Deep leaf litter banked against the shingle wall, Zone 0 is not clear' },
+  { id: 'v2', src: 'assets/v2.jpg', label: 'Firewood under a deck', memo: 'Cord wood and lumber stored under the deck, combustibles beneath a structure' },
+  { id: 'v3', src: 'assets/v3.jpg', label: 'Dead hedge at the wall', memo: 'Juniper hedge is dead through the centre and touching the window wall' },
+  { id: 'v4', src: 'assets/v4.jpg', label: 'Limb over the roof', memo: 'Oak limb resting on the roof and the gutters are packed with leaves' },
+  { id: 'v5', src: 'assets/v5.jpg', label: 'Driveway under canopy', memo: 'Driveway canopy is well under the required vertical clearance for apparatus' },
+  { id: 'v6', src: 'assets/v6.jpg', label: 'Propane tank overgrown', memo: 'Vegetation grown over the propane tank, no clearance around the vessel' },
+  { id: 'v6s', src: 'assets/v6.png', label: 'Sprinkler head', memo: 'Sprinkler head is corroded and painted over at the ceiling' },
+  { id: 'v7', src: 'assets/v7.png', label: 'Blocked exit door', memo: 'Emergency exit door is blocked by stored material on the inside' },
+];
+
 window.KB = [
   { id: 'k1', title: 'Vertical clearance standard', src: '14 CCR §1299.03 · Figure 3', why: 'matches "ladder fuel"', size: '1 p · diagram' },
   { id: 'k2', title: 'Horizontal spacing by slope', src: 'CAL FIRE spacing table', why: 'slope ≈ 25 % → 20–40 % class', size: '1 p · table' },

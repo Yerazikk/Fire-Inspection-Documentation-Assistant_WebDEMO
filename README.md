@@ -15,7 +15,8 @@ npm run serve      # http://localhost:8956
 ```
 
 Tests: `npm test` (interaction), `npm run test:route` (routing),
-`npm run test:ai` (document drafting). The server must be running first.
+`npm run test:photo` (photo input), `npm run test:ai` (document drafting).
+The server must be running first.
 
 ## Setup — the AI key
 
