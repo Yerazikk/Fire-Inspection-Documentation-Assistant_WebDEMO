@@ -593,8 +593,22 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   pill.onpointerup = pill.onpointercancel = () => { clearTimeout(wt); if (holding) { holding = false; if (wi < 3) { grow(() => { say.classList.remove('hold'); tx.innerHTML = ''; }); toast('Didn’t catch that · hold longer, or tap to type'); return; } grow(() => { say.classList.remove('hold'); tx.innerHTML = ''; sheet.classList.add('type'); memo.value = memoFor(); d.spoken = true; checkMemo(); $('#memoHint').textContent = 'Transcribed · edit if needed'; }); setTimeout(() => memo.focus(), 460); } else if (Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); setTimeout(() => memo.focus(), 460); } };
   memo.addEventListener('input', () => { d.memo = memo.value; checkMemo(); }); $('#useVoice').onclick = () => grow(() => sheet.classList.remove('type'));
   submit.onclick = () => { d.memo = memo.value.trim(); d.kind = !d.photo ? 'note' : (/compliant|clear|ok|good/i.test(d.memo) ? 'compliance' : 'violation'); if (!d.memo) d.memo = ''; sheet.classList.add('recede'); analyze(); };
-  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 1000; const sc = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
-    if (sc) { later(() => $('#scan').classList.add('go'), 350); sc.boxes.forEach((b, i) => later(() => ar.insertAdjacentHTML('beforeend', `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), 2600 + i * 600)); later(() => ar.insertAdjacentHTML('beforeend', `<div class="issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%"><span>${esc(sc.issue.label)}</span></div>`), 2600 + sc.boxes.length * 600 + 300); }
+  // The boxes used to be a fixture on a timer, so they could be scheduled the
+  // moment the scan began. Now the model draws them from the photograph, which
+  // means they cannot appear until it answers — so the scanline and the status
+  // stream cover the wait, and the boxes land at the end as the result of it.
+  // The hand-measured fixture is kept as a fallback for the one image it was
+  // measured against, for when the model is unreachable.
+  const paintScan = (sc, ar) => {
+    if (!sc) return 0;
+    const all = (sc.boxes || []).map(b => [b, false]).concat(sc.issue ? [[sc.issue, true]] : []);
+    const gap = Math.min(420, 1500 / Math.max(1, all.length));
+    all.forEach(([b, isIssue], i) => later(() => ar.insertAdjacentHTML('beforeend',
+      `<div class="${isIssue ? 'issue' : 'bx'} ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), i * gap));
+    return all.length * gap + 500;
+  };
+  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 1000; const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
+    if (d.photo) later(() => $('#scan').classList.add('go'), 350);
     later(() => st.classList.add('on'), 500); steps.forEach((x, i) => later(() => { st.classList.remove('swap'); void st.offsetWidth; st.classList.add('swap'); st.querySelector('.t').textContent = x.t; st.querySelector('.d').textContent = x.d; }, 600 + i * stepMs));
     // The record is drafted by the model from the note that was just typed, so
     // the call starts here, in parallel with the animation, and the last status
@@ -606,7 +620,13 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     const animMs = 600 + steps.length * stepMs;
     later(() => { st.querySelector('.t').textContent = 'Drafting the record'; st.querySelector('.d').textContent = 'writing it up from your note…'; }, animMs);
     const open = ai => { if (!isCurrentRun(run)) return;
-      const done = () => { st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓'; st.querySelector('.t').textContent = ai.source === 'template' ? 'Templates used' : 'Record drafted'; st.querySelector('.d').textContent = ai.source === 'template' ? 'the model could not be reached' : 'opening…'; later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, ai.source === 'template' ? 1100 : 700); };
+      // What the model saw, or the fixture if it never answered.
+      const sc = (ai && ai.scan) || fallbackScan;
+      const done = () => { const paintMs = paintScan(sc, ar);
+        st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓';
+        st.querySelector('.t').textContent = ai.source === 'template' ? 'Templates used' : sc && sc.source === 'model' ? 'Photograph read' : 'Record drafted';
+        st.querySelector('.d').textContent = ai.source === 'template' ? 'the model could not be reached' : sc && sc.source === 'model' ? (sc.boxes.length + (sc.issue ? 1 : 0)) + ' things found in the frame' : 'opening…';
+        later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, Math.max(paintMs, ai.source === 'template' ? 1100 : 700)); };
       // Never open sooner than the animation would have: a 2-second record
       // reads as a stunt, and the status line has steps still to show.
       const wait = Math.max(0, animMs + 300 - (Date.now() - t1));
@@ -646,13 +666,17 @@ function codeCaveat(ai) {
   return out.join('');
 }
 
-function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab'; return `<div class="ov ${cls || ''}">${sc.boxes.map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div></div>`; }
+function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab';
+  // `issue` is the one highlighted box. The hand-measured fixtures always have
+  // one; a model that labelled elements without isolating a finding may not.
+  const issue = sc.issue ? `<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div>` : '';
+  return `<div class="ov ${cls || ''}">${(sc.boxes || []).map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}${issue}</div>`; }
 function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const card = (title, body, delay, key) => `<div class="card edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</div>`;
   const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
   const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">Original</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">Scanned</span></div></div>` : '';
   const inc = r.recs.filter(x => x.decision === 'in').length, dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
-  <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? '<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">Voice · transcribed</span>' : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p></div>
+  <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? '<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">Voice · transcribed</span>' : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</div>
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
   ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : '✓'}</i></div><div><div style="font-weight:650">${ed('severity.level', r.ai.severity.level)}</div><div style="font-size:12px;color:var(--faint)">${ed('severity.why', r.ai.severity.why)}</div></div></div><div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}

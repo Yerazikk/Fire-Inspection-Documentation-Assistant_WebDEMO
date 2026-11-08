@@ -16,6 +16,8 @@ window.PHOTO = (() => {
   const MAX_EDGE = 1600;             // longest side in px; the record view is 820 CSS px
   const QUALITY = 0.82;
   const MAX_BYTES = 40 * 1024 * 1024;
+  const MODEL_EDGE = 1024;           // what goes to the model; Gemini tiles at 768
+  const MODEL_QUALITY = 0.8;
 
   // ---- EXIF --------------------------------------------------------------
   // Two tags are wanted. Orientation, to bake the rotation in. And
@@ -161,6 +163,38 @@ window.PHOTO = (() => {
     };
   }
 
+  /**
+   * The same photo, sized for the model rather than for the screen.
+   *
+   * Gemini tiles an image at 768 px, so sending the full 1600 px entry photo
+   * buys nothing and costs tokens on every draft. This re-renders whatever the
+   * entry holds — a data URL from the device, or an assets/ path — down to one
+   * tile-and-a-bit, and hands back the base64 the inlineData part wants.
+   *
+   * @returns {Promise<{mimeType: string, data: string, w: number, h: number}|null>}
+   */
+  async function forModel(src) {
+    if (!src) return null;
+    let img;
+    try {
+      img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve({ width: i.naturalWidth, height: i.naturalHeight, img: i });
+        i.onerror = () => reject(new Error('unreadable'));
+        i.src = src;
+      });
+    } catch (e) { return null; }
+    const scale = Math.min(1, MODEL_EDGE / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    const g = c.getContext('2d');
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(img.img, 0, 0, c.width, c.height);
+    const url = c.toDataURL('image/jpeg', MODEL_QUALITY);
+    return { mimeType: 'image/jpeg', data: url.slice(url.indexOf(',') + 1), w: c.width, h: c.height };
+  }
+
   /** One of the reference photos in assets/, described by data.js. */
   function fromLibrary(id) {
     const p = (window.PHOTOLIB || []).find(x => x.id === id);
@@ -183,5 +217,5 @@ window.PHOTO = (() => {
     return bits.join(' · ');
   }
 
-  return { fromFile, fromLibrary, caption, fmtBytes, MAX_EDGE };
+  return { fromFile, fromLibrary, forModel, caption, fmtBytes, MAX_EDGE };
 })();

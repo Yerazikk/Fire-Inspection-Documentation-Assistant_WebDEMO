@@ -62,15 +62,21 @@ window.DRAFTS = (() => {
 
   // ---- per-entry record --------------------------------------------------
 
-  const LEVELS = { violation: 'Violation', compliance: 'Compliant', upload: 'Compliant', note: 'Note' };
+  const LEVELS = { violation: 'Violation', compliance: 'Compliant', note: 'Note' };
 
   /**
    * Context for one entry's record.
    * @param {object} a      address record
    * @param {object} entry  { n, kind, time, photo, spoken, memo }
    */
-  function recordContext(a, entry) {
+  async function recordContext(a, entry) {
     const C = window.CONFIG;
+    // The photograph goes with the note. Until now the prompt told the model
+    // "photograph on file: yes (not provided to you)" and then asked it to
+    // write up a scene it had never seen; the note was the only evidence.
+    // Resizing can fail on an image the browser will not decode, in which case
+    // the draft still goes out — without the picture, as before.
+    const image = entry.photo ? await window.PHOTO.forModel(entry.photo) : null;
     return {
       kind: 'record',
       date: today(),
@@ -81,6 +87,7 @@ window.DRAFTS = (() => {
         level: LEVELS[entry.kind] || 'Note',
         time: entry.time,
         hasPhoto: !!entry.photo,
+        photo: image,
         spoken: !!entry.spoken,
         note: entry.memo || '',
       },
@@ -102,7 +109,7 @@ window.DRAFTS = (() => {
     try {
       const res = await fetch('/api/draft', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(recordContext(a, entry)),
+        body: JSON.stringify(await recordContext(a, entry)),
       });
       const body = await res.json().catch(() => ({ error: 'bad response from the server' }));
       if (!res.ok) return recordFallback(entry.kind, body.error || 'the draft call failed');
@@ -115,8 +122,8 @@ window.DRAFTS = (() => {
   }
 
   /**
-   * The old fixture, clearly marked. window.AI is keyed by the draft kind, so
-   * an uploaded photo uses the 'upload' fixture as it always did.
+   * The old fixture, clearly marked. window.AI is keyed by the draft kind, and
+   * falls back to the note fixture for a kind it does not carry.
    */
   function recordFallback(kind, reason) {
     const t = window.AI[kind] || window.AI.note;

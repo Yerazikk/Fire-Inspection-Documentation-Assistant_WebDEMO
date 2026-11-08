@@ -63,9 +63,6 @@ window.SCAN = {
     { label: 'Hedge ≈ 5 ft', box: [3, 59, 66, 9], tone: 'cyan' },
     { label: 'Ground cover ≈ 1.5 ft', box: [3, 69, 68, 18], tone: 'cyan' },
   ], issue: { label: 'Compliant · retaining wall base clear', box: [3, 86, 68, 6], tone: 'green' } },
-  upload: { boxes: [
-    { label: 'Roofline', box: [8, 22, 84, 14], tone: 'cyan' }, { label: 'Gutter · north side', box: [8, 36, 84, 6], tone: 'cyan' }, { label: 'Deck · wood', box: [20, 60, 60, 22], tone: 'cyan' },
-  ], issue: { label: 'Compliant · gutters clear', box: [8, 34, 84, 10], tone: 'green' } },
 };
 
 window.STREAM = [
@@ -111,18 +108,13 @@ window.AI = {
     category: ['Zone 0 (0–5 ft)', 'Surface fuel'], estimates: [['Litter depth', '< 1 in.'], ['Plant spacing', '≈ 2 ft']],
     codes: [{ scope: 'State', c: 'PRC §4291 (ember-resistant zone)', t: 'Checked · meets.' }, { scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Checked · meets.' }], recs: [],
   },
-  upload: {
-    summary: [['Observed', 'Roof and north gutter free of needles and leaves; no branches within 10 ft of the roofline.'], ['Result', 'Meets roof and gutter clearance.']],
-    severity: { level: 'Compliant', score: 0, why: 'No corrective action for this item.' }, category: ['Roof and gutters'], estimates: [['Branch distance to roof', '> 10 ft']],
-    codes: [{ scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Checked · meets.' }], recs: [],
-  },
   note: {
     summary: [['Note', 'Owner reports the north gutters were cleaned last week; not verified by photo today.'], ['Follow-up', 'Verify at reinspection or ask the owner for a photo.']],
     severity: { level: 'Note', score: 0, why: 'Informational; no determination made.' }, category: ['Owner statement', 'Follow-up'], estimates: [],
     codes: [], recs: [],
   },
 };
-window.MEMOS = { violation: 'Ladder fuels are required to be removed within 30 ft of homes per CA FC 2025 and local municipal code', compliance: 'Retaining wall base is clear, this side is compliant', upload: 'Roof and gutters clear, compliant', note: 'Owner says the north gutters were cleaned last week, verify at reinspection' };
+window.MEMOS = { violation: 'Ladder fuels are required to be removed within 30 ft of homes per CA FC 2025 and local municipal code', compliance: 'Retaining wall base is clear, this side is compliant', note: 'Owner says the north gutters were cleaned last week, verify at reinspection' };
 
 // Reference photos that ship with the app, offered alongside the device's own
 // photo library so an entry can be built without a camera to hand. `memo` is

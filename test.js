@@ -52,7 +52,14 @@ const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: P
     // new entry: photo + voice memo
     await p.click('#newEntry'); await p.waitForSelector('#shutter'); await p.click('#shutter'); await p.waitForTimeout(600); ok(await p.locator('#cam.snap').count() === 1, 'shutter opens the memo bar'); await p.click('#retake'); await p.waitForTimeout(300); ok(await p.locator('#cam.snap').count() === 0, 'retake returns to viewfinder'); await p.click('#shutter'); await p.waitForTimeout(900);
     await hold('#pill', 2600); await p.waitForTimeout(700); ok(await p.locator('.sheet2.type').count() === 1 && /Ladder fuels/.test(await p.inputValue('#memo')), 'hold-to-speak transcribes into the editable memo');
-    await p.click('#submit'); await p.waitForTimeout(1500); ok(await p.locator('#cam.scanning').count() === 1, 'submit starts the in-place scan'); await p.waitForTimeout(4500); ok((await p.locator('#ar .bx').count()) === 4 && (await p.locator('#ar .issue.red').count()) === 1, 'scan draws blue boxes and a red violation box');
+    await p.click('#submit'); await p.waitForTimeout(1500); ok(await p.locator('#cam.scanning').count() === 1, 'submit starts the in-place scan');
+    // The boxes are the model's reading of this photograph, so they land when
+    // it answers rather than on a timer — wait for one, not for a delay. Their
+    // number is the model's; what must hold is that elements were labelled and
+    // exactly one of them is the highlighted finding.
+    await p.waitForSelector('#ar .bx, #ar .issue', { timeout: 200000 }); await p.waitForTimeout(1500);
+    const nbx = await p.locator('#ar .bx').count(), niss = await p.locator('#ar .issue').count();
+    ok(nbx >= 1 && niss === 1, `scan draws labelled boxes (${nbx}) and one highlighted finding`);
     await p.waitForSelector('#save', { timeout: 200000 }); ok((await p.locator('.pbox').count()) === 2 && /Violation/.test(await p.textContent('.ttl')), 'record opens with original + scanned photos');
     await p.click('#pScan'); await p.waitForSelector('#fbin'); await p.fill('#fbin', 'hedge is closer to 4.5 ft'); await p.click('#fbgo'); await p.waitForTimeout(2000); ok(/4\.5 ft/.test(await p.textContent('#view')), 'scan feedback re-runs and updates the record');
     await p.click('.edcard[data-key="summary"] [data-edit]'); await p.locator('.edcard[data-key="summary"] .ed >> nth=0').fill('Edited observation.'); await p.click('.edcard[data-key="summary"] [data-edit]'); ok(await p.evaluate(() => S.rec.ai.summary[0][1]) === 'Edited observation.', 'record text is editable in place');

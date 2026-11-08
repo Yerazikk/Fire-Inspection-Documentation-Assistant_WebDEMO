@@ -28,9 +28,15 @@ const BLOCKED = [/^[\\/]?\.env/, /^[\\/]?ai[\\/]/, /^[\\/]?node_modules[\\/]/, /
 
 const json = (res, status, obj) => { const b = JSON.stringify(obj); res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': Buffer.byteLength(b) }); res.end(b); };
 
+// A record now posts the entry photograph with the note, base64 in the JSON
+// body — 100–250 KB for the 1024 px copy, against a context that was already
+// most of the old 1 MB ceiling. Headroom rather than a tight fit: the ceiling
+// is here to stop a runaway upload, not to size a normal one.
+const MAX_BODY = 12 * 1024 * 1024;
+
 const readBody = req => new Promise((resolve, reject) => {
   let n = 0; const chunks = [];
-  req.on('data', c => { n += c.length; if (n > 1e6) { reject(new Error('body too large')); req.destroy(); } else chunks.push(c); });
+  req.on('data', c => { n += c.length; if (n > MAX_BODY) { reject(new Error('body too large')); req.destroy(); } else chunks.push(c); });
   req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
   req.on('error', reject);
 });
@@ -53,7 +59,9 @@ async function api(req, res, route) {
     try {
       const doc = await ai.draft(kind, ctx);
       const what = kind === 'record' ? `record for entry ${ctx.entry && ctx.entry.n}` : kind;
-      console.log(`  drafted ${what} at ${ctx.address} · ${doc.meta.ms} ms · ${doc.meta.tokens ? doc.meta.tokens.total + ' tokens' : 'usage unknown'}`);
+      const shot = ctx.entry && ctx.entry.photo && ctx.entry.photo.data;
+      const seen = shot ? ` · photo ${Math.round(shot.length * 3 / 4 / 1024)} KB${doc.scan ? ', ' + ((doc.scan.boxes || []).length + (doc.scan.issue ? 1 : 0)) + ' boxes' : ', no boxes'}` : '';
+      console.log(`  drafted ${what} at ${ctx.address} · ${doc.meta.ms} ms · ${doc.meta.tokens ? doc.meta.tokens.total + ' tokens' : 'usage unknown'}${seen}`);
       if (doc.audit.unknownCitations.length) console.warn('  ! citations not in the library:', doc.audit.unknownCitations.join('; '));
       return json(res, 200, { doc });
     } catch (e) {

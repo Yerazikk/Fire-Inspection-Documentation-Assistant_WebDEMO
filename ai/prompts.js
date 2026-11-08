@@ -19,8 +19,11 @@
 // and is what the record screen renders. 'report' and 'notice' are compiled at
 // the end of the inspection from all the entries.
 //
-// V1 SCOPE: text only. No photo is sent and no image is generated. The model
-// is told it cannot see the photograph — see SHARED.noVision.
+// IMAGES: a record is sent the entry's photograph when there is one, and is
+// asked to read it — see SHARED.withVision, and `scan` in SCHEMAS.record for
+// the boxes it draws back on it. A report and a notice are compiled from
+// records already written and are never sent an image, so they still get
+// SHARED.noVision. Nothing generates an image.
 
 const codes = require('./codes');
 
@@ -94,9 +97,10 @@ const SHARED = {
   // are worse than missing ones.
   noFabrication: [
     'EVIDENCE RULES — these override every other instruction:',
-    '1. The inspector’s note for each entry is the ONLY source of observed fact. Do not add',
-    '   observations that are not in it. Do not describe plants, structures, slopes, distances or',
-    '   conditions the note does not mention.',
+    '1. The inspector’s note for each entry, together with the photograph attached to this',
+    '   message if there is one, is the ONLY source of observed fact. Do not add observations',
+    '   drawn from neither. Where no photograph is attached, the note is the whole of it: do not',
+    '   describe plants, structures, slopes, distances or conditions it does not mention.',
     '2. Never state a measurement that is not in the inspector’s note. No heights, distances,',
     '   depths, diameters, slope percentages or areas of your own. If a requirement turns on a',
     '   measurement the note does not give, say what has to be measured and name the standard it',
@@ -120,6 +124,56 @@ const SHARED = {
     'none has been given to you and no vision analysis has been run. Do not describe, interpret or',
     'refer to the content of any image. Do not say "as shown in the photo". You may note that a',
     'photograph is on file for an entry when that is stated in the entry data.',
+  ].join('\n'),
+
+  // Used in place of noVision when the entry's photograph is attached. The
+  // inspector is standing at the property and will read this before anyone
+  // else does, so the one thing the record must never do is quietly agree
+  // with a note the picture contradicts — that is worse than having no
+  // photograph at all, because it looks like the photograph was checked.
+  withVision: [
+    'The photograph attached to this message was taken at this property by this inspector, at the',
+    'time given with the entry. You can see it. Read it, and ground the record in what is actually',
+    'in the frame.',
+    '',
+    'What a photograph can and cannot establish:',
+    '• It can establish what is present, where it is in relation to the structure, and its',
+    '  condition — dead or living, clear or obstructed, stored or in use.',
+    '• It cannot establish a distance, a height, a depth or a slope. One camera, one angle, no',
+    '  scale. An eyeballed size may appear in a `scan` label with "≈", and nowhere else. Every',
+    '  entry in `measurements` stays "not measured" unless the inspector’s note gives the figure.',
+    '• It cannot establish what is outside the frame, behind the camera, or on the other',
+    '  elevations. Never write that something is absent because you cannot see it.',
+    '',
+    'WHEN THE NOTE AND THE PHOTOGRAPH DISAGREE',
+    'The inspector made the determination on site with the whole property in view, so',
+    '`determination.level` follows the note — that, and only that. Everything else you write',
+    'describes the scene in the photograph. Do not launder the note into the observation: a',
+    '`summary` row that reads "recorded by the inspector as clear" is not an observation, it is a',
+    'restatement, and it hides the disagreement instead of surfacing it.',
+    '',
+    '`photoNote` is a required safety check, not optional commentary. Before you finish, look at',
+    'the frame once more and ask: would a reviewer holding this note beside this photograph be',
+    'surprised? If yes, `photoNote` is the one sentence telling them what they are looking at.',
+    'A "Compliant" determination never excuses an empty `photoNote` — a compliant finding over a',
+    'photograph that shows otherwise is the single most costly thing this tool can produce.',
+    '',
+    'Do not reason the disagreement away. You do not know that the obstruction was cleared after',
+    'the shutter fired, that the pictured item is a different one from the one noted, or that',
+    'something out of frame resolves it. If the photograph was attached to this entry, it is of',
+    'this entry. Never invent a reconciliation to make the two agree.',
+    '',
+    'The same applies to the boxes: `tone` describes the photograph, not the determination. Mark a',
+    'thing green only when the frame shows it meeting the requirement. Where the frame shows the',
+    'deficiency, the box is red — even when the note called the entry compliant.',
+    '',
+    'Worked example. Note: "rear exit door checked, clear and unobstructed, compliant".',
+    'Photograph: an exit door with stacked boxes and sheeting piled against it. Correct output —',
+    'determination.level "Compliant" (the inspector’s call stands); a summary describing the',
+    'material piled at the door, because that is what is in the frame; a red box on the pile; and',
+    'photoNote "The photograph shows stored material stacked against the exit door, which would',
+    'obstruct egress." Writing "clear and unobstructed" there, or leaving photoNote empty, is the',
+    'failure this instruction exists to prevent.',
   ].join('\n'),
 
   housekeeping: [
@@ -184,6 +238,11 @@ const RECORD = {
     '  each a title and two or three sentences. They are alternatives, not steps: any one of them',
     '  fixes the finding. Order them cheapest-and-simplest first. Empty array for anything that',
     '  is not a violation.',
+    'scan — only when a photograph is attached, otherwise empty. 2 to 6 labelled boxes over the',
+    '  things in the frame the record turns on, as they are drawn back on the photograph for the',
+    '  inspector to check. Box the specific object, not the whole frame; a box covering most of',
+    '  the image tells the inspector nothing. Name elements in cyan, and give the finding itself',
+    '  one red box (a violation) or one green box (compliant), last.',
   ].join('\n'),
 };
 
@@ -334,8 +393,48 @@ const SCHEMAS = {
           required: ['title', 'text'],
         },
       },
+      photoNote: {
+        type: 'string',
+        description:
+          'One sentence naming what the photograph shows that the inspector’s note does not ' +
+          'account for, or appears to contradict. Empty string when they agree, when there is ' +
+          'no photograph, or when the photograph simply shows less than the note describes.',
+      },
+      scan: {
+        type: 'array',
+        description:
+          'What you can point at in the photograph, 2 to 6 of them, drawn over it as labelled ' +
+          'boxes. Empty array when no photograph was attached.',
+        items: {
+          type: 'object',
+          properties: {
+            label: {
+              type: 'string',
+              description:
+                'Under 38 characters, it is drawn on the image. Name the thing and, where it ' +
+                'carries the finding, the eyeballed size: "Juniper hedge ≈ 5 ft", "Gutter · ' +
+                'leaf litter", "Residence". No sentences.',
+            },
+            box: {
+              type: 'array',
+              items: { type: 'integer' },
+              description:
+                'Exactly four integers, [ymin, xmin, ymax, xmax], each 0–1000 normalised to the ' +
+                'image: y down from the top edge, x right from the left edge.',
+            },
+            tone: {
+              type: 'string',
+              enum: ['cyan', 'red', 'green'],
+              description:
+                'cyan for an element you are naming; red for the deficiency itself; green for a ' +
+                'condition that meets. At most one red or green box — the finding — and put it last.',
+            },
+          },
+          required: ['label', 'box', 'tone'],
+        },
+      },
     },
-    required: ['summary', 'determination', 'categories', 'measurements', 'codes', 'recommendations'],
+    required: ['summary', 'determination', 'categories', 'measurements', 'codes', 'recommendations', 'photoNote', 'scan'],
   },
   report: {
     type: 'object',
@@ -379,6 +478,8 @@ function noteTextFor(kind, ctx) {
 /** The system instruction: persona + rules + plan + code library. */
 function systemFor(kind, ctx) {
   const spec = SPECS[kind];
+  // Only a record is ever sent an image, and only when the entry has one.
+  const hasPhoto = kind === 'record' && !!(ctx.entry && ctx.entry.photo && ctx.entry.photo.data);
   const noteText = noteTextFor(kind, ctx);
   // Narrow by domain as well as by tag, so a sprinkler finding is not grounded
   // in defensible space and does not get the fuel-spacing tables.
@@ -395,8 +496,8 @@ function systemFor(kind, ctx) {
     '',
     SHARED.noFabrication,
     '',
-    'NO IMAGES',
-    SHARED.noVision,
+    hasPhoto ? 'THE PHOTOGRAPH' : 'NO IMAGES',
+    hasPhoto ? SHARED.withVision : SHARED.noVision,
     '',
     'HOUSEKEEPING',
     SHARED.housekeeping,
@@ -453,11 +554,25 @@ function recordUserFor(ctx) {
     `Entry number: ${e.n}`,
     `Determination recorded by the inspector: ${e.level}`,
     `Time: ${e.time}`,
-    `Photograph on file: ${e.hasPhoto ? 'yes (not provided to you)' : 'no'}`,
+    `Photograph: ${e.photo ? 'attached to this message' : e.hasPhoto ? 'on file (not provided to you)' : 'none taken'}`,
     `Inspector’s note${e.spoken ? ' (spoken, transcribed)' : ''}: ${e.note ? '"' + e.note + '"' : '(none recorded)'}`,
   ].filter(Boolean);
 
-  if (!e.note) {
+  // The rules for reading a photograph are in the system instruction, under
+  // THE PHOTOGRAPH; what belongs here is only what is true of this entry.
+  if (e.photo) {
+    lines.push(
+      '',
+      e.note
+        ? 'The photograph attached above is of this entry, and the note is about the same scene. ' +
+          'Where the note names something you can see, use the inspector’s words for it. Where ' +
+          'the photograph shows something the note does not mention, you may record it.'
+        : 'No note was recorded, so the photograph attached above is the only evidence you have. ' +
+          'Describe only what is plainly visible in it, and do not infer a measurement from it.',
+    );
+  }
+
+  if (!e.note && !e.photo) {
     lines.push(
       '',
       'The inspector recorded no note for this entry. You have nothing observed to work from, so',
@@ -526,9 +641,14 @@ function userFor(kind, ctx) {
 }
 
 function assemble(kind, ctx) {
+  // Only a record carries a photograph: the report and the notice are compiled
+  // from records already written, and re-reading every photo to rewrite them
+  // would cost a vision call per entry for nothing new.
+  const photo = kind === 'record' && ctx.entry && ctx.entry.photo;
   return {
     system: systemFor(kind, ctx),
     user: userFor(kind, ctx),
+    image: photo && photo.data ? { mimeType: photo.mimeType || 'image/jpeg', data: photo.data } : null,
     schema: SCHEMAS[kind],
     model: MODEL,
   };

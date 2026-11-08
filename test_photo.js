@@ -127,10 +127,20 @@ function withExif(jpeg, orientation) {
   await p.click('#pill'); await p.waitForTimeout(700);
   await p.fill('#memo', 'Juniper hedge is dead through the centre and touching the window wall');
   await p.click('#submit');
-  await p.waitForTimeout(6000);
-  ok((await p.locator('#ar .bx, #ar .issue').count()) === 0,
-    'no AR boxes are drawn over a photo they were not measured against');
-  await p.waitForSelector('#save', { timeout: 25000 });
+  await p.waitForSelector('#save', { timeout: 90000 });
+  // Boxes over a photo must describe THAT photo. Either the model read it and
+  // drew them, or there are none — the percentages hand-measured against
+  // original.jpg must never be drawn over a different picture.
+  const scan = await p.evaluate(() => S.rec.scan);
+  ok(scan === null || scan.source === 'model',
+    scan ? `the boxes came from the photograph (${(scan.boxes || []).length + (scan.issue ? 1 : 0)} of them)`
+         : 'no boxes, rather than boxes measured against a different photo');
+  if (scan) {
+    const all = (scan.boxes || []).concat(scan.issue ? [scan.issue] : []);
+    ok(all.every(x => x.box.every(v => v >= 0 && v <= 100) && x.box[0] + x.box[2] <= 100.5 && x.box[1] + x.box[3] <= 100.5),
+      'every box lies inside the frame');
+    ok(all.every(x => x.label && x.label.length <= 48), 'every box carries a label that fits on it');
+  }
   ok((await p.evaluate(() => S.rec.photo)) === 'assets/v3.jpg', 'the record carries the photo');
   await p.click('#save');
   await p.waitForTimeout(1200);

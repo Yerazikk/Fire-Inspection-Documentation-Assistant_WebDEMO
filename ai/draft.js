@@ -189,6 +189,40 @@ const pairs = (arr, cap) => (Array.isArray(arr) ? arr : [])
   .filter(([l, v]) => l || v)
   .slice(0, cap);
 
+/**
+ * The boxes the model drew on the photograph, in the shape the overlay draws.
+ *
+ * Gemini reports a box as [ymin, xmin, ymax, xmax] normalised to 0–1000; the
+ * overlay positions elements with CSS percentages of left/top/width/height.
+ * Degenerate and inverted boxes come back often enough to be worth repairing
+ * rather than dropping, but one covering nearly the whole frame is not a
+ * finding pointed at, it is the model shrugging — those go.
+ */
+function normalizeScan(raw) {
+  const TONES = ['cyan', 'red', 'green'];
+  const items = (Array.isArray(raw) ? raw : []).map(b => {
+    const n = (Array.isArray(b && b.box) ? b.box : []).map(Number);
+    if (n.length !== 4 || n.some(v => !isFinite(v))) return null;
+    const [y0, x0, y1, x1] = [Math.min(n[0], n[2]), Math.min(n[1], n[3]), Math.max(n[0], n[2]), Math.max(n[1], n[3])];
+    const left = Math.max(0, Math.min(100, x0 / 10));
+    const top = Math.max(0, Math.min(100, y0 / 10));
+    const width = Math.max(0, Math.min(100 - left, (x1 - x0) / 10));
+    const height = Math.max(0, Math.min(100 - top, (y1 - y0) / 10));
+    const label = String((b && b.label) || '').trim().slice(0, 48);
+    if (!label || width < 1.5 || height < 1.5) return null;
+    if (width > 97 && height > 97) return null;
+    return { label, box: [+left.toFixed(1), +top.toFixed(1), +width.toFixed(1), +height.toFixed(1)],
+      tone: TONES.includes(b && b.tone) ? b.tone : 'cyan' };
+  }).filter(Boolean).slice(0, 7);
+
+  if (!items.length) return null;
+  // The overlay draws one highlighted finding plus any number of plain
+  // element boxes, so split them that way whatever order they arrived in.
+  const i = items.findIndex(b => b.tone !== 'cyan');
+  const issue = i >= 0 ? items.splice(i, 1)[0] : null;
+  return { boxes: items, issue, source: 'model' };
+}
+
 function validateRecord(raw, ctx) {
   if (!raw || typeof raw !== 'object') throw new DraftError('Model returned no record', 'bad_shape');
 
@@ -240,6 +274,10 @@ function validateRecord(raw, ctx) {
       : [],
   };
 
+  rec.scan = normalizeScan(raw.scan);
+  // What the photograph appears to show that the note does not account for.
+  // Empty whenever they agree, which is most of the time.
+  rec.photoNote = String(raw.photoNote || '').trim().slice(0, 300);
   rec.audit = auditBlock(auditList(rec.codes));
   // The audit canonicalised `citation`; the renderer reads `c`, so carry it
   // across and drop the field it no longer needs.
@@ -251,14 +289,21 @@ function validateRecord(raw, ctx) {
 // The call
 // ---------------------------------------------------------------------------
 
-async function callGemini({ system, user, schema, model }) {
+async function callGemini({ system, user, image, schema, model }) {
   const key = apiKey();
   if (!key) throw new DraftError('No GEMINI_API_KEY in the environment', 'no_key');
   const api = backend();
 
+  // The photograph goes ahead of the text. Gemini attends to an image better
+  // when it arrives before the instructions that refer to it, and the prompt
+  // reads as "here is the scene, now here is what was noted about it".
+  const parts = image
+    ? [{ inlineData: { mimeType: image.mimeType, data: image.data } }, { text: user }]
+    : [{ text: user }];
+
   const body = {
     systemInstruction: { parts: [{ text: system }] },
-    contents: [{ role: 'user', parts: [{ text: user }] }],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: model.temperature,
       topP: model.topP,

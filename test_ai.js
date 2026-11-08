@@ -61,6 +61,82 @@ const PORT = process.argv[2] || 8956;
   } else {
     ok(/Template/.test(await p.textContent('.edcard[data-key="summary"] h4')), 'a template record says so on its face');
   }
+  // --- the photograph is evidence, not a yes/no flag ----------------------
+  // The prompt used to say "photograph on file: yes (not provided to you)" and
+  // then ask the model to write up a scene it had never seen. These assertions
+  // say the picture now reaches it, and that what comes back is about that
+  // picture: a reference photo whose subject appears in no note, no fixture
+  // and no other prompt text, so only reading it can produce the words.
+  if (live) {
+    await p.click('[data-back]');
+    const c0 = await p.locator('.confirm').count();
+    if (c0) await p.click('.confirm [data-i="2"]'); else await p.waitForSelector('#newEntry');
+    await p.waitForSelector('#newEntry'); await p.click('#newEntry');
+    await p.waitForSelector('#upload'); await p.click('#upload');
+    await p.waitForSelector('.picker.on');
+    await p.click('[data-lib="v4"]');                      // a limb on the roof, gutters full of leaves
+    await p.waitForTimeout(900);
+    await p.click('#pill'); await p.waitForTimeout(600);
+    await p.fill('#memo', '');                             // no note at all: the photo is the only evidence
+    await p.click('#submit');
+    await p.waitForSelector('#save', { timeout: 200000 });
+
+    const seen = await p.evaluate(() => ({
+      blob: JSON.stringify(S.rec.ai).toLowerCase(),
+      scan: S.rec.scan,
+      memo: S.rec.memo,
+    }));
+    ok(seen.memo === '', 'the entry really was saved with no note');
+    ok(/roof|gutter|limb|branch|leaf|leaves|chimney|debris/.test(seen.blob),
+      'with no note, the record still describes what is in the photograph');
+    ok(!!seen.scan && seen.scan.source === 'model', 'the scan boxes were drawn by the model from the image');
+    if (seen.scan) {
+      const all = (seen.scan.boxes || []).concat(seen.scan.issue ? [seen.scan.issue] : []);
+      ok(all.length >= 2, `the model pointed at ${all.length} things in the frame`);
+      ok(all.every(x => x.box[0] + x.box[2] <= 100.5 && x.box[1] + x.box[3] <= 100.5), 'every box lies inside the frame');
+      ok(all.some(x => x.box[2] < 90 || x.box[3] < 90), 'the boxes point at things, not the whole frame');
+    }
+    // The fixture boxes belong to assets/original.jpg and nothing else.
+    ok(JSON.stringify(seen.scan) !== JSON.stringify(await p.evaluate(() => SCAN.violation)),
+      'the hand-measured fixture boxes are not reused on a different photo');
+    ok(!seen.scan || !((seen.scan.boxes || []).concat(seen.scan.issue || []).some(x => /not measured|\bft\b/.test(x.label) && !/≈/.test(x.label))),
+      'no box states a distance as fact — a photograph cannot measure one');
+  }
+
+  // --- a photograph that contradicts the note is not quietly agreed with ---
+  // The failure this guards: the model boxed the obstruction, saw it, and then
+  // wrote "clear and unobstructed · Compliant" because the note said so. A
+  // blocked exit signed off as compliant is the most costly thing this tool
+  // could produce, so the disagreement has to reach the inspector's screen.
+  if (live) {
+    await p.click('[data-back]');
+    const c1 = await p.locator('.confirm').count();
+    if (c1) await p.click('.confirm [data-i="2"]'); else await p.waitForSelector('#newEntry');
+    await p.waitForSelector('#newEntry'); await p.click('#newEntry');
+    await p.waitForSelector('#upload'); await p.click('#upload');
+    await p.waitForSelector('.picker.on');
+    await p.click('[data-lib="v7"]');                      // an exit door piled with stored material
+    await p.waitForTimeout(900);
+    await p.click('#pill'); await p.waitForTimeout(600);
+    await p.fill('#memo', 'Rear exit door checked, clear and unobstructed, compliant');
+    await p.click('#submit');
+    await p.waitForSelector('#save', { timeout: 200000 });
+
+    const c = await p.evaluate(() => ({
+      level: S.rec.ai.severity.determination, note: S.rec.ai.photoNote,
+      scan: S.rec.scan, blob: JSON.stringify(S.rec.ai.summary).toLowerCase(),
+      flagged: !!document.querySelector('.pdiff'),
+    }));
+    ok(c.level === 'Compliant', 'the determination still follows the inspector, not the model');
+    ok(!!c.note && /block|obstruct|against the|piled|stacked|stored|debris|material/i.test(c.note),
+      `the disagreement is recorded: "${(c.note || '(empty)').slice(0, 90)}"`);
+    ok(c.flagged, 'and it is on the record screen where the inspector will see it');
+    ok(/plastic|material|debris|packaging|stored|obstruct|piled|stack/.test(c.blob),
+      'the summary describes the frame rather than restating the note');
+    const red = c.scan && (c.scan.boxes || []).concat(c.scan.issue ? [c.scan.issue] : []).some(x => x.tone === 'red');
+    ok(red, 'the obstruction is boxed red, not marked compliant because the note said so');
+  }
+
   // --- a typed building-code note routes to the building corpus -----------
   // Same screen, a note about a sprinkler rather than vegetation. The code
   // library is picked per entry, so this must come back with sprinkler

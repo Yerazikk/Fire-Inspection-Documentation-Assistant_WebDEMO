@@ -194,17 +194,28 @@ Enforced in `ai/prompts.js` (`SHARED.noFabrication`) and, for citations, checked
 again in code (`ai/draft.js`, `checkCitations`) — a prompt rule that is not also
 checked is a suggestion:
 
-- The inspector's note is the only source of observed fact.
+- The inspector's note, and the entry's photograph where there is one, are the
+  only sources of observed fact.
 - **No invented measurements.** If a requirement turns on a number the note does
   not give, the document says what must be measured and against which standard.
+  A photograph never supplies one: one camera, one angle, no scale. An eyeballed
+  size may appear in a scan label with "≈" and nowhere else.
 - No invented severity scores.
 - Only the code sections in `ai/codes.js` may be cited, and a section marked
   `adopted-pending` (Zone 0) may be described as coming but never written up as
   a present violation. Anything cited that is not in the library is flagged in
   red on screen.
 - All deadlines come from the procedure block in `ai/codes.js`.
-- **No image is sent and no image is analysed.** This is the V1 scope: text
-  only. The model is told it cannot see the photograph.
+- **The entry's photograph is sent with the note, and is read.** A record is
+  drafted from both; the model draws labelled boxes back onto the image, which
+  is what the scan overlay shows. A report and a notice are compiled from
+  records already written and are never sent an image. Nothing generates one.
+- **The inspector's determination is never overridden.** Violation, Compliant or
+  Note is theirs, made on site with the whole property in view. But where the
+  photograph disagrees with the note, the record says so in plain words, above
+  the AI summary, so it is seen before the entry is signed. Silently writing a
+  compliant record over a photograph that shows otherwise is the failure the
+  prompt and `test:ai` both exist to prevent.
 
 ## Jurisdiction and codes
 
