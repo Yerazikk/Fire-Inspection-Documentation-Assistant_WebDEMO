@@ -52,16 +52,31 @@ const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: P
     // new entry: photo + voice memo
     await p.click('#newEntry'); await p.waitForSelector('#shutter'); await p.click('#shutter'); await p.waitForTimeout(600); ok(await p.locator('#cam.snap').count() === 1, 'shutter opens the memo bar'); await p.click('#retake'); await p.waitForTimeout(300); ok(await p.locator('#cam.snap').count() === 0, 'retake returns to viewfinder'); await p.click('#shutter'); await p.waitForTimeout(900);
     await hold('#pill', 2600); await p.waitForTimeout(700); ok(await p.locator('.sheet2.type').count() === 1 && /Ladder fuels/.test(await p.inputValue('#memo')), 'hold-to-speak transcribes into the editable memo');
-    await p.click('#submit'); await p.waitForTimeout(1500); ok(await p.locator('#cam.scanning').count() === 1, 'submit starts the in-place scan');
     // The boxes are the model's reading of this photograph, so they land when
-    // it answers rather than on a timer — wait for one, not for a delay. Their
-    // number is the model's; what must hold is that elements were labelled and
-    // exactly one of them is the highlighted finding.
-    await p.waitForSelector('#ar .bx, #ar .issue', { timeout: 200000 }); await p.waitForTimeout(1500);
-    const nbx = await p.locator('#ar .bx').count(), niss = await p.locator('#ar .issue').count();
-    ok(nbx >= 1 && niss === 1, `scan draws labelled boxes (${nbx}) and one highlighted finding`);
-    await p.waitForSelector('#save', { timeout: 200000 }); ok((await p.locator('.pbox').count()) === 2 && /Violation/.test(await p.textContent('.ttl')), 'record opens with original + scanned photos');
-    await p.click('#pScan'); await p.waitForSelector('#fbin'); await p.fill('#fbin', 'hedge is closer to 4.5 ft'); await p.click('#fbgo'); await p.waitForTimeout(2000); ok(/4\.5 ft/.test(await p.textContent('#view')), 'scan feedback re-runs and updates the record');
+    // it answers rather than on a timer, and the record opens shortly after
+    // the last one. Sampling the overlay at a fixed moment races that; watch
+    // it for as long as it exists and keep the high-water mark instead. What
+    // must hold is that elements were labelled and exactly one of them is the
+    // highlighted finding — the number of them is the model's business.
+    await p.evaluate(() => { window.__bx = 0; window.__iss = 0; window.__watch = setInterval(() => {
+      window.__bx = Math.max(window.__bx, document.querySelectorAll('#ar .bx').length);
+      window.__iss = Math.max(window.__iss, document.querySelectorAll('#ar .issue').length); }, 50); });
+    await p.click('#submit'); await p.waitForTimeout(1500); ok(await p.locator('#cam.scanning').count() === 1, 'submit starts the in-place scan');
+    await p.waitForSelector('#ar .bx, #ar .issue', { timeout: 200000 });
+    await p.waitForSelector('#save', { timeout: 200000 });
+    const drew = await p.evaluate(() => { clearInterval(window.__watch); return { bx: window.__bx, iss: window.__iss }; });
+    ok(drew.bx >= 1 && drew.iss === 1, `scan drew labelled boxes (${drew.bx}) and one highlighted finding over the photo`);
+    ok((await p.locator('.pbox').count()) === 2 && /Violation/.test(await p.textContent('.ttl')), 'record opens with original + scanned photos');
+    // Re-scan really goes back to the model, so this waits on the reply rather
+    // than on a timer, and asserts the record changed — not that the typed
+    // words were echoed back, which is what the old fake did.
+    const preFb = await p.textContent('#view');
+    await p.click('#pScan'); await p.waitForSelector('#fbin'); await p.fill('#fbin', 'the hedge is 4.5 ft, I measured it'); await p.click('#fbgo');
+    await p.waitForSelector('.lb', { state: 'detached', timeout: 200000 }); await p.waitForTimeout(600);
+    const postFb = await p.textContent('#view');
+    ok(postFb !== preFb, 'scan feedback re-runs and the record comes back changed');
+    ok(/4\.5/.test(postFb), 'the correction reaches the redrafted record');
+    ok((await p.evaluate(() => S.rec.feedback.length)) === 1, 'the correction is kept on the entry');
     await p.click('.edcard[data-key="summary"] [data-edit]'); await p.locator('.edcard[data-key="summary"] .ed >> nth=0').fill('Edited observation.'); await p.click('.edcard[data-key="summary"] [data-edit]'); ok(await p.evaluate(() => S.rec.ai.summary[0][1]) === 'Edited observation.', 'record text is editable in place');
     await p.click('#openDeck'); await p.waitForSelector('.dcard'); ok(await p.locator('#deckDone[disabled]').count() === 1, 'skip disabled until one is included'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(400); await p.click('#bUndo'); await p.waitForTimeout(300); ok(/2 of \d+ · 1 included/.test(await p.textContent('#dcount')), 'undo restores the previous card');
     await p.click('#own'); await p.fill('#ownTx', 'Replace the wooden wall cap with stone'); await p.click('.confirm [data-yes]'); await p.waitForTimeout(1800); ok(/Replace the wooden wall cap/.test(await p.textContent('#deck')), 'own recommendation lands on top of the deck'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400);

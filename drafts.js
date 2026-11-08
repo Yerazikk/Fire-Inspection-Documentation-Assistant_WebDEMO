@@ -90,6 +90,8 @@ window.DRAFTS = (() => {
         photo: image,
         spoken: !!entry.spoken,
         note: entry.memo || '',
+        // Re-scan: what the inspector told the previous draft it got wrong.
+        corrections: (entry.feedback || []).slice(-8),
       },
       history: (window.HISTORY[a.id] || []).slice(0, 2).map(h => ({
         date: h.date, outcome: h.outcome, notes: h.entries.map(x => x.note).join(' '),

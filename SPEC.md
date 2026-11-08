@@ -144,7 +144,7 @@ The inspector’s technical record for one entry, editable, with recommendations
 | Control | Gesture | Result |
 |---|---|---|
 | Original photo | tap | Expands it with a Retake button. Retake restarts the whole entry: new photo, new scan, new notes, new deck. |
-| Scanned photo | tap | Expands it with a feedback pill. Sending feedback re-runs the scan with that instruction and updates the notes. |
+| Scanned photo | tap | Expands it with a feedback pill. Sending a correction puts the photograph back in front of the model with it and redrafts the whole record — boxes included — so a figure the inspector gives (“it is 3 ft, I measured it”) stops being “not measured” and anything they point out that was missed is picked up. Corrections accumulate on the entry; a recommendation the inspector wrote themselves, and the in/out decisions they already made, survive the redraft. |
 | Any text line | tap Edit on its card | Lines become editable; Done saves; Revert restores the generated text. |
 | Recommendations | tap | Opens the deck. |
 | Save | tap | Saves the entry and returns to Location home; a numbered pip appears at the capture position. |

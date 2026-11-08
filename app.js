@@ -602,12 +602,12 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   const paintScan = (sc, ar) => {
     if (!sc) return 0;
     const all = (sc.boxes || []).map(b => [b, false]).concat(sc.issue ? [[sc.issue, true]] : []);
-    const gap = Math.min(420, 1500 / Math.max(1, all.length));
+    const gap = Math.min(300, 1000 / Math.max(1, all.length));
     all.forEach(([b, isIssue], i) => later(() => ar.insertAdjacentHTML('beforeend',
       `<div class="${isIssue ? 'issue' : 'bx'} ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), i * gap));
-    return all.length * gap + 500;
+    return all.length * gap + 400;
   };
-  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 1000; const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
+  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 600; const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
     if (d.photo) later(() => $('#scan').classList.add('go'), 350);
     later(() => st.classList.add('on'), 500); steps.forEach((x, i) => later(() => { st.classList.remove('swap'); void st.offsetWidth; st.classList.add('swap'); st.querySelector('.t').textContent = x.t; st.querySelector('.d').textContent = x.d; }, 600 + i * stepMs));
     // The record is drafted by the model from the note that was just typed, so
@@ -689,7 +689,51 @@ function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const
   wireEdits(r.ai, () => { S.recDirty = true; });
   const pic = img(r.photo, 'photo');
   const po = $('#pOrig'); if (po) po.onclick = () => lightbox(`<div class="lb-top"><span>Original photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}</div></div><div class="foot"><button class="btn" id="lbRetake">Retake photo</button></div>`, el => { el.querySelector('#lbRetake').onclick = () => { confirmSheet('Retake and start over?', 'A new photo means a new scan, new notes and a new deck. This entry’s current draft is discarded.', [{ label: 'Retake', cls: 'danger', fn: () => { el.remove(); S.draft = { photo: null, memo: r.memo, kind: null, snapped: false }; S.rec = null; S.recDirty = false; go('camera', { replace: true }); } }, { label: 'Keep', cls: 'ghost' }]); }; });
-  const ps = $('#pScan'); if (ps) ps.onclick = () => lightbox(`<div class="lb-top"><span>Scanned photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}${overlay(r.scan, 'lab')}</div></div><div class="foot"><div class="fb"><input id="fbin" placeholder="Tell the scan what it got wrong…"><button id="fbgo">Re-scan</button></div></div>`, el => { el.querySelector('#fbgo').onclick = () => { const v = el.querySelector('#fbin').value.trim(); if (!v) return; const b = el.querySelector('#fbgo'); b.textContent = 'Re-scanning…'; b.disabled = true; later(() => { r.feedback.push(v); if (r.ai.estimates.length) r.ai.estimates.push(['Revised per feedback', v]); else r.ai.summary.push(['Revised', v]); S.recDirty = true; el.remove(); render(); }, 1600); }; }); }
+  const ps = $('#pScan'); if (ps) ps.onclick = () => lightbox(`<div class="lb-top"><span>Scanned photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}${overlay(r.scan, 'lab')}</div></div><div class="foot"><div class="fb"><input id="fbin" placeholder="Tell the scan what it got wrong…"><button id="fbgo">Re-scan</button></div><div class="fbnote" id="fbnote" hidden></div></div>`, el => {
+    const inp = el.querySelector('#fbin'), b = el.querySelector('#fbgo'), note = el.querySelector('#fbnote');
+    const say = (m, bad) => { note.textContent = m || ''; note.hidden = !m; note.classList.toggle('bad', !!bad); };
+    const idle = () => { b.textContent = 'Re-scan'; b.disabled = false; inp.disabled = false; };
+    b.onclick = async () => { const v = inp.value.trim(); if (!v) return;
+      b.textContent = 'Re-scanning…'; b.disabled = true; inp.disabled = true;
+      say('Sending the photograph back with your correction…');
+      const res = await rescan(v);
+      if (!res.ok) { idle(); say(res.why, true); return; }
+      el.remove(); render(); };
+    inp.onkeydown = e => { if (e.key === 'Enter') b.onclick(); }; }); }
+
+/**
+ * Re-scan: the inspector read the draft and said what it got wrong, so the
+ * photograph goes back to the model with that correction and the whole record
+ * is drafted again.
+ *
+ * This used to be a 1.6-second setTimeout that appended the inspector's own
+ * words to the estimates table — the one thing on the record screen that only
+ * looked like it was working. Nothing was re-read and nothing was corrected.
+ *
+ * Two things survive a redraft, because they are not the model's to replace:
+ * a recommendation the inspector wrote themselves, and the in/out decisions
+ * they already made on cards that come back unchanged.
+ */
+async function rescan(text) {
+  const r = S.rec, run = newRun();
+  const entry = { n: r.n, kind: r.kindRaw || r.kind, time: r.time, photo: r.photo, spoken: r.spoken, memo: r.memo, feedback: (r.feedback || []).concat(text) };
+  const ai = await DRAFTS.record(addrOf(S.cur), entry);
+  // A redraft takes seconds; the inspector may have saved or left in the
+  // meantime, and writing into a record that is no longer open would land
+  // the correction on nothing.
+  if (!isCurrentRun(run) || S.rec !== r) return { ok: false, why: 'Cancelled.' };
+  // DRAFTS.record never throws; it hands back a template when the call fails.
+  // Taking that would quietly replace a real record with fixture text.
+  if (ai.source !== 'ai') return { ok: false, why: 'Could not reach the model — ' + (ai.fallbackReason || 'the draft failed') + '. The record is unchanged.' };
+  const own = (r.recs || []).filter(x => x.own);
+  const decided = new Map((r.recs || []).filter(x => x.decision && !x.own).map(x => [x.title, x.decision]));
+  r.feedback = entry.feedback;
+  r.ai = ai;
+  if (ai.scan) r.scan = ai.scan;
+  r.recs = own.concat(ai.recs.map(x => ({ ...x, decision: decided.get(x.title) || null })));
+  S.recDirty = true;
+  return { ok: true };
+}
 function lightbox(html, wire) { const el = document.createElement('div'); el.className = 'lb'; el.innerHTML = html; $('#app').appendChild(el); el.querySelectorAll('[data-close]').forEach(b => b.onclick = () => el.remove()); wire && wire(el); return el; }
 function getPath(root, p) { let o = root; for (let i = 0; i < p.length - 1; i++) o = o[p[i]]; return o; }
 function wireEdits(root, onChange) { $$('.edcard').forEach(card => { const btn = card.querySelector('[data-edit]'); if (!btn) return; const snap = card.dataset.snap || (card.dataset.snap = JSON.stringify([...card.querySelectorAll('.ed')].map(e => e.textContent)));

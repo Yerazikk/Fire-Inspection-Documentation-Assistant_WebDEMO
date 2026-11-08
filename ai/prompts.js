@@ -44,9 +44,21 @@ const MODEL = {
   // truncated — and therefore malformed — JSON. Output is billed per token
   // generated, not per token allowed, so a high ceiling costs nothing.
   maxOutputTokens: Number(process.env.GEMINI_MAX_OUTPUT_TOKENS || 32768),
-  // Gemini thinks by default. 0 disables it, -1 is dynamic. Some thinking
-  // measurably helps the code-matching step, so leave it dynamic.
-  thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET ?? -1),
+  // Gemini thinks by default. 0 disables it, -1 is dynamic.
+  //
+  // This was dynamic on the belief that thinking helps the code-matching step.
+  // Measured over 28 drafts — easy record, record whose photograph contradicts
+  // the note, sprinkler record that must not reach for vegetation code, report
+  // and notice — it does not. Citation integrity was the thing to protect and
+  // it was perfect either way: zero unverified citations at every budget, same
+  // section counts, the conflict flag firing 3/3 at 0 as at -1.
+  //
+  // What it costs is the whole latency of the app. Medians, budget 0 vs -1:
+  // record 4.3 s / 18.2 s, conflict 6.5 s / 15.6 s, report 10.0 s / 26.6 s,
+  // notice 6.6 s / 42.3 s — and an inspector stands at the property waiting
+  // for each one. Re-run the benchmark before raising this; if a harder corpus
+  // ever needs thinking, 512 bought nothing here but costs little.
+  thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET ?? 0),
   // Hard ceiling on one request, ms. Drafting a seven-section document against
   // a code library is not fast; a minute is normal, so do not cut this close.
   timeoutMs: Number(process.env.GEMINI_TIMEOUT_MS || 150000),
@@ -569,6 +581,25 @@ function recordUserFor(ctx) {
           'the photograph shows something the note does not mention, you may record it.'
         : 'No note was recorded, so the photograph attached above is the only evidence you have. ' +
           'Describe only what is plainly visible in it, and do not infer a measurement from it.',
+    );
+  }
+
+  // Re-scan. The inspector read the draft and told it what it got wrong.
+  if (e.corrections && e.corrections.length) {
+    lines.push(
+      '',
+      'CORRECTIONS THE INSPECTOR MADE TO YOUR PREVIOUS DRAFT OF THIS RECORD:',
+      ...e.corrections.map((c, i) => `  ${i + 1}. ${c}`),
+      '',
+      'These came from the inspector after reading the draft, standing at the property with it in',
+      'front of them. They carry the authority of the note, and more: where a correction',
+      'contradicts what you read in the photograph, the correction is right and your reading was',
+      'wrong. A figure in a correction is a measurement the inspector took — record it as given',
+      'and stop calling it not measured.',
+      '',
+      'Redraft the whole record with every correction applied, including the boxes. Do not append',
+      'a line saying you were corrected, do not argue, and do not carry forward the reading a',
+      'correction replaced.',
     );
   }
 

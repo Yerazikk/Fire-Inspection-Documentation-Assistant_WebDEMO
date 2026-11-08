@@ -210,6 +210,11 @@ checked is a suggestion:
   drafted from both; the model draws labelled boxes back onto the image, which
   is what the scan overlay shows. A report and a notice are compiled from
   records already written and are never sent an image. Nothing generates one.
+- **A correction beats the model's own reading.** Re-scan on the record screen
+  sends the photograph back with what the inspector says it got wrong, and the
+  whole record is drafted again. A figure they give is a measurement they took,
+  so it stops being "not measured". Their own recommendation cards and the
+  in/out decisions they already made survive the redraft.
 - **The inspector's determination is never overridden.** Violation, Compliant or
   Note is theirs, made on site with the whole property in view. But where the
   photograph disagrees with the note, the record says so in plain words, above
