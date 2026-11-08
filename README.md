@@ -19,6 +19,21 @@ Tests: `npm test` (interaction), `npm run test:route` (routing),
 visuals), `npm run test:ai` (document drafting). The server must be running
 first.
 
+### Where the files are
+
+The split is the one the deployment needs, and it is also the honest one:
+
+| | |
+|---|---|
+| `public/` | the app the browser gets — `index.html` and every client script, `assets/` |
+| `api/` | the three endpoints, one file each |
+| `ai/` | the drafting itself: prompts, the code corpus, the Gemini calls |
+| root | `serve.js`, the tests, the documents |
+
+Nothing outside `public/` is reachable over HTTP. That is not a rule the server
+enforces with a blocklist any more — `ai/prompts.js` and `.env` simply are not
+inside the directory being served, locally or deployed.
+
 ## Setup — the AI key
 
 **The report and the notice to the owner are drafted by Google Gemini. Without a
@@ -57,7 +72,7 @@ The request and response bodies are identical, so nothing else changes.
 Then restart `npm run serve`. It names the model and the host it will use:
 
 ```
-AI drafting on · gemini-3.6-flash via Vertex AI · fireinspector-514022 · global · 17 code sections (Marin County, California)
+AI drafting on · gemini-3.6-flash via Vertex AI · fireinspector-514022 · global · 56 code sections (Marin County, California (unincorporated))
 ```
 
 `GET /api/ai/status` reports the same thing as JSON, and `?models=1` adds the
@@ -115,6 +130,45 @@ Vertex does not publish a model list to an API key, so on that backend
 `--models` probes each candidate in `PROBE_MODELS` (`ai/draft.js`) with a
 one-token request rather than asking for a list.
 
+## Deploy it — Vercel
+
+`public/` is the static site, `api/` holds the three endpoints as functions, and
+`ai/` is bundled into those functions without ever being served. `vercel.json`
+is the whole configuration.
+
+```sh
+npx vercel login
+npx vercel        # a preview URL
+npx vercel --prod # the one you hand to people
+```
+
+Then give the project the same three variables `.env` holds locally — the key is
+read inside the function, never sent to the browser:
+
+```sh
+npx vercel env add GEMINI_API_KEY production
+npx vercel env add GOOGLE_CLOUD_PROJECT production
+npx vercel env add GOOGLE_CLOUD_LOCATION production
+```
+
+Add them to `preview` too if you want preview deployments to draft, and
+re-deploy after adding any of them — a function picks up the environment at
+deploy time, not per request. Without them the site still works and documents
+fall back to the built-in templates, which is a fine way to show the
+interaction and a poor way to show the drafting.
+
+**Anyone with the link spends your quota.** The site is public, the key sits
+behind it, and a single annotated photograph is the expensive call. For a demo
+to a handful of people that is usually the point; for a link that might travel,
+turn on Deployment Protection in the project's settings, or rotate the key
+afterwards.
+
+Neither platform limit is anywhere near a normal inspection: a request body
+may be 100 MB and a record posts 100–250 KB of photograph, and a function may
+run for the plan's maximum duration, which `vercel.json` asks for by name
+(`"maxDuration": "max"`) rather than a fixed number — 300 s by default, against
+the fifteen to twenty seconds an annotated photograph takes.
+
 ## How the drafting works
 
 ```
@@ -161,18 +215,54 @@ clearance tables, and never sees the defensible-space corpus. A note touching
 both — or neither — gets both. `codes.domainsFor(text)` is the whole decision
 and it is a list of regexes you can read.
 
-### The building corpus is not source-verified
+### The building corpus is now transcribed — and nine numbers were wrong
 
-**Every building and fire-protection entry carries `provenance: 'unverified'`.**
-Section numbers follow the 2019 CFC chapter structure and the requirements are
-stated as accurately as they were known, but the operative text was **not**
-transcribed from a primary source — `codes.iccsafe.org` refuses automated
-access and the mirrors reachable did not carry the section text. The vegetation
-corpus *was* transcribed and is marked `provenance: 'transcribed'`.
+The building and fire-protection corpus used to carry
+`provenance: 'unverified'` on every entry: written from the author's knowledge
+of the **2019** CFC and never read off a source. It has now been transcribed
+section by section from the **2025 California Fire Code** (chs. 3, 5, 6, 7, 9
+and 10), which is the edition Ord. 3837 adopts.
 
-This is tracked, not hidden. A citation drawn from an unverified entry comes
-back flagged, the record screen marks it **verify source**, and
-`doc.audit.unsourcedCitations` lists them. Before any of it goes on an
+Verifying it against the edition in force turned up **nine wrong section
+numbers**, and most were not simply dead — the old number now addresses a
+different subject, which is worse than a dangling reference:
+
+| was (2019 CFC) | is (2025 CFC) | the old number now means |
+|---|---|---|
+| § 901.6.2 records | § 901.6.3 | Integrated Testing |
+| § 907.9 alarms out of service | § 901.7 (any system) | Where Required in Existing Buildings |
+| § 1031.2 egress reliability | § 1032.2 | Emergency Escape and Rescue Openings |
+| § 1031.3 egress maintenance | §§ 1032.4, 1032.10 | Emergency Escape and Rescue Openings |
+| § 1010.1.9 door operations | §§ 1010.2, 1010.2.1, 1010.2.4 | — (ch. 10 stops at 1010.1.7) |
+| § 1010.1.10 panic hardware | § 1010.2.8 | — |
+| § 912.3 FDC access | §§ 912.4, 912.4.2 | Fire Hose Threads |
+| § 605.3 electrical working space | § 603.4 | Chimneys and Vents |
+| § 605.4 extension cords | § 603.6 | Fuel Oil Storage Systems |
+
+Several figures were also attributed to the wrong subsection — the 18-in.
+sprinkler clearance is § 315.3.1, not § 315.3 or NFPA 13; the 3-ft hydrant
+clear space is § 507.5.5, not § 507.5.4; the 1-footcandle egress level is
+§ 1008.2.1, not § 1008.2; the 5-footcandle exit-sign face is § 1013.6.2, not
+§ 1013.3. Two figures were simply wrong: fire-protection records are retained
+**five** years under CCR Title 19 §§ 904.1(b)/904.2(c), not three, and
+California runs portable extinguishers off **CCR Title 19, Division 1,
+Chapter 3 — not NFPA 10 —** where the owner's inspection is **monthly**
+(§ 574.1), not annual.
+
+**What is still unverified.** Exactly two entries: **NFPA 13** and **NFPA 25**.
+They are referenced standards rather than part of the Fire Code and were not
+reachable, so they keep `provenance: 'unverified'` and the **verify source**
+flag. `buildingTables` also carries explicit `verify` notes where a number
+could not be confirmed — the panic-hardware release force (§ 1010.1.3) and the
+extinguisher annual-maintenance interval — so the model is told not to state
+them rather than left to guess.
+
+This is tracked, not hidden. Citations come back on a three-tier flag:
+**not in library** (red — the model invented it, or it is a superseded number),
+**verify source** (`doc.audit.unsourcedCitations` — in the library, nobody read
+a source), and **confirm source** (`doc.audit.mirroredCitations` — transcribed
+verbatim, but from a mirror rather than the signed or official publication).
+The edition rides next to every citation on screen and on every document. Before any of it goes on an
 enforceable notice, replace the text with a transcription from the adopted code.
 A section the model invented outright is a different and worse thing, and is
 flagged separately as **not in library** — see `checkCitations` in
@@ -247,19 +337,54 @@ checked is a suggestion:
 
 ## Jurisdiction and codes
 
-`ai/codes.js` carries 17 sections transcribed from the Marin County ordinance
-establishing Marin County Code ch. 16.16, from PRC § 4291, 14 CCR §§ 1299.02–04,
-and the CAL FIRE Property Inspection Guide. Each entry names its source.
+`ai/codes.js` carries **56 sections** — 54 transcribed verbatim, 2 unverified.
+The edition in force is the **2025 California Fire Code** (based on the 2024
+IFC) and the **2025 California Wildland-Urban Interface Code** (2024 IWUIC), as
+adopted and amended by Marin County Code ch. 16.16, re-established by
+**Ordinance No. 3837, § III (2025)**, effective **1 January 2026**. Every entry
+names its source document (`meta.sourceDocs`) and its edition, and `pack()`
+prints both next to the citation, because a section number alone is ambiguous
+across editions.
 
-Two things to re-check before this is used for real:
+Ord. 3837 renumbered the half of this corpus that matters most. It moved
+Exterior Fire Hazard Control from CFC § 322 to **CFC § 325**, and deleted the
+CFC ch. 49 amendments outright — the WUI vegetation duties that were
+§§ 4906.2, 4907.1, 4907.2 and 4908 now live in the Wildland-Urban Interface
+Code at **§§ 604.6–604.7** (MCC § 16.16.060). The full old-to-new map is
+`meta.superseded.map`, it is injected into every prompt as sections the model
+may not cite, and any old number that comes back anyway is flagged **not in
+library**.
 
-1. **Code edition.** The ordinance transcribed adopts the 2019 California Fire
-   Code. Marin re-adopts on the triennial cycle; confirm whether a later
-   adopting ordinance supersedes it. The caveat rides on every document.
-2. **Correction window.** `CONFIG.correctionDays` is **10 days**, from CFC
-   § 322.9.1 as adopted by MCC § 16.16.040 — not the generic 45 days this
-   project used to assume. `appealDays` (15) is the window to appeal the
-   Hearing Officer's decision, not the window from the notice.
+**One substantive change, not just renumbering.** Old CFC § 4907.2 required
+clearance within **30 ft** of structures, up to 150 ft. Its successor, WUI Code
+§ 604.6, requires **100 ft**, up to **200 ft**, and adds an explicit ladder-fuel
+rule (30 ft) and a 6-in.-DBH canopy-separation rule. Anything written against
+the old distance understates the current requirement.
+
+Three things to re-check before this is used for real:
+
+1. **Signed ordinance.** The ch. 16.16 text was transcribed from a municipal-code
+   mirror (gocodebook.com, text as of 2026-10-04), not the signed ordinance.
+   Those citations come back flagged **confirm source**. Confirm against the
+   copy on file with the Marin County Fire Marshal.
+2. **A numbering defect in the source.** The codified chapter gives two
+   different sections the number **§ 16.16.060** — the IWUIC amendments, and
+   "Authority to arrest and issue citations". Separately, CFC § 325.10 and MCC
+   § 16.16.070(c) both cross-reference § 16.16.055 for appeals, but the appeal
+   procedure is codified at **§ 16.16.065**, which is what this corpus treats as
+   operative. See `meta.localSectionAmbiguity`.
+3. **Correction window.** `CONFIG.correctionDays` is **10 days**, from CFC
+   § 325.9.1 as added by MCC § 16.16.040 — not the generic 45 days this project
+   used to assume. `appealDays` (15) is the window to appeal the Hearing
+   Officer's decision under MCC § 16.16.065, not the window from the notice; an
+   immediate hazard is 5 days to abate (§ 325.9.3) and 72 hours to appeal. Both
+   windows survived the re-adoption unchanged; the section numbers did not.
+
+A parcel already under a standing **seasonal and recurrent** nuisance
+declaration (CFC § 325.3.2) is abated every year with no further hearing, and
+§ 325.9.2 notice for it is a post card with **no hearing at all** — a materially
+different process from the 10-day show-cause notice, and one the app does not
+yet model. See `procedure.seasonalNotice`.
 
 ## Other services
 

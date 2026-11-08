@@ -5,17 +5,23 @@ window.CONFIG = {
   // Headquarters. Every route starts here, from this real coordinate — Marin
   // County Fire's station on Castle Rock Ave in Woodacre.
   station: { name: 'Marin County Fire HQ', addr: '33 Castle Rock Ave, Woodacre, CA', lat: 38.00715, lon: -122.63599 },
-  // Windows and citations verified against the Marin County ordinance that
-  // establishes Marin County Code ch. 16.16 (see ai/codes.js for the verbatim
-  // text and the source). They are much shorter than a generic "45 days":
-  //   correctionDays — CFC §322.9.1 as adopted by MCC §16.16.040: the Notice to
+  // Windows and citations transcribed from Marin County Code ch. 16.16 as
+  // re-established by Ordinance No. 3837, §III (2025), effective 2026-01-01
+  // (see ai/codes.js for the verbatim text and the source). They are much
+  // shorter than a generic "45 days":
+  //   correctionDays — CFC §325.9.1 as added by MCC §16.16.040: the Notice to
   //     Abate requires removal within 10 days of the date of the notice.
-  //     §322.9.3 drops that to 5 days for an immediate hazard.
-  //   appealDays — MCC §16.16.055: 15 days to appeal the Hearing Officer's
+  //     §325.9.3 drops that to 5 days for an immediate hazard, and §325.9.3.1
+  //     to immediately in exigent circumstances.
+  //   appealDays — MCC §16.16.065: 15 days to appeal the Hearing Officer's
   //     decision. This is NOT 15 days from the notice; the informal hearing
-  //     before the Fire Chief comes first.
+  //     before the Fire Chief comes first. 72 hours for an immediate hazard.
+  //   Both windows survived the re-adoption unchanged; the section numbers did
+  //   not. Ord. 3837 moved §322.x to §325.x and appeals from §16.16.055 to
+  //   §16.16.065 — do not resurrect the old numbers.
   correctionDays: 10, appealDays: 15,
-  localCode: 'California Fire Code §4907.2 (Marin County Code §16.16.040)',
+  codeEdition: '2025 California Fire Code and 2025 California Wildland-Urban Interface Code, as adopted and amended by Marin County Code ch. 16.16 (Ord. No. 3837), effective 1 January 2026',
+  localCode: 'California Wildland-Urban Interface Code §604.6 (Marin County Code §16.16.060)',
   portal: 'Accela Citizen Access',
 };
 
@@ -68,7 +74,7 @@ window.SCAN = {
 window.STREAM = [
   { t: 'Reading capture', d: 'GPS lock · heading 312°' }, { t: 'Resolving parcel', d: 'VHFHSZ · last inspected Jun 2025' },
   { t: 'Recognising elements', d: 'vegetation, structure, utilities' }, { t: 'Estimating heights', d: 'pole and hedge line as scale' },
-  { t: 'Checking the memo against the scene', d: 'ladder fuel · 30 ft zone' }, { t: 'Matching code library', d: 'CFC §4906 · PRC §4291 · 14 CCR §1299.03' },
+  { t: 'Checking the memo against the scene', d: 'ladder fuel · 30 ft zone' }, { t: 'Matching code library', d: 'WUI §604.6 · CFC §325.6 · PRC §4291 · 14 CCR §1299.03' },
   { t: 'Drafting the record', d: 'severity · estimates · recommendations' },
 ];
 
@@ -89,10 +95,10 @@ window.AI = {
     category: ['Ladder fuel', 'Zone 1 (5–30 ft)', 'Vertical clearance', 'Horizontal continuity'],
     estimates: [['Canopy height', '≈ 14 ft'], ['Hedge height', '≈ 5 ft'], ['Vertical gap', '0 ft (required ≥ 15 ft, 3 × 5 ft)'], ['Canopy base', '≈ 4 ft (required ≥ 6 ft)'], ['Hedge run', '≈ 40 ft unbroken'], ['Distance to structure', '≈ 22 ft'], ['Slope', '≈ 25 % · spacing class 20–40 %']],
     codes: [
-      { scope: 'State', c: 'California Fire Code §4906.2 (as amended by Marin County Code §16.16.040)', t: 'Hazardous vegetation and fuel management is required in SRA fire hazard severity zones, LRA very-high zones and designated WUI Fire Areas.' },
+      { scope: 'Local', c: 'California Fire Code §325.6 (added by Marin County Code §16.16.040)', t: 'Governs abatement of combustible material creating a fire hazard upon premises, referencing Gov. Code §§51175–51189 and PRC §4291.' },
       { scope: 'State', c: 'PRC §4291 · Gov. Code §§51175–51189', t: '100 ft of defensible space, intensified between 5 and 30 ft, with an ember-resistant zone within 5 ft (Zone 0 regulations adopted Aug 2026, phased in — not yet enforceable).' },
       { scope: 'State', c: '14 CCR §1299.03', t: 'Zone 1 to 30 ft and Zone 2 from 30 to 100 ft; vertical clearance 3× the lower fuel height, horizontal spacing by slope.' },
-      { scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Cut and remove fire prone vegetation within 30 ft of structures, up to 150 ft where topography or fuel type requires; remove growth under 3 in. diameter from the ground to 10 ft, but no more than the lower one-third of the tree.' },
+      { scope: 'Local', c: 'California Wildland-Urban Interface Code §604.6 (Marin County Code §16.16.060)', t: 'Cut and remove hazardous vegetation and ground coverings within 100 ft of structures, up to 200 ft where topography or fuel type requires; remove growth under 3 in. diameter from the ground to 10 ft, but no more than the lower one-third of the tree; ladder fuels removed within 30 ft of the structure.' },
     ],
     recs: [
       { id: 's1', img: 'assets/s1.png', title: 'Raise the canopy', text: 'Trim the oleander branches up to 10 ft and cut the hedge down to 3 ft, so there is open space between the hedge and the canopy.' },
@@ -106,7 +112,7 @@ window.AI = {
     summary: [['Observed', 'Retaining-wall base and planting bed are clear of leaf litter and dead material.'], ['Condition', 'Succulents spaced on bare soil; no ladder from the bed into the hedge.'], ['Result', 'Meets the ember-resistant base requirement for this side of the property.']],
     severity: { level: 'Compliant', score: 0, why: 'No corrective action for this item.' },
     category: ['Zone 0 (0–5 ft)', 'Surface fuel'], estimates: [['Litter depth', '< 1 in.'], ['Plant spacing', '≈ 2 ft']],
-    codes: [{ scope: 'State', c: 'PRC §4291 (ember-resistant zone)', t: 'Checked · meets.' }, { scope: 'Local', c: 'California Fire Code §4907.2 (Marin County Code §16.16.040)', t: 'Checked · meets.' }], recs: [],
+    codes: [{ scope: 'State', c: 'PRC §4291 (ember-resistant zone)', t: 'Checked · meets.' }, { scope: 'Local', c: 'California Wildland-Urban Interface Code §604.6 (Marin County Code §16.16.060)', t: 'Checked · meets.' }], recs: [],
   },
   note: {
     summary: [['Note', 'Owner reports the north gutters were cleaned last week; not verified by photo today.'], ['Follow-up', 'Verify at reinspection or ask the owner for a photo.']],

@@ -10,7 +10,7 @@ const ctx = {
   requestAnimationFrame: cb => setTimeout(cb, 0),
   fetch: () => Promise.reject(new Error('no network in this test')),
 };
-vm.runInNewContext(fs.readFileSync(__dirname + '/geo.js', 'utf8'), ctx);
+vm.runInNewContext(fs.readFileSync(__dirname + '/public/geo.js', 'utf8'), ctx);
 const G = ctx.window.GEO;
 
 // A random asymmetric time matrix: point 0 is HQ, 1..n are the stops.

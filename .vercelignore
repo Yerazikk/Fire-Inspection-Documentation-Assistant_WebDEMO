@@ -1,0 +1,16 @@
+# Not uploaded. Every pattern is anchored to the repository root so nothing
+# under public/ — which is the deployed site — can be caught by accident.
+/test.js
+/test_ai.js
+/test_photo.js
+/test_route.js
+/test_visual.js
+/build_spec.js
+/serve.js
+/ai/check.js
+/*.md
+# The 3.8 MB ordinance PDF is kept in the repository as the provenance of
+# ai/codes.js. It is not served, here or locally.
+/*.pdf
+/ai-notice.png
+/temp

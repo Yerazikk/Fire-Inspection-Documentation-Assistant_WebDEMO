@@ -89,21 +89,78 @@ function normalizeSection(s) {
   return out;
 }
 
-// Loose match: the model is told to copy the citation string exactly, but a
-// trailing word or different dash should not throw the section away. Compare on
-// the section numbers, which are the part that matters.
-const sectionNumbers = s => (String(s).match(/\d+[0-9.–-]*/g) || []).join(' ');
+// Matching a cited section back to the library.
+//
+// The model is told to copy the citation string exactly, but a trailing word or
+// a different dash should not throw the section away. What must NOT happen is
+// the opposite error: silently resolving a section that is not in the library
+// to a nearby one that is. "CFC § 901.6.2" is Integrated Testing and is not in
+// this corpus; matching it to § 901.6 would put a citation on a legal notice
+// that the inspector never chose and nobody verified. So matching is on whole
+// section numbers only — never on a prefix — and ranges are expanded.
+
+// Every section number mentioned in a citation string, in order.
+const sectionTokens = s => String(s).match(/\d+(?:\.\d+)*(?:\s*[–—-]\s*\d+(?:\.\d+)*)?/g) || [];
+const sectionNumbers = s => sectionTokens(s).map(t => t.replace(/\s+/g, '')).join(' ');
+
+// The first section number in a citation is the code section; anything after it
+// is the enabling local section (". . . added by Marin County Code § 16.16.040")
+// which is shared across many entries and so is useless for identification.
+const primarySection = s => {
+  const t = sectionTokens(s)[0] || '';
+  return t.split(/[–—-]/)[0].trim();
+};
+
+// Compare dotted section numbers componentwise: 1032.10 sorts after 1032.9.
+function cmpSection(a, b) {
+  const x = String(a).split('.').map(Number);
+  const y = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] || 0) - (y[i] || 0);
+    if (d) return d < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
+// The set of sections a library citation actually covers. "§§ 1032.1–1032.3"
+// covers 1032.2; "§§ 906.9.1–906.9.3" covers 906.9.2.
+function coveredSections(citation) {
+  const out = [];
+  for (const raw of sectionTokens(citation)) {
+    const t = raw.replace(/\s+/g, '');
+    const m = t.split(/[–—-]/);
+    if (m.length === 2 && m[0] && m[1]) out.push({ from: m[0], to: m[1] });
+    else out.push({ from: t, to: t });
+  }
+  return out;
+}
 
 const KNOWN = codes.codes.map(c => ({
   id: c.id, citation: c.citation, nums: sectionNumbers(c.citation),
-  status: c.status, provenance: c.provenance,
+  covers: coveredSections(c.citation),
+  status: c.status, provenance: c.provenance, edition: c.edition,
+  // Mirror-sourced entries are transcribed but not from the signed instrument.
+  mirror: (() => { const d = codes.meta.sourceDocs[c.sourceDoc]; return !!(d && d.kind !== 'primary'); })(),
 }));
+
+/** Does this library entry cover the given whole section number? */
+function entryCovers(k, section) {
+  if (!section) return false;
+  return k.covers.some(r => {
+    // A bare equality, or inside an explicit range at the same depth.
+    if (cmpSection(section, r.from) === 0) return true;
+    if (r.from === r.to) return false;
+    return cmpSection(section, r.from) >= 0 && cmpSection(section, r.to) <= 0;
+  });
+}
 
 function matchCitation(citation) {
   const nums = sectionNumbers(citation);
+  const primary = primarySection(citation);
   return KNOWN.find(k => k.citation === citation) ||
     KNOWN.find(k => nums && k.nums === nums) ||
-    KNOWN.find(k => nums && k.nums && (k.nums.includes(nums) || nums.includes(k.nums))) ||
+    // The code section, matched whole — exactly, or inside a cited range.
+    KNOWN.find(k => entryCovers(k, primary)) ||
     null;
 }
 
@@ -119,6 +176,7 @@ function auditList(list) {
   const unknown = [];
   const notEnforceable = [];
   const notSourced = [];
+  const fromMirror = [];
   for (const c of list) {
     const hit = matchCitation(c.citation);
     if (!hit) { unknown.push(c.citation); c.unverified = true; continue; }
@@ -127,10 +185,15 @@ function auditList(list) {
     // Store the library's string rather than the model's, so the citation the
     // inspector reads is exactly the one on file.
     c.citation = hit.citation;
+    // The edition always travels with the citation. A section number alone is
+    // ambiguous across editions, and this corpus has just been through a
+    // renumbering (CFC § 322 -> § 325), so the edition is not decoration.
+    c.edition = hit.edition;
     if (hit.status !== 'current') { notEnforceable.push(c.citation); c.pending = true; }
     if (hit.provenance === 'unverified') { notSourced.push(c.citation); c.unsourced = true; }
+    else if (hit.mirror) { fromMirror.push(c.citation); c.mirrored = true; }
   }
-  return { unknown, notEnforceable, notSourced };
+  return { unknown, notEnforceable, notSourced, fromMirror };
 }
 
 function checkCitations(doc) {
@@ -144,9 +207,13 @@ function auditBlock(a) {
     unknownCitations: a.unknown,
     pendingCitations: a.notEnforceable,
     unsourcedCitations: a.notSourced,
+    mirroredCitations: a.fromMirror || [],
     codeEdition: codes.meta.edition,
     codeEditionCaveat: codes.meta.editionCaveat,
     provenanceCaveat: codes.meta.provenanceCaveat,
+    codeOrdinance: codes.meta.ordinance,
+    codeEffective: codes.meta.effective,
+    jurisdiction: codes.meta.jurisdiction,
     codesRetrieved: codes.meta.retrieved,
   };
 }

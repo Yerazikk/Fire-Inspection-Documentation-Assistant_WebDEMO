@@ -82,7 +82,7 @@ const showRecord = (e, r) => {
   console.log(`  SEVERITY         ${r.severity.level} (${r.severity.score}) — ${r.severity.why}`);
   console.log(`  CATEGORY         ${r.category.join(' | ')}`);
   if (r.estimates.length) r.estimates.forEach(([a, b]) => console.log(`  ${(a + ':').padEnd(18)} ${b}`));
-  r.codes.forEach(c => console.log(`  [${c.scope}] ${c.c}${c.unverified ? '  <-- NOT IN LIBRARY' : ''}${c.unsourced ? '  (verify source)' : ''}\n      ${c.t}`));
+  r.codes.forEach(c => console.log(`  [${c.scope}] ${c.c}${c.unverified ? '  <-- NOT IN LIBRARY' : ''}${c.unsourced ? '  (verify source)' : ''}${c.mirrored ? '  (confirm source)' : ''}${c.edition ? `\n      edition: ${c.edition}` : ''}\n      ${c.t}`));
   r.recs.forEach(x => console.log(`  · ${x.title} — ${x.text}`));
   console.log(`  -- ${r.meta.model} · ${r.meta.ms} ms · ${r.meta.tokens ? r.meta.tokens.in + ' in / ' + r.meta.tokens.out + ' out' : '?'}`);
 };

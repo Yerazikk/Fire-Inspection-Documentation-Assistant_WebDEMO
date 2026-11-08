@@ -98,8 +98,9 @@ it so the key stays server-side, and `ai/` holds the three pieces that matter:
 
 - `ai/prompts.js` — every prompt-engineering knob in one file: persona, evidence
   rules, per-document style, the section plan, the JSON schemas, model settings.
-- `ai/codes.js` — 17 code sections transcribed from the Marin County ordinance
-  that establishes MCC ch. 16.16, PRC § 4291, 14 CCR §§ 1299.02–04 and the CAL
+- `ai/codes.js` — 53 code sections (21 transcribed, 32 unverified): MCC ch. 16.16
+  as re-established by Ordinance No. 3837 (2025, effective 2026-01-01), PRC
+  § 4291, GC §§ 51175–51189, 14 CCR §§ 1299.02–04 and the CAL
   FIRE Property Inspection Guide, plus the numeric standards and the abatement
   and appeal procedure. Every entry names its source.
 - `ai/draft.js` — the call, schema validation, and a citation audit that fails
@@ -109,7 +110,7 @@ Both come back structured (`{ sections: [...] }`), render through one renderer,
 and every line is editable with Revert. Measurements are no longer invented: the
 report carries a **Measurements required** section naming what must be measured
 and the standard it will be tested against. Severity scores are gone from the
-drafted documents. `CONFIG.correctionDays` is now **10 days** (CFC § 322.9.1 as
+drafted documents. `CONFIG.correctionDays` is now **10 days** (CFC § 325.9.1 as
 adopted by MCC § 16.16.040), not the 45 this project used to assume.
 
 **Still open here.**
@@ -129,21 +130,37 @@ adopted by MCC § 16.16.040), not the 45 this project used to assume.
   longer carry illustrations, because the model cannot produce one. The deck
   renders text-only cards. Severity, categories, measurements and citations now
   all come from the note instead of the photo.
-- **The building corpus is not source-verified.** `ai/codes.js` now carries 32
-  building and fire-protection sections (sprinklers, alarm, extinguishers, exit
-  signs, egress, fire doors, storage, electrical, premises identification,
-  hydrant and FDC access, occupant load) alongside the 17 vegetation sections,
-  and the inspector can type a note about any of them. But every building entry
-  is `provenance: 'unverified'`: the section numbers and requirements are
-  accurate as far as the author knew, and were NOT transcribed from a primary
-  source — ICC refuses automated access and the reachable mirrors did not
-  carry the text. The app flags such citations as **verify source** and lists
-  them in `doc.audit.unsourcedCitations`. This is the highest-value remaining
-  task on the AI side: transcribe CFC §§ 901.6, 903.5, 906.1–906.9, 907.8,
-  1008.2–1008.3, 1010.1.9–1010.1.10, 1013.1–1013.6.3, 1031.2–1031.3, 705.2,
-  703.1, 505.1, 507.5.4, 912.3, 605.3–605.4, 304.1, 315.3 and 1004.1 from the
-  adopted edition, plus the NFPA 13 and NFPA 25 sprinkler-condition language,
-  and flip each to `provenance: 'transcribed'`.
+- **The building corpus is transcribed.** DONE. All 33 California Fire Code
+  entries were transcribed verbatim from the **2025 CFC** (chs. 3, 5, 6, 7, 9,
+  10) — the edition Ord. 3837 adopts — alongside the 21 vegetation sections.
+  Doing it corrected **nine wrong section numbers** that had been written
+  against the 2019 CFC, most of which now address a different subject
+  (§ 912.3 is Fire Hose Threads, § 605.3 is Chimneys and Vents, § 1031.2 is
+  Emergency Escape and Rescue Openings). The full map is
+  `meta.superseded.map` and the old numbers are now rejected by the audit.
+  Several figures also moved to their true subsection (18-in. sprinkler
+  clearance is § 315.3.1; 3-ft hydrant space is § 507.5.5; 1 footcandle is
+  § 1008.2.1; 5 footcandles is § 1013.6.2), and two were wrong outright:
+  records are retained **five** years (CCR tit. 19 §§ 904.1(b), 904.2(c)), not
+  three, and California extinguishers run off **CCR tit. 19 div. 1 ch. 3, not
+  NFPA 10**, with a **monthly** owner inspection (§ 574.1), not annual.
+  Everything carries **confirm source** because UpCodes is a code-viewer
+  mirror; clearing that means checking against the Building Standards
+  Commission publication of Title 24 Part 9.
+- **Two entries remain unverified.** `nfpa13-painting` and
+  `nfpa25-sprinkler-condition`. They are referenced standards, not part of the
+  Fire Code, and were not reachable. They keep `provenance: 'unverified'` and
+  the **verify source** flag, and the sprinkler-condition rule — that a
+  painted or corroded sprinkler is replaced rather than cleaned — rests on
+  them. `buildingTables.sprinklers.verify` tells the model not to quote a
+  clause number for it. Getting the adopted California editions of NFPA 13 and
+  NFPA 25 is the remaining transcription task.
+- **Two figures deliberately absent.** The panic-hardware release force
+  (CFC § 1010.1.3) and the extinguisher annual-maintenance interval and
+  service-tag content (CCR tit. 19 div. 1 ch. 3) were not transcribed, so they
+  are stated nowhere; `buildingTables` carries a `verify` note telling the
+  model not to state them. The old corpus asserted 15 lb for the first and one
+  year for the second without a source.
 - **The building violation procedure is a sketch.** `procedure.buildingViolation`
   describes a correction notice, a correction period set by hazard, reinspection
   and citation. It is marked `unverified: true` and is not the vegetation
@@ -154,9 +171,25 @@ adopted by MCC § 16.16.040), not the 45 this project used to assume.
   repeats whatever that guess was — the model is told not to re-decide the
   inspector's determination — so a wrong guess produces a confidently wrong
   determination. The inspector should choose it.
-- **Code edition.** The ordinance transcribed adopts the 2019 CFC. Marin
-  re-adopts triennially; confirm whether a later ordinance supersedes it. The
-  caveat rides on every document until someone checks.
+- **Confirm the signed ordinance.** The edition question is settled: Marin
+  adopted Ordinance No. 3837 on 2025-12-09, repealing Ord. 3775 (2022-11-15) and
+  adopting the 2025 CFC / 2024 IFC and the 2025 CA WUI Code / 2024 IWUIC,
+  effective 2026-01-01. What is *not* settled is the instrument: ch. 16.16 was
+  transcribed from the gocodebook.com municipal-code mirror, so those citations
+  carry **confirm source** until checked against the signed ordinance on file
+  with the Fire Marshal. Two defects to resolve while doing it — the chapter
+  numbers two different sections § 16.16.060, and CFC § 325.10 and MCC
+  § 16.16.070(c) both point at § 16.16.055 for appeals when the procedure is at
+  § 16.16.065. See `meta.localSectionAmbiguity`.
+- **Model the seasonal and recurrent notice.** A parcel under a standing
+  seasonal-and-recurrent declaration (CFC § 325.3.2) is abated annually with no
+  further hearing, and § 325.9.2 notice is a post card with no hearing at all.
+  The app only knows the 10-day show-cause route, so for such a parcel it would
+  describe a hearing that will not happen. `procedure.seasonalNotice` carries
+  the text; nothing reads it yet.
+- **The old PDF is of a repealed ordinance.** `marin_county_fire_code_ordinance_3775_final.pdf`
+  in the repo root is Ord. 3775, superseded on 2026-01-01. Keep it only as the
+  record of what governed pre-2026 inspections, and do not transcribe from it.
 - **Free-tier quota.** 20 requests/day; one inspection costs two. Needs billing
   for a fleet. See README.md.
 - Re-scan feedback (`app.js`) still just appends the typed sentence after a

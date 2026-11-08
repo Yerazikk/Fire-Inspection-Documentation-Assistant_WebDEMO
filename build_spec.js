@@ -1,6 +1,6 @@
 // Renders spec.js to SPEC.md (run: node build_spec.js)
 const fs = require('fs'); const vm = require('vm');
-const ctx = { window: {} }; vm.runInNewContext(fs.readFileSync(__dirname + '/spec.js', 'utf8'), ctx); const S = ctx.window.SPEC;
+const ctx = { window: {} }; vm.runInNewContext(fs.readFileSync(__dirname + '/public/spec.js', 'utf8'), ctx); const S = ctx.window.SPEC;
 let md = `# ${S.product} — interaction system (source of truth)\n\nGenerated from \`spec.js\`. The app implements exactly these screens and affordances; the in-app “?” shows the current screen’s list.\n\n## Principles\n\n${S.principles.map(p => '- ' + p).join('\n')}\n\n## Global\n\n| Control | Gesture | Result |\n|---|---|---|\n${S.global.map(a => `| ${a[0]} | ${a[1]} | ${a[2]} |`).join('\n')}\n\n`;
 for (const sc of S.screens) {
   md += `## ${sc.name} (\`${sc.id}\`)\n\n${sc.purpose}\n\n| Control | Gesture | Result |\n|---|---|---|\n${sc.affordances.map(a => `| ${a[0]} | ${a[1]} | ${a[2]} |`).join('\n')}\n`;

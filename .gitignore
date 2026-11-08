@@ -6,3 +6,6 @@ Thumbs.db
 .env.local
 ai-notice.png
 temp
+
+.vercel
+.env*

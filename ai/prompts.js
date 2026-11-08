@@ -592,7 +592,22 @@ function systemFor(kind, ctx) {
   parts.push(
     `JURISDICTION: ${codes.meta.jurisdiction}`,
     `CODE EDITION IN FORCE: ${codes.meta.edition}`,
+    `ADOPTED BY: ${codes.meta.ordinance}, effective ${codes.meta.effective}`,
     `EDITION CAVEAT: ${codes.meta.editionCaveat}`,
+    '',
+    // The corpus has just been through a renumbering. A model that has seen the
+    // older Marin code will reach for CFC § 322.x and § 4907.2; those sections
+    // are not in force and are not in the library. Naming the dead numbers
+    // explicitly is cheaper than letting them come back and be flagged red.
+    'SECTION NUMBERS THAT NO LONGER EXIST — never cite any of these, even if you',
+    'recognise them. The right-hand side is what replaced each one:',
+    Object.entries(codes.meta.superseded.map)
+      .map(([was, now]) => `  ${was}  ->  ${now}`)
+      .join('\n'),
+    '',
+    'Every citation you write must carry the edition it belongs to, exactly as the',
+    'EDITION line of that library entry gives it. A section number alone is',
+    'ambiguous across editions and is not an acceptable citation.',
     '',
     'CODE LIBRARY — the only sections you may cite:',
     codes.pack(picked),

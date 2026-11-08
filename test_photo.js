@@ -83,7 +83,7 @@ function withExif(jpeg, orientation) {
     'every reference thumbnail resolves to a file that exists');
 
   // ---- a real file off the device ---------------------------------------
-  await p.setInputFiles('#file', 'assets/v4.jpg');
+  await p.setInputFiles('#file', 'public/assets/v4.jpg');
   await p.waitForFunction(() => S.draft && S.draft.photoMeta, null, { timeout: 15000 });
   let m = await p.evaluate(() => S.draft.photoMeta);
   ok(/^data:image\/jpeg;base64,/.test(m.src), 'a chosen file becomes image data, not a sentinel string');
