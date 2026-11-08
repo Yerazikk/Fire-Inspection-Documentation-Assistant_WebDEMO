@@ -1,0 +1,16 @@
+{
+  "name": "fire-inspector-v3",
+  "private": true,
+  "description": "Vegetation inspection · V3 — interaction demo",
+  "scripts": {
+    "serve": "node serve.js",
+    "test": "node test.js",
+    "test:route": "node test_route.js",
+    "spec": "node build_spec.js",
+    "ai:check": "node ai/check.js",
+    "test:ai": "node test_ai.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}
