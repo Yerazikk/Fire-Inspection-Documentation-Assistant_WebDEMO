@@ -524,13 +524,12 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
     const bad = st.status !== 'ok'; dot.textContent = bad ? '!' : '✓'; dot.style.color = bad ? 'var(--amber)' : 'var(--green)';
     d.querySelector('small').textContent = bad ? 'could not be drafted · showing template text' : okText; };
   let left = 2; const tickDown = () => { if (--left) return; const b = el.querySelector('#wgo'); if (b) { b.disabled = false; b.textContent = 'See the documents'; } };
-  // The documents are what the inspector needs before leaving the property,
-  // so they go first and alone. The recommendation pictures are drawn after
-  // both have landed and keep arriving while the inspector reads them —
-  // fifteen seconds a card is not something to hold a screen for.
-  let left2 = 2; const thenVisuals = () => { if (--left2) return; const q = VISUALS.start(id); if (q) console.log(`drawing ${q} recommendation visual${q === 1 ? '' : 's'} in the background`); };
-  genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); }).finally(thenVisuals);
-  genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); }).finally(thenVisuals);
+  // Each entry queued its own pictures as it was drafted, so most have landed
+  // by now and the rest are in flight. This is only a sweep for anything that
+  // never made it into the queue; it is not what starts them.
+  const q = VISUALS.start(id); if (q) console.log(`drawing ${q} recommendation visual${q === 1 ? '' : 's'} not yet queued`);
+  genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); });
+  genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
   $$('[data-sz]').forEach(b => b.onclick = () => { S.satZoom = b.dataset.sz; render(); });
@@ -641,6 +640,11 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
 function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
   S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', simFix(S.cur, pos)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
+  // The pictures start here, not at Finish: a card takes fifteen to twenty
+  // seconds, and starting now means the first ones have landed by the time the
+  // inspector has read the record and reached the deck. Nothing waits on them —
+  // each card says it is being drawn and repaints itself when it is.
+  VISUALS.startEntry(S.cur, S.rec);
   S.recDirty = true; S.draft = null; go('record'); }
 function openRecord(eid) { const e = entriesOf(S.cur).find(x => x.id === eid); S.rec = clone(e); S.recDirty = false; go('record'); }
 function saveRecord() { const list = entriesOf(S.cur); const i = list.findIndex(x => x.id === S.rec.id); if (i >= 0) list[i] = S.rec; else list.push(S.rec); bump(S.cur); S.rec = null; S.recDirty = false; S.tab = 'today'; S.stack = S.stack.filter(s => s !== 'camera' && s !== 'record' && s !== 'deck'); go('location', { replace: true }); toast('Entry saved'); }
@@ -740,9 +744,10 @@ async function rescan(text) {
   VISUALS.reset(r.id, r.recs);
   r.recs = own.concat(ai.recs.map(x => ({ ...x, decision: decided.get(x.title) || null })));
   S.recDirty = true;
-  // Only once Finish has been pressed: before that, nothing has been drawn
-  // yet and the queue starts on its own.
-  if (S.done.has(S.cur)) VISUALS.start(S.cur);
+  // `reset` above threw away what we knew about the old cards, so these are
+  // new ones and are drawn like any others — the deck is very likely open on
+  // them right now.
+  VISUALS.startEntry(S.cur, r);
   return { ok: true };
 }
 function lightbox(html, wire) { const el = document.createElement('div'); el.className = 'lb'; el.innerHTML = html; $('#app').appendChild(el); el.querySelectorAll('[data-close]').forEach(b => b.onclick = () => el.remove()); wire && wire(el); return el; }

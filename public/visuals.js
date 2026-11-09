@@ -2,10 +2,10 @@
 //
 // Drawing one takes fifteen to twenty seconds, and a violation entry can carry
 // five recommendations, so nothing in the app is allowed to wait on them. The
-// queue starts once Finish has drafted the report and the notice — the
-// documents are what the inspector needs to leave the property, the pictures
-// are what makes the notice easier for the owner to act on — and then runs on
-// its own while they carry on clicking.
+// queue starts as soon as a record is drafted, so the pictures are already
+// being drawn while the inspector reads the record and swipes the deck, and
+// the first ones have landed by the time they press Finish. It runs on its own
+// while they carry on clicking; Finish only sweeps up anything still undrawn.
 //
 // A card whose visual has not arrived says so and keeps its place, so the deck
 // never reflows under the inspector's thumb as pictures land. Cards are
@@ -35,6 +35,12 @@ window.VISUALS = (() => {
     return '';
   }
 
+  // Which recommendations on an entry can be drawn at all: the picture is the
+  // entry's own photograph with the fix marked on it, so there has to be one,
+  // and only a violation carries recommendations worth illustrating. A rec the
+  // inspector wrote themselves already arrives with `img` set.
+  const drawable = entry => !!entry && !!entry.photo && entry.kind === 'violation';
+
   /** Does this card reserve space for a visual at all? */
   const has = (entryId, rec) => !!rec.img || !!statusOf(entryId, rec.id);
 
@@ -51,6 +57,16 @@ window.VISUALS = (() => {
     if (typeof S !== 'undefined' && S.screen === 'deck' && typeof renderDeck === 'function') {
       if (!document.querySelector(`[data-vis="${k}"]`)) renderDeck();
     }
+  }
+
+  // `openRecord` hands the record screen a clone, so the rec this job holds is
+  // not the one the deck renders from. Copy the picture across to whichever
+  // record is open, or a swipe would repaint the card from an object that has
+  // no image and a save would write the clone back over it.
+  function mirror(entryId, rec) {
+    if (typeof S === 'undefined' || !S.rec || S.rec.id !== entryId || S.rec.recs === undefined) return;
+    const twin = (S.rec.recs || []).find(x => x.id === rec.id);
+    if (twin && twin !== rec) twin.img = rec.img;
   }
 
   async function one(job) {
@@ -76,6 +92,7 @@ window.VISUALS = (() => {
       // weight, five to an entry, for the life of the session, is not worth it.
       const small = await PHOTO.fit(`data:${body.image.mimeType};base64,${body.image.data}`, EDGE, QUALITY);
       rec.img = small ? small.src : `data:${body.image.mimeType};base64,${body.image.data}`;
+      mirror(entry.id, rec);
       state.set(k, 'done');
     } catch (e) {
       console.warn('visual failed for', rec.title, '—', e.message);
@@ -102,14 +119,37 @@ window.VISUALS = (() => {
    * violation entry at this address. Idempotent: calling it again after a
    * re-scan picks up the new cards and leaves the finished ones alone.
    *
+   * With `enqueue` running at record time this is a sweep rather than the
+   * start of anything — it catches an entry whose pictures failed to queue, or
+   * one restored into `S.entries` without passing through `createRecord`.
+   *
    * Options the inspector has already chosen go first — those are the ones
    * heading into the notice to the owner.
    */
   function start(addrId) {
     const entries = (typeof S === 'undefined' ? null : S.entries[addrId]) || [];
+    return enqueue(addrId, entries);
+  }
+
+  /**
+   * Queue one freshly drafted entry, before it has been saved into `S.entries`
+   * and so before `start` could find it. This is the ordinary path: a record is
+   * drafted, its pictures begin at once, and the deck shows them arriving.
+   */
+  function startEntry(addrId, entry) {
+    return enqueue(addrId, [entry]);
+  }
+
+  /**
+   * Mark every undrawn recommendation on these entries pending and queue it.
+   * Marking them all up front, rather than as each job starts, is what lets a
+   * card reserve its image area and say the picture is coming — the deck then
+   * keeps its shape as the pictures land one by one.
+   */
+  function enqueue(addrId, entries) {
     const jobs = [];
-    for (const entry of entries) {
-      if (!entry.photo || entry.kind !== 'violation') continue;
+    for (const entry of entries || []) {
+      if (!drawable(entry)) continue;
       for (const rec of entry.recs || []) {
         if (rec.img || state.has(key(entry.id, rec.id))) continue;
         jobs.push({ addrId, entry, rec, chosen: rec.decision === 'in' });
@@ -126,5 +166,5 @@ window.VISUALS = (() => {
     (recs || []).forEach(r => state.delete(key(entryId, r.id)));
   }
 
-  return { start, reset, cell, has, statusOf, key, pending };
+  return { start, startEntry, reset, cell, has, statusOf, key, pending };
 })();
