@@ -101,23 +101,29 @@ const bornPins = new Map();   // pin → when it first landed; repaints inside t
 let LWRAP = null, LMAP = null, LART = null, LBASE = null, LCRED = null, LCREDTXT = '', lastFit = '';
 let LFOCUS = null, focusKey = '';   // the one set of corner brackets: HQ until an address lands, then the newest (or selected) stop
 let kbWired = false, mapBorn = 0, openingZoom = false;
-// Wheel / trackpad zoom that glides: each tick moves a target zoom, and the view
-// eases toward it every frame around the point under the pointer. No steps.
+// Wheel / trackpad zoom that glides. It drives the map the way a pinch does:
+// the panes are CSS-scaled every frame around the point under the pointer and
+// the tiles are only re-fetched once the gesture settles — so no stepping and
+// no tile re-creation mid-zoom (which is what showed as a flash).
 function smoothWheel(map, el) {
-  let target = null, anchor = null, raf = 0;
-  const step = () => {
-    const z = map.getZoom(), nz = z + (target - z) * .22;
-    if (Math.abs(target - nz) < .003) { map.setZoomAround(anchor, target, { animate: false }); target = null; raf = 0; return; }
-    map.setZoomAround(anchor, nz, { animate: false }); raf = requestAnimationFrame(step);
+  let target = null, raf = 0, settleT = null, live = false, anchorPt = null, anchorLL = null, zoomStart = 0;
+  const centerFor = z => { const size = map.getSize(); return map.unproject(map.project(anchorLL, z).subtract(anchorPt.subtract(size.divideBy(2))), z); };
+  const begin = e => { anchorPt = map.mouseEventToContainerPoint(e); anchorLL = map.containerPointToLatLng(anchorPt); zoomStart = map.getZoom(); if (!live) { live = true; map._moveStart(true, false); } };
+  const frame = () => {
+    const z = map.getZoom(), nz = z + (target - z) * .2, done = Math.abs(target - nz) < .002, zz = done ? target : nz;
+    map._move(centerFor(zz), zz, { pinch: true, round: false }, true);
+    if (done) { raf = 0; clearTimeout(settleT); settleT = setTimeout(settle, 90); return; }
+    raf = requestAnimationFrame(frame);
   };
+  const settle = () => { if (!live) return; live = false; target = null; map._moveEnd(true); };
   el.addEventListener('wheel', e => {
-    e.preventDefault();
+    e.preventDefault(); clearTimeout(settleT);
     const px = e.deltaMode === 1 ? e.deltaY * 18 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
-    const perLevel = e.ctrlKey ? 90 : 220;              // trackpad pinch arrives as ctrl+wheel with small deltas
+    const perLevel = e.ctrlKey ? 90 : 220;
+    begin(e);
     if (target == null) target = map.getZoom();
     target = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), target - px / perLevel));
-    anchor = map.mouseEventToContainerPoint(e);
-    if (!raf) raf = requestAnimationFrame(step);
+    if (!raf) raf = requestAnimationFrame(frame);
   }, { passive: false });
 }
 const canAnimate = () => Date.now() - mapBorn > 1200;
