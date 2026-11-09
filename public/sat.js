@@ -18,6 +18,18 @@
 //              clamped to that, and an image that still fails walks a ladder:
 //              coarser, then the other provider, then whatever the caller
 //              put behind it.
+//   caching    Esri answers `Cache-Control: max-age=0, must-revalidate`, so
+//              the browser re-asks for every frame each time a screen is
+//              rebuilt - and this app rebuilds whole screens. Each frame is
+//              therefore fetched once by hand, kept as an object URL for the
+//              life of the page, and handed straight to every later <img>
+//              asking for the same ground. Coming back to a property is then
+//              instant and silent instead of a fresh round trip.
+//   waiting    Until a frame arrives the box holds a skeleton: dark blocks
+//              pulsing in a diagonal wave. The stylised sketch no longer
+//              fills the wait, because a drawing of a lot nobody has seen
+//              reads as imagery and cannot be told apart from the real thing.
+//              It now shows only once every provider has actually failed.
 window.SAT = (function () {
   const R = 6378137, D2R = Math.PI / 180;
   const mx = lon => R * lon * D2R;
@@ -66,29 +78,89 @@ window.SAT = (function () {
   PROVIDERS.forEach(p => LADDER.push({ p, scale: 1 }));
   PROVIDERS.forEach(p => LADDER.push({ p, scale: 0.5 }));
 
-  // URLs already seen this session. A re-render then paints them without
-  // replaying the fade, which matters because the app rebuilds whole screens.
-  const loaded = new Set();
+  // ------------------------------------------------------------------ caching
+  // Frames already fetched this session, as object URLs. Nothing is evicted: a
+  // frame is ~40 KB, a day's inspecting touches a few dozen, and revoking a URL
+  // some rendered screen still points at would blank it.
+  const blobs = new Map();        // request URL -> object URL
+  const inflight = new Map();     // request URL -> promise, so two tiles of the
+                                  // same ground share one request
+  function grab(url) {
+    const have = blobs.get(url);
+    if (have) return Promise.resolve(have);
+    if (inflight.has(url)) return inflight.get(url);
+    const p = fetch(url, { mode: 'cors', cache: 'force-cache' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+      .then(b => { const u = URL.createObjectURL(b); blobs.set(url, u); inflight.delete(url); return u; })
+      .catch(e => { inflight.delete(url); throw e; });
+    inflight.set(url, p); return p;
+  }
+
+  // The wait state: a 4x4 grid of dark blocks pulsing in a diagonal wave, so
+  // the box reads as loading rather than as broken or as a very dark aerial.
+  const SKEL = (() => { let b = '';
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) b += `<i style="animation-delay:${(r + c) * 90}ms"></i>`;
+    return `<div class="satskel" aria-hidden="true">${b}</div>`; })();
+
+  // Tiles are written as HTML strings by whatever is drawing the screen, so
+  // there is no insertion hook to start the fetch from. One sweep, scheduled on
+  // the turn the string is built, finds every <img> just written - whichever
+  // screen wrote it, and whether it went in through render() or straight into a
+  // panel.
+  //
+  // Offscreen frames wait for the viewport, which is what loading="lazy" used
+  // to do and still matters on the previous-inspections list. The observer is
+  // rebuilt each sweep, so rows belonging to a screen that has since been
+  // replaced are dropped rather than held.
+  let sweepT = null;
+  const io = typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); load(e.target); } }), { rootMargin: '240px' })
+    : null;
+  function sweep() {
+    sweepT = null;
+    if (io) io.disconnect();
+    document.querySelectorAll('img[data-get]').forEach(img => { if (io && !img.dataset.eager) io.observe(img); else load(img); });
+  }
+  const scheduleSweep = () => { if (sweepT == null) sweepT = setTimeout(sweep, 0); };
+  function load(img) {
+    const url = img.dataset.get; if (!url) return;
+    delete img.dataset.get;
+    grab(url).then(u => { if (img.isConnected) img.src = u; }).catch(() => next(img));
+  }
 
   // A satellite tile, ready to drop into any markup.
   //   span / zoom  how much ground to cover      dead  HTML shown if every
   //   px           requested pixels (clamped)          provider fails
+  const attr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   function tile(lat, lon, opts) {
     opts = opts || {};
     if (!isFinite(lat) || !isFinite(lon)) return `<div class="satimg dead">${opts.dead || ''}</div>`;
     const span = opts.span || spanOf(opts.zoom);
     const v = view(lat, lon, span, opts.px);
     const src = urlFor(PROVIDERS[0], v, 1);
-    return `<div class="satimg${loaded.has(src) ? ' on' : ''}${opts.cls ? ' ' + opts.cls : ''}">${opts.dead || ''}` +
-      `<img alt="" decoding="async" loading="${opts.eager ? 'eager' : 'lazy'}" src="${src}"` +
-      ` data-at="${lat},${lon},${span},${v.px}" data-step="0"` +
+    // Ground already fetched goes in with its src set and the box already
+    // marked `on`, so a re-render paints it in the same frame - no request, no
+    // skeleton, no fade.
+    const have = blobs.get(src);
+    if (!have) scheduleSweep();
+    return `<div class="satimg${have ? ' on' : ''}${opts.cls ? ' ' + opts.cls : ''}">${opts.dead || ''}${have ? '' : SKEL}` +
+      `<img alt="" decoding="async" draggable="false" ${have ? 'src' : 'data-get'}="${attr(have || src)}"` +
+      ` data-at="${lat},${lon},${span},${v.px}" data-step="0"${opts.eager ? ' data-eager="1"' : ''}` +
       ` onload="SAT.ok(this)" onerror="SAT.next(this)"></div>`;
+  }
+
+  // Put a frame in the cache without drawing it. A view about to be re-rendered
+  // around a new centre can then hold the frame it already has on screen until
+  // the new one is ready, instead of blinking back through the skeleton.
+  function prefetch(lat, lon, opts) {
+    opts = opts || {};
+    if (!isFinite(lat) || !isFinite(lon)) return Promise.reject(new Error('no coordinate'));
+    return grab(urlFor(PROVIDERS[0], view(lat, lon, opts.span || spanOf(opts.zoom), opts.px), 1));
   }
 
   const parse = el => { const a = el.dataset.at.split(',').map(Number); return view(a[0], a[1], a[2], a[3]); };
 
   function ok(el) {
-    loaded.add(el.getAttribute('src'));
     const box = el.parentElement; if (!box) return;
     box.classList.add('on'); box.classList.remove('dead');
     // Attribution is a condition of use, and which service answered can change
@@ -97,12 +169,15 @@ window.SAT = (function () {
     if (c) c.textContent = LADDER[+el.dataset.step || 0].p.credit;
   }
 
-  // One rung down the ladder; out of rungs means the fallback behind shows.
+  // One rung down the ladder; out of rungs means the fallback behind shows -
+  // the stylised sketch, and only here, where every provider really has failed.
   function next(el) {
     const step = (+el.dataset.step || 0) + 1, rung = LADDER[step];
     if (!rung) { const box = el.parentElement; if (box) { box.classList.add('dead'); box.classList.remove('on'); } el.remove(); return; }
     el.dataset.step = step;
-    el.setAttribute('src', urlFor(rung.p, parse(el), rung.scale));
+    el.removeAttribute('src');
+    el.dataset.get = urlFor(rung.p, parse(el), rung.scale);
+    scheduleSweep();
   }
 
   // A round distance that fits comfortably inside the frame, in feet, with the
@@ -133,5 +208,5 @@ window.SAT = (function () {
     }).join('');
   }
 
-  return { view, tile, ok, next, scaleBar, zones, ZOOMS, spanOf, TILES, credit: PROVIDERS[0].credit, creditShort: PROVIDERS[0].short, MPP };
+  return { view, tile, prefetch, ok, next, scaleBar, zones, ZOOMS, spanOf, TILES, credit: PROVIDERS[0].credit, creditShort: PROVIDERS[0].short, MPP };
 })();

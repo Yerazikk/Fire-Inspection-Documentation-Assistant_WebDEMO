@@ -1,4 +1,4 @@
-// The three endpoints, with no host in them.
+// The four endpoints, with no host in them.
 //
 // Each takes a parsed request and returns { status, body }; logging goes to
 // stdout, which is the terminal locally and the function log on Vercel. The
@@ -9,12 +9,13 @@ require('./env')();
 const ai = require('./draft');
 const codes = require('./codes');
 const visual = require('./visual');
+const voice = require('./voice');
 const prompts = require('./prompts');
 
 async function status({ models = false } = {}) {
   const out = {
     key: ai.keyPresent(), backend: ai.backend().name, model: prompts.MODEL.name,
-    imageModel: visual.model(), jurisdiction: codes.meta.jurisdiction,
+    imageModel: visual.model(), voiceModel: voice.model(), jurisdiction: codes.meta.jurisdiction,
     edition: codes.meta.edition, ordinance: codes.meta.ordinance,
     effective: codes.meta.effective, retrieved: codes.meta.retrieved,
     codes: codes.codes.length,
@@ -55,4 +56,21 @@ async function illustrate(ctx) {
   }
 }
 
-module.exports = { status, draft, illustrate };
+// The held memo. Logged by length and duration rather than by content: a field
+// note is the inspector's, and this is a server log.
+async function transcribe(ctx) {
+  const audio = ctx && ctx.audio;
+  if (!audio || !audio.data) return { status: 400, body: { error: 'no audio to transcribe' } };
+  try {
+    const out = await voice.transcribe(audio, { address: ctx.address, hasPhoto: !!ctx.hasPhoto, ms: ctx.ms, meter: ctx.meter });
+    const kb = Math.round(audio.data.length * 3 / 4 / 1024);
+    console.log(`  transcribed ${(Number(ctx.ms) / 1000 || 0).toFixed(1)} s of audio · ${kb} KB · ${out.ms} ms · ` +
+      (out.nothing ? `no speech in it${out.heard ? ' (' + out.heard + ')' : ''}` : `${out.text.split(/\s+/).length} words`));
+    return { status: 200, body: { text: out.text, nothing: out.nothing, model: out.model, ms: out.ms } };
+  } catch (e) {
+    console.error(`  transcription failed [${e.code || 'error'}]: ${e.message}`);
+    return { status: e.code === 'no_key' ? 503 : e.code === 'bad_audio' ? 415 : 502, body: { error: e.message, code: e.code || 'error' } };
+  }
+}
+
+module.exports = { status, draft, illustrate, transcribe };

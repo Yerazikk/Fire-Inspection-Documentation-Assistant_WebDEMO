@@ -8,12 +8,15 @@ window.PROMPTS = {
     { title: 'Plan a full day', hint: '4 addresses → every order tried', steps: [['type', '#addr', 'Wolfback'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Ridgecrest'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Eldridge'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Butterfield'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['waitFor', '.srow .leg', 25000], ['tap', '#best'], ['waitFor', '.rstat .good', 60000], ['say', 'All 24 orders driven from HQ · fastest kept']], when: () => S.stops.length < 4 },
   ],
   location: [
-    { title: 'Photo + voice note → violation', hint: 'the main flow', steps: [['tap', '#newEntry'], ['waitFor', '#shutter'], ['wait', 400], ['tap', '#shutter'], ['wait', 900], ['hold', '#pill', 2800], ['wait', 700], ['tap', '#submit'], ['say', 'Scanning in place…'], ['waitFor', '#save', 16000], ['say', 'Record drafted']], when: () => !S.snapshot },
+    // The hold opens the real microphone, so this one needs someone to talk
+    // into it. If nothing is said, or the mic is refused, the keyboard opens
+    // with the reason and the rest of the sequence still runs.
+    { title: 'Photo + voice note → violation', hint: 'the main flow · speak while held', steps: [['tap', '#newEntry'], ['waitFor', '#shutter'], ['wait', 400], ['tap', '#shutter'], ['wait', 900], ['say', 'Describe what you see — the mic is live'], ['hold', '#pill', 5000], ['waitFor', '.sheet2.type', 40000], ['wait', 500], ['tap', '#submit'], ['say', 'Scanning in place…'], ['waitFor', '#save', 16000], ['say', 'Record drafted']], when: () => !S.snapshot },
     { title: 'Note only → follow-up', hint: 'skip the photo', steps: [['tap', '#newEntry'], ['waitFor', '#noteOnly'], ['wait', 400], ['tap', '#noteOnly'], ['wait', 900], ['tap', '#pill'], ['wait', 600], ['type', '#memo', 'Owner says the north gutters were cleaned last week, verify at reinspection'], ['tap', '#submit'], ['waitFor', '#save', 12000]], when: () => !S.snapshot },
     { title: 'Add a photo → violation', hint: 'device or reference library', steps: [['tap', '#newEntry'], ['waitFor', '#upload'], ['wait', 400], ['tap', '#upload'], ['waitFor', '[data-lib="v3"]'], ['wait', 700], ['tap', '[data-lib="v3"]'], ['wait', 900], ['tap', '#pill'], ['wait', 600], ['type', '#memo', 'Juniper hedge is dead through the centre and touching the window wall'], ['tap', '#submit'], ['waitFor', '#save', 16000]], when: () => !S.snapshot },
   ],
   camera: [
-    { title: 'Hold to speak the memo', hint: 'walkie-talkie', steps: [['hold', '#pill', 2800], ['wait', 700], ['say', 'Transcript is now editable']], when: () => S.draft && S.draft.snapped && !document.querySelector('.sheet2.type') },
+    { title: 'Hold to speak the memo', hint: 'walkie-talkie · the mic is real', steps: [['say', 'Speak now — it is recording'], ['hold', '#pill', 5000], ['waitFor', '.sheet2.type', 40000], ['say', 'Transcribed, and editable']], when: () => S.draft && S.draft.snapped && !document.querySelector('.sheet2.type') },
     { title: 'Type the memo instead', hint: 'tap the bar', steps: [['tap', '#pill'], ['wait', 600], ['type', '#memo', 'Ladder fuels are required to be removed within 30 ft of homes']], when: () => S.draft && S.draft.snapped && !document.querySelector('.sheet2.type') },
   ],
   record: [

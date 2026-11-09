@@ -80,16 +80,29 @@
 .loc{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--glass);border:1px solid var(--line);margin:8px 0;cursor:pointer}.loc .thumb{position:relative;width:64px;height:48px;border-radius:10px;overflow:hidden;flex:none;background:#0d1614;border:1px solid var(--line)}.loc .thumb svg{width:100%;height:100%;display:block}.loc .t{font-size:14px;font-weight:600}.loc .s{font-size:12px;color:var(--faint)}.loc .r{margin-left:auto;font-size:12px;color:var(--faint);text-align:right}
 .cal{position:absolute;inset:0;z-index:45;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);display:grid;place-items:center;padding:18px}.calbox{width:100%;background:#0f1520;border:1px solid var(--line);border-radius:22px;padding:16px}.calbox h5{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px}.calgrid span{padding:8px 0;border-radius:8px;color:var(--faint)}.calgrid span.has{color:var(--ink);background:rgba(53,224,255,.12);cursor:pointer;font-weight:600}.calgrid span.today{outline:1px solid var(--cyan)}
 /* location */
-.sat{position:relative;height:300px;border-radius:20px;overflow:hidden;background:#0d1614;flex:none;border:1px solid var(--line)}
+/* The hero is dragged to frame the lot, so it must not also scroll the page
+   under the finger. */
+.sat{position:relative;height:300px;border-radius:20px;overflow:hidden;background:#0d1614;flex:none;border:1px solid var(--line);touch-action:none}
+.sat.panning{cursor:grabbing}
+.sat .satpan{position:absolute;left:10px;bottom:40px;display:flex;align-items:center;gap:5px;background:rgba(11,15,23,.8);backdrop-filter:blur(14px);border:1px solid rgba(53,224,255,.4);color:#bdf3ff;border-radius:999px;padding:5px 10px;font:600 11px/1 -apple-system,sans-serif;cursor:pointer;z-index:3}
 /* ---- satellite imagery (sat.js) ---- */
-/* The tile fades in over whatever the caller put behind it — the stylised
-   sketch — which is what shows if every provider fails. */
+/* The tile fades in over the skeleton. The stylised sketch sits behind both and
+   shows only when the box is marked dead — every provider having failed. */
 .satimg{position:absolute;inset:0;overflow:hidden}
-.satimg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease}
+/* An <img> is natively draggable, and starting that drag makes the browser
+   cancel the pointer mid-gesture - which is exactly the gesture that frames
+   the lot. */
+.satimg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;user-select:none;-webkit-user-drag:none}
 .satimg.on>img{opacity:1}
 .satimg>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.satimg.on>.satsketch{opacity:0}
+.satimg>.satsketch{opacity:0}
+.satimg.dead>.satsketch{opacity:1}
 .satsketch{transition:opacity .35s ease}
+/* Waiting on imagery: dark blocks pulsing in a diagonal wave. */
+.satskel{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:#0a0e14;opacity:1;transition:opacity .3s ease;pointer-events:none}
+.satskel>i{display:block;background:#121823;animation:satpulse 1.6s ease-in-out infinite}
+.satimg.on>.satskel,.satimg.dead>.satskel{opacity:0}
+@keyframes satpulse{0%,100%{background:#101620}50%{background:#1d2735}}
 .satover{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .satover .pip{pointer-events:auto;cursor:pointer}
 .satover .you{animation:ping 2.4s ease-in-out infinite}
@@ -144,6 +157,16 @@
 .say .tx{margin:0 4px 12px;font-size:15px;line-height:1.45;color:var(--ink);min-height:44px}.say .tx:empty{display:none}.say .tx .cur{display:inline-block;width:2px;height:1em;background:var(--cyan);vertical-align:-2px;margin-left:2px;animation:blink 1s infinite}@keyframes blink{50%{opacity:.2}}
 .say .pill{display:flex;align-items:center;gap:10px;justify-content:center;height:58px;border-radius:18px;background:var(--glass2);border:1px solid var(--line);color:var(--soft);font-size:15px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}.say .pill .mic{color:var(--cyan);font-size:18px}.say.hold .pill{background:rgba(53,224,255,.12);border-color:rgba(53,224,255,.5);color:var(--ink)}.say.hold .pill .hint{display:none}
 .wave{display:none;gap:3px;align-items:center;justify-content:center;height:30px}.say.hold .wave{display:flex}.wave i{width:4px;height:6px;border-radius:2px;background:var(--cyan);animation:wv .9s ease-in-out infinite}.wave i:nth-child(odd){animation-duration:1.3s}.wave i:nth-child(3n){animation-duration:.7s}@keyframes wv{50%{height:26px;opacity:.7}}
+/* The bars are the microphone's own level once it is open, so the keyframes
+   stand down and the heights are set per frame from the analyser. */
+.wave.live i{animation:none;transition:height .07s linear}
+.say .tx b{color:var(--cyan);font-weight:600;font-variant-numeric:tabular-nums}
+.say .tx .warn{color:#ffd79a}
+.say.busy .pill{opacity:.5;pointer-events:none}.say.busy .pill .mic{animation:blink 1s infinite}
+.vclip{display:flex;align-items:center;gap:8px;margin-top:9px}
+.vb{border:1px solid rgba(53,224,255,.4);background:rgba(53,224,255,.1);color:#bdf3ff;font:600 12px/1 -apple-system,sans-serif;padding:7px 11px;border-radius:999px;cursor:pointer;flex:none}
+.vb.on{background:var(--cyan);color:#041014;border-color:var(--cyan)}
+.vclip .vm{font-size:11px;color:var(--faint)}.vclip .vm.warn{color:#ffd79a}
 .typed{display:none;animation:in .4s .1s both}.sheet2.type .typed{display:block}.sheet2.type .say{display:none}.typed-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.link{border:0;background:none;color:var(--cyan);font:600 13px/1 -apple-system,sans-serif;cursor:pointer;padding:4px 0}.link-hint{font-size:12px;color:var(--faint)}
 .scanline{position:absolute;left:0;right:0;top:-3px;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 24px 4px rgba(53,224,255,.55);opacity:0;pointer-events:none;z-index:6}.scanline.go{animation:sweep 2.4s cubic-bezier(.4,0,.2,1) forwards}@keyframes sweep{0%{top:-3px;opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
 .ar{position:absolute;inset:0;pointer-events:none;z-index:6}.ar .bx{position:absolute;border:1px solid;border-radius:10px;opacity:0;animation:in .6s forwards}.ar .bx span{position:absolute;left:8px;top:8px;font:600 11px/1.2 -apple-system,BlinkMacSystemFont,sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}.red{--c:var(--red)}.cyan{--c:var(--cyan)}.green{--c:var(--green)}.ar .bx{border-color:color-mix(in srgb,var(--c) 85%,transparent)}.ar .bx span{background:color-mix(in srgb,var(--c) 92%,#000);color:#06101a}
@@ -205,5 +228,5 @@
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 <button class="help" id="helpbtn" title="This screen’s affordances">?</button><div class="helpbox" id="helpbox"></div>
-<script src="data.js"></script><script src="photo.js"></script><script src="visuals.js"></script><script src="drafts.js"></script><script src="sat.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
+<script src="data.js"></script><script src="photo.js"></script><script src="voice.js"></script><script src="visuals.js"></script><script src="drafts.js"></script><script src="sat.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
 </body></html>

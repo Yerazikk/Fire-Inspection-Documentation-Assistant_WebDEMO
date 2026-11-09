@@ -214,7 +214,7 @@ window.PHOTO = (() => {
   function fromLibrary(id) {
     const p = (window.PHOTOLIB || []).find(x => x.id === id);
     if (!p) throw new Error('no such reference photo');
-    return { src: p.src, name: p.src.split('/').pop(), origin: 'library', label: p.label, memo: p.memo, taken: null };
+    return { src: p.src, name: p.src.split('/').pop(), origin: 'library', label: p.label, taken: null };
   }
 
   /** The caption under the viewfinder: where this photo came from, in one line. */

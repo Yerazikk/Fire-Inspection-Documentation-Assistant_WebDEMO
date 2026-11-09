@@ -4,8 +4,10 @@ The interaction system is complete — every screen, gesture and edge case in
 `SPEC.md` is built and reachable. The **day plan** is now wired to live data:
 addresses are geocoded, legs are real drives, "best route" searches every
 ordering (`geo.js`), and the parcel view is real satellite imagery of the
-address (`sat.js`). Everything downstream of the map is still a scripted demo
-over one fixture photo.
+address (`sat.js`). At the property, the **documents are drafted** by a real
+model call against a transcribed code corpus (`ai/`), and the **dictated memo
+is a real recording**, transcribed (`voice.js`). What is left downstream of the
+map is the camera itself, the GPS fix, and persistence.
 
 This file is the gap between the two, ordered by what blocks a real inspector
 first. Each item says what happens today, with a file reference, and what
@@ -68,15 +70,35 @@ position on the imagery, so `geoXY` is the only call site to replace.
 > coordinate in a document that cites code sections is the most damaging thing
 > in here.
 
-## 4. The voice memo does not listen — L
+## 4. The voice memo does not listen — DONE
 
-**Today.** Holding the mic types out a canned sentence from `MEMOS[kind]`
-word by word on a timer (`speakStep`, `app.js:454`). The mic is never opened.
-Release under three words shows "didn't catch that", which is also scripted.
+**Done.** Holding the memo bar opens the microphone. `public/voice.js` calls
+`getUserMedia`, records with `MediaRecorder` (webm/opus on Chrome and Android,
+mp4/aac on Safari), meters the level 20 times a second — the bars on the bar are
+that measurement, and the seconds count up — and on release posts the clip to
+`/api/transcribe`, where `ai/voice.js` and the `VOICE` block in `ai/prompts.js`
+transcribe it on the same backend that drafts the record. Words land in the note
+box about two seconds later, editable. The recording is kept on the entry and
+played back from the record screen.
 
-**Done means.** `SpeechRecognition` where available, otherwise record audio and
-transcribe server-side; keep the audio attached to the entry. The transcript
-stays editable, as it is now.
+`MEMOS` and the per-photo `memo` strings are gone from `data.js`: there is no
+fixture left in this path. Permission refused, no microphone, a browser that
+cannot record, plain http, no connection, no key, a clip the model will not
+transcribe — each says which and opens the keyboard.
+
+`SpeechRecognition` was the other option and was not taken: Chrome-only in
+practice, no say over the model or the vocabulary, and no control over where the
+audio goes. The cost of a recording instead is that the words appear on release
+rather than while speaking, which is why the hold shows the real level.
+
+**What is worth knowing before touching it.** Asked plainly for a transcript,
+the model invents one — four seconds of noise came back as a fluent sentence
+about a property nobody had described. What stopped it was a required `speech`
+boolean, generated *after* a `heard` description of the audio and before the
+text, plus the device's own level measurements in the prompt as evidence. The
+field order is load-bearing; see the comment on `VOICE.nothing` in
+`ai/prompts.js` and the README section before changing any of it. A pure tone
+can still be transcribed as words, which the app surfaces rather than hides.
 
 ## 5. The vision pass is an animation — L
 
@@ -248,12 +270,17 @@ all — the rings are concentric circles around the geocoded point, not the lot,
 so on a long or oddly-shaped lot they are a guide rather than the legal area.
 And the **geocoded point is not the structure**: OSM puts an address node at
 the entrance or the driveway, so the rings centre a few metres off the house
-they are supposed to protect.
+they are supposed to protect. The inspector can now drag the frame off that
+point and the offset is kept for the property (`PAN` in `app.js`), which moves
+the imagery onto the house — but not the rings, which still radiate from the
+geocoded point wherever the frame sits. It is a way to see the right ground,
+not a fix for measuring from the wrong centre.
 
 **Done means.** The Marin County parcel layer over the imagery, the rings
 measured from the structure footprint rather than a point, and entry pips
 placed by their GPS fix (§3). Both are public ArcGIS feature services, so they
-arrive the same way the imagery does.
+arrive the same way the imagery does. The saved drag then becomes a preference
+on top of a correct centre rather than a workaround for a wrong one.
 
 ## 11. Identity and settings — M
 
@@ -317,9 +344,11 @@ What it still does not do:
   under the no-toasts principle, but several — Export above all — leave an
   action with no feedback of any kind. Audit each site: either make the result
   visible in the UI, or delete the call.
-- **No error handling outside the route layer.** `geo.js` paths report failure
-  and offer Retry; nothing else does. Every network call added for the items
-  above needs the same treatment.
+- **Error handling is spreading but not universal.** `geo.js` reports failure
+  and offers Retry; the drafting path falls back to a marked template; the
+  dictated memo names the reason and opens the keyboard. The image calls and
+  Export still fail quietly. Every network call added for the items above needs
+  the same treatment.
 - **Tests run and pass.** Playwright is a dev dependency and `test.js` requires
   it by name, so `npm test` works on any machine; `test_route.js` passes too.
   Four assertions had rotted against the app and were fixed with it: the drag

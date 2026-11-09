@@ -19,6 +19,10 @@ Tests: `npm test` (interaction), `npm run test:route` (routing),
 visuals), `npm run test:ai` (document drafting). The server must be running
 first.
 
+`npm test` and `npm run test:ai` drive the microphone for real: Chromium is
+given `test_memo.wav` — a spoken inspection note — as its capture device, and
+they assert that holding the memo bar records it and the model transcribes it.
+
 ### Where the files are
 
 The split is the one the deployment needs, and it is also the honest one:
@@ -26,7 +30,7 @@ The split is the one the deployment needs, and it is also the honest one:
 | | |
 |---|---|
 | `public/` | the app the browser gets — `index.html` and every client script, `assets/` |
-| `api/` | the three endpoints, one file each |
+| `api/` | the four endpoints, one file each |
 | `ai/` | the drafting itself: prompts, the code corpus, the Gemini calls |
 | root | `serve.js`, the tests, the documents |
 
@@ -88,7 +92,8 @@ refuses to serve `.env` or anything under `ai/` whatever the URL asks for.
 ### Quota
 
 Every entry costs **one** request as it is saved, each Re-scan costs another,
-and the wrap-up costs **two** more (report + notice). On top of that, Finish
+each dictated memo **one** to transcribe — a few seconds of audio, so the
+cheapest call in the app — and the wrap-up costs **two** more (report + notice). On top of that, Finish
 queues **one image request per recommendation on every violation entry** — the
 annotated card photos — which is typically two to five per violation and is by
 far the largest share. A three-entry inspection with two violations is five
@@ -132,7 +137,7 @@ one-token request rather than asking for a list.
 
 ## Deploy it — Vercel
 
-`public/` is the static site, `api/` holds the three endpoints as functions, and
+`public/` is the static site, `api/` holds the four endpoints as functions, and
 `ai/` is bundled into those functions without ever being served. `vercel.json`
 is the whole configuration.
 
@@ -172,7 +177,8 @@ the fifteen to twenty seconds an annotated photograph takes.
 ## How the drafting works
 
 ```
-app.js ──> drafts.js ──POST /api/draft──> serve.js ──> ai/draft.js
+app.js ──> drafts.js ──POST /api/draft─────> serve.js ──> ai/draft.js
+       └─> voice.js  ──POST /api/transcribe─┘        └──> ai/voice.js
                                                           ├── ai/prompts.js   what to ask for
                                                           └── ai/codes.js     what it may cite
 ```
@@ -185,18 +191,73 @@ Three kinds of document come out of the same pipe:
 | `report` | at wrap-up | the internal report for the case file |
 | `notice` | at wrap-up | the plain-language email to the owner |
 
-A record is drafted from **the note the inspector actually typed or dictated**.
-The pre-typed demo memo (`MEMOS` in `data.js`) only fills the input box; what is
-submitted is what gets drafted. `window.AI` in `data.js` is now only the
-fallback, used when there is no key or the call fails, and a record built that
-way is labelled **Template · not this property** on its own card — a template
-is not a description of the property in front of the inspector.
+A record is drafted from **the note the inspector actually typed or dictated**,
+and dictated now means dictated: holding the memo bar opens the microphone,
+records, and sends the clip to be transcribed — see [Hold to speak](#hold-to-speak-is-a-real-microphone)
+below. The canned `MEMOS` fixture that used to type itself out on a timer is
+gone. `window.AI` in `data.js` is now only the fallback, used when there is no
+key or the call fails, and a record built that way is labelled **Template · not
+this property** on its own card — a template is not a description of the
+property in front of the inspector.
 
 The severity number is not the model's. The model picks a **band**
 (`Immediate hazard` / `High` / `Moderate` / `Low` / `None`) from a rubric in
 `ai/prompts.js` and justifies it from the note; that file maps the band to the
 number the ring renders. The evidence rules forbid the model inventing a score,
 and this is how the screen keeps its dial without breaking that.
+
+## Hold to speak is a real microphone
+
+Holding the memo bar calls `getUserMedia`, records with `MediaRecorder`, and
+posts the clip to `/api/transcribe`, where the same backend that drafts the
+record transcribes it. The bars on the bar are the analyser's own level, 20
+samples a second, and the seconds count up because something is recording.
+Releasing stops the recording and the words arrive about two seconds later.
+`public/voice.js` is the whole client side of it; `ai/voice.js` and the `VOICE`
+block in `ai/prompts.js` are the server side.
+
+**Nothing is ever put in the note box that was not said or typed.** Every way
+this can fail says which and opens the keyboard: permission refused, no
+microphone, a browser that cannot record, a page served over plain http, no
+connection, no key on the server, a clip the model would not transcribe. There
+is no fixture left to fall back on, because a fabricated sentence here does not
+stay in the note box — a record is drafted from it and an enforcement notice
+quotes it to a property owner.
+
+The recording itself is kept on the entry and offered back on the record screen
+(**▶ Play what was said**). The transcript is editable, as it should be, so the
+audio is the one unedited account of what the inspector said at the property.
+
+### What a transcription model does with four seconds of noise
+
+Asked plainly for a transcript, `gemini-3.6-flash` invented one. Low-level
+noise with no voice in it came back as *"Zone 0 deck attached facing east, wood
+lattice underneath open, dead leaf litter accumulated inside 3 to 4 in"* —
+fluent, plausible, about a property nobody had described. Telling it in the
+prompt to answer `[no speech]` did not stop it; its default is to be useful,
+and transcribing nothing does not feel useful.
+
+Three things fixed it, and they are worth keeping in that order:
+
+1. **The answer is a judgement first and a transcript second.** A JSON schema
+   with a required `speech` boolean, and `text` empty when it is false.
+2. **The fields are generated in the order `heard`, `speech`, `text`.** The
+   model describes the audio ("static and wind, no voice") before it is asked to
+   rule on it, and a model that has just written that does not then claim
+   someone spoke. Judgement-first scored `speech: true` on the noise clip;
+   description-first does not.
+3. **The device's own level meter goes in the prompt** as evidence, never as a
+   verdict. Measured over six-second clips through the same browser path:
+   dictated speech swings 35× between its loud and quiet fifths, a 440 Hz tone
+   4.2×, wind 6.4×. Speech leaves gaps between words.
+
+Wind, traffic and silence now come back as "no speech in it" and the keyboard
+opens saying so. A pure tone — a reversing truck, a smoke alarm — can still be
+transcribed as words, so the app does not pretend otherwise: when the meter saw
+no speech-like rhythm and the model returned words anyway, the words go in the
+box and the hint says to play the recording back and check them. The app never
+*discards* a clip on the meter's say-so, because one unbroken sentence over
+traffic is flat too, and throwing away a real memo is the worse failure.
 
 ## Two bodies of code
 
@@ -273,8 +334,10 @@ flagged separately as **not in library** — see `checkCitations` in
 | `ai/prompts.js` | **All prompt engineering.** Persona, evidence rules, style, the section plan for each document, the JSON schemas, model settings. | Tuning how the documents read. |
 | `ai/codes.js` | The fire-code corpus, transcribed from primary sources, plus the numeric standards and the abatement/appeal procedure. | A code changes, or a new jurisdiction is added. |
 | `ai/draft.js` | Plumbing: build request, call, validate, audit citations. | Rarely. |
+| `ai/voice.js` | Plumbing for the dictated memo: audio in, a transcript or “nobody spoke” out. | Rarely. |
 | `ai/check.js` | Command-line bench for prompt changes. | Adding fixtures. |
 | `drafts.js` | Client side: builds the context, calls the endpoint, falls back. | Changing what data the model sees. |
+| `voice.js` | Client side: the microphone, the recording, the level meter, the transcription call. | Changing how dictation behaves. |
 
 Both documents come back as a structured object — `{ sections: [...] }`, each
 section `prose`, `list`, `fields` or `codes` — which the app renders with one
@@ -392,3 +455,20 @@ Geocoding, routing and imagery use public keyless endpoints — Photon, Nominati
 the OSRM demo server, Esri World Imagery and USGS NAIP. No keys needed, but they
 are free tiers with usage policies and no uptime guarantee. See the
 route-planning section of `TODO.md`.
+
+Two things about them are worth knowing before changing that code:
+
+- **Both geocoders are bounded to California, and the bound is applied twice.**
+  Photon treats a `bbox` as a bias rather than a filter and will answer a bare
+  street query with Nevada, so `geo.js` re-checks every result against the state
+  it names and against the state's bounding box. Nominatim gets
+  `countrycodes=us&bounded=1` and `addressdetails=1`, the latter only so the
+  state arrives as a field instead of a word to be hunted for in
+  `display_name`.
+- **Esri answers `Cache-Control: max-age=0, must-revalidate`.** This app rebuilds
+  whole screens, so left to the browser every satellite frame is re-requested
+  each time one is drawn. `sat.js` therefore fetches each frame itself, keeps it
+  as an object URL for the life of the page, and hands that to every later
+  `<img>` asking for the same ground. Until a frame lands the box holds a
+  skeleton; the stylised parcel drawing is kept for the one case it is honest
+  about, which is every provider having failed.

@@ -28,7 +28,7 @@ Plan and run the day: HQ, today’s stops, their order on real roads, and what i
 | Control | Gesture | Result |
 |---|---|---|
 | ☰ (top-left) | tap | Opens the menu: previous inspections, saved site lookups, profile, settings. |
-| Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap. Every suggestion carries a satellite thumbnail of the property it would pin, so the right one is recognised before it is chosen. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
+| Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap, bounded to California — this unit does not inspect out of state, and a near-miss in Nevada is a wasted drive rather than a harmless extra row. Every suggestion carries a satellite thumbnail of the property it would pin, so the right one is recognised before it is chosen. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
 | Address field | focus when empty | Lists recent site lookups — every address ever added to a day, kept on the device. |
 | Address field | Enter with nothing highlighted | Geocodes whatever was typed and adds the first match. |
 | Map pin | tap | Highlights the stop row in the sheet and scrolls to it. |
@@ -40,13 +40,14 @@ Plan and run the day: HQ, today’s stops, their order on real roads, and what i
 | Stop row ✕ | tap | Removes the stop (asks first if it already has entries). |
 | Best route ✦ | tap | Times every pair of points on the road network, drives every ordering of today’s stops from HQ, and keeps the fastest. The panel reports each stage and the running count; rows and the route animate into the winning order. Manual reorder still works afterwards. |
 | ◉ (top-right) | tap | Switches the basemap between satellite imagery and roads. Satellite shows the vegetation on the way in; roads name the street the route turns on. |
-| ◎ (top-right) | tap | Fits the map back around HQ and the whole route. |
+| ◎ (top-right) | tap | Fits the map back around HQ and the whole route, inside the map that can actually be seen rather than the whole phone — the sheet covers the bottom of the canvas and the controls the top. |
 
 Edge cases
 
 - Completed stops show a green check and a struck-through address; they can still be opened and edited.
 - Adding a duplicate address flashes the existing row instead of adding a pin.
-- With no stops, the sheet shows a hint and the route button is disabled.
+- With no stops, the sheet shows a hint and the route button is disabled, and HQ sits in the middle of the strip of map left between the top controls and the sheet.
+- Addresses outside California are not offered, and a query that only matches out of state says so rather than coming back empty.
 - Every leg carries its real driving time and distance; the readout above the rows gives the day’s total.
 - Up to eight stops, every ordering is driven one by one; from nine to fourteen the same exact answer is reached over subsets; beyond that the search says it is no longer exact.
 - Reordering by hand or removing a stop re-times the day and retires the previous result.
@@ -91,7 +92,8 @@ Everything about one property today, and its history.
 | Control | Gesture | Result |
 |---|---|---|
 | ‹ (top-left) | tap | Back to the map. Nothing to save here: entries save themselves. |
-| Satellite view | look | Real aerial imagery of this address, framed on its own coordinate. Over it: the three defensible-space zones (5 ft, 30 ft, 100 ft) drawn true to scale, the point that was geocoded and routed to, the inspector’s position (pulsing dot) and one numbered pip per entry at the spot it was captured. A scale bar and the imagery credit sit along the bottom. |
+| Satellite view | look | Real aerial imagery of this address, framed on its own coordinate. Over it: the three defensible-space zones (5 ft, 30 ft, 100 ft) drawn true to scale, the point that was geocoded and routed to, the inspector’s position (pulsing dot) and one numbered pip per entry at the spot it was captured — within a few paces of where the inspector was standing, so a citation always reads as this property and not the neighbour’s. A scale bar and the imagery credit sit along the bottom. Frames are fetched once and kept for the session, so coming back to a property paints it immediately. |
+| Satellite view | drag | Moves the frame over the ground. The geocoded point is a pin on the street, and the house, the woodpile and the slope behind it are not always in the box drawn round it. Where the frame is left is saved for that property on this device and is where it opens next time, across all three zoom levels; ⌖ Recentre appears once it has been moved and puts it back on the pin. |
 | Parcel / 100 ft zone / Block | tap | Opens on Parcel. Reframes the imagery between the house, its whole defensible space, and the street around it. Pips stay on the ground as it rescales. The zone rings belong to the 100 ft zone view alone — Parcel and Block are plain imagery, so nothing is drawn over the ground being read. |
 | Pip | tap | Scrolls to that entry in the list. |
 | Today / History tabs | tap | Today lists this visit’s entries. History lists past inspection dates. |
@@ -107,7 +109,8 @@ Everything about one property today, and its history.
 
 Edge cases
 
-- If no imagery provider answers, the view falls back to a stylised parcel drawing and says so.
+- While imagery loads, the view shows a skeleton — dark blocks pulsing. The stylised parcel is a drawing of ground nobody has seen, so it is never what fills the wait.
+- If no imagery provider answers, the view falls back to that stylised parcel drawing and says so.
 - Empty Today shows one message and the New entry button; nothing else competes.
 - Report and Notice show a “changes since generated” badge when entries changed after they were made.
 - Finish with zero entries asks whether to mark the stop as visited with no findings.
@@ -122,7 +125,7 @@ Get a photo and a note with as few taps as possible.
 | Upload (left) | tap | Opens the photo picker instead of shooting one: a file off the device, or one of the reference photos that ship with the app. Continues the same way. |
 | Note only (right, keyboard icon) | tap | Skips the photo; opens the memo bar directly. |
 | Memo bar | tap | Opens a text box with Submit. |
-| Memo bar | press-and-hold | Walkie-talkie: transcribes while held; releasing drops the transcript into the editable box. |
+| Memo bar | press-and-hold | Walkie-talkie: opens the microphone and records while held, with the bars showing the real level and the seconds counting up. Releasing sends the recording to be transcribed and drops the words into the editable box. The recording is kept with the entry. |
 | Use voice instead | tap | Returns from the text box to the bar. |
 | Retake / Change photo | tap | Back to the live viewfinder; the memo is kept. |
 | Picker · Choose from this device | tap | A real file picker. The photo is turned upright from its EXIF orientation, capped at 1600 px and re-encoded. A file the browser cannot open — HEIC off an iPhone, on Chrome — says so in the picker. |
@@ -132,7 +135,10 @@ Get a photo and a note with as few taps as possible.
 
 Edge cases
 
-- Releasing the mic after less than three words shows “didn’t catch that” and keeps listening available.
+- Nothing is ever put in the note box that was not said or typed. There is no canned transcript to fall back on, so every way voice can fail says which and opens the keyboard: the microphone refused or missing, a browser that cannot record, no https, no connection, no transcription key, a clip the model could not transcribe.
+- Released under half a second, or with a flat level and nothing audible: the bar says to hold it down while speaking, and stays on voice.
+- A clip the model reports as having no speech in it — wind, traffic, a hand over the mic — opens the keyboard saying so rather than guessing at words.
+- When the level meter saw no speech-like rhythm but the model returned words anyway, the words go in the box and the hint says to play the recording back and check them.
 - The scan is a single top-to-bottom sweep. The photo and the note go to the model together; the boxes are what it found in that frame, so they land when it answers rather than on a timer — blue labels an element, red marks the deficiency, green a condition that meets. It then opens the record by itself.
 - Where the model cannot be reached, a photo taken with the shutter falls back to the hand-measured boxes for that one fixture image. Any other photo gets no boxes: percentages measured against one picture are wrong on another.
 - A photograph cannot establish a distance, so none of this produces a measurement. Measurements stay "not measured" unless the note gives the figure.
@@ -145,6 +151,7 @@ The inspector’s technical record for one entry, editable, with recommendations
 |---|---|---|
 | Original photo | tap | Expands it with a Retake button. Retake restarts the whole entry: new photo, new scan, new notes, new deck. |
 | Scanned photo | tap | Expands it with a feedback pill. Sending a correction puts the photograph back in front of the model with it and redrafts the whole record — boxes included — so a figure the inspector gives (“it is 3 ft, I measured it”) stops being “not measured” and anything they point out that was missed is picked up. Corrections accumulate on the entry; a recommendation the inspector wrote themselves, and the in/out decisions they already made, survive the redraft. |
+| Play what was said | tap | Plays back the recording the note was dictated from, where there is one. The transcript is editable and the recording is not, so it is the one unedited account of what the inspector said at the property. |
 | Any text line | tap Edit on its card | Lines become editable; Done saves; Revert restores the generated text. |
 | Recommendations | tap | Opens the deck. Each card carries the property's own photograph with that correction marked on it in cyan. The pictures are drawn after Finish, so a card opened before its own has arrived says “Generating suggestion visual” and keeps its place in the deck; one that could not be drawn says so and keeps its text. |
 | Save | tap | Saves the entry and returns to Location home; a numbered pip appears at the capture position. |
@@ -152,6 +159,7 @@ The inspector’s technical record for one entry, editable, with recommendations
 
 Edge cases
 
+- A dictated note is chipped “Voice” with the length of the recording, and the recording is offered back for playback. Where the level meter did not look like speech but words came back anyway, the line beside it says to check the note against the recording.
 - Note-only entries have no photo row, no determination and no recommendations; the record shows the raw note, its transcription (if spoken) and the AI summary.
 - Where the photograph disagrees with the note, an amber block sits directly under the inspector’s note saying what the photograph shows instead. The determination is unchanged — Violation, Compliant or Note is the inspector’s call, made on site with the whole property in view — but it is said out loud before the entry is signed, rather than the record quietly reading as though the two agreed.
 - An entry submitted with a photo and no note at all is drafted from the photograph alone, and the note card says so.

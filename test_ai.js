@@ -14,7 +14,11 @@ const PORT = process.argv[2] || 8956;
 (async () => {
   let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
   const { chromium } = require('playwright');
-  const b = await chromium.launch();
+  // The first entry's note is dictated, and the microphone is real, so the
+  // browser gets a fake capture device playing test_memo.wav — a spoken
+  // inspection note about ladder fuels within 30 ft. That recording is what
+  // the record below has to reflect.
+  const b = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--use-file-for-fake-audio-capture=' + require('path').join(__dirname, 'test_memo.wav')] });
   const p = await b.newPage({ viewport: { width: 1440, height: 960 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   const hold = async (sel, ms) => { const bb = await p.locator(sel).boundingBox(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.mouse.down(); await p.waitForTimeout(ms); await p.mouse.up(); };
@@ -36,7 +40,9 @@ const PORT = process.argv[2] || 8956;
   await p.waitForSelector('.srow'); await p.click('.srow .t');
   await p.waitForSelector('#newEntry'); await p.click('#newEntry');
   await p.waitForSelector('#shutter'); await p.click('#shutter');
-  await p.waitForTimeout(400); await hold('#pill', 2600); await p.waitForTimeout(600);
+  await p.waitForTimeout(400); await hold('#pill', 6200); await p.waitForSelector('.sheet2.type', { timeout: 60000 }); await p.waitForTimeout(400);
+  const dictated = await p.inputValue('#memo');
+  ok(/ladder fuel/i.test(dictated), 'the dictated note is a transcript of the recording: ' + JSON.stringify(dictated.slice(0, 60)));
   await p.click('#submit');
   await p.waitForSelector('#save', { timeout: 200000 });
   ok(true, 'entry scanned and record drafted');
@@ -54,7 +60,7 @@ const PORT = process.argv[2] || 8956;
   console.log(`-- record source: ${rec.source}${live ? '' : ' (fallback path under test)'}`);
   if (live) {
     ok(rec.first !== JSON.parse(rec.fixture).summary[0][1], 'the record is not the window.AI fixture text');
-    // The spoken memo is MEMOS.violation — ladder fuels within 30 ft.
+    // The dictated memo, transcribed above: ladder fuels within 30 ft.
     ok(/ladder|fuel|clearance|vegetation/.test(rec.blob), 'the record reflects the note that was actually recorded');
     ok(rec.codes.length > 0, 'the record cites the code library');
     ok(!/gutters were cleaned last week/i.test(rec.blob), 'no fixture text leaked into the record');

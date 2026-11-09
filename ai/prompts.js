@@ -314,6 +314,165 @@ const VISUAL = {
 };
 
 // ---------------------------------------------------------------------------
+// VOICE — the dictated memo
+// ---------------------------------------------------------------------------
+
+// The inspector holds the memo bar and talks; the microphone records it and the
+// clip is transcribed here. The words land in the note box, editable, and the
+// record is drafted from them — so this is the first link in the chain and the
+// one with the least room for invention.
+//
+// Two rules make it safe to put a transcript in front of a legal-adjacent
+// draft. Transcribe only: no summarising, no tidying, no completing a sentence
+// the inspector abandoned, because what they said is the evidence and what the
+// model would have preferred they said is not. And when there is no speech in
+// the clip, answer with a token that means exactly that, rather than guessing
+// at wind or traffic. A confident sentence about a property nobody said is the
+// one output worse than an empty box.
+//
+// The vocabulary list is not decoration. "Ladder fuels", "Zone 0", "duff" and
+// "manzanita" are the words this job is dictated in, and a general transcriber
+// reaches for the common English neighbours instead.
+const NOTHING_SAID = '[no speech]';
+
+// The device measures the recording level 20 times a second while the bar is
+// held, and the swing between the loud fifth and the quiet fifth of a clip is a
+// usable tell. Measured here over six-second clips through the same browser
+// path: dictated speech 35x, a 440 Hz tone 4.2x, wind 6.4x. Speech leaves gaps
+// between words; a steady sound does not.
+//
+// This is given to the model as evidence, never as a verdict, and the app does
+// not gate on it. One unbroken sentence is flatter than this, a phone's noise
+// suppression moves the numbers, and refusing a real memo is a worse failure
+// than sending a tone to a transcriber that will say there was nothing in it.
+// What it fixes is the opposite error: asked to transcribe a pure tone, the
+// model answered "Address marker from". Told the swing was 4x, it does not.
+function meterLine(m) {
+  if (!m || !m.frames) return null;
+  const parts = [`peak ${m.peak}`, `average ${m.mean}`, `loud-to-quiet swing ${m.swing}x`];
+  const read = m.swing >= 10
+    ? 'That swing is the gaps between words — consistent with somebody speaking.'
+    : m.swing >= 6
+      ? 'That is flatter than dictation usually looks, so weigh what you hear carefully.'
+      : 'That is a steady, unbroken sound with no syllable rhythm in it — a tone, a fan, traffic, a hand over the microphone. Evidence against anyone having spoken, though your ears decide.';
+  return [
+    `THE DEVICE'S OWN LEVEL METER, over the whole clip: ${parts.join(', ')}.`,
+    `A held dictation normally swings 10x or more; a steady sound stays near 1-6x. ${read}`,
+  ].join('\n');
+}
+
+const VOICE = {
+  // Transcription is a cheap, fast call on the same text model that drafts the
+  // record — one request, one key, one backend.
+  model: process.env.GEMINI_VOICE_MODEL || process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+  // A held memo is seconds long and the inspector is waiting for the words to
+  // appear, so this is the one call in the app that has to feel immediate.
+  timeoutMs: Number(process.env.GEMINI_VOICE_TIMEOUT_MS || 45000),
+  retries: Number(process.env.GEMINI_VOICE_RETRIES || 2),
+  retryBaseMs: 1200,
+  maxOutputTokens: Number(process.env.GEMINI_VOICE_MAX_OUTPUT_TOKENS || 2048),
+  // Nothing creative about a transcript.
+  temperature: 0,
+  thinkingBudget: 0,
+  // The answer that means "there was nothing in it".
+  //
+  // Asked for a bare transcript, this model invents one. Four seconds of
+  // low-level noise with no voice in it came back as "Zone 0 deck attached
+  // facing east, wood lattice underneath open, dead leaf litter accumulated
+  // inside 3 to 4 in" — fluent, plausible, about a property nobody had
+  // described, from a clip containing no speech. A prompt rule saying "return
+  // [no speech]" did not stop it: the model's default is to be useful, and
+  // transcribing nothing does not feel useful.
+  //
+  // So the answer is a judgement first and a transcript second. `speech` is a
+  // decision the model has to make and state, and the schema below makes the
+  // field non-optional, which is a different and much harder thing to get
+  // wrong than declining to produce the output it was built to produce.
+  //
+  // The field ORDER is load-bearing, not tidiness. The answer is generated left
+  // to right, so `heard` first makes the model describe the audio ("static and
+  // no voice") before it is asked to rule on it — and a model that has just
+  // written that does not then claim someone spoke. Judgement first scored
+  // `speech: true` on the noise clip; description first does not. Keep `text`
+  // last, after both.
+  nothing: NOTHING_SAID,
+  schema: {
+    type: 'OBJECT',
+    properties: {
+      heard: { type: 'STRING', description: 'What is audible in the clip, in a few words, before deciding anything — "a man speaking close to the mic", "wind and a passing car, no voice", "static", "silence".' },
+      speech: { type: 'BOOLEAN', description: 'True only if a human voice saying words is audible in the clip. False for silence, noise, wind, handling, music, or a voice too distant or muffled to make out any word.' },
+      text: { type: 'STRING', description: 'The verbatim transcript of what was said. Empty string when speech is false.' },
+    },
+    required: ['heard', 'speech', 'text'],
+    propertyOrdering: ['heard', 'speech', 'text'],
+  },
+  // Audio formats the browsers produce and this backend accepts inline. Chrome
+  // and Android give webm/opus; Safari gives mp4/aac.
+  mimeTypes: [
+    'audio/webm', 'audio/ogg', 'audio/opus', 'audio/mp4', 'audio/m4a', 'audio/aac',
+    'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/aiff',
+  ],
+
+  instruction: (ctx = {}) => [
+    'Listen to this audio clip and report what is in it.',
+    '',
+    'It should be a fire inspector dictating a field note into a phone held at their mouth,',
+    'outdoors, at a property they are inspecting. Expect wind, traffic, dogs and footsteps under',
+    'the voice, and expect the sentence to be short and unfinished — this is a note to themselves,',
+    'not a report.',
+    ctx.address ? `Where they are standing: ${ctx.address}` : null,
+    ctx.hasPhoto
+      ? 'They have just photographed the thing they are describing, so the note often points at it ("this", "here", "that side").'
+      : 'There is no photograph with this note, so the words are the whole of the entry.',
+    '',
+    meterLine(ctx.meter),
+    '',
+    'FIRST SAY WHAT YOU HEAR, THEN DECIDE WHETHER ANYONE SPOKE',
+    '- Fill in `heard` before anything else, describing the recording as it is — "a woman speaking',
+    '  close to the mic over traffic", "wind and static, no voice". Judge `speech` against what you',
+    '  just wrote down.',
+    '- The bar is held down to record, so a good share of clips catch an open microphone with',
+    '  nobody talking: wind, a car, a hand over the mic, a door, silence. That is an ordinary',
+    '  outcome and reporting it is the correct, useful answer.',
+    '- `speech` is true only if you can actually hear a human voice saying words. If you cannot,',
+    '  set it false, say what you did hear in `heard`, and leave `text` empty.',
+    '- Never compose a plausible inspection note from noise. A fabricated sentence here is read as',
+    '  the inspector’s own words, drafted into their record, and quoted to a property owner in an',
+    '  enforcement notice. An empty answer costs them one typed sentence; a convincing invention',
+    '  costs them the truth of a legal document. When in doubt, `speech` is false.',
+    '',
+    'THEN TRANSCRIBE, IF THERE WAS SPEECH',
+    '- `text` is the words that were spoken and nothing else: no preamble, no quotation marks, no',
+    '  speaker label, no timestamps, no note about the recording quality.',
+    '- Transcribe, do not improve. Never summarise, re-order, complete or professionalise what was',
+    '  said. If they trailed off, it trails off. A record is drafted from this and it is evidence.',
+    '- Drop filler ("um", "uh") and a false start the speaker abandoned themselves. Keep the rest,',
+    '  including hedges like "looks like" or "maybe" — the uncertainty is part of the observation.',
+    '- Transcribe only what you can hear. Do not fill an inaudible stretch with something that fits',
+    `  the sentence; write ${'[inaudible]'} in its place and let the inspector fix it.`,
+    '- Numbers as digits with the unit as spoken: "thirty feet" → "30 ft", "three and a half',
+    '  inches" → "3.5 in", "zone zero" → "Zone 0".',
+    '- Code citations as said, in the usual written form: "C F C forty nine oh six point two" →',
+    '  "CFC 4906.2"; "P R C forty two ninety one" → "PRC 4291".',
+    '- Sentence case, ordinary punctuation, no trailing full stop if they stopped mid-thought.',
+    '',
+    'VOCABULARY — the terms this job is dictated in, spelled this way',
+    'defensible space, Zone 0, Zone 1, Zone 2, ember-resistant zone, ladder fuel, ladder fuels,',
+    'ground fuel, surface fuel, fine fuel, dead and dying, duff, leaf litter, pine needles, slash,',
+    'canopy, crown, limb up, raise the canopy, horizontal spacing, vertical clearance, fuel break,',
+    'chipping, abatement, reinspection, clearance, setback, cord wood, combustible storage,',
+    'eaves, soffit, vents, ember-resistant vents, gutters, roof valley, siding, cladding, deck,',
+    'under-deck, lattice, fence, noncombustible, outbuilding, propane tank, address marker,',
+    'turnaround, fire apparatus access, hydrant, driveway grade, red flag,',
+    'manzanita, coyote brush, chamise, juniper, oleander, eucalyptus, acacia, scotch broom,',
+    'french broom, bay laurel, live oak, Monterey pine, ivy, blackberry, pampas grass, bamboo,',
+    'CFC, PRC, CCR, WUI, NFPA, Marin County Code, Fire Marshal',
+    // Only the conditional lines above drop out (they are null); the empty
+    // strings are paragraph breaks and the prompt is easier to follow with them.
+  ].filter(l => l !== null && l !== undefined).join('\n'),
+};
+
+// ---------------------------------------------------------------------------
 // REPORT — the internal technical document for the case file
 // ---------------------------------------------------------------------------
 
@@ -756,6 +915,6 @@ function assemble(kind, ctx) {
 }
 
 module.exports = {
-  MODEL, VISUAL, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
+  MODEL, VISUAL, VOICE, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
   SCHEMAS, SECTION_SCHEMA, assemble, systemFor, userFor,
 };

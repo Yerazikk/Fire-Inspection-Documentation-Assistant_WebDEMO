@@ -6,6 +6,8 @@ const dateIn = n => { const d = new Date(); d.setDate(d.getDate() + n); return d
 const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const addrOf = id => ADDRESSES.find(a => a.id === id);
+// A dictated memo's length, mm:ss — shown while it records and again on the record.
+const clipLen = ms => { const s = Math.round(ms / 1000); return (s < 60 ? '0:' : Math.floor(s / 60) + ':') + String(s % 60).padStart(2, '0'); };
 const clone = o => JSON.parse(JSON.stringify(o));
 // The one photo the hard-coded AR boxes in SCAN were measured against. Any
 // other photo gets no boxes: percentages taken off this image would land in
@@ -32,8 +34,11 @@ const entriesOf = id => (S.entries[id] = S.entries[id] || []);
 const bump = id => { S.ver[id] = (S.ver[id] || 0) + 1; };
 
 // ---------------- router ----------------
-function go(screen, opts = {}) { clearTimers(); $('#toast').classList.remove('on'); if (!opts.replace) S.stack.push(S.screen); S.screen = screen; S.wobble = false; render(); }
-function back() { clearTimers(); $('#toast').classList.remove('on'); const prev = S.stack.pop() || 'map'; S.screen = prev; S.wobble = false; render(); }
+// Leaving a screen closes the microphone. Holding the memo bar opens it for
+// real, and an open recording whose UI has been re-rendered away is a live mic
+// nobody can see — the one state this must never be left in.
+function go(screen, opts = {}) { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); if (!opts.replace) S.stack.push(S.screen); S.screen = screen; S.wobble = false; render(); }
+function back() { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); const prev = S.stack.pop() || 'map'; S.screen = prev; S.wobble = false; render(); }
 function render() { const app = $('#app'); app.innerHTML = VIEWS[S.screen](); app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard()); AFTER[S.screen] && AFTER[S.screen](); renderHelp(); window.renderRail && renderRail(); const v = $('#view'); if (v) v.scrollTop = 0; }
 function backWithGuard() { if (S.screen === 'record' && S.recDirty) { confirmSheet('Save this entry?', 'You have unsaved changes to this record.', [{ label: 'Discard', cls: 'danger', fn: () => { S.rec = null; S.recDirty = false; back(); } }, { label: 'Keep editing', cls: 'ghost' }, { label: 'Save', fn: saveRecord }]); return; }
   if (S.screen === 'camera' && S.draft && (S.draft.photo || S.draft.memo)) { confirmSheet('Leave without saving?', 'The photo and memo for this entry will be discarded.', [{ label: 'Discard', cls: 'danger', fn: () => { S.draft = null; back(); } }, { label: 'Stay', cls: 'ghost' }]); return; }
@@ -141,6 +146,9 @@ function mountMap() {
     setBasemap();
     LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 12.5);
     LART = L.layerGroup().addTo(LMAP);
+    // The canvas has no size until invalidateSize() below, so the first frame is
+    // placed once it has one.
+    requestAnimationFrame(() => { if (LMAP && S.screen === 'map') fitMap(true); });
   } else if (LWRAP.parentElement !== host) host.appendChild(LWRAP);
   LMAP.invalidateSize();
   paintMap();
@@ -178,16 +186,34 @@ function paintMap() {
   });
   fitMap();
 }
+// The map canvas is the whole phone, but most of the bottom of it is under the
+// sheet and the top under the controls. Everything that frames or centres has
+// to work in the strip that is actually visible, which is what these are.
+function mapPad() {
+  const sheet = $('#sheet');
+  return { top: 110, bottom: (sheet ? sheet.offsetHeight : 320) + 20, left: 44, right: 44 };
+}
+// Put a coordinate in the middle of the visible strip rather than the middle of
+// the container. Centring on the container put HQ behind the sheet: on screen it
+// sat low and half-covered, which read as the map being off rather than as the
+// sheet being over it.
+function centreOn(lat, lon, zoom, animate) {
+  const z = zoom == null ? LMAP.getZoom() : zoom, p = mapPad();
+  // A point renders at (container centre + P - C). Wanting it at the centre of
+  // the strip, which is (top - bottom) / 2 below the container centre, fixes C.
+  const c = LMAP.project([lat, lon], z).subtract([(p.left - p.right) / 2, (p.top - p.bottom) / 2]);
+  LMAP.setView(LMAP.unproject(c, z), z, { animate: !!animate });
+}
 function fitMap(force) {
   if (!LMAP) return;
-  const key = S.stops.join('|') + '#' + (S.route && S.route.line ? S.route.line.length : 0);
+  const pad = mapPad();
+  const key = S.stops.join('|') + '#' + (S.route && S.route.line ? S.route.line.length : 0) + '#' + pad.bottom;
   if (key === lastFit && !force) return;
   lastFit = key;
-  if (!S.stops.length) { LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 13, { animate: true }); return; }
+  if (!S.stops.length) { centreOn(CONFIG.station.lat, CONFIG.station.lon, 13, true); return; }
   const pts = [[CONFIG.station.lat, CONFIG.station.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })];
-  const sheet = $('#sheet'), sh = sheet ? sheet.offsetHeight : 320;
   LMAP.fitBounds(L.latLngBounds(S.route && S.route.line ? S.route.line.concat(pts) : pts),
-    { paddingTopLeft: [44, 110], paddingBottomRight: [44, sh + 20], maxZoom: 16, animate: true });
+    { paddingTopLeft: [pad.left, pad.top], paddingBottomRight: [pad.right, pad.bottom], maxZoom: 16, animate: true });
 }
 function paintRoute() {
   if (S.screen !== 'map') return;
@@ -218,7 +244,7 @@ function selectStop(id) { S.sel = id; if (S.sheet === 'peek') S.sheet = 'half'; 
 function wirePins() { $$('[data-pin]').forEach(p => p.onclick = () => selectStop(p.dataset.pin)); }
 
 function stopRows() {
-  if (!S.stops.length) return `<div class="hint">Type the addresses you are visiting today. They are geocoded, pinned, and timed as real drives from ${esc(CONFIG.station.name)}.</div>`;
+  if (!S.stops.length) return `<div class="hint">Type the addresses you are visiting today. They are geocoded, pinned, and timed as real drives from ${esc(CONFIG.station.name)}. California addresses only — this unit does not inspect out of state.</div>`;
   const r = S.route;
   const legs = (r && !r.pending && !r.error && r.ids.join() === S.stops.join()) ? r.legs : null;
   return S.stops.map((id, i) => {
@@ -302,7 +328,7 @@ AFTER = {
       sg.innerHTML = `<div class="searching">Looking up “${esc(q)}”…</div>`; sg.style.display = 'block';
       const r = await GEO.geocode(q, near);
       if (inp.value.trim() !== q) return;
-      if (!r) { sg.innerHTML = `<div class="searching">No address found for “${esc(q)}”.</div>`; return; }
+      if (!r) { sg.innerHTML = `<div class="searching">No California address found for “${esc(q)}”.</div>`; return; }
       choose({ kind: 'remote', r });
     };
     inp.oninput = () => { hl = 0; lookup(); show(); };
@@ -446,7 +472,15 @@ const toneOf = k => k === 'violation' ? 'var(--red)' : k === 'compliance' ? 'var
 // coordinates in a notional parcel box this many metres across. Projecting
 // them through the view anchors them to the ground, so they stay on the same
 // patch of it as the inspector zooms instead of staying put on the glass.
-const PARCEL_M = 60;
+//
+// The box is deliberately small. At 60 m across, a pip 15 units off centre
+// landed 9 m away and the spread of them covered a frontage and a half — on a
+// suburban lot that is the neighbour's yard, and a citation that appears to
+// have been written on the wrong property is worse than one with no pip at
+// all. At 24 m the whole scatter, standing positions included, stays inside
+// the lot being inspected and within a few paces of "you are here", which is
+// what a walk round a house actually looks like.
+const PARCEL_M = 24;
 const geoXY = (v, at, g) => ({ x: at.x + v.pct((g[0] - 50) / 100 * PARCEL_M), y: at.y + v.pct((g[1] - 50) / 100 * PARCEL_M) });
 // The same offset as a coordinate, for the record footer. Still invented — see
 // TODO.md §3 — but invented about the property being inspected rather than a
@@ -458,6 +492,38 @@ function simFix(id, g) {
   const lon = a.lon + ((g[0] - 50) / 100 * PARCEL_M) / (111320 * Math.cos(a.lat * Math.PI / 180));
   return `${Math.abs(lat).toFixed(5)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(5)}° ${lon < 0 ? 'W' : 'E'} · simulated`;
 }
+// ---- where the frame sits over the property ----------------------------
+// The geocoded point is a pin on the street, and the house, the woodpile and
+// the slope behind it are not always in the box drawn around it. So the lot
+// view can be dragged off that point, and where the inspector leaves it is
+// where that property's view stays — per address, on this device, so opening
+// it again next season opens on the ground they chose to look at.
+//
+// Kept as an offset in metres east and north of the address rather than as a
+// centre coordinate, so one drag holds across the parcel, zone and block
+// views instead of being re-made at each span. Thumbnails stay on the address
+// itself: a list of properties is read by comparing them, and each one framed
+// differently is harder to read, not easier.
+const LS_PAN = 'fi3.satpan.v1';
+const PAN_MAX = 250;   // metres; far enough to frame a deep lot, not another street
+let PAN = (() => { try { return JSON.parse(localStorage.getItem(LS_PAN)) || {}; } catch (e) { return {}; } })();
+const savePan = () => { try { localStorage.setItem(LS_PAN, JSON.stringify(PAN)); } catch (e) { /* private mode, or quota */ } };
+const panOf = id => PAN[id] || null;
+function setPan(id, e, n) {
+  const cl = v => Math.max(-PAN_MAX, Math.min(PAN_MAX, v));
+  const ce = cl(e), cn = cl(n);
+  // Dragged back to within half a metre of the pin is a reset, not an offset.
+  if (Math.abs(ce) < 0.5 && Math.abs(cn) < 0.5) delete PAN[id];
+  else PAN[id] = { e: +ce.toFixed(1), n: +cn.toFixed(1) };
+  savePan();
+}
+// The coordinate the lot view centres on: the address, plus whatever offset was
+// saved for it.
+function satCentre(id) {
+  const a = addrOf(id); if (!a) return null;
+  const p = panOf(id); if (!p) return { lat: a.lat, lon: a.lon };
+  return { lat: a.lat + p.n / 111320, lon: a.lon + p.e / (111320 * Math.cos(a.lat * Math.PI / 180)) };
+}
 function pipSVG(entries, mini, v, at) {
   return (entries || []).map(e => { const c = toneOf(e.kind), r = mini ? 3.2 : 3.6, p = geoXY(v, at, e.geo), x = p.x.toFixed(2), y = p.y.toFixed(2);
     return `<g class="pip" data-pip="${e.id || e.n}"><circle cx="${x}" cy="${y}" r="${r + 2.2}" fill="${c}" opacity=".18"/><circle cx="${x}" cy="${y}" r="${r}" fill="#0b0f17" stroke="${c}" stroke-width=".8"/><text x="${x}" y="${(p.y + 1.2).toFixed(2)}" font-size="${mini ? 3.6 : 3.8}" font-weight="700" fill="${c}" text-anchor="middle" font-family="-apple-system,sans-serif">${e.n}</text></g>`; }).join('');
@@ -467,7 +533,11 @@ function pipSVG(entries, mini, v, at) {
 // zones belong to the 100 ft zone view alone — over the parcel they cover the
 // ground the inspector is actually reading, so that view stays plain imagery.
 function satOverlay(id, entries, mini) {
-  const a = addrOf(id), v = SAT.view(a.lat, a.lon, SAT.spanOf(S.satZoom), 640), at = v.xy(a.lat, a.lon);
+  // The frame is centred on the saved view; the address, the pips and the rings
+  // are placed by projecting their real coordinates into it, so a dragged frame
+  // moves the imagery and the marks together.
+  const a = addrOf(id), c = satCentre(id);
+  const v = SAT.view(c.lat, c.lon, SAT.spanOf(S.satZoom), 640), at = v.xy(a.lat, a.lon);
   const you = geoXY(v, at, POS[S.posIdx % POS.length]);
   const marks = mini ? '' : (S.satZoom === 'zone' ? SAT.zones(v, at) : '')
     + `<g class="target"><circle cx="${at.x.toFixed(2)}" cy="${at.y.toFixed(2)}" r="1.6"/><path d="M${at.x.toFixed(2)} ${(at.y - 3.4).toFixed(2)}v1.2M${at.x.toFixed(2)} ${(at.y + 2.2).toFixed(2)}v1.2M${(at.x - 3.4).toFixed(2)} ${at.y.toFixed(2)}h1.2M${(at.x + 2.2).toFixed(2)} ${at.y.toFixed(2)}h1.2"/></g>`
@@ -504,16 +574,85 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   // The hero is wider than it is tall (376 × 300 in the frame), so the slice-
   // cropped overlay shows the full width of the view and the scale bar below
   // can be a straight percentage of it.
-  const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span);
-  const body = `<div class="sat">${SAT.tile(a.lat, a.lon, { span, px: 640, eager: true, dead: sketchSVG(id, false) })}${satOverlay(id, entries, false)}
+  const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span), ctr = satCentre(id);
+  const body = `<div class="sat" id="sathero">${SAT.tile(ctr.lat, ctr.lon, { span, px: 640, eager: true, dead: sketchSVG(id, false) })}${satOverlay(id, entries, false)}
   <div class="ban ${snap ? 'snap' : ''}">${snap ? 'Viewing ' + fmtDate(snap.date) + ' · read-only' : 'Live · you are here'}</div>
   <div class="satz">${SAT.ZOOMS.map(z => `<button class="${z.id === S.satZoom ? 'on' : ''}" data-sz="${z.id}">${esc(z.label)}</button>`).join('')}</div>
+  ${panOf(id) ? `<button class="satpan" id="satreset" title="Put the frame back on the geocoded point">⌖ Recentre</button>` : ''}
   <div class="satn">N</div>
   <div class="satfoot"><span class="sbar" style="width:${bar.pct.toFixed(2)}%">${esc(bar.label)}</span><span class="scred" data-cred>${esc(SAT.credit)}</span></div></div>
   ${snap ? '' : `<div class="tabs"><button class="${S.tab === 'today' ? 'on' : ''}" data-tab="today">Today${entries.length ? ' · ' + entries.length : ''}</button><button class="${S.tab === 'history' ? 'on' : ''}" data-tab="history">History${hist.length ? ' · ' + hist.length : ''}</button></div>`}
   ${snap ? `<div class="hero" style="margin-top:12px">${fmtDate(snap.date)}<small>${esc(snap.outcome)} · as recorded at the end of that inspection</small></div>` : ''}${today}`;
   const bottom = snap ? `<button class="btn ghost" id="exitSnap">Back to today</button>` : S.tab === 'today' ? (done ? `<div class="row2"><button class="btn ghost" id="finish">Reopen</button><button class="btn" id="toMap">Next stop →</button></div>` : `<div class="row2"><button class="btn ghost" id="finish">Finish</button><button class="btn" id="newEntry">+ New entry</button></div>`) : '';
   return frame(a.addr, snap ? 'history' : done ? 'Completed · documents ready' : 'inspection in progress', body, bottom); }
+// Dragging the lot view. The imagery and the overlay are translated together
+// under the finger for the whole gesture — a new frame is a round trip to Esri
+// and cannot be re-requested per pointermove — and on release the drag is
+// converted to ground metres, saved, and the real frame re-requested around the
+// new centre.
+//
+// A gesture that never moved more than a few pixels is a tap, so the pips
+// underneath keep working; one that did ends in a re-render, which takes the
+// pip out from under the click before it can fire.
+function wireLotPan(id) {
+  const hero = $('#sathero'); if (!hero) return;
+  const reset = $('#satreset');
+  if (reset) reset.onclick = () => { delete PAN[id]; savePan(); render(); };
+  const shift = [...hero.querySelectorAll('.satimg, .satover')];
+  let px = 0, py = 0, dx = 0, dy = 0, down = false, moved = false;
+  // The frame is an <img>, and the browser's own image drag fires
+  // pointercancel the moment it starts - which ended the gesture after about
+  // six pixels and saved that as the new centre. draggable="false" on the tile
+  // and this between them leave the pointer to us.
+  hero.ondragstart = e => { e.preventDefault(); return false; };
+  hero.onpointerdown = e => {
+    if (e.target.closest('.satz, .satpan, .satfoot, .ban')) return;
+    down = true; moved = false; dx = dy = 0; px = e.clientX; py = e.clientY;
+  };
+  hero.onpointermove = e => {
+    if (!down) return;
+    dx = e.clientX - px; dy = e.clientY - py;
+    if (!moved && Math.abs(dx) + Math.abs(dy) > 4) {
+      moved = true; hero.classList.add('panning');
+      // Captured only now. Capturing on every pointerdown would retarget the
+      // click a tap on a pip turns into, and the pips are how an entry is
+      // found from the picture.
+      try { hero.setPointerCapture(e.pointerId); } catch (err) { /* already gone */ }
+    }
+    if (moved) shift.forEach(el => el.style.transform = `translate(${dx}px,${dy}px)`);
+  };
+  // A cancel is the system taking the pointer away - a palm, a back-swipe, a
+  // dialog. It is not a decision about where the frame should sit, so the frame
+  // goes back where it was.
+  hero.onpointercancel = () => {
+    if (!down) return;
+    down = false; moved = false; hero.classList.remove('panning');
+    shift.forEach(el => el.style.transform = '');
+  };
+  hero.onpointerup = () => {
+    if (!down) return;
+    down = false; hero.classList.remove('panning');
+    if (!moved) return;
+    // The frame is a square of `span` metres shown with object-fit:cover, so it
+    // is scaled to the longer edge of the box — that is what one pixel of drag
+    // is worth on the ground.
+    const m = SAT.spanOf(S.satZoom) / Math.max(hero.clientWidth, hero.clientHeight);
+    const p = panOf(id) || { e: 0, n: 0 };
+    // Pulling the image right brings ground in from the west, so the centre of
+    // the frame goes west; pulling it down brings ground in from the north.
+    setPan(id, p.e - dx * m, p.n + dy * m);
+    // The dragged frame is held on screen until the frame for the new centre is
+    // in the cache, so letting go does not drop the view back to the skeleton
+    // for a round trip. Capped, because a provider that never answers must not
+    // leave the gesture hanging — the skeleton is the honest state by then.
+    const c = satCentre(id), draw = () => { if (S.screen === 'location' && S.cur === id) render(); };
+    let drawn = false;
+    const once = () => { if (drawn) return; drawn = true; draw(); };
+    later(once, 1600);
+    SAT.prefetch(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640 }).then(once, once);
+  };
+}
+
 function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = es.filter(e => e.kind === 'violation').length;
   const el = document.createElement('div'); el.className = 'wrap'; el.innerHTML = `<div class="wbox"><div class="wcheck">✓</div><div class="wt">Inspection complete</div><div class="ws">${esc(a.addr)} · ${es.length} entr${es.length === 1 ? 'y' : 'ies'} · ${v} violation${v === 1 ? '' : 's'}</div>
   <div class="wdocs"><div class="wdoc" id="wd1"><span class="dot spin"></span><div><b>Internal report</b><small>drafting from every entry against the code library…</small></div></div><div class="wdoc" id="wd2"><span class="dot spin"></span><div><b>Notice to owner</b><small>drafting the plain-language email…</small></div></div></div>
@@ -533,6 +672,7 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
   $$('[data-sz]').forEach(b => b.onclick = () => { S.satZoom = b.dataset.sz; render(); });
+  wireLotPan(id);
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };
   const tm = $('#toMap'); if (tm) tm.onclick = () => { S.cur = null; S.stack = []; go('map', { replace: true }); };
@@ -560,17 +700,16 @@ function cameraView() { const d = S.draft || {}; const a = addrOf(S.cur); const 
     <div class="pk-grid">${PHOTOLIB.map(x => `<button class="pk-i" data-lib="${x.id}">${img(x.src, x.label)}<span>${esc(x.label)}</span></button>`).join('')}</div></div></div>
   <div class="sheet2" id="sheet2"><div class="say" id="say"><div class="tx" id="tx"></div><div class="pill" id="pill"><span class="mic">◉</span><span class="hint">Tap to type · hold to speak</span><div class="wave">${'<i></i>'.repeat(18)}</div></div></div><div class="typed" id="typed"><textarea class="memo" id="memo" rows="3" placeholder="What did you see?"></textarea><div class="typed-row"><button class="link" id="useVoice">◉ Use voice instead</button><span class="link-hint" id="memoHint"></span></div><button class="btn" id="submit" style="margin-top:10px" disabled>Submit entry</button></div></div></div>`; }
 function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#say'), pill = $('#pill'), tx = $('#tx'), memo = $('#memo'), submit = $('#submit'); const d = S.draft;
+  // This screen can re-render under a live recording (a photo chosen, a retake).
+  // The bar it was being held on is gone, so the microphone goes with it.
+  VOICE.cancel();
   const showSheet = () => { cam.classList.add('snap'); d.snapped = true; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').textContent = d.photoMeta ? '↺ Change photo' : '↺ Retake'; };
   const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
   const checkMemo = () => { const v = memo.value.trim(); submit.disabled = !v && !d.photo; $('#memoHint').textContent = v ? '' : d.photo ? 'Optional · the scan works from the photo' : 'Add a note to continue'; };
-  // A canned transcript that describes a different picture is worse than no
-  // transcript, so a photo off the device — contents unknown — gets none, and
-  // the hold opens the keyboard instead.
-  const memoFor = () => !d.photo ? MEMOS.note : d.photoMeta ? (d.photoMeta.memo || '') : (d.kindHint === 'compliance' ? MEMOS.compliance : MEMOS.violation);
-  $('#shutter').onclick = () => { d.photo = 'assets/original.jpg'; d.kindHint = 'violation'; showSheet(); };
+  $('#shutter').onclick = () => { d.photo = 'assets/original.jpg'; showSheet(); };
   const picker = $('#picker'), fileIn = $('#file');
   const closePicker = () => picker.classList.remove('on');
-  const setPhoto = p => { d.photo = p.src; d.photoMeta = p; d.kindHint = null; S.draft = d; closePicker(); render();
+  const setPhoto = p => { d.photo = p.src; d.photoMeta = p; S.draft = d; closePicker(); render();
     later(() => { const c = $('#cam'); if (!c) return; c.classList.add('snap'); S.draft.snapped = true; const r = $('#retake'); if (r) { r.style.display = ''; r.textContent = '↺ Change photo'; } }, 60); };
   $('#upload').onclick = () => picker.classList.add('on');
   $('#pkX').onclick = closePicker;
@@ -590,11 +729,96 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   $('#camBack').onclick = () => backWithGuard();
   $('#retake').onclick = () => { d.photo = null; d.photoMeta = null; d.snapped = false; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
   $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
-  let t0 = 0, holding = false, wi = 0, wt = null;
-  const speakStep = () => { if (!holding) return; const words = memoFor().split(' '); if (wi < words.length) { tx.innerHTML = esc(words.slice(0, ++wi).join(' ')) + '<span class="cur"></span>'; wt = setTimeout(speakStep, 140 + Math.random() * 120); } };
-  const toKeyboard = hint => { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); if (hint) $('#memoHint').textContent = hint; }); setTimeout(() => memo.focus(), 460); };
-  pill.onpointerdown = e => { e.preventDefault(); t0 = Date.now(); holding = false; pill.setPointerCapture(e.pointerId); wt = setTimeout(() => { if (!memoFor()) return toKeyboard('Type what the photo shows'); holding = true; grow(() => say.classList.add('hold')); wi = 0; speakStep(); }, 220); };
-  pill.onpointerup = pill.onpointercancel = () => { clearTimeout(wt); if (holding) { holding = false; if (wi < 3) { grow(() => { say.classList.remove('hold'); tx.innerHTML = ''; }); toast('Didn’t catch that · hold longer, or tap to type'); return; } grow(() => { say.classList.remove('hold'); tx.innerHTML = ''; sheet.classList.add('type'); memo.value = memoFor(); d.spoken = true; checkMemo(); $('#memoHint').textContent = 'Transcribed · edit if needed'; }); setTimeout(() => memo.focus(), 460); } else if (Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); setTimeout(() => memo.focus(), 460); } };
+  // ---- hold to speak ----------------------------------------------------
+  // The microphone, for real: voice.js opens it on the hold, meters it while
+  // the bar is down, and posts the recording to be transcribed on release. The
+  // words arrive in the box above and stay editable.
+  //
+  // Nothing in this path invents a sentence. A blocked microphone, a hold with
+  // nobody speaking, a transcription that fails — each says which, in the panel
+  // or on the memo hint, and hands over the keyboard. The note is the evidence
+  // the record is drafted from and the owner's notice is written from, so the
+  // only two things that may end up in it are what was said and what was typed.
+  //
+  // The states are: idle → opening (permission, mic warm-up) → live (recording)
+  // → busy (transcribing) → idle. A release during `opening` sets `abort`,
+  // because the permission dialog can outlast the gesture that asked for it.
+  let t0 = 0, mode = 'idle', wt = null, raf = null, tickT = null;
+  const wave = pill.querySelector('.wave'), bars = [...wave.querySelectorAll('i')], hint = pill.querySelector('.hint');
+  const IDLE_HINT = 'Tap to type · hold to speak';
+  const saying = html => { tx.innerHTML = html || ''; };
+  const warn = m => saying(`<span class="warn">${esc(m)}</span>`);
+
+  // The bars are the analyser's last 18 samples, oldest on the left, so the
+  // trace scrolls as the voice moves. When the mic is shut they go back to the
+  // CSS idle animation.
+  const meterFrame = () => { const tr = VOICE.trace(bars.length); bars.forEach((b, i) => { b.style.height = (5 + Math.round(tr[i] * 23)) + 'px'; b.style.opacity = (0.4 + tr[i] * 0.6).toFixed(2); }); raf = requestAnimationFrame(meterFrame); };
+  const stopMeter = () => { if (raf) cancelAnimationFrame(raf); raf = null; clearInterval(tickT); tickT = null; wave.classList.remove('live'); bars.forEach(b => { b.style.height = ''; b.style.opacity = ''; }); };
+  // Back to the resting bar. Not animated in itself — every caller wraps it in
+  // one grow() with whatever else is changing, so the sheet resizes once.
+  const resetVoice = () => { stopMeter(); say.classList.remove('hold', 'busy'); hint.textContent = IDLE_HINT; };
+
+  const toKeyboard = h => { grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); if (h) $('#memoHint').textContent = h; }); setTimeout(() => memo.focus(), 460); };
+  // Stay on the voice bar, with a line saying why nothing came of that hold.
+  const voiceAgain = m => grow(() => { resetVoice(); warn(m); });
+
+  // Release of a real recording: stop, judge the clip, transcribe it.
+  const release = async () => {
+    mode = 'busy'; stopMeter();
+    const clip = await VOICE.stop();
+    // Too short, or the recorder gave nothing back. Stay in voice mode — the
+    // next thing the inspector wants is to hold it again, properly.
+    if (!clip || clip.short) { mode = 'idle'; voiceAgain(clip ? 'Too short · hold the bar down while you speak' : 'Nothing was recorded · hold the bar down while you speak'); return; }
+    // Metered and flat: the mic is muted, covered, or nobody spoke. Typing is
+    // the way out of that, not holding it again.
+    if (clip.silent) { mode = 'idle'; return toKeyboard('Nothing was heard · type the note'); }
+
+    grow(() => { say.classList.remove('hold'); say.classList.add('busy'); hint.textContent = 'Transcribing…'; saying(`Transcribing <b>${clipLen(clip.ms)}</b> of audio<span class="cur"></span>`); });
+    let r;
+    try { r = await VOICE.transcribe(clip, { address: addrOf(S.cur).addr, hasPhoto: !!d.photo }); }
+    catch (err) { mode = 'idle'; return toKeyboard(err.hint || 'Could not transcribe that · type the note'); }
+    mode = 'idle';
+    // The model heard the recording and found no speech in it. Said plainly:
+    // a guess at what the wind might have been saying is the one answer worse
+    // than an empty box.
+    if (!r.text) return toKeyboard('No speech in that recording · type the note');
+
+    // When the level meter and the transcriber disagree, say so rather than
+    // picking a winner. A flat clip that comes back with words in it is the
+    // shape of a hallucination — a 440 Hz tone transcribed as "Zone 0, cypress
+    // overhanging porch, needs limbing" — but a flat clip can equally be one
+    // unbroken sentence over traffic, and throwing that away would be worse.
+    // So the words go in the box, the hint says to check them, and the
+    // recording is there to check them against.
+    const flat = !!(clip.meter && clip.meter.swing < 10);
+    // The recording stays with the entry. The transcript is editable — and
+    // should be — so the only unedited account of what was said is the audio.
+    d.clip = { mimeType: clip.mimeType, data: clip.data, ms: clip.ms, model: r.model, flat };
+    grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); const had = memo.value.trim(); memo.value = had ? had + ' ' + r.text : r.text; d.memo = memo.value; d.spoken = true; checkMemo(); $('#memoHint').textContent = flat ? 'Transcribed · play it back and check it' : 'Transcribed · edit if needed'; });
+    setTimeout(() => memo.focus(), 460);
+  };
+
+  pill.onpointerdown = e => { e.preventDefault(); if (mode !== 'idle') return; t0 = Date.now(); pill.setPointerCapture(e.pointerId);
+    wt = setTimeout(async () => {
+      mode = 'opening';
+      grow(() => say.classList.add('hold'));
+      saying('Opening the microphone<span class="cur"></span>');
+      try { await VOICE.start(); }
+      catch (err) { const held = mode === 'opening'; mode = 'idle'; if (held) toKeyboard(err.hint || 'Microphone unavailable · type the note'); else grow(() => { resetVoice(); saying(''); }); return; }
+      // Let go while the browser was still asking, or while the mic opened.
+      if (mode !== 'opening') { VOICE.cancel(); mode = 'idle'; voiceAgain('Hold the bar down while you speak'); return; }
+      mode = 'live';
+      wave.classList.add('live'); meterFrame();
+      // voice.js stops itself at two minutes, which is a stuck pointer rather
+      // than a memo. If that happens the counter must not keep running as
+      // though the mic were still open, so the tick finishes the hold instead.
+      const tick = () => { if (!VOICE.active()) return release(); saying(`Listening <b>${clipLen(VOICE.ms())}</b><span class="cur"></span>`); };
+      tick(); tickT = setInterval(tick, 300);
+    }, 220); };
+  pill.onpointerup = pill.onpointercancel = () => { clearTimeout(wt);
+    if (mode === 'opening') { mode = 'abort'; return; }
+    if (mode === 'live') return release();
+    if (mode === 'idle' && Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); setTimeout(() => memo.focus(), 460); } };
   memo.addEventListener('input', () => { d.memo = memo.value; checkMemo(); }); $('#useVoice').onclick = () => grow(() => sheet.classList.remove('type'));
   submit.onclick = () => { d.memo = memo.value.trim(); d.kind = !d.photo ? 'note' : (/compliant|clear|ok|good/i.test(d.memo) ? 'compliance' : 'violation'); if (!d.memo) d.memo = ''; sheet.classList.add('recede'); analyze(); };
   // The boxes used to be a fixture on a timer, so they could be scheduled the
@@ -639,7 +863,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     pending.then(open, e => open(DRAFTS.recordFallback(d.kind, String((e && e.message) || e)))); };
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
 function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
-  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', simFix(S.cur, pos)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
+  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, voice: d.clip || null, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', simFix(S.cur, pos)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
   // The pictures start here, not at Finish: a card takes fifteen to twenty
   // seconds, and starting now means the first ones have landed by the time the
   // inspector has read the record and reached the deck. Nothing waits on them —
@@ -687,7 +911,7 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">Original</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">Scanned</span></div></div>` : '';
   const inc = r.recs.filter(x => x.decision === 'in').length, dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
-  <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? '<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">Voice · transcribed</span>' : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</div>
+  <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</div>
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
   ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : '✓'}</i></div><div><div style="font-weight:650">${ed('severity.level', r.ai.severity.level)}</div><div style="font-size:12px;color:var(--faint)">${ed('severity.why', r.ai.severity.why)}</div></div></div><div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
@@ -697,6 +921,16 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
   return frame(`Entry ${r.n} · ${kindT}`, addrOf(S.cur).addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="save">Save entry</button></div>`); }
 function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { S.deck = { idx: r.recs.findIndex(x => !x.decision) < 0 ? r.recs.length : r.recs.findIndex(x => !x.decision) }; go('deck'); };
+  // The dictated memo, playable. The transcript is editable and the model that
+  // wrote it is not infallible, so the recording is kept as the one unedited
+  // account of what the inspector actually said at the property.
+  const vp = $('#vplay');
+  if (vp && r.voice) { let au = null; const idle = '▶ Play what was said';
+    const rest = () => { vp.classList.remove('on'); vp.textContent = idle; };
+    vp.onclick = () => {
+      if (!au) { au = new Audio(`data:${r.voice.mimeType.split(';')[0]};base64,${r.voice.data}`); au.onended = rest; au.onerror = () => { au = null; rest(); vp.textContent = 'This browser cannot play it back'; }; }
+      if (au.paused) { vp.classList.add('on'); vp.textContent = '❙❙ Playing…'; au.play().catch(() => { rest(); vp.textContent = 'This browser cannot play it back'; }); }
+      else { au.pause(); au.currentTime = 0; rest(); } }; }
   wireEdits(r.ai, () => { S.recDirty = true; });
   const pic = img(r.photo, 'photo');
   const po = $('#pOrig'); if (po) po.onclick = () => lightbox(`<div class="lb-top"><span>Original photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}</div></div><div class="foot"><button class="btn" id="lbRetake">Retake photo</button></div>`, el => { el.querySelector('#lbRetake').onclick = () => { confirmSheet('Retake and start over?', 'A new photo means a new scan, new notes and a new deck. This entry’s current draft is discarded.', [{ label: 'Retake', cls: 'danger', fn: () => { el.remove(); S.draft = { photo: null, memo: r.memo, kind: null, snapped: false }; S.rec = null; S.recDirty = false; go('camera', { replace: true }); } }, { label: 'Keep', cls: 'ghost' }]); }; });

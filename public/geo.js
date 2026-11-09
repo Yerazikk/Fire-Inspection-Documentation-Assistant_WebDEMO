@@ -2,6 +2,8 @@
 //
 //   geocoding   Photon (OpenStreetMap) for the typeahead, Nominatim for a
 //               full-string lookup when Photon has nothing. Both free, no key.
+//               Both are bounded to California, and the bound is enforced
+//               again on the way out - see CA below.
 //   routing     OSRM public car profile. /table gives the pairwise driving-time
 //               matrix, /route gives the actual road geometry and per-leg times.
 //   ordering    Exhaustive. Every ordering of today's stops is driven from HQ
@@ -15,7 +17,7 @@ window.GEO = (function () {
   const OSRM = 'https://router.project-osrm.org';
   const PHOTON = 'https://photon.komoot.io/api';
   const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-  const LS_LOOK = 'fi3.lookups.v1', LS_GEO = 'fi3.geocache.v1';
+  const LS_LOOK = 'fi3.lookups.v1', LS_GEO = 'fi3.geocache.v2';   // v2: results are bounded to California
 
   // ---------------------------------------------------------------- plumbing
   const readLS = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -29,6 +31,21 @@ window.GEO = (function () {
       return await r.json();
     } finally { clearTimeout(t); }
   }
+
+  // ------------------------------------------------------------ the CA bound
+  // This is a California fire unit, so an address outside the state is never
+  // the one being inspected - and a near-miss in Nevada or Oregon is a wasted
+  // drive rather than a harmless extra row in the list. Photon treats a bbox
+  // as a bias and will still answer with Tonopah, so the bound is applied
+  // twice: as a hint to each geocoder, and again here on what comes back.
+  const CA = { w: -124.482, s: 32.529, e: -114.131, n: 42.010 };
+  const inBox = r => r.lat >= CA.s && r.lat <= CA.n && r.lon >= CA.w && r.lon <= CA.e;
+  // The box also covers slivers of four neighbouring states, so a result that
+  // names its state has to name this one. One that names none - Photon
+  // sometimes returns a bare street - is kept on the box alone.
+  const isCA = r => inBox(r) && (!r.state || /^(ca|calif(ornia)?)$/i.test(String(r.state).trim()));
+  const PHOTON_BBOX = '&bbox=' + [CA.w, CA.s, CA.e, CA.n].join(',');
+  const NOMI_BOUND = '&countrycodes=us&bounded=1&viewbox=' + [CA.w, CA.n, CA.e, CA.s].join(',');
 
   const fmtTime = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); return h ? h + ' h ' + String(m).padStart(2, '0') + ' m' : m + ' min'; };
   const fmtDist = m => m >= 160 ? (m / 1609.344).toFixed(m < 16093 ? 1 : 0) + ' mi' : Math.round(m / 0.3048) + ' ft';
@@ -62,14 +79,14 @@ window.GEO = (function () {
     const addr = street || p.name || '';
     if (!addr) return null;
     const where = [p.city || p.town || p.village || p.district || p.county, p.state, p.postcode].filter(Boolean).join(', ');
-    return { addr, where, num: p.housenumber || '', lat: c[1], lon: c[0], source: 'photon', osm: (p.osm_type || '') + (p.osm_id || '') };
+    return { addr, where, num: p.housenumber || '', lat: c[1], lon: c[0], state: p.state || '', source: 'photon', osm: (p.osm_type || '') + (p.osm_id || '') };
   }
   function fromNominatim(r) {
     const parts = String(r.display_name || '').split(', ').map(s => s.trim()).filter(Boolean);
     const numbered = /^\d/.test(parts[0]) && parts.length > 1;
     const addr = numbered ? parts[0] + ' ' + parts[1] : parts[0];
     const rest = numbered ? parts.slice(2) : parts.slice(1);
-    return { addr: addr || r.display_name, where: rest.slice(0, 3).join(', '), num: numbered ? parts[0] : '', lat: +r.lat, lon: +r.lon, source: 'nominatim', osm: (r.osm_type || '') + (r.osm_id || '') };
+    return { addr: addr || r.display_name, where: rest.slice(0, 3).join(', '), num: numbered ? parts[0] : '', lat: +r.lat, lon: +r.lon, state: (r.address || {}).state || '', source: 'nominatim', osm: (r.osm_type || '') + (r.osm_id || '') };
   }
 
   // Typeahead, cached per query so re-typing never hits the network twice.
@@ -80,7 +97,7 @@ window.GEO = (function () {
     const wantsNumber = /^\s*\d+[a-z]?\s+\S/i.test(q);
     let out = [];
     try {
-      let u = PHOTON + '?limit=6&lang=en&q=' + encodeURIComponent(q);
+      let u = PHOTON + '?limit=10&lang=en' + PHOTON_BBOX + '&q=' + encodeURIComponent(q);
       if (near) u += '&lat=' + near[0] + '&lon=' + near[1];
       out = ((await jget(u, 7000)).features || []).map(fromPhoton).filter(Boolean);
     } catch (e) { out = []; }
@@ -89,12 +106,14 @@ window.GEO = (function () {
     // Nominatim too and let its numbered hits lead.
     if (!out.length || (wantsNumber && !out.some(r => r.num))) {
       try {
-        let u = NOMINATIM + '?format=jsonv2&addressdetails=0&limit=6&q=' + encodeURIComponent(q);
-        if (near) u += '&viewbox=' + [near[1] - .6, near[0] + .5, near[1] + .6, near[0] - .5].join(',');
+        // addressdetails=1 so the state comes back as a field rather than as a
+        // word to be hunted for in display_name.
+        const u = NOMINATIM + '?format=jsonv2&addressdetails=1&limit=10' + NOMI_BOUND + '&q=' + encodeURIComponent(q);
         const j = await jget(u, 9000);
         out = (Array.isArray(j) ? j : []).map(fromNominatim).concat(out);
       } catch (e) { /* keep whatever Photon gave */ }
     }
+    out = out.filter(isCA);
     if (wantsNumber) out.sort((a, b) => (b.num ? 1 : 0) - (a.num ? 1 : 0));
     // Drop repeats. A street with no house number is one choice however many
     // OSM segments carry the name, so those collapse on the name alone.

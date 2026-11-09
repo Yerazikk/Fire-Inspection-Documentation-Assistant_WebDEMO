@@ -3,13 +3,34 @@ const http = require('http'); const PORT = process.argv[2] || 8956;
 const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: PORT, path: p }, r => { let b = ''; r.on('data', d => b += d); r.on('end', () => res({ status: r.statusCode, body: b })); }).on('error', rej));
 (async () => { let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
   const idx = await get('/'); ok(idx.status === 200 && /Vegetation Inspection · V3/.test(idx.body), 'index served');
-  try { const { chromium } = require('playwright'); const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 960 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  // The memo bar really opens the microphone, so the browser is given one: a
+  // fake capture device that plays test_memo.wav, a spoken inspection note.
+  // The fake UI flag answers the permission prompt the way a user would.
+  try { const { chromium } = require('playwright'); const b = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--use-file-for-fake-audio-capture=' + require('path').join(__dirname, 'test_memo.wav')] }); const p = await b.newPage({ viewport: { width: 1440, height: 960 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    // Every satellite frame the page asks Esri or USGS for, so a screen rebuilt
+    // over ground already fetched can be shown to ask for nothing.
+    const frames = []; p.on('request', r => { if (/\/export\?/.test(r.url())) frames.push(r.url()); });
     const hold = async (sel, ms) => { const bb = await p.locator(sel).boundingBox(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.mouse.down(); await p.waitForTimeout(ms); await p.mouse.up(); };
     await p.goto(`http://localhost:${PORT}/`); await p.waitForSelector('#addr'); ok(true, 'map landing with station pin'); ok((await p.locator('.station').count()) === 1, 'station pinned');
+    // With nothing on the route there is only HQ to look at, and it belongs in
+    // the middle of the map that can be seen — the strip between the top
+    // controls and the sheet — not the middle of the phone, where the sheet is
+    // over it.
+    await p.waitForTimeout(1500);
+    const hq = await p.evaluate(() => { const pin = document.querySelector('.lpin.station'), m = document.querySelector('#map'), sh = document.querySelector('#sheet'); if (!pin || !m || !sh) return null;
+      const pr = pin.getBoundingClientRect(), mr = m.getBoundingClientRect(), sr = sh.getBoundingClientRect();
+      return { pin: pr.top + pr.height / 2, strip: (mr.top + 110 + sr.top - 20) / 2, phone: (mr.top + mr.bottom) / 2 }; });
+    ok(!hq || (Math.abs(hq.pin - hq.strip) < 10 && Math.abs(hq.pin - hq.phone) > 30), 'HQ sits in the middle of the visible map, not of the phone' + (hq ? ` (pin ${hq.pin.toFixed(0)}, strip ${hq.strip.toFixed(0)}, phone ${hq.phone.toFixed(0)})` : ' · no tiles'));
     // satellite imagery: the typeahead shows the property each candidate would pin
     await p.fill('#addr', 'Ridgecrest'); await p.waitForSelector('#sugg [data-i]'); await p.waitForTimeout(3000);
     ok((await p.locator('#sugg [data-i] .sgt .satimg.on').count()) === (await p.locator('#sugg [data-i]').count()), 'every address suggestion carries satellite imagery of that property');
     await p.fill('#addr', '');
+    // This is a California unit, so the geocoders are bounded to the state and
+    // the bound is enforced again on what they return — Photon treats a bbox as
+    // a bias and will otherwise answer a street query with Nevada.
+    const inState = await p.evaluate(() => GEO.suggest('100 main st'));
+    ok(inState.length > 0 && inState.every(r => r.lat > 32.5 && r.lat < 42.1 && r.lon > -124.5 && r.lon < -114.1), `every suggestion is a California address (${inState.length})`);
+    ok((await p.evaluate(() => GEO.suggest('Mizpah Hotel Tonopah Nevada').then(r => r.length))) === 0, 'an out-of-state address is not offered at all');
     // add three stops by typing
     for (const q of ['Ridgecrest', 'Eldridge', 'Wolfback']) { await p.fill('#addr', q); await p.waitForSelector('#sugg [data-i]'); await p.keyboard.press('Enter'); await p.waitForTimeout(150); }
     ok((await p.locator('[data-pin]').count()) === 3 && (await p.locator('.srow').count()) === 3, 'three addresses → three pins and three rows');
@@ -40,6 +61,12 @@ const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: P
     await p.click('#basemap'); await p.waitForTimeout(400);
     // open the demo stop
     await p.click('.srow:has-text("Ridgecrest")'); await p.waitForSelector('.sat'); ok((await p.locator('.hint').count()) === 1 && (await p.locator('.docbtn').count()) === 0, 'location home: empty today, no documents yet');
+    // Waiting on imagery shows a skeleton. The stylised parcel is a drawing of
+    // ground nobody has seen, and while it filled the wait it could not be told
+    // apart from the real thing — it is now kept for the one case it is honest
+    // about, every provider having failed.
+    ok((await p.locator('.sat .satimg .satskel').count()) === 1 && (await p.evaluate(() => getComputedStyle(document.querySelector('.sat .satsketch')).opacity)) === '0',
+      'the lot view waits on a skeleton, not on the stylised parcel');
     await p.waitForSelector('.sat .satimg.on', { timeout: 25000 });
     ok(/Esri|USGS/.test(await p.textContent('.sat .scred')), 'the parcel view is satellite imagery of the address, credited to its source');
     ok((await p.locator('.sat .zr').count()) === 0 && /50 ft/.test(await p.textContent('.sat .sbar')), 'opens on the parcel: plain imagery and a scale bar to match');
@@ -47,11 +74,54 @@ const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: P
     ok((await p.locator('.sat .zr').count()) === 2 && /150 ft/.test(await p.textContent('.sat .sbar')), 'the 100 ft zone view brings the defensible-space rings in, drawn to scale');
     await p.click('[data-sz="block"]'); await p.waitForTimeout(400);
     ok((await p.locator('.sat .zr').count()) === 0, 'the block view is plain imagery too — no rings');
-    await p.click('[data-sz="parcel"]'); await p.waitForTimeout(400);
-    await p.click('[data-tab="history"]'); await p.waitForSelector('[data-hist]'); ok((await p.locator('[data-hist]').count()) === 4, 'history lists four past inspections'); await p.click('[data-hist] >> nth=0'); await p.waitForSelector('.ban.snap'); ok((await p.locator('.pip').count()) === 1 && (await p.locator('.entry .x').count()) === 0, 'history snapshot is read-only with its pips'); await p.click('#exitSnap'); await p.click('[data-tab="today"]');
+    // Esri answers must-revalidate, so every rebuilt screen used to re-ask for
+    // the frame it was already showing. Frames are kept for the session now:
+    // coming back to the parcel view paints it in the same frame, silently.
+    const asked = frames.length;
+    await p.click('[data-sz="parcel"]'); await p.waitForTimeout(900);
+    ok(frames.length === asked && (await p.locator('.sat .satimg.on').count()) === 1 && (await p.locator('.sat .satimg .satskel').count()) === 0,
+      `ground already fetched comes back with no request and no skeleton (${asked} → ${frames.length})`);
+    await p.click('[data-tab="history"]'); await p.waitForSelector('[data-hist]'); ok((await p.locator('[data-hist]').count()) === 4, 'history lists four past inspections'); await p.click('[data-hist] >> nth=0'); await p.waitForSelector('.ban.snap'); ok((await p.locator('.pip').count()) === 1 && (await p.locator('.entry .x').count()) === 0, 'history snapshot is read-only with its pips');
+    // A pip is where the inspector was standing when they wrote the entry, so it
+    // has to read as this property. The scatter used to cover a frontage and a
+    // half, which on a suburban lot is the neighbour's yard.
+    const paces = await p.evaluate(() => { const you = document.querySelector('.satover .you'); if (!you) return [];
+      const yx = +you.getAttribute('cx'), yy = +you.getAttribute('cy'), span = SAT.spanOf(S.satZoom);
+      return [...document.querySelectorAll('.satover .pip circle:nth-child(2)')].map(c => Math.hypot(+c.getAttribute('cx') - yx, +c.getAttribute('cy') - yy) / 100 * span); });
+    ok(paces.length > 0 && Math.max(...paces) < 14, `every pip is within a few paces of "you are here" (worst ${Math.max(...paces, 0).toFixed(1)} m)`); await p.click('#exitSnap'); await p.click('[data-tab="today"]');
+    // The one pip on this snapshot proves the projection; the whole seeded set
+    // proves the scatter, standing positions included, fits inside one lot.
+    const lot = await p.evaluate(() => { const g = [].concat(POS, ...Object.values(HISTORY).map(ds => ds.map(d => d.entries.map(e => e.geo)).flat()));
+      let worst = 0; g.forEach(a => g.forEach(b => { worst = Math.max(worst, Math.hypot(a[0] - b[0], a[1] - b[1]) / 100 * PARCEL_M); })); return worst; });
+    ok(lot < 20, `every seeded pip and standing position fits inside one lot (widest spread ${lot.toFixed(1)} m)`);
+    // The geocoded point is a pin on the street. The lot view can be dragged off
+    // it to frame the house and the slope behind it, and where it is left is
+    // where that property opens next time.
+    const hero = await p.locator('#sathero').boundingBox();
+    await p.mouse.move(hero.x + hero.width / 2, hero.y + hero.height / 2); await p.mouse.down();
+    await p.mouse.move(hero.x + hero.width / 2 - 70, hero.y + hero.height / 2 - 40, { steps: 12 }); await p.waitForTimeout(80); await p.mouse.up();
+    await p.waitForSelector('#satreset', { timeout: 5000 }); await p.waitForTimeout(300);
+    const framed = await p.evaluate(() => { const pan = JSON.parse(localStorage.getItem('fi3.satpan.v1') || '{}')[S.cur] || null; const t = document.querySelector('.satover .target circle');
+      return { pan, tx: +t.getAttribute('cx'), ty: +t.getAttribute('cy') }; });
+    // Pulled up and to the left, so the frame moved east and south — and the
+    // geocoded point went with the ground rather than staying on the glass.
+    ok(framed.pan && framed.pan.e > 5 && framed.pan.n < -2, 'the drag is saved as this property\u2019s own view: ' + JSON.stringify(framed.pan));
+    ok(Math.abs(framed.tx - 50) > 3 || Math.abs(framed.ty - 50) > 3, `the geocoded point moves off centre with the frame (${framed.tx.toFixed(0)}, ${framed.ty.toFixed(0)})`);
+    await p.click('[data-back]'); await p.waitForSelector('#addr'); await p.click('.srow:has-text("Ridgecrest")'); await p.waitForSelector('.sat');
+    ok((await p.locator('#satreset').count()) === 1, 'the property reopens on the frame that was saved for it');
+    await p.click('#satreset'); await p.waitForTimeout(400);
+    ok((await p.locator('#satreset').count()) === 0 && (await p.evaluate(() => !Object.keys(JSON.parse(localStorage.getItem('fi3.satpan.v1') || '{}')).length)), 'recentre puts the frame back on the pin and forgets the offset');
     // new entry: photo + voice memo
     await p.click('#newEntry'); await p.waitForSelector('#shutter'); await p.click('#shutter'); await p.waitForTimeout(600); ok(await p.locator('#cam.snap').count() === 1, 'shutter opens the memo bar'); await p.click('#retake'); await p.waitForTimeout(300); ok(await p.locator('#cam.snap').count() === 0, 'retake returns to viewfinder'); await p.click('#shutter'); await p.waitForTimeout(900);
-    await hold('#pill', 2600); await p.waitForTimeout(700); ok(await p.locator('.sheet2.type').count() === 1 && /Ladder fuels/.test(await p.inputValue('#memo')), 'hold-to-speak transcribes into the editable memo');
+    // Hold to speak opens the real microphone. Chromium is given test_memo.wav
+    // as its capture device (see the launch args), so what follows is the whole
+    // path: getUserMedia, a MediaRecorder clip, /api/transcribe, the model. The
+    // assertion is on words that are actually in that recording — there is no
+    // fixture transcript left in the app to fall back on.
+    const spoke = await (async () => { await hold('#pill', 6200); await p.waitForSelector('.sheet2.type', { timeout: 60000 }); await p.waitForTimeout(400); return p.inputValue('#memo'); })();
+    ok(/ladder fuel/i.test(spoke) && /30 ?ft/i.test(spoke), 'hold to speak records the microphone and the model transcribes it: ' + JSON.stringify(spoke.slice(0, 60)));
+    ok(await p.evaluate(() => !VOICE.active()), 'the microphone is closed again on release');
+    ok(await p.evaluate(() => !!(S.draft && S.draft.spoken && S.draft.clip && S.draft.clip.data.length > 1000)), 'the recording itself is kept with the entry');
     // The boxes are the model's reading of this photograph, so they land when
     // it answers rather than on a timer, and the record opens shortly after
     // the last one. Sampling the overlay at a fixed moment races that; watch

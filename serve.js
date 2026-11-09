@@ -1,4 +1,4 @@
-// The local host: static files out of public/, and the three API endpoints.
+// The local host: static files out of public/, and the four API endpoints.
 //
 // The endpoints themselves live in ai/api.js, shared with the Vercel functions
 // in api/, so there is one implementation and local and deployed behaviour
@@ -21,7 +21,8 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 
 const json = (res, status, obj) => { const b = JSON.stringify(obj); res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': Buffer.byteLength(b) }); res.end(b); };
 
-// A record posts the entry photograph with the note, base64 in the JSON body —
+// A record posts the entry photograph with the note, and a dictated memo posts
+// the recording, both base64 in the JSON body —
 // 100–250 KB for the 1024 px copy, against a context that was already most of
 // the old 1 MB ceiling. Headroom rather than a tight fit: the ceiling is here
 // to stop a runaway upload, not to size a normal one. Vercel allows 100 MB, so
@@ -41,7 +42,7 @@ async function route(req, res, p) {
     return json(res, status, body);
   }
 
-  const run = p === '/api/draft' ? api.draft : p === '/api/visual' ? api.illustrate : null;
+  const run = p === '/api/draft' ? api.draft : p === '/api/visual' ? api.illustrate : p === '/api/transcribe' ? api.transcribe : null;
   if (!run) return json(res, 404, { error: 'no such endpoint' });
   if (req.method !== 'POST') return json(res, 405, { error: 'POST only' });
   let ctx;

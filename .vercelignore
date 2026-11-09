@@ -8,6 +8,8 @@
 /build_spec.js
 /serve.js
 /ai/check.js
+# The spoken note the microphone tests play into Chromium.
+/test_memo.wav
 /*.md
 # The 3.8 MB ordinance PDF is kept in the repository as the provenance of
 # ai/codes.js. It is not served, here or locally.
