@@ -9,7 +9,11 @@
 //
 // Needs the server running with a GEMINI_API_KEY. Without a key it still runs,
 // and asserts the fallback path instead (template text, clearly marked).
-const PORT = process.argv[2] || 8956;
+// Billed: one live transcription, six text drafts and two decks of annotated
+// photos. Disabled unless asked for with --live; see test_guard.js.
+const gate = require('./test_guard');
+gate('test_ai.js', 'drafts four records, a report and a notice');
+const PORT = gate.port();
 
 (async () => {
   let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };

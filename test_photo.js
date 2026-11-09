@@ -6,7 +6,12 @@
 // never there. These tests say a photo is now a photo — one the browser
 // decoded, upright, size-capped, and carried through to the saved entry.
 const fs = require('fs'), os = require('os'), path = require('path');
-const PORT = process.argv[2] || 8956;
+// Billed: one text draft, and — because its memo classifies the entry as a
+// violation — one deck of annotated photos it never looks at. Disabled unless
+// asked for with --live; see test_guard.js.
+const gate = require('./test_guard');
+gate('test_photo.js', 'saves a photographed violation entry');
+const PORT = gate.port();
 
 // A phone photo as a phone writes one: landscape pixels with Orientation=6
 // saying "display this rotated a quarter turn", and a DateTimeOriginal. Bands

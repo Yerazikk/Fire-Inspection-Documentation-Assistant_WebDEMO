@@ -9,7 +9,12 @@
 //
 // Without a key the image calls fail; the queue still runs and every card ends
 // up in the failed state, which is also worth asserting.
-const PORT = process.argv[2] || 8956;
+// Billed: three text drafts and one deck of annotated photos — the only test
+// whose spend is the thing under test. Disabled unless asked for with --live;
+// see test_guard.js.
+const gate = require('./test_guard');
+gate('test_visual.js', 'draws a deck of annotated recommendation photos');
+const PORT = gate.port();
 
 (async () => {
   let fails = 0;

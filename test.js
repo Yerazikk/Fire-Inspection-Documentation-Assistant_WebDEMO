@@ -1,5 +1,9 @@
 // node test.js [port] — walks the V3 interaction system end to end in Chrome via Playwright
-const http = require('http'); const PORT = process.argv[2] || 8956;
+// Billed: two live transcriptions, four text drafts and two decks of annotated
+// photos. Disabled unless asked for with --live; see test_guard.js.
+const gate = require('./test_guard');
+gate('test.js', 'walks two photographed violation entries and the wrap-up');
+const http = require('http'); const PORT = gate.port();
 const get = p => new Promise((res, rej) => http.get({ host: 'localhost', port: PORT, path: p }, r => { let b = ''; r.on('data', d => b += d); r.on('end', () => res({ status: r.statusCode, body: b })); }).on('error', rej));
 (async () => { let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
   const idx = await get('/'); ok(idx.status === 200 && /Vegetation Inspection · V3/.test(idx.body), 'index served');
