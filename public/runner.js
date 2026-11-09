@@ -1,15 +1,21 @@
 // Executes PROMPTS against the live UI with a visible cursor. Manual tapping keeps working in between.
 (function () {
-  const phone = document.querySelector('.phone'); const cur = document.createElement('div'); cur.className = 'cursor'; phone.appendChild(cur); const sayEl = document.createElement('div'); sayEl.className = 'rsay'; phone.appendChild(sayEl);
+  const phone = document.querySelector('.phone'); const cur = document.createElement('div'); cur.className = 'cursor'; cur.innerHTML = '<i class="ping"></i>'; phone.appendChild(cur); const sayEl = document.createElement('div'); sayEl.className = 'rsay'; phone.appendChild(sayEl);
   let running = false, stopFlag = false;
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   function find(sel) { if (sel.includes(' >> ')) { const [a, b] = sel.split(' >> '); const base = b === 'last' ? [...document.querySelectorAll(a)].pop() : null; if (b === 'last') return base; const parent = find(a); return parent ? parent.querySelector(b) : null; } if (sel.includes(':has-text(')) { const m = sel.match(/^(.*?):has-text\("(.*)"\)$/); return [...document.querySelectorAll(m[1])].find(e => e.textContent.includes(m[2])) || null; } return document.querySelector(sel); }
-  async function moveTo(el) { const r = el.getBoundingClientRect(), p = phone.getBoundingClientRect(); cur.style.left = (r.left + r.width / 2 - p.left) + 'px'; cur.style.top = (r.top + r.height / 2 - p.top) + 'px'; cur.classList.add('on'); await sleep(380); }
+  function place(el, dy) { const r = el.getBoundingClientRect(), p = phone.getBoundingClientRect(); cur.style.left = (r.left + r.width / 2 - p.left) + 'px'; cur.style.top = (r.top + r.height / 2 - p.top + (dy || 0)) + 'px'; }
+  async function moveTo(el) {
+    // appear just below the target with no slide, then settle onto it — a finger arriving, not a cursor travelling
+    cur.classList.remove('on', 'pulse', 'press'); cur.style.transition = 'none'; place(el, 44); cur.getBoundingClientRect(); cur.style.transition = '';
+    place(el, 0); cur.classList.add('on'); await sleep(300);
+  }
+  async function pulseAway(ms) { cur.classList.add('pulse'); await sleep(ms == null ? 160 : ms); cur.classList.remove('on'); await sleep(220); cur.classList.remove('pulse', 'press'); }
   const pointer = (el, type, extra = {}) => { const r = el.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2; el.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, isPrimary: true, pointerType: 'touch', button: 0, ...extra })); return { x, y }; };
-  async function tap(el) { await moveTo(el); cur.classList.add('press'); pointer(el, 'pointerdown'); await sleep(60); pointer(el, 'pointerup'); el.click && el.click(); await sleep(120); cur.classList.remove('press'); }
-  async function hold(el, ms) { await moveTo(el); cur.classList.add('press'); pointer(el, 'pointerdown'); await sleep(ms); pointer(el, 'pointerup'); cur.classList.remove('press'); }
-  async function type(el, text) { await moveTo(el); el.focus(); const setter = Object.getOwnPropertyDescriptor(el.__proto__, 'value').set; setter.call(el, ''); el.dispatchEvent(new Event('input', { bubbles: true })); for (let i = 1; i <= text.length; i++) { setter.call(el, text.slice(0, i)); el.dispatchEvent(new Event('input', { bubbles: true })); await sleep(text.length > 40 ? 12 : 28); } }
-  async function fill(el, text) { await moveTo(el); el.focus(); el.textContent = text; el.dispatchEvent(new Event('input', { bubbles: true })); }
+  async function tap(el) { await moveTo(el); cur.classList.add('press'); pointer(el, 'pointerdown'); await sleep(60); pointer(el, 'pointerup'); el.click && el.click(); await pulseAway(); }
+  async function hold(el, ms) { await moveTo(el); cur.classList.add('press'); pointer(el, 'pointerdown'); await sleep(ms); pointer(el, 'pointerup'); await pulseAway(); }
+  async function type(el, text) { await moveTo(el); cur.classList.add('press'); await sleep(60); el.focus(); await pulseAway(120); const setter = Object.getOwnPropertyDescriptor(el.__proto__, 'value').set; setter.call(el, ''); el.dispatchEvent(new Event('input', { bubbles: true })); for (let i = 1; i <= text.length; i++) { setter.call(el, text.slice(0, i)); el.dispatchEvent(new Event('input', { bubbles: true })); await sleep(text.length > 40 ? 12 : 28); } }
+  async function fill(el, text) { await moveTo(el); cur.classList.add('press'); await sleep(60); el.focus(); await pulseAway(120); el.textContent = text; el.dispatchEvent(new Event('input', { bubbles: true })); }
   async function waitFor(sel, ms = 8000) { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (stopFlag) throw new Error('stopped'); const el = find(sel); if (el && el.offsetParent !== null) return el; await sleep(80); } throw new Error('not found: ' + sel); }
   function say() {} function sayErr(t) { sayEl.textContent = t; sayEl.classList.add('on'); setTimeout(() => sayEl.classList.remove('on'), 2600); }
   async function run(steps, btn) { if (running) return; running = true; stopFlag = false; btn && btn.classList.add('running'); document.getElementById('stopRun').style.display = ''; document.getElementById('raillist').querySelectorAll('.pbtn').forEach(b => { if (b !== btn) b.disabled = true; }); 
