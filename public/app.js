@@ -25,7 +25,7 @@ function img(src, ph) { return `<img src="${src}" onerror="this.style.display='n
 
 // ---------------- state ----------------
 const fresh = () => ({ screen: 'map', stack: [], stops: [], done: new Set(), sel: null, sheet: 'half', entries: {}, ver: {}, cur: null, tab: 'today', snapshot: null,
-  route: null, best: null, plan: null, routing: false,
+  
   draft: null, rec: null, recDirty: false, deck: null, report: {}, notice: {}, wobble: false, posIdx: 0, menu: false, days: { q: '', cal: false },
   satZoom: 'parcel', basemap: 'sat' });
 let S = fresh();
@@ -39,7 +39,16 @@ const bump = id => { S.ver[id] = (S.ver[id] || 0) + 1; };
 // nobody can see — the one state this must never be left in.
 function go(screen, opts = {}) { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); if (!opts.replace) S.stack.push(S.screen); S.screen = screen; S.wobble = false; render(); }
 function back() { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); const prev = S.stack.pop() || 'map'; S.screen = prev; S.wobble = false; render(); }
-function render() { const app = $('#app'); app.innerHTML = VIEWS[S.screen](); app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard()); AFTER[S.screen] && AFTER[S.screen](); renderHelp(); window.renderRail && renderRail(); const v = $('#view'); if (v) v.scrollTop = 0; }
+let lastScreen = null;
+function render() { const app = $('#app');
+  if (S.screen === 'map' && lastScreen === 'map' && $('#map') && LWRAP && LWRAP.parentElement === $('#map') && $('#sheet')) {
+    // the map stays put; only the sheet (and its wiring) is rebuilt
+    const tmp = document.createElement('div'); tmp.innerHTML = VIEWS.map();
+    const fresh = tmp.querySelector('#sheet'); if (fresh) $('#sheet').replaceWith(fresh);
+    AFTER.map(); renderHelp(); window.renderRail && renderRail(); return;
+  }
+  lastScreen = S.screen;
+  app.innerHTML = VIEWS[S.screen](); app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard()); AFTER[S.screen] && AFTER[S.screen](); renderHelp(); window.renderRail && renderRail(); const v = $('#view'); if (v) v.scrollTop = 0; }
 function backWithGuard() { if (S.screen === 'record' && S.recDirty) { confirmSheet('Save this entry?', 'You have unsaved changes to this record.', [{ label: 'Discard', cls: 'danger', fn: () => { S.rec = null; S.recDirty = false; back(); } }, { label: 'Keep editing', cls: 'ghost' }, { label: 'Save', fn: saveRecord }]); return; }
   if (S.screen === 'camera' && S.draft && (S.draft.photo || S.draft.memo)) { confirmSheet('Leave without saving?', 'The photo and memo for this entry will be discarded.', [{ label: 'Discard', cls: 'danger', fn: () => { S.draft = null; back(); } }, { label: 'Stay', cls: 'ghost' }]); return; }
   back(); }
@@ -75,7 +84,7 @@ function restoreLookups() {
       source: l.source || 'geocoded', owner: { name: 'Owner of record', email: '' } }));
   });
 }
-const atStreet = 'house number not in OpenStreetMap — pinned on the street';
+const atStreet = 'approximate · street only';
 const lookupSub = l => `${l.where ? l.where + ' · ' : ''}looked up ${l.count}× · last ${relDay(l.last)}${(addrOf(l.id) || {}).approx ? ' · street-level' : ''}`;
 const localSub = a => S.stops.includes(a.id) ? 'already on today’s route'
   : (HISTORY[a.id] || []).length ? 'last inspected ' + fmtDate(HISTORY[a.id][0].date)
@@ -85,70 +94,50 @@ const approxNote = id => (addrOf(id) || {}).approx ? ` · ${atStreet}` : '';
 
 // ---- what OSRM says about the order on screen ----
 let routeToken = 0, rowDragging = false;
-async function syncRoute(force) {
-  const ids = S.stops.slice();
-  // Only a call that actually starts a request may claim the token. Taking it
-  // on every call orphaned the reply to a request already in flight — any
-  // re-render of the map while the route was being timed (re-adding a stop
-  // already on the list, switching basemap) left it pending for good.
-  if (!ids.length) { routeToken++; S.route = null; paintRoute(); return; }
-  if (S.route && S.route.ids.join() === ids.join() && !force) { paintRoute(); return; }
-  const tk = ++routeToken;
-  S.route = { ids, pending: true, error: null, line: S.route && S.route.line, duration: 0, distance: 0, legs: [] };
-  paintRoute();
-  let next;
-  try {
-    const r = await GEO.road([CONFIG.station, ...ids.map(addrOf)].map(ptOf));
-    next = { ids, pending: false, error: null, line: r.line, duration: r.duration, distance: r.distance, legs: r.legs };
-  } catch (e) {
-    next = { ids, pending: false, error: e.message, line: null, duration: 0, distance: 0, legs: [] };
-  }
-  if (tk !== routeToken) return;
-  S.route = next; paintRoute();
-}
+const bornPins = new Map();   // pin → when it first landed; repaints inside the first second resume its arrival, later ones skip it
 
-function routeStat() {
-  const r = S.route;
-  if (!S.stops.length) return '';   // the HQ line above and the hint below already say it
-  if (!r || r.pending) return `<span class="dim">Timing the drive on real roads…</span>`;
-  if (r.error) return `<span class="warn">Road network unreachable</span> <span class="dim">${esc(r.error)}</span><button class="mini" id="retry">Retry</button>`;
-  const head = `<b>${GEO.fmtTime(r.duration)}</b> driving · ${GEO.fmtDist(r.distance)} · from ${esc(CONFIG.station.name)}`;
-  const b = S.best;
-  if (!b) return head;
-  if (b.order.join() !== S.stops.join()) return head + `<br><span class="dim">Fastest order found was ${GEO.fmtTime(b.cost)} — tap ✦ to put it back.</span>`;
-  const saved = b.baseline - b.cost;
-  const how = b.method === 'exhaustive' ? `Fastest of all ${GEO.fmtNum(b.total)} orders` : b.method === 'exact' ? `Fastest of all ${GEO.fmtNum(b.total)} orders (exact)` : `Best of ${GEO.fmtNum(b.tried)} orders tried`;
-  return head + `<br><span class="good">${how}${saved > 45 ? ' · ' + GEO.fmtTime(saved) + ' faster than the order you typed' : ''}</span>`;
-}
-function planHTML() {
-  if (!S.plan || !S.plan.length) return '';
-  return `<div class="plan">${S.plan.map(l => `<div class="pl ${l.state}"><span>${l.state === 'go' ? '⟳' : l.state === 'bad' ? '✕' : '✓'}</span><div>${l.txt}</div></div>`).join('')}</div>`;
-}
 
 // ---- the map canvas: Leaflet over OSM tiles, with the stylised map as fallback ----
 let LWRAP = null, LMAP = null, LART = null, LBASE = null, LCRED = null, LCREDTXT = '', lastFit = '';
+let LFOCUS = null, focusKey = '';   // the one set of corner brackets: HQ until an address lands, then the newest (or selected) stop
+let kbWired = false, mapBorn = 0, openingZoom = false;
+const canAnimate = () => Date.now() - mapBorn > 1200;
 function mountMap() {
+  if (!kbWired) { kbWired = true; const ph = document.querySelector('.phone'); ph && ph.addEventListener('kb', () => later(() => { if (canAnimate() && !S.sel) fitMap(true); }, 380)); }
   const host = $('#map'); if (!host) return;
   if (!window.L) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); return; }
   if (!LWRAP) {
     LWRAP = document.createElement('div'); LWRAP.className = 'lmap'; host.appendChild(LWRAP);
-    LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: .25, inertia: false });
+    LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: .25, inertia: false, wheelPxPerZoomLevel: 40, wheelDebounceTime: 20 });   // 50% more wheel sensitivity than Leaflet’s default 60px/level
     // Two basemaps, both keyless. Esri World Imagery to see the vegetation on
     // the way in; standard OSM raster, inverted in CSS (.leaflet-tile-pane) to
     // sit under the dark UI, to read the street the route turns on.
     LBASE = {
-      sat: L.tileLayer(SAT.TILES, { maxZoom: 19 }),
-      map: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
+      // crossOrigin → CORS responses, which the tile service worker can cache compactly; keepBuffer keeps more tiles mounted around the view
+      sat: L.tileLayer(SAT.TILES, { maxZoom: 19, crossOrigin: 'anonymous', keepBuffer: 4 }),
+      map: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, crossOrigin: 'anonymous', keepBuffer: 4 }),
     };
     // Top-right: the sheet covers the bottom of the map, and the attribution
     // has to stay visible.
-    LCRED = L.control.attribution({ prefix: false, position: 'topright' }).addTo(LMAP);
+    LCRED = null;   // no credit strip on the map
     setBasemap();
-    LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 12.5);
+    mapBorn = Date.now(); LFOCUS = null; focusKey = '';
     LART = L.layerGroup().addTo(LMAP);
+    // Size the canvas now (the host is already laid out) so the very first view
+    // can be the strip-centred one — no frame ever shows HQ in the container's middle.
+    LMAP.invalidateSize({ animate: false });
+    LMAP.setView([CONFIG.station.lat, CONFIG.station.lon], 12, { animate: false });
+    LMAP.on('zoomend', () => { if (S.screen === 'map') paintMap(); });
+    LMAP.on('click', () => { if (S.sel && S.screen === 'map') { S.sel = null; render(); } });
     // The canvas has no size until invalidateSize() below, so the first frame is
-    // placed once it has one.
-    requestAnimationFrame(() => { if (LMAP && S.screen === 'map') fitMap(true); });
+    // placed once it has one — instantly, then a straight zoom down onto HQ.
+    if (S.stops.length) { fitMap(true); }
+    else {
+      const hq = L.latLng(CONFIG.station.lat, CONFIG.station.lon);
+      openingZoom = true;
+      centreOn(hq.lat, hq.lng, 12, false);
+      LMAP.whenReady(() => setTimeout(() => { openingZoom = false; if (!LMAP || S.screen !== 'map') return; if (S.stops.length) { fitMap(true); return; } LMAP.setZoomAround(hq, 13, { animate: true, duration: .8, easeLinearity: .2 }); LMAP.once('zoomend', () => { lastFit = ''; }); }, 160));
+    }
   } else if (LWRAP.parentElement !== host) host.appendChild(LWRAP);
   LMAP.invalidateSize();
   paintMap();
@@ -158,40 +147,44 @@ function mountMap() {
 function setBasemap() {
   if (!LBASE) return;
   const sat = S.basemap === 'sat';
-  Object.keys(LBASE).forEach(k => { const on = (k === 'sat') === sat; if (on) LBASE[k].addTo(LMAP); else LMAP.removeLayer(LBASE[k]); });
+  // both basemaps stay mounted so their tiles are always loaded; the toggle is an instant crossfade
+  Object.keys(LBASE).forEach(k => { const on = (k === 'sat') === sat; if (!LMAP.hasLayer(LBASE[k])) LBASE[k].addTo(LMAP); LBASE[k].setOpacity(on ? 1 : 0); LBASE[k].setZIndex(on ? 2 : 1); });
   LWRAP.classList.toggle('imagery', sat);
-  const txt = (sat ? SAT.creditShort : '© OpenStreetMap') + ' · roads and times via OSRM';
-  if (LCREDTXT) LCRED.removeAttribution(LCREDTXT);
-  LCRED.addAttribution(txt); LCREDTXT = txt;
+  const txt = (sat ? SAT.creditShort : '© OpenStreetMap');
+  if (LCRED) { if (LCREDTXT) LCRED.removeAttribution(LCREDTXT); LCRED.addAttribution(txt); } LCREDTXT = txt;
 }
 function paintMap() {
   if (S.screen !== 'map') return;
   if (!LMAP) { const host = $('#map'); if (host) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); } return; }
   LART.clearLayers();
-  const st = CONFIG.station, r = S.route;
-  if (r && r.line) {                       // the actual roads, as driven
-    L.polyline(r.line, { color: '#061019', weight: 9, opacity: .85, lineCap: 'round', lineJoin: 'round' }).addTo(LART);
-    L.polyline(r.line, { color: '#35e0ff', weight: 4, opacity: .95, lineCap: 'round', lineJoin: 'round' }).addTo(LART);
-  } else if (S.stops.length) {             // waiting on OSRM: straight hint lines
-    L.polyline([[st.lat, st.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })],
-      { color: '#35e0ff', weight: 2, opacity: .4, dashArray: '5 7' }).addTo(LART);
-  }
-  const mk = (lat, lon, cls, txt, title) => L.marker([lat, lon], { icon: L.divIcon({ className: 'lpin ' + cls, html: `<i></i><b>${txt}</b>`, iconSize: [34, 34], iconAnchor: [17, 17] }), keyboard: false, title, riseOnHover: true }).addTo(LART);
-  mk(st.lat, st.lon, 'station', 'HQ', st.name + ' · ' + st.addr);
+  const st = CONFIG.station;
+  const mk = (lat, lon, cls, txt, title, key) => { const born = key ? bornPins.get(key) : null; const age = born ? Date.now() - born : 0; const settled = born && age > 900; const resume = born && !settled ? ` style="animation-delay:-${age}ms"` : '';
+    return L.marker([lat, lon], { icon: L.divIcon({ className: 'lpin ' + cls + (settled ? ' settled' : ''), html: `<i${resume}></i><b>${txt}</b>`, iconSize: [34, 34], iconAnchor: [17, 17] }), keyboard: false, title, riseOnHover: true }).addTo(LART); };
+  if (!bornPins.has('hq')) bornPins.set('hq', Date.now()); const hqm = mk(st.lat, st.lon, 'station' + (S.sel === 'hq' ? ' sel' : ''), 'HQ', st.name + ' · ' + st.addr, 'hq'); hqm.on('click', () => selectStop('hq'));
   S.stops.forEach((id, i) => {
     const a = addrOf(id), done = S.done.has(id);
-    const m = mk(a.lat, a.lon, (done ? 'done ' : '') + (S.sel === id ? 'sel' : ''), done ? '✓' : i + 1, a.addr);
+    const m = mk(a.lat, a.lon, (done ? 'done ' : '') + (S.sel === id ? 'sel' : ''), done ? '✓' : i + 1, a.addr, id); if (!bornPins.has(id)) bornPins.set(id, Date.now());
     m.on('click', () => selectStop(id));
     const el = m.getElement(); if (el) el.setAttribute('data-pin', id);
   });
+  paintFocus();
   fitMap();
 }
 // The map canvas is the whole phone, but most of the bottom of it is under the
 // sheet and the top under the controls. Everything that frames or centres has
 // to work in the strip that is actually visible, which is what these are.
 function mapPad() {
-  const sheet = $('#sheet');
-  return { top: 110, bottom: (sheet ? sheet.offsetHeight : 320) + 20, left: 44, right: 44 };
+  const sheet = $('#sheet'), host = sheet && sheet.parentElement, order = $('#order');
+  if (!sheet || !host) return { top: 150, bottom: 380, left: 70, right: 70 };
+  const phone = host.closest('.phone'); const kb = phone && phone.classList.contains('kb') && !S.sel ? parseFloat(getComputedStyle(phone).getPropertyValue('--kb')) || 0 : 0;
+  const real = Math.max(0, kb ? sheet.offsetHeight + kb : host.offsetHeight - sheet.offsetTop);
+  // the half sheet is a square map plus chrome; frame for it whenever there are stops so a tap never moves the map
+  const previewCover = Math.round((host.offsetWidth - 36) / 2.4) + 176;
+  const covered = S.stops.length ? Math.max(real, previewCover) : real;
+  const ob = order && !order.classList.contains('empty') ? order.offsetTop + order.offsetHeight : 0;
+  // a short list pads the top; a long one pads the right so the route keeps the left two thirds
+  const tall = ob > host.offsetHeight * .42;
+  return { top: tall ? 150 : Math.max(150, ob + 16), bottom: covered + 96, left: 70, right: tall && order ? order.offsetWidth + 30 : 70 };
 }
 // Put a coordinate in the middle of the visible strip rather than the middle of
 // the container. Centring on the container put HQ behind the sheet: on screen it
@@ -202,36 +195,52 @@ function centreOn(lat, lon, zoom, animate) {
   // A point renders at (container centre + P - C). Wanting it at the centre of
   // the strip, which is (top - bottom) / 2 below the container centre, fixes C.
   const c = LMAP.project([lat, lon], z).subtract([(p.left - p.right) / 2, (p.top - p.bottom) / 2]);
-  LMAP.setView(LMAP.unproject(c, z), z, { animate: !!animate });
+  LMAP.setView(LMAP.unproject(c, z), z, { animate: !!animate && canAnimate() });
 }
 function fitMap(force) {
-  if (!LMAP) return;
+  if (!LMAP || openingZoom) return;
   const pad = mapPad();
-  const key = S.stops.join('|') + '#' + (S.route && S.route.line ? S.route.line.length : 0) + '#' + pad.bottom;
+  const key = S.stops.join('|') + '#' + pad.bottom;
   if (key === lastFit && !force) return;
   lastFit = key;
   if (!S.stops.length) { centreOn(CONFIG.station.lat, CONFIG.station.lon, 13, true); return; }
   const pts = [[CONFIG.station.lat, CONFIG.station.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })];
-  LMAP.fitBounds(L.latLngBounds(S.route && S.route.line ? S.route.line.concat(pts) : pts),
-    { paddingTopLeft: [pad.left, pad.top], paddingBottomRight: [pad.right, pad.bottom], maxZoom: 16, animate: true });
+  LMAP.fitBounds(L.latLngBounds(pts),
+    { paddingTopLeft: [pad.left, pad.top], paddingBottomRight: [pad.right, pad.bottom], maxZoom: 16, animate: canAnimate() });
 }
 function paintRoute() {
   if (S.screen !== 'map') return;
-  if (S.best && S.best.set !== setKey(S.stops)) S.best = null;
-  const meta = $('#rmeta'), stat = $('#rstat'), rows = $('#rows');
-  if (meta) meta.textContent = S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr;
-  if (stat) { stat.innerHTML = routeStat(); const rt = $('#retry'); if (rt) rt.onclick = () => syncRoute(true); }
-  if (rows && !rowDragging) { rows.innerHTML = stopRows(); wireRows(); }
+  const rows = $('#rows'); if (rows) { rows.innerHTML = stopRows(); wireRows(); }
   paintMap();
 }
 
+// The corners are a single "you are here" mark. They sit on HQ until the first
+// address lands, then glide to whichever stop was added or tapped last; one
+// place at a time ever wears them.
+function focusTarget() {
+  const id = S.sel === 'hq' ? null : (S.sel && S.stops.includes(S.sel)) ? S.sel : S.stops[S.stops.length - 1];
+  if (!id) return { lat: CONFIG.station.lat, lon: CONFIG.station.lon, kind: 'station', key: 'hq' };
+  const a = addrOf(id); return { lat: a.lat, lon: a.lon, kind: S.done.has(id) ? 'done' : 'stop', key: id };
+}
+function paintFocus() {
+  if (!LMAP) return;
+  const f = focusTarget();
+  if (!LFOCUS) { LFOCUS = L.marker([f.lat, f.lon], { icon: L.divIcon({ className: 'lfocus', html: '<i></i>', iconSize: [34, 34], iconAnchor: [17, 17] }), interactive: false, keyboard: false, zIndexOffset: 1000 }).addTo(LMAP); focusKey = f.key; }
+  const el = LFOCUS.getElement(); if (!el) return;
+  el.dataset.kind = f.kind;
+  if (f.key !== focusKey) {
+    focusKey = f.key;
+    el.classList.add('glide'); LFOCUS.setLatLng([f.lat, f.lon]);
+    const i = el.querySelector('i'); i.classList.remove('lock'); void i.offsetWidth; i.classList.add('lock');
+    setTimeout(() => el.classList.remove('glide'), 650);
+  }
+}
 // Fallback map, used only when Leaflet or the tiles cannot load. The route is
 // the real road geometry, projected into the stylised 0–100 space.
 function mapSVG() {
   const st = CONFIG.station;
   const proj = (lat, lon) => { const p = toMapXY(lat, lon); return p.x.toFixed(2) + ',' + p.y.toFixed(2); };
-  const line = S.route && S.route.line ? S.route.line.map(p => proj(p[0], p[1])).join(' ')
-    : [st, ...S.stops.map(addrOf)].map(a => a.x.toFixed(2) + ',' + a.y.toFixed(2)).join(' ');
+  const line = [st, ...S.stops.map(addrOf)].map(a => a.x.toFixed(2) + ',' + a.y.toFixed(2)).join(' ');
   const streets = ['M-20 20 L130 14', 'M-20 48 L130 42', 'M-20 76 L130 70', 'M-20 -10 L130 -18', 'M-20 108 L130 100', 'M-20 136 L130 130', 'M18 -60 L24 180', 'M46 -60 L52 180', 'M74 -60 L80 180', 'M-10 -60 L-4 180', 'M102 -60 L108 180', 'M-20 60 Q 50 66 130 58'];
   return `<svg viewBox="-6 -40 112 186" preserveAspectRatio="xMidYMid slice"><rect x="-20" y="-60" width="160" height="240" fill="#0d1420"/>
   ${streets.map(d => `<path d="${d}" stroke="#161f2d" stroke-width="2.6" fill="none" stroke-linecap="round"/>`).join('')}
@@ -240,27 +249,44 @@ function mapSVG() {
   ${S.stops.map((id, i) => { const a = addrOf(id); const done = S.done.has(id); return `<g class="pin ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-pin="${id}" style="cursor:pointer"><circle class="halo" cx="${a.x}" cy="${a.y}" r="4.4"/><circle class="body" cx="${a.x}" cy="${a.y}" r="2.7" fill="${done ? '#1f6f49' : '#35e0ff'}" stroke="#0b0f17" stroke-width=".6"/><text x="${a.x}" y="${a.y + .95}" font-size="2.6" font-weight="700" fill="${done ? '#b9f5cf' : '#06101a'}" text-anchor="middle" font-family="-apple-system,sans-serif">${done ? '✓' : i + 1}</text></g>`; }).join('')}
   </svg>`;
 }
-function selectStop(id) { S.sel = id; if (S.sheet === 'peek') S.sheet = 'half'; render(); later(() => { const r = $('#sheet .srow.sel'); r && r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 60); }
+function selectStop(id) { S.sel = S.sel === id ? null : id; S.pv = 'half'; const inp = $('#addr'); if (inp) inp.blur(); render(); }
+// Street-level photos shown in the preview instead of the satellite square, when we have one.
+const STREET = { hq: 'photos/hq.jpg', '310 butterfield rd': 'photos/butterfield.jpg', '29 ridgecrest rd': 'photos/ridgecrest.jpg', '90 eldridge ave': 'photos/eldridge.jpg', '99 cloud view rd': 'photos/cloudview.jpg' };
+const streetPhoto = id => id === 'hq' ? STREET.hq : STREET[(addrOf(id).addr || '').toLowerCase().trim()];
+const streetHTML = (src, alt, cls) => src ? `<div class="sat ${cls || 'pvmap'} photo" id="${cls ? '' : 'pvmap'}"><img src="${src}" alt="${esc(alt)}" draggable="false" onerror="this.parentElement.classList.add('missing')"></div>` : `<div class="sat ${cls || 'pvmap'} photo missing" id="${cls ? '' : 'pvmap'}"></div>`;
+function previewHTML(id) {
+  if (id === 'hq') { const st = CONFIG.station, span = SAT.spanOf('block'), v = SAT.view(st.lat, st.lon, span, 640), at = v.xy(st.lat, st.lon);
+    const map = streetHTML(streetPhoto('hq'), st.name);
+    const more = `<div class="pvmore"><div class="pvstat"><span>${esc(st.addr)}</span></div>
+      <div class="lbl">Today</div><div class="pvempty" style="text-align:left;padding:6px 0">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' planned · ' + S.done.size + ' done' : 'No stops planned yet.'}</div>
+      <div class="row2 pvacts"><button class="btn" id="pvClose2">Close</button></div></div>`;
+    return `<div class="pvhead"><div class="pvtitle">${esc(st.name)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`; }
+  const a = addrOf(id), i = S.stops.indexOf(id), done = S.done.has(id), es = entriesOf(id), hist = HISTORY[id] || [];
+  const status = done ? '✓ Completed · ' + es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') : es.length ? es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' so far' : hist.length ? 'Last inspected ' + fmtDate(hist[0].date) : 'Never inspected';
+  const span = SAT.spanOf('parcel'), ctr = satCentre(id);
+  const map = streetHTML(streetPhoto(id), a.addr);
+  const more = `<div class="pvmore">
+      <div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>
+      ${es.length ? `<div class="lbl">Today</div>${es.map(e => `<div class="entry"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${kindChip(e.kind)}</div><div class="s">${esc(e.note || '')}</div></div></div>`).join('')}` : ''}
+      ${hist.length ? `<div class="lbl">History</div>${hist.map(hh => `<div class="loc" data-pvhist="${hh.date}"><div class="thumb">${satThumb(id, hh.entries)}</div><div><div class="t">${fmtDate(hh.date)}</div><div class="s">${hh.entries.length} entr${hh.entries.length === 1 ? 'y' : 'ies'} · ${esc(hh.outcome)}</div></div><div class="r">›</div></div>`).join('')}` : (es.length ? '' : '<div class="pvempty">Nothing on file for this property yet.</div>')}
+      <div class="row2 pvacts"><button class="btn ghost" id="pvRm">Remove</button><button class="btn" id="pvOpen">${done ? 'Open' : es.length ? 'Continue inspection' : 'Start inspection'}</button></div>
+    </div>`;
+  return `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`;
+}
 function wirePins() { $$('[data-pin]').forEach(p => p.onclick = () => selectStop(p.dataset.pin)); }
 
 function stopRows() {
-  if (!S.stops.length) return `<div class="hint">Type the addresses you are visiting today. They are geocoded, pinned, and timed as real drives from ${esc(CONFIG.station.name)}. California addresses only — this unit does not inspect out of state.</div>`;
-  const r = S.route;
-  const legs = (r && !r.pending && !r.error && r.ids.join() === S.stops.join()) ? r.legs : null;
-  return S.stops.map((id, i) => {
-    const a = addrOf(id), n = entriesOf(id).length, done = S.done.has(id);
-    const from = i === 0 ? CONFIG.station.name : addrOf(S.stops[i - 1]).addr;
-    const leg = legs && legs[i] ? `↳ ${GEO.fmtTime(legs[i].duration)} · ${GEO.fmtDist(legs[i].distance)} from ${esc(from)}` : '';
-    const state = (done ? 'Completed · ' + n + ' entr' + (n === 1 ? 'y' : 'ies') : n ? n + ' entr' + (n === 1 ? 'y' : 'ies') + ' so far' : 'Not started') + approxNote(id);
-    return `<div class="srow ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-id="${id}"><span class="grip">≡</span><span class="num">${done ? '✓' : i + 1}</span><div><div class="t">${esc(a.addr)}</div><div class="s">${state}</div>${leg ? `<div class="leg">${leg}</div>` : ''}</div><button class="x nav" data-nav title="Navigate in Apple Maps">➚</button><button class="x" data-x="${id}" title="Remove stop">✕</button></div>`;
-  }).join('');
+  if (!S.stops.length) return '';
+  const link = () => '<div class="cl"></div>';
+  return `<div class="cn hq" title="${esc(CONFIG.station.name)}"><i></i><b>HQ</b></div>`
+    + S.stops.map((id, i) => { const a = addrOf(id), done = S.done.has(id);
+        return link(i) + `<button class="cn ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-id="${id}" title="${esc(a.addr)}"><i></i><b>${done ? '✓' : i + 1}</b><span class="rm" data-x="${id}" title="Remove stop">✕</span></button>`; }).join('')
+    + `<div class="cl"></div><div class="cn hq dim" title="Back to ${esc(CONFIG.station.name)}"><i></i><b>HQ</b></div>`;
 }
 VIEWS = {
-  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="mtr"><div class="ib ${S.basemap === 'sat' ? 'on' : ''}" id="basemap" title="${S.basemap === 'sat' ? 'Showing satellite · switch to roads' : 'Showing roads · switch to satellite'}">◉</div><div class="ib" id="recenter" title="Fit the route">◎</div></div></div>
-  <div class="sheet ${S.sheet}" id="sheet"><div class="handle" id="handle"><i></i></div><div class="sbody"><div class="addr"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic">⌕</span><div class="sugg" id="sugg" style="display:none"></div></div>
-  <div class="routebar"><span class="meta" id="rmeta">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' · ' + S.done.size + ' done' : CONFIG.station.name + ' · ' + CONFIG.station.addr}</span><button class="btn" id="best" style="width:auto;padding:12px 16px" ${S.stops.length < 2 || S.routing ? 'disabled' : ''}>${S.routing ? '✦ Finding…' : '✦ Best route'}</button></div>
-  <div class="rstat" id="rstat">${routeStat()}</div><div id="plan">${planHTML()}</div>
-  <div id="rows">${stopRows()}</div></div></div>`,
+  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
+
+  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''}"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div></div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
     const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
@@ -275,14 +301,15 @@ VIEWS = {
 };
 AFTER = {
   map() {
-    mountMap();
-    const inp = $('#addr'), sg = $('#sugg'); const near = [CONFIG.station.lat, CONFIG.station.lon];
+    const inp = $('#addr'), sg = $('#sugg');
+    if (!S.stops.length && !inp.value && document.activeElement !== inp && !S.sel) { inp.setAttribute('autofocus', ''); inp.focus({ preventScroll: true }); }
+    mountMap(); const near = [CONFIG.station.lat, CONFIG.station.lon];
     let hl = 0, items = [], remote = [], remoteFor = null, searching = false, debT = null, qTok = 0;
 
     const addStop = id => {
       const a = addrOf(id); GEO.lookups.record(a);
       inp.value = ''; sg.style.display = 'none';
-      if (S.stops.includes(id)) { S.sel = id; render(); later(() => { const r = $('#sheet .srow.sel'); r && r.scrollIntoView({ block: 'center' }); }, 50); return; }
+      if (S.stops.includes(id)) { S.sel = id; render(); later(() => { const r = $('#order .srow.sel'); r && r.scrollIntoView({ block: 'center' }); }, 50); return; }
       S.stops.push(id); S.sel = null;
       if (S.sheet === 'peek') S.sheet = 'half';
       render(); $('#addr').focus();
@@ -291,7 +318,7 @@ AFTER = {
 
     const build = () => {
       const q = inp.value.trim(), lq = q.toLowerCase();
-      if (!q) { items = GEO.lookups.all().slice(0, 6).filter(l => addrOf(l.id)).map(l => ({ kind: 'local', id: l.id, addr: l.addr, sub: lookupSub(l) })); return { head: items.length ? 'Recent site lookups' : '' }; }
+      if (!q) { items = []; return {}; }   // nothing until the inspector starts typing
       const local = ADDRESSES.filter(a => (a.addr + ' ' + (a.where || '')).toLowerCase().includes(lq)).map(a => ({ kind: 'local', id: a.id, addr: a.addr, sub: localSub(a) }));
       const rem = (remoteFor === lq ? remote : []).filter(r => !local.some(it => samePlace(addrOf(it.id), r)))
         .map(r => ({ kind: 'remote', r, addr: r.addr, sub: r.approx ? (r.where ? r.where + ' · ' : '') + atStreet : (r.where || 'OpenStreetMap') }));
@@ -301,15 +328,15 @@ AFTER = {
     const show = () => {
       const st = build();
       if (hl >= items.length) hl = Math.max(0, items.length - 1);
-      const head = st.head ? `<div class="sgh">${esc(st.head)}</div>` : '';
-      const extra = st.loading ? `<div class="searching">${searching ? 'Searching OpenStreetMap…' : 'Keep typing — addresses are looked up for real.'}</div>` : '';
+      const head = '';
+      const extra = st.loading && searching ? `<div class="searching">Searching…</div>` : '';
       // Every candidate carries a coordinate, so each row can show the property
       // it would actually pin. The images are lazy and cached, so arrowing
       // through the list costs one small request per row at most.
       const where = it => it.kind === 'remote' ? it.r : addrOf(it.id);
       sg.innerHTML = head + items.map((it, i) => { const c = where(it);
         return `<div class="${i === hl ? 'hl' : ''}" data-i="${i}"><span class="sgt">${c ? satSpot(c.lat, c.lon) : ''}</span><span class="sgx">${esc(it.addr)}<small>${esc(it.sub)}</small></span></div>`; }).join('') + extra;
-      sg.style.display = (items.length || extra) ? 'block' : 'none';
+      sg.style.display = (items.length || extra) ? '' : 'none';
       sg.querySelectorAll('[data-i]').forEach(d => d.onpointerdown = e => { e.preventDefault(); choose(items[+d.dataset.i]); });
     };
     const lookup = () => {
@@ -340,25 +367,46 @@ AFTER = {
     inp.onfocus = () => { if (inp.value.trim()) show(); };
     inp.onpointerdown = () => show();
     inp.onkeydown = e => {
-      if (e.key === 'ArrowDown') { hl = Math.min(hl + 1, items.length - 1); show(); }
-      if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); show(); }
+      const up = document.querySelector('.phone').classList.contains('kb');
+      if (e.key === (up ? 'ArrowUp' : 'ArrowDown')) { hl = Math.min(hl + 1, items.length - 1); show(); }
+      if (e.key === (up ? 'ArrowDown' : 'ArrowUp')) { hl = Math.max(0, hl - 1); show(); }
       if (e.key === 'Enter') { e.preventDefault(); enter(); }
       if (e.key === 'Escape') sg.style.display = 'none';
     };
     inp.onblur = () => later(() => sg.style.display = 'none', 150);
 
     $('#menu').onclick = () => openMenu();
-    $('#recenter').onclick = () => fitMap(true);
-    $('#basemap').onclick = () => { S.basemap = S.basemap === 'sat' ? 'map' : 'sat'; setBasemap(); render(); };
-    const rt = $('#retry'); if (rt) rt.onclick = () => syncRoute(true);
+    $('#basemap').querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { if (S.basemap === b.dataset.bm) return; S.basemap = b.dataset.bm; setBasemap(); $('#basemap').querySelectorAll('[data-bm]').forEach(x => x.classList.toggle('on', x.dataset.bm === S.basemap)); });
     // sheet detents
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
-    handle.onclick = () => { if (moved) return; S.sheet = order[(order.indexOf(S.sheet) + 1) % 3]; sheet.className = 'sheet ' + S.sheet; later(() => fitMap(true), 480); };
-    handle.onpointerdown = e => { sy = e.clientY; sh = sheet.offsetHeight; moved = false; handle.setPointerCapture(e.pointerId); sheet.classList.add('drag'); };
-    handle.onpointermove = e => { if (!sheet.classList.contains('drag')) return; const dy = sy - e.clientY; if (Math.abs(dy) > 4) moved = true; sheet.style.height = Math.max(120, Math.min(sheet.parentElement.offsetHeight * .9, sh + dy)) + 'px'; };
-    handle.onpointerup = handle.onpointercancel = e => { if (!sheet.classList.contains('drag')) return; sheet.classList.remove('drag'); const h = sheet.offsetHeight / sheet.parentElement.offsetHeight; S.sheet = h < .3 ? 'peek' : h < .68 ? 'half' : 'full'; sheet.style.height = ''; sheet.className = 'sheet ' + S.sheet; later(() => moved = false, 50); };
-    wireRows(); $('#best').onclick = bestRoute;
-    syncRoute();
+    handle.onclick = () => { if (moved || !S.sel) return; settleSheet(S.pv === 'full' ? 'half' : 'full'); };
+    sizeSheet();
+    sheet.ontransitionend = e => { if (e.target !== sheet || !(e.propertyName === 'height' || e.propertyName === 'bottom') || !canAnimate()) return; fitMap(); };
+    const ord = $('#order'); if (ord && 'ResizeObserver' in window) { let last = ord.offsetHeight + 'x' + ord.offsetWidth; const ro = new ResizeObserver(() => { const now = ord.offsetHeight + 'x' + ord.offsetWidth; if (now === last) return; last = now; fitMap(true); }); ro.observe(ord); }
+    let vy = 0, ly = 0, lt = 0;
+    handle.onpointerdown = e => { if (settling) return; sy = ly = e.clientY; lt = performance.now(); vy = 0; sh = sheet.offsetHeight; moved = false; handle.setPointerCapture(e.pointerId); sheet.classList.add('drag'); };
+    handle.onpointermove = e => { if (!sheet.classList.contains('drag')) return; const now = performance.now(); const dt = Math.max(1, now - lt); vy = vy * .6 + ((ly - e.clientY) / dt) * .4; ly = e.clientY; lt = now; const dy = sy - e.clientY; if (Math.abs(dy) > 4) moved = true;
+      // past the top detent the sheet resists like rubber
+      const max = sheetFullPx(sheet), raw = sh + dy, over = raw - max; sheet.style.height = (over > 0 ? max + over * .18 : Math.max(90, raw)) + 'px'; };
+    handle.onpointerup = handle.onpointercancel = e => { if (!sheet.classList.contains('drag')) return; sheet.classList.remove('drag'); later(() => moved = false, 50);
+      if (!S.sel) { sheet.style.height = ''; return; }
+      const h0 = sheet.offsetHeight, half = sheetHalfPx(sheet), full = sheetFullPx(sheet), flick = Math.abs(vy) > .9;
+      let target;
+      if (flick) target = vy > 0 ? 'full' : (S.pv === 'full' ? 'half' : 'close');
+      else if (S.pv === 'half') target = h0 > half + 70 ? 'full' : h0 < half * .6 ? 'close' : 'half';
+      else target = h0 < full - 70 ? (h0 < half * .6 ? 'close' : 'half') : 'full';
+      if (!moved) { sheet.style.height = ''; sizeSheet(); return; }
+      settleSheet(target); };
+    const ad = $('.addr'); if (ad && S.sel) {
+      ad.addEventListener('pointerdown', e => { e.preventDefault(); S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 30); });
+    }
+    const pvo = $('#pvOpen'); if (pvo) pvo.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
+    $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
+    const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
+    const pvc2 = $('#pvClose2'); if (pvc2) pvc2.onclick = () => { S.sel = null; render(); };
+    const pvr = $('#pvRm'); if (pvr) pvr.onclick = () => { const id = S.sel; const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); S.sel = null; render(); };
+      if (n) confirmSheet('Remove this stop?', addrOf(id).addr + ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.', [{ label: 'Remove', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); };
+    wireRows(); paintRoute();
   },
   days() { const q = $('#dq'); q.oninput = () => { S.days.q = q.value; const pos = q.selectionStart; render(); const q2 = $('#dq'); q2.focus(); q2.setSelectionRange(pos, pos); };
     $$('[data-loc]').forEach(c => c.onclick = () => { const id = c.dataset.loc, date = c.dataset.date; S.cur = id; if (date === todayISO()) { S.snapshot = null; S.tab = 'today'; } else { const h = (HISTORY[id] || []).find(x => x.date === date); S.snapshot = h ? { date: h.date, entries: h.entries, outcome: h.outcome } : null; S.tab = 'today'; } go('location'); });
@@ -366,70 +414,28 @@ AFTER = {
       const el = document.createElement('div'); el.className = 'cal'; el.innerHTML = `<div class="calbox"><h5><span>November 2026</span><span style="color:var(--faint);font-weight:500">October ‹ ›</span></h5><div class="calgrid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => `<span style="color:var(--faint)">${d}</span>`).join('')}${cells.join('')}</div><div style="font-size:12px;color:var(--faint);margin-top:10px">Highlighted days have inspections. October dates are listed below the November ones.</div></div>`; $('#app').appendChild(el); el.onclick = e => { if (e.target === el) el.remove(); }; el.querySelectorAll('.has').forEach(s => s.onclick = () => { el.remove(); const sec = $('#day-' + s.dataset.day); if (sec) sec.scrollIntoView({ block: 'start', behavior: 'smooth' }); else toast('That day is further down'); }); }; },
   location() { locationAfter(); }, camera() { cameraAfter(); }, record() { recordAfter(); }, deck() { deckAfter(); }, report() { reportAfter(); }, notice() { noticeAfter(); }, kb() { kbAfter(); },
 };
-function wireRows() { const rows = $('#rows'); if (!rows) return; const HOLD = 180;
-  rows.querySelectorAll('.srow').forEach(row => { const id = row.dataset.id;
-    let holdT = null, lifted = false, sx = 0, sy = 0, offY = 0, ghost = null, order = null, moved = false;
-    const lift = e => { lifted = true; moved = true; rowDragging = true; const r = row.getBoundingClientRect(); offY = e.clientY - r.top; order = [...rows.querySelectorAll('.srow')]; row.classList.add('placeholder'); ghost = row.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('placeholder', 'open', 'sel'); ghost.style.width = r.width + 'px'; ghost.style.left = r.left + 'px'; ghost.style.top = r.top + 'px'; document.body.appendChild(ghost); requestAnimationFrame(() => ghost.classList.add('up')); if (navigator.vibrate) navigator.vibrate(10); document.addEventListener('pointermove', move); document.addEventListener('pointerup', drop); document.addEventListener('pointercancel', drop); };
-    const move = e => { if (!lifted) return; const y = e.clientY - offY; ghost.style.top = y + 'px'; const mid = e.clientY; const others = order.filter(r => r !== row); for (const o of others) { const r = o.getBoundingClientRect(); if (mid < r.top + r.height / 2 && o.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING) { flip(() => rows.insertBefore(row, o)); break; } if (mid > r.top + r.height / 2 && o.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_PRECEDING) { flip(() => rows.insertBefore(row, o.nextSibling)); break; } } };
-    const flip = fn => { const all = [...rows.querySelectorAll('.srow')]; const first = new Map(all.map(r => [r, r.getBoundingClientRect().top])); fn(); all.forEach(r => { if (r === row) return; const d = first.get(r) - r.getBoundingClientRect().top; if (!d) return; r.style.transition = 'none'; r.style.transform = 'translateY(' + d + 'px)'; requestAnimationFrame(() => { r.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; r.style.transform = ''; }); }); };
-    const drop = () => { if (!lifted) return; lifted = false; document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', drop); document.removeEventListener('pointercancel', drop); const r = row.getBoundingClientRect(); ghost.style.transition = 'top .18s cubic-bezier(.2,.8,.2,1),left .18s,transform .18s,box-shadow .18s'; ghost.style.top = r.top + 'px'; ghost.classList.remove('up'); setTimeout(() => { ghost.remove(); row.classList.remove('placeholder'); const next = [...rows.querySelectorAll('.srow')].map(x => x.dataset.id); S.stops = next; rowDragging = false; render(); }, 190); };
-    row.onpointerdown = e => { if (e.target.closest('.x')) return; sx = e.clientX; sy = e.clientY; moved = false; if (e.target.closest('.grip')) { e.preventDefault(); lift(e); return; } holdT = setTimeout(() => lift(e), HOLD); };
-    row.onpointermove = e => { if (lifted) return; if (Math.abs(e.clientY - sy) > 6 || Math.abs(e.clientX - sx) > 6) { clearTimeout(holdT); } };
-    row.onpointerup = row.onpointercancel = () => { clearTimeout(holdT); };
-    row.onclick = e => { if (moved || e.target.closest('.x')) return; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
-    row.querySelector('.x[data-x]').onclick = e => { e.stopPropagation(); const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); if (S.sel === id) S.sel = null; render(); }; if (n) confirmSheet('Remove this stop?', `${addrOf(id).addr} has ${n} entr${n === 1 ? 'y' : 'ies'} today. They stay on file; the stop just leaves today’s route.`, [{ label: 'Remove', cls: 'danger', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); };
-    const nav = row.querySelector('[data-nav]'); if (nav) nav.onclick = e => { e.stopPropagation(); const a = addrOf(id); const dest = encodeURIComponent(a.addr + (a.where ? ', ' + a.where : '')); const url = `https://maps.apple.com/?saddr=${CONFIG.station.lat},${CONFIG.station.lon}&daddr=${a.lat},${a.lon}&q=${dest}&dirflg=d`;
-      confirmSheet('Navigate with Apple Maps?', a.addr + ' · turn-by-turn opens in Maps; this app stays here.', [{ label: 'Open Maps', fn: () => window.open(url, '_blank', 'noopener') }, { label: 'Cancel', cls: 'ghost' }]); }; }); }
-
-// Try every ordering of today's stops on the real road network and keep the
-// fastest one. The panel reports the real stages and the live count.
-async function bestRoute() {
-  if (S.routing || S.stops.length < 2) return;
-  const ids = S.stops.slice(), n = ids.length;
-  S.routing = true; S.plan = []; render();
-  const lines = [];
-  const draw = () => { S.plan = lines.map(l => ({ txt: l.txt, state: l.state })); const p = $('#plan'); if (p) p.innerHTML = planHTML(); };
-  const step = txt => { lines.push({ txt, state: 'go' }); draw(); return lines.length - 1; };
-  const settle = (i, txt, state) => { lines[i] = { txt, state }; draw(); };
-  const stop = () => { S.routing = false; render(); };
-  let at = -1;
-  // What the order on screen actually costs to drive, if we already know it.
-  const wasReal = (S.route && !S.route.pending && !S.route.error && S.route.ids.join() === ids.join()) ? S.route.duration : null;
-  try {
-    const pts = [CONFIG.station, ...ids.map(addrOf)].map(ptOf);
-    at = step(`Timing every pair of ${n + 1} points on the road network…`);
-    const t = await GEO.table(pts);
-    settle(at, `${GEO.fmtNum(t.pairs)} road legs timed · OSRM car profile`, 'ok');
-
-    const baseline = GEO.costOf(t.durations, ids.map((_, k) => k + 1));
-    const total = GEO.factorial(n);
-    const label = tried => `Driving all ${GEO.fmtNum(total)} orders from ${esc(CONFIG.station.name)}… <b>${GEO.fmtNum(tried)}</b>`;
-    at = step(label(0));
-    const res = await GEO.fastestOrder(t.durations, n, tried => settle(at, label(tried), 'go'));
-    settle(at, res.method === 'exhaustive' ? `All ${GEO.fmtNum(res.tried)} orders driven and timed`
-      : res.method === 'exact' ? `All ${GEO.fmtNum(res.total)} orders ranked — too many to list one by one, so solved exactly over subsets`
-      : `${GEO.fmtNum(res.tried)} orders tried — more stops than an exact answer allows`, 'ok');
-
-    const order = res.order.map(k => ids[k - 1]);
-    at = step('Fetching the winning road route…');
-    const r = await GEO.road([CONFIG.station, ...order.map(addrOf)].map(ptOf));
-    // Compare like with like: both numbers are driven routes, not matrix cells.
-    // (The matrix is what the search ranks on; it rounds turn costs differently.)
-    const saved = wasReal == null ? baseline - res.cost : wasReal - r.duration;
-    settle(at, `${GEO.fmtTime(r.duration)} · ${GEO.fmtDist(r.distance)}${saved > 45 ? ' · saves ' + GEO.fmtTime(saved) + ' on the order you typed' : ' · the order you typed was already fastest'}`, 'ok');
-
-    S.stops = order; S.sel = null;
-    S.best = { set: setKey(order), order: order.slice(), cost: r.duration, baseline: wasReal == null ? baseline : wasReal, tried: res.tried, total: res.total, method: res.method };
-    S.route = { ids: order.slice(), pending: false, error: null, line: r.line, duration: r.duration, distance: r.distance, legs: r.legs };
-    S.routing = false; render();
-    setTimeout(() => { S.plan = null; if (S.screen === 'map') render(); }, 4200);
-  } catch (e) {
-    if (at >= 0) settle(at, 'Could not reach the road network · ' + esc(e.message), 'bad');
-    else { lines.push({ txt: 'Could not reach the road network · ' + esc(e.message), state: 'bad' }); draw(); }
-    stop();
-    setTimeout(() => { S.plan = null; if (S.screen === 'map') render(); }, 6000);
-  }
+// Preview detents in pixels: half ends just under the photo; full is 90% of the screen.
+function sheetHalfPx(sheet) { const m = sheet.querySelector('#pvmap'); if (!m) return Math.round(sheet.parentElement.offsetHeight * .36); return Math.round(m.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 78); }
+function sheetFullPx(sheet) { return Math.round(sheet.parentElement.offsetHeight * .9); }
+function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.style.transition = 'none'; sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.style.transition = ''; }
+let settling = false;
+function settleSheet(target) {
+  const sheet = $('#sheet'); if (!sheet || settling) return; settling = true;
+  const to = target === 'full' ? sheetFullPx(sheet) : target === 'half' ? sheetHalfPx(sheet) : 0;
+  sheet.classList.remove('drag'); sheet.classList.add('settling');
+  sheet.style.transition = 'height .46s cubic-bezier(.22,1.1,.3,1)';
+  requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
+  let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
+    if (target === 'close') { S.sel = null; render(); } else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; } };
+  const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
+  sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 560);
 }
+function wireRows() { const rows = $('#rows'); if (!rows) return;
+  rows.querySelectorAll('.cn[data-id]').forEach(node => { const id = node.dataset.id;
+    node.onclick = e => { if (e.target.closest('.rm')) return; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
+    node.querySelector('.rm').onclick = e => { e.stopPropagation(); const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); if (S.sel === id) S.sel = null; render(); };
+      if (n) confirmSheet('Remove this stop?', addrOf(id).addr + ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.', [{ label: 'Remove', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); }; }); }
+
 
 function openMenu() { const nLook = GEO.lookups.count(); const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:14px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div>
   <div class="mi" data-m="days"><span class="ic">▤</span><div>Previous inspections<small>by day, date or search</small></div></div><div class="mi" data-m="looks"><span class="ic">⌕</span><div>Saved site lookups<small>${nLook ? nLook + ' address' + (nLook === 1 ? '' : 'es') + ' kept on this device' : 'none yet'}</small></div></div><div class="mi" data-m="profile"><span class="ic">◉</span><div>Profile<small>${esc(CONFIG.inspector.email)}</small></div></div><div class="mi" data-m="settings"><span class="ic">⚙</span><div>Settings<small>${esc(CONFIG.localCode)} · ${CONFIG.correctionDays}-day window</small></div></div></div>`;
@@ -440,7 +446,7 @@ function lookupsSheet() {
   const all = GEO.lookups.all();
   const el = document.createElement('div'); el.className = 'cal'; el.id = 'lookbox';
   el.innerHTML = `<div class="calbox"><h5><span>Saved site lookups</span><span style="color:var(--faint);font-weight:500">${all.length || 'none'}</span></h5>
-    <div class="looks">${all.length ? all.map(l => `<div class="look" data-look="${esc(l.id)}"><div><div class="t">${esc(l.addr)}</div><div class="s">${esc(lookupSub(l))}</div></div><button class="x" data-drop="${esc(l.id)}" title="Forget this address">✕</button></div>`).join('') : '<div class="hint">Nothing saved yet. Every address you add to a day is kept here and comes back in the search field.</div>'}</div>
+    <div class="looks">${all.length ? all.map(l => `<div class="look" data-look="${esc(l.id)}"><div><div class="t">${esc(l.addr)}</div><div class="s">${esc(lookupSub(l))}</div></div><button class="x" data-drop="${esc(l.id)}" title="Forget this address">✕</button></div>`).join('') : '<div class="hint">Nothing saved yet.</div>'}</div>
     ${all.length ? `<button class="btn ghost" id="clrLook" style="margin-top:12px">Forget all ${all.length}</button>` : ''}</div>`;
   $('#app').appendChild(el);
   el.onclick = e => { if (e.target === el) el.remove(); };
@@ -532,7 +538,8 @@ function pipSVG(entries, mini, v, at) {
 // the inspector is standing, and a pip per entry. The three defensible-space
 // zones belong to the 100 ft zone view alone — over the parcel they cover the
 // ground the inspector is actually reading, so that view stays plain imagery.
-function satOverlay(id, entries, mini) {
+function satOverlay(id, entries, mini, opts) {
+  opts = opts || {};
   // The frame is centred on the saved view; the address, the pips and the rings
   // are placed by projecting their real coordinates into it, so a dragged frame
   // moves the imagery and the marks together.
@@ -540,9 +547,18 @@ function satOverlay(id, entries, mini) {
   const v = SAT.view(c.lat, c.lon, SAT.spanOf(S.satZoom), 640), at = v.xy(a.lat, a.lon);
   const you = geoXY(v, at, POS[S.posIdx % POS.length]);
   const marks = mini ? '' : (S.satZoom === 'zone' ? SAT.zones(v, at) : '')
-    + `<g class="target"><circle cx="${at.x.toFixed(2)}" cy="${at.y.toFixed(2)}" r="1.6"/><path d="M${at.x.toFixed(2)} ${(at.y - 3.4).toFixed(2)}v1.2M${at.x.toFixed(2)} ${(at.y + 2.2).toFixed(2)}v1.2M${(at.x - 3.4).toFixed(2)} ${at.y.toFixed(2)}h1.2M${(at.x + 2.2).toFixed(2)} ${at.y.toFixed(2)}h1.2"/></g>`
-    + `<circle class="you" cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="6" fill="rgba(53,224,255,.12)" stroke="rgba(53,224,255,.6)" stroke-width=".5"/><circle cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="1.8" fill="#35e0ff"/>`;
+    + (opts.noYou ? '' : fovCone(you, at) + `<circle cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="2.1" fill="#35e0ff" stroke="#0b0f17" stroke-width=".6"/>`);
   return `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${marks}${pipSVG(entries, mini, v, at)}</svg>`;
+}
+// The phone's field of view: a soft cone from where the inspector stands toward
+// the parcel, i.e. the direction the camera is pointing. Heading comes from the
+// geometry, so a dragged frame keeps the cone aimed at the property.
+function fovCone(you, at) {
+  const ang = Math.atan2(at.y - you.y, at.x - you.x), half = 26 * Math.PI / 180, R = 17;
+  const p = a => `${(you.x + Math.cos(a) * R).toFixed(2)} ${(you.y + Math.sin(a) * R).toFixed(2)}`;
+  const gid = 'fov' + Math.round(ang * 100);
+  return `<defs><radialGradient id="${gid}" cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="${R}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#35e0ff" stop-opacity=".55"/><stop offset=".55" stop-color="#35e0ff" stop-opacity=".18"/><stop offset="1" stop-color="#35e0ff" stop-opacity="0"/></radialGradient></defs>
+    <path class="fov" d="M${you.x.toFixed(2)} ${you.y.toFixed(2)} L${p(ang - half)} A${R} ${R} 0 0 1 ${p(ang + half)} Z" fill="url(#${gid})"/>`;
 }
 // Shown only when every imagery provider has failed: the stylised parcel the
 // app drew before it had photographs to draw on.
@@ -556,9 +572,7 @@ function sketchSVG(id, mini) { const a = addrOf(id); const seed = a.x * 7 + a.y 
   <rect x="12" y="56" width="34" height="6" rx="3" fill="#24422f" opacity=".9"/><rect x="12" y="62" width="34" height="3" rx="1.5" fill="#2c5238" opacity=".8"/>
   ${mini ? '' : `<text x="50" y="97" font-size="3" fill="rgba(189,243,255,.55)" text-anchor="middle" font-family="-apple-system,sans-serif">Imagery unavailable · stylised parcel</text>`}</svg>`; }
 // A property thumbnail: imagery of the address, the sketch behind it, pips over it.
-function satThumb(id, entries) { const a = addrOf(id), span = 130, v = SAT.view(a.lat, a.lon, span, 200);
-  return SAT.tile(a.lat, a.lon, { span, px: 200, dead: sketchSVG(id, true) })
-    + `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${pipSVG(entries, true, v, v.xy(a.lat, a.lon))}</svg>`; }
+function satThumb(id, entries) { const src = streetPhoto(id); return src ? `<img class="thphoto" src="${src}" alt="" draggable="false" onerror="this.classList.add('missing')">` : `<span class="thphoto missing"></span>`; }
 // The same, for a coordinate with no address record yet — a typeahead hit.
 const satSpot = (lat, lon) => SAT.tile(lat, lon, { span: 130, px: 200 });
 function kindChip(k) { return k === 'violation' ? '<span class="chip red">Violation</span>' : k === 'compliance' ? '<span class="chip green">Compliant</span>' : '<span class="chip amber">Note</span>'; }
@@ -575,12 +589,10 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   // cropped overlay shows the full width of the view and the scale bar below
   // can be a straight percentage of it.
   const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span), ctr = satCentre(id);
-  const body = `<div class="sat" id="sathero">${SAT.tile(ctr.lat, ctr.lon, { span, px: 640, eager: true, dead: sketchSVG(id, false) })}${satOverlay(id, entries, false)}
-  <div class="ban ${snap ? 'snap' : ''}">${snap ? 'Viewing ' + fmtDate(snap.date) + ' · read-only' : 'Live · you are here'}</div>
-  <div class="satz">${SAT.ZOOMS.map(z => `<button class="${z.id === S.satZoom ? 'on' : ''}" data-sz="${z.id}">${esc(z.label)}</button>`).join('')}</div>
-  ${panOf(id) ? `<button class="satpan" id="satreset" title="Put the frame back on the geocoded point">⌖ Recentre</button>` : ''}
-  <div class="satn">N</div>
-  <div class="satfoot"><span class="sbar" style="width:${bar.pct.toFixed(2)}%">${esc(bar.label)}</span><span class="scred" data-cred>${esc(SAT.credit)}</span></div></div>
+  const body = `${streetHTML(streetPhoto(id), a.addr, 'hero').replace('<div class="sat hero photo', '<div id="sathero" class="sat hero photo')}
+  ${snap ? `<div class="ban snap">Viewing ${fmtDate(snap.date)} · read-only</div>` : ''}
+
+
   ${snap ? '' : `<div class="tabs"><button class="${S.tab === 'today' ? 'on' : ''}" data-tab="today">Today${entries.length ? ' · ' + entries.length : ''}</button><button class="${S.tab === 'history' ? 'on' : ''}" data-tab="history">History${hist.length ? ' · ' + hist.length : ''}</button></div>`}
   ${snap ? `<div class="hero" style="margin-top:12px">${fmtDate(snap.date)}<small>${esc(snap.outcome)} · as recorded at the end of that inspection</small></div>` : ''}${today}`;
   const bottom = snap ? `<button class="btn ghost" id="exitSnap">Back to today</button>` : S.tab === 'today' ? (done ? `<div class="row2"><button class="btn ghost" id="finish">Reopen</button><button class="btn" id="toMap">Next stop →</button></div>` : `<div class="row2"><button class="btn ghost" id="finish">Finish</button><button class="btn" id="newEntry">+ New entry</button></div>`) : '';
@@ -595,7 +607,7 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
 // underneath keep working; one that did ends in a re-render, which takes the
 // pip out from under the click before it can fire.
 function wireLotPan(id) {
-  const hero = $('#sathero'); if (!hero) return;
+  const hero = $('#sathero'); if (!hero || hero.classList.contains('photo')) return;
   const reset = $('#satreset');
   if (reset) reset.onclick = () => { delete PAN[id]; savePan(); render(); };
   const shift = [...hero.querySelectorAll('.satimg, .satover')];
@@ -605,8 +617,22 @@ function wireLotPan(id) {
   // six pixels and saved that as the new centre. draggable="false" on the tile
   // and this between them leave the pointer to us.
   hero.ondragstart = e => { e.preventDefault(); return false; };
+  const order = SAT.ZOOMS.map(z => z.id);
+  const step = dir => { const i = order.indexOf(S.satZoom); const n = Math.max(0, Math.min(order.length - 1, i + dir)); if (n === i) return false; S.satZoom = order[n]; render(); return true; };
+  // trackpad pinch arrives as ctrl+wheel; a mouse wheel zooms too
+  let wheelAcc = 0, wheelT = null;
+  hero.onwheel = e => { e.preventDefault(); wheelAcc += e.deltaY * (e.ctrlKey ? 3 : 1); clearTimeout(wheelT); wheelT = setTimeout(() => { wheelAcc = 0; }, 260); if (Math.abs(wheelAcc) < 60) return; step(wheelAcc < 0 ? -1 : 1); wheelAcc = 0; };
+  // two fingers: distance ratio past 1.3× steps in, under 0.75× steps out
+  const touches = new Map(); let pinchBase = 0, pinching = false;
+  const dist = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  hero.addEventListener('pointerdown', e => { touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (touches.size === 2) { pinching = true; down = false; pinchBase = dist(); } }, true);
+  hero.addEventListener('pointermove', e => { if (!touches.has(e.pointerId)) return; touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (!pinching || touches.size < 2) return; const r = dist() / pinchBase; if (r > 1.3) { if (step(-1)) pinchBase = dist(); } else if (r < .75) { if (step(1)) pinchBase = dist(); } }, true);
+  const lift = e => { touches.delete(e.pointerId); if (touches.size < 2) pinching = false; };
+  hero.addEventListener('pointerup', lift, true); hero.addEventListener('pointercancel', lift, true);
+  let lastTap = 0;
+  hero.addEventListener('pointerup', e => { if (pinching || moved || e.target.closest('.satpan, .satfoot, .ban')) return; const now = Date.now(); if (now - lastTap < 320) { lastTap = 0; if (!step(-1)) step(order.length - 1); } else lastTap = now; });
   hero.onpointerdown = e => {
-    if (e.target.closest('.satz, .satpan, .satfoot, .ban')) return;
+    if (pinching || touches.size > 1 || e.target.closest('.satz, .satpan, .satfoot, .ban')) return;
     down = true; moved = false; dx = dy = 0; px = e.clientX; py = e.clientY;
   };
   hero.onpointermove = e => {
@@ -671,7 +697,6 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
-  $$('[data-sz]').forEach(b => b.onclick = () => { S.satZoom = b.dataset.sz; render(); });
   wireLotPan(id);
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };
@@ -1004,7 +1029,7 @@ function renderDeck() { const r = S.rec, dk = S.deck; const deck = $('#deck'); c
   top.onpointerup = top.onpointercancel = () => { if (!dragging) return; dragging = false; top.classList.remove('drag'); if (Math.abs(dx) > 110) swipe(dx > 0); else { top.style.transform = ''; top.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); } dx = 0; }; }
 function swipe(yes) { const r = S.rec, dk = S.deck; const top = $('#deck .dcard:not(.back):not(.back2)'); if (!top || dk.idx >= r.recs.length) return; r.recs[dk.idx].decision = yes ? 'in' : 'out'; S.recDirty = true; top.classList.remove('drag'); top.style.transform = `translateX(${yes ? 560 : -560}px) rotate(${yes ? 30 : -30}deg)`; top.style.opacity = '0'; top.querySelector(yes ? '.stamp.in' : '.stamp.out').style.opacity = 1; dk.idx++; later(renderDeck, 320); }
 function deckAfter() { renderDeck(); $('#bNo').onclick = () => swipe(false); $('#bYes').onclick = () => swipe(true); $('#bUndo').onclick = () => { const dk = S.deck; if (!dk.idx) return; dk.idx--; S.rec.recs[dk.idx].decision = null; renderDeck(); }; $('#deckDone').onclick = () => back();
-  $('#own').onclick = () => { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">Your recommendation</div><div class="cb">Describe what the owner should do. An AR card is generated for it and placed on top of the deck.</div><textarea class="memo" id="ownTx" rows="3" placeholder="e.g. Replace the wooden retaining wall cap with stone and keep the bed clear 5 ft out."></textarea><div class="cbtns" style="margin-top:12px"><button class="btn ghost" data-no>Cancel</button><button class="btn" data-yes>Generate card</button></div></div>`; $('#app').appendChild(el); el.querySelector('[data-no]').onclick = () => el.remove(); el.querySelector('[data-yes]').onclick = () => { const v = el.querySelector('#ownTx').value.trim(); if (!v) return; const b = el.querySelector('[data-yes]'); b.textContent = 'Generating…'; b.disabled = true; later(() => { el.remove(); const r = S.rec; const title = v.split(/[,.;]/)[0].slice(0, 40); r.recs.splice(S.deck.idx, 0, { id: 'own' + Date.now(), title, text: v, img: r.photo || null, own: true, decision: null }); S.recDirty = true; renderDeck(); toast('Your card is on top of the deck'); }, 1500); }; }; }
+  $('#own').onclick = () => { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">Your recommendation</div><textarea class="memo" id="ownTx" rows="3" placeholder="e.g. Replace the wooden retaining wall cap with stone and keep the bed clear 5 ft out."></textarea><div class="cbtns" style="margin-top:12px"><button class="btn ghost" data-no>Cancel</button><button class="btn" data-yes>Generate card</button></div></div>`; $('#app').appendChild(el); el.querySelector('[data-no]').onclick = () => el.remove(); el.querySelector('[data-yes]').onclick = () => { const v = el.querySelector('#ownTx').value.trim(); if (!v) return; const b = el.querySelector('[data-yes]'); b.textContent = 'Generating…'; b.disabled = true; later(() => { el.remove(); const r = S.rec; const title = v.split(/[,.;]/)[0].slice(0, 40); r.recs.splice(S.deck.idx, 0, { id: 'own' + Date.now(), title, text: v, img: r.photo || null, own: true, decision: null }); S.recDirty = true; renderDeck(); toast('Your card is on top of the deck'); }, 1500); }; }; }
 
 // ---------------- documents (report + notice) ----------------
 // Both documents are drafted per property from the inspector's notes and the
@@ -1177,8 +1202,8 @@ function kbAfter() { const ns = noticeState(); const hits = $('#hits'); const bt
   later(() => { ns.kbDone = true; sync(); }, 700 + KB.length * 600 + 300); }
 
 // ---------------- help overlay + keys ----------------
-function renderHelp() { const sc = SPEC.screens.find(s => s.id === S.screen); const box = $('#helpbox'); if (!sc) return; box.innerHTML = `<h3>${esc(sc.name)}</h3><div class="pur">${esc(sc.purpose)}</div><table>${sc.affordances.map(a => `<tr><td>${esc(a[0])}</td><td>${esc(a[1])}</td><td>${esc(a[2])}</td></tr>`).join('')}</table>${sc.edge.length ? `<div class="edge">${sc.edge.map(e => '· ' + esc(e)).join('<br>')}</div>` : ''}`; }
-$('#helpbtn').onclick = () => $('#helpbox').classList.toggle('on');
+function renderHelp() {}
+
 document.addEventListener('keydown', e => { if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable) return; if (e.key === 'r' || e.key === 'R') { S = fresh(); render(); return; } if (S.screen === 'deck') { if (e.key === 'ArrowRight') swipe(true); if (e.key === 'ArrowLeft') swipe(false); } if (S.screen === 'camera' && e.key === ' ') { e.preventDefault(); const sh = $('#shutter'); if (sh && !$('#cam').classList.contains('snap')) sh.click(); } });
 setInterval(() => { const sb = document.querySelector('.sb span'); if (sb) sb.textContent = clock(); }, 15000);
 // demo seed: nothing on the route yet (the inspector types addresses); press R to reset.

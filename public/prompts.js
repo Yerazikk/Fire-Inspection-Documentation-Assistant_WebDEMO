@@ -3,9 +3,9 @@
 // Prompts are offered by screen; `when` can hide a prompt that doesn't apply right now.
 window.PROMPTS = {
   map: [
-    { title: 'Add an address', hint: 'type, pick, Enter', steps: [['type', '#addr', '40 Ridgecrest'], ['waitFor', '#sugg [data-i]'], ['wait', 500], ['key', 'Enter'], ['waitFor', '.srow .leg', 20000], ['say', 'Pin dropped · drive timed from HQ']], when: () => !S.stops.includes('a1') },
+    { title: 'Add an address', hint: 'type, pick, Enter', steps: [['type', '#addr', '29 Ridgecrest'], ['waitFor', '#sugg [data-i]'], ['wait', 500], ['key', 'Enter'], ['waitFor', '.srow .leg', 20000], ['say', 'Pin dropped · drive timed from HQ']], when: () => !S.stops.includes('a1') },
     { title: 'Type a real address', hint: 'geocoded, not a fixture', steps: [['type', '#addr', '100 Shoreline Hwy Mill Valley'], ['waitFor', '#sugg [data-i]', 15000], ['wait', 700], ['key', 'Enter'], ['waitFor', '.srow .leg', 20000], ['say', 'Geocoded and timed on real roads']] },
-    { title: 'Plan a full day', hint: '4 addresses → every order tried', steps: [['type', '#addr', 'Wolfback'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Ridgecrest'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Eldridge'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Butterfield'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['waitFor', '.srow .leg', 25000], ['tap', '#best'], ['waitFor', '.rstat .good', 60000], ['say', 'All 24 orders driven from HQ · fastest kept']], when: () => S.stops.length < 4 },
+    { title: 'Plan a full day', hint: '4 addresses pinned, Cloud View last', steps: [['type', '#addr', 'Ridgecrest'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Eldridge'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Butterfield'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['type', '#addr', 'Cloud View'], ['waitFor', '#sugg [data-i]'], ['key', 'Enter'], ['wait', 350], ['waitFor', '[data-pin]:nth-of-type(4), .lpin:not(.station):nth-of-type(5)', 8000], ['say', 'Four stops on the map · Cloud View is stop 4']], when: () => S.stops.length < 4 },
   ],
   location: [
     // The hold opens the real microphone, so this one needs someone to talk

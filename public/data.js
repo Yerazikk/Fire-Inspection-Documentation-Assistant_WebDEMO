@@ -33,12 +33,12 @@ window.CONFIG = {
 // point, so the picture is the actual property. Owners are invented.
 // x,y are only for the stylised fallback map, and are derived from lat/lon below.
 window.ADDRESSES = [
-  { id: 'a1', addr: '40 Ridgecrest Rd', where: 'Kentfield, CA', lat: 37.94049, lon: -122.55568, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
-  { id: 'a2', addr: '100 Eldridge Ave', where: 'Mill Valley, CA', lat: 37.91280, lon: -122.54813, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
+  { id: 'a1', addr: '29 Ridgecrest Rd', where: 'Kentfield, CA', lat: 37.94179, lon: -122.55726, owner: { name: 'M. Okafor', email: 'm.okafor@example.com' }, demo: true },
+  { id: 'a2', addr: '90 Eldridge Ave', where: 'Mill Valley, CA', lat: 37.91263, lon: -122.54800, owner: { name: 'R. Chen', email: 'r.chen@example.com' } },
   { id: 'a3', addr: '250 Madrone Ave', where: 'Baltimore Canyon, Larkspur, CA', lat: 37.93157, lon: -122.54500, owner: { name: 'S. Patel', email: 's.patel@example.com' } },
   { id: 'a4', addr: '40 Idlewood Rd', where: 'Kent Woodlands, Kentfield, CA', lat: 37.94690, lon: -122.56282, owner: { name: 'J. Romero', email: 'j.romero@example.com' } },
   { id: 'a5', addr: '60 Via Los Altos', where: 'Tiburon, CA', lat: 37.90442, lon: -122.50405, owner: { name: 'A. Lindqvist', email: 'a.lindqvist@example.com' } },
-  { id: 'a6', addr: '35 Wolfback Ridge Rd', where: 'Sausalito, CA', lat: 37.85132, lon: -122.49360, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
+  { id: 'a6', addr: '99 Cloud View Rd', where: 'Sausalito, CA', lat: 37.85255, lon: -122.48725, owner: { name: 'T. Nguyen', email: 't.nguyen@example.com' } },
   { id: 'a7', addr: '45 Scenic Ave', where: 'San Anselmo, CA', lat: 37.97820, lon: -122.57490, owner: { name: 'K. Abiodun', email: 'k.abiodun@example.com' } },
   { id: 'a8', addr: '310 Butterfield Rd', where: 'San Anselmo, CA', lat: 37.99695, lon: -122.57637, owner: { name: 'P. Castellanos', email: 'p.castellanos@example.com' } },
   { id: 'a9', addr: '120 Bolinas Rd', where: 'Fairfax, CA', lat: 37.98515, lon: -122.59020, owner: { name: 'L. Moreau', email: 'l.moreau@example.com' } },
