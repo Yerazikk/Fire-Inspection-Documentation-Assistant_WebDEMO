@@ -1,10 +1,12 @@
-// The local host: static files out of public/, and the four API endpoints.
+// The local host: static files out of public/, and the API endpoints.
 //
 // The endpoints themselves live in ai/api.js, shared with the Vercel functions
 // in api/, so there is one implementation and local and deployed behaviour
 // cannot drift. The proxy exists for one reason: the Gemini key must never
 // reach the browser. The client posts an inspection context, the key is read
-// here from the environment, and only the finished document goes back.
+// here from the environment, and only the finished document goes back. The
+// Street View proxy is the same trade in reverse — the page asks for a
+// photograph of an address and the key stays here.
 const http = require('http'), fs = require('fs'), path = require('path');
 
 require('./ai/env')();
@@ -36,10 +38,28 @@ const readBody = req => new Promise((resolve, reject) => {
   req.on('error', reject);
 });
 
+// A GET endpoint's query string, which the Vercel host parses for us and this
+// one does not.
+const params = url => { const out = {}; for (const [k, v] of new URL(url, 'http://localhost').searchParams) out[k] = v; return out; };
+
 async function route(req, res, p) {
   if (p === '/api/ai/status') {
     const { status, body } = await api.status({ models: req.url.includes('models=1') });
     return json(res, status, body);
+  }
+  if (p === '/api/maps/config') {
+    const { status, body } = api.mapsConfig();
+    return json(res, status, body);
+  }
+  // The Street View proxy answers with a photograph, so it is the one endpoint
+  // here that does not go through json() — and the one whose response is meant
+  // to be cached rather than no-store.
+  if (p === '/api/streetview') {
+    if (req.method !== 'GET') return json(res, 405, { error: 'GET only' });
+    const out = await api.streetview(params(req.url));
+    if (!out.buffer) return json(res, out.status, out.body);
+    res.writeHead(out.status, { ...out.headers, 'Content-Type': out.type, 'Content-Length': out.buffer.length });
+    return res.end(out.buffer);
   }
 
   const run = p === '/api/draft' ? api.draft : p === '/api/visual' ? api.illustrate : p === '/api/transcribe' ? api.transcribe : null;
@@ -64,4 +84,8 @@ http.createServer((req, res) => {
   console.log(ai.keyPresent()
     ? `  AI drafting on · ${require('./ai/prompts').MODEL.name} via ${ai.backend().name} · ${codes.codes.length} code sections (${codes.meta.jurisdiction.split('—')[0].trim()})`
     : '  AI drafting OFF — no GEMINI_API_KEY. Documents fall back to the built-in templates. See README.md.');
+  const maps = require('./ai/maps');
+  console.log(maps.browserKey()
+    ? '  Google Maps on · Street View stills for the pin preview, interactive satellite for the lot view'
+    : '  Google Maps browser key missing — the lot view falls back to keyless Esri imagery. See README.md.');
 });

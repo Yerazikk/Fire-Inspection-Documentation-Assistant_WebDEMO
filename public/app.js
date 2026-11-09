@@ -250,13 +250,31 @@ function mapSVG() {
   </svg>`;
 }
 function selectStop(id) { S.sel = S.sel === id ? null : id; S.pv = 'half'; const inp = $('#addr'); if (inp) inp.blur(); render(); }
-// Street-level photos shown in the preview instead of the satellite square, when we have one.
-const STREET = { hq: 'photos/hq.jpg', '310 butterfield rd': 'photos/butterfield.jpg', '29 ridgecrest rd': 'photos/ridgecrest.jpg', '90 eldridge ave': 'photos/eldridge.jpg', '99 cloud view rd': 'photos/cloudview.jpg' };
-const streetPhoto = id => id === 'hq' ? STREET.hq : STREET[(addrOf(id).addr || '').toLowerCase().trim()];
-const streetHTML = (src, alt, cls) => src ? `<div class="sat ${cls || 'pvmap'} photo" id="${cls ? '' : 'pvmap'}"><img src="${src}" alt="${esc(alt)}" draggable="false" onerror="this.parentElement.classList.add('missing')"></div>` : `<div class="sat ${cls || 'pvmap'} photo missing" id="${cls ? '' : 'pvmap'}"></div>`;
+// Street-level photographs shown in the preview instead of the satellite
+// square. Every one is a Google Street View still, fetched through
+// api/streetview.js — which keeps the key on the server and, more to the
+// point, turns the camera to face the house rather than leaving it pointing
+// down the road. The coordinate is the one the address was geocoded to, so the
+// photograph is of this property and not the neighbour's.
+//
+// An address with no Street View coverage — a private road, a new parcel — is
+// an ordinary outcome, not a fault: the proxy answers 404, the img's onerror
+// fires, and the box says so.
+const streetCoord = id => {
+  if (id === 'hq') return { lat: CONFIG.station.lat, lon: CONFIG.station.lon };
+  const a = addrOf(id);
+  return a && isFinite(a.lat) && isFinite(a.lon) ? { lat: a.lat, lon: a.lon } : null;
+};
+// The preview box is 2.4:1, and 640 is the widest still the Static API sells.
+const streetHTML = (id, alt, cls) => {
+  const c = streetCoord(id), cl = `sat ${cls || 'pvmap'} photo`, eid = cls ? '' : 'pvmap';
+  return c
+    ? `<div class="${cl}" id="${eid}"><img src="${GMAP.street(c.lat, c.lon, 640, 267)}" alt="${esc(alt)}" draggable="false" onerror="this.parentElement.classList.add('missing')"></div>`
+    : `<div class="${cl} missing" id="${eid}"></div>`;
+};
 function previewHTML(id) {
   if (id === 'hq') { const st = CONFIG.station, span = SAT.spanOf('block'), v = SAT.view(st.lat, st.lon, span, 640), at = v.xy(st.lat, st.lon);
-    const map = streetHTML(streetPhoto('hq'), st.name);
+    const map = streetHTML('hq', st.name);
     const more = `<div class="pvmore"><div class="pvstat"><span>${esc(st.addr)}</span></div>
       <div class="lbl">Today</div><div class="pvempty" style="text-align:left;padding:6px 0">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' planned · ' + S.done.size + ' done' : 'No stops planned yet.'}</div>
       <div class="row2 pvacts"><button class="btn" id="pvClose2">Close</button></div></div>`;
@@ -264,7 +282,7 @@ function previewHTML(id) {
   const a = addrOf(id), i = S.stops.indexOf(id), done = S.done.has(id), es = entriesOf(id), hist = HISTORY[id] || [];
   const status = done ? '✓ Completed · ' + es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') : es.length ? es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' so far' : hist.length ? 'Last inspected ' + fmtDate(hist[0].date) : 'Never inspected';
   const span = SAT.spanOf('parcel'), ctr = satCentre(id);
-  const map = streetHTML(streetPhoto(id), a.addr);
+  const map = streetHTML(id, a.addr);
   const more = `<div class="pvmore">
       <div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>
       ${es.length ? `<div class="lbl">Today</div>${es.map(e => `<div class="entry"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${kindChip(e.kind)}</div><div class="s">${esc(e.note || '')}</div></div></div>`).join('')}` : ''}
@@ -571,11 +589,40 @@ function sketchSVG(id, mini) { const a = addrOf(id); const seed = a.x * 7 + a.y 
   <rect x="38" y="24" width="30" height="26" rx="1.5" fill="#1a1f29" stroke="rgba(53,224,255,.6)" stroke-width=".5"/><rect x="54" y="52" width="14" height="30" fill="#1c222c" stroke="rgba(255,255,255,.12)" stroke-width=".3"/>
   <rect x="12" y="56" width="34" height="6" rx="3" fill="#24422f" opacity=".9"/><rect x="12" y="62" width="34" height="3" rx="1.5" fill="#2c5238" opacity=".8"/>
   ${mini ? '' : `<text x="50" y="97" font-size="3" fill="rgba(189,243,255,.55)" text-anchor="middle" font-family="-apple-system,sans-serif">Imagery unavailable · stylised parcel</text>`}</svg>`; }
-// A property thumbnail: imagery of the address, the sketch behind it, pips over it.
-function satThumb(id, entries) { const src = streetPhoto(id); return src ? `<img class="thphoto" src="${src}" alt="" draggable="false" onerror="this.classList.add('missing')">` : `<span class="thphoto missing"></span>`; }
+// A property thumbnail: the same Street View still as the preview, at list
+// size. Lazy, because a day of previous inspections is a dozen rows and a
+// frame is only worth fetching for a row the inspector actually scrolls to.
+function satThumb(id, entries) { const c = streetCoord(id);
+  return c ? `<img class="thphoto" src="${GMAP.street(c.lat, c.lon, 192, 144)}" alt="" loading="lazy" draggable="false" onerror="this.classList.add('missing')">` : `<span class="thphoto missing"></span>`; }
 // The same, for a coordinate with no address record yet — a typeahead hit.
 const satSpot = (lat, lon) => SAT.tile(lat, lon, { span: 130, px: 200 });
 function kindChip(k) { return k === 'violation' ? '<span class="chip red">Violation</span>' : k === 'compliance' ? '<span class="chip green">Compliant</span>' : '<span class="chip amber">Note</span>'; }
+// The lot view: an interactive Google satellite map of the property, free to
+// zoom and pan, centred on the coordinate the address was geocoded to (plus
+// whatever offset the inspector dragged into it earlier, which satCentre
+// carries).
+//
+// Behind it sits the keyless Esri frame sat.js already knows how to fetch, and
+// behind that the stylised sketch. That ladder is the whole failure story: no
+// Maps key, a refused key, a blocked script or no network, and the box still
+// shows this lot from above rather than an empty rectangle. The Google map is
+// mounted on top once it is ready and the frame underneath is hidden then.
+function lotMapHTML(id) {
+  const c = satCentre(id);
+  if (!c) return `<div id="sathero" class="sat hero photo missing"></div>`;
+  return `<div id="sathero" class="sat hero gmap" data-lat="${c.lat}" data-lon="${c.lon}">` +
+    SAT.tile(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640, eager: 1, dead: sketchSVG(id) }) + `</div>`;
+}
+// Hand the host to GMAP, which moves its one long-lived map element into it.
+// `key` is the property, so panning and zooming survive a re-render of the
+// screen and only a move to a different address recentres the view.
+function mountLotMap(id) {
+  const host = $('#sathero');
+  if (!host || !host.classList.contains('gmap')) return;
+  GMAP.mount(host, +host.dataset.lat, +host.dataset.lon, { key: id })
+    .then(() => { if (host.isConnected) host.classList.add('live'); })
+    .catch(e => { host.classList.remove('live'); console.log('lot view: Esri imagery — ' + e.message); });
+}
 function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = snap ? snap.entries.map((e, i) => ({ ...e, id: 'h' + i })) : entriesOf(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
   // Keyed on the document existing, not on the state object: visiting the
   // notice screen creates the state before anything has been drafted into it.
@@ -589,7 +636,7 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   // cropped overlay shows the full width of the view and the scale bar below
   // can be a straight percentage of it.
   const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span), ctr = satCentre(id);
-  const body = `${streetHTML(streetPhoto(id), a.addr, 'hero').replace('<div class="sat hero photo', '<div id="sathero" class="sat hero photo')}
+  const body = `${lotMapHTML(id)}
   ${snap ? `<div class="ban snap">Viewing ${fmtDate(snap.date)} · read-only</div>` : ''}
 
 
@@ -607,7 +654,9 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
 // underneath keep working; one that did ends in a re-render, which takes the
 // pip out from under the click before it can fire.
 function wireLotPan(id) {
-  const hero = $('#sathero'); if (!hero || hero.classList.contains('photo')) return;
+  // Nothing to drag when the box is a photograph, and nothing to take over
+  // when it is the Google map: zoom and pan are Google's there.
+  const hero = $('#sathero'); if (!hero || hero.classList.contains('photo') || hero.classList.contains('gmap')) return;
   const reset = $('#satreset');
   if (reset) reset.onclick = () => { delete PAN[id]; savePan(); render(); };
   const shift = [...hero.querySelectorAll('.satimg, .satover')];
@@ -697,6 +746,7 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
+  mountLotMap(id);
   wireLotPan(id);
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };

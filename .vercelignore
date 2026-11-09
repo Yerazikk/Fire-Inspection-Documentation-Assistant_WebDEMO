@@ -4,6 +4,8 @@
 /test_ai.js
 /test_photo.js
 /test_route.js
+/test_guard.js
+/test_maps.js
 /test_visual.js
 /build_spec.js
 /serve.js

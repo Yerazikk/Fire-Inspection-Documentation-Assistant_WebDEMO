@@ -53,9 +53,17 @@
 .sat.pvmap{height:auto;aspect-ratio:2.4/1;width:100%;border-radius:22px;transition:aspect-ratio .3s;animation:pvIn .42s .05s cubic-bezier(.2,.8,.2,1) both}
 .sat.pvmap.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .sat.pvmap.photo.missing img{display:none}
-.sat.photo.missing::after{content:"photo coming";position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);font-size:12px}
+.sat.photo.missing::after{content:"No Street View for this address";position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);font-size:12px;text-align:center;padding:0 16px}
 .sat.hero.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}.sat.hero.photo.missing img{display:none}
-.thphoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#0d1614}.thphoto.missing{display:grid;place-items:center;color:var(--faint);font-size:9px}.thphoto.missing::after{content:"photo coming"}
+/* the interactive lot map: Google's own element on top, the keyless Esri frame
+   beneath it until (and unless) Google answers. touch-action is reset because
+   .sat turns it off for the hand-rolled drag, and that would swallow Google's
+   pinch and pan. */
+.sat.gmap{touch-action:auto}
+.sat.gmap .gmapel{position:absolute;inset:0;z-index:1;background:#0d1614}
+.sat.gmap.live .satimg{opacity:0;transition:opacity .3s ease}
+.sat.gmap .gm-style-cc,.sat.gmap .gmnoprint{font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.thphoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#0d1614}.thphoto.missing{display:grid;place-items:center;color:var(--faint);font-size:9px}.thphoto.missing::after{content:"no view"}
 .pvmore{padding-top:14px}
 .pvstat{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--soft)}
 .pvstat .pvwhere{margin-left:auto;color:var(--faint);font-size:12.5px}
@@ -343,5 +351,5 @@
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 
-<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script><script src="keyboard.js"></script><script src="data.js"></script><script src="photo.js"></script><script src="voice.js"></script><script src="visuals.js"></script><script src="drafts.js"></script><script src="sat.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script><script src="keyboard.js"></script><script src="data.js"></script><script src="photo.js"></script><script src="voice.js"></script><script src="visuals.js"></script><script src="drafts.js"></script><script src="sat.js"></script><script src="gmap.js"></script><script src="geo.js"></script><script src="spec.js"></script><script src="prompts.js"></script><script src="app.js"></script><script src="runner.js"></script>
 </body></html>

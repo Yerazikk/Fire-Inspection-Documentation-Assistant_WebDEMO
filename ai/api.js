@@ -1,4 +1,4 @@
-// The four endpoints, with no host in them.
+// The endpoints, with no host in them.
 //
 // Each takes a parsed request and returns { status, body }; logging goes to
 // stdout, which is the terminal locally and the function log on Vercel. The
@@ -9,6 +9,7 @@ require('./env')();
 const ai = require('./draft');
 const codes = require('./codes');
 const visual = require('./visual');
+const maps = require('./maps');
 const voice = require('./voice');
 const prompts = require('./prompts');
 
@@ -73,4 +74,20 @@ async function transcribe(ctx) {
   }
 }
 
-module.exports = { status, draft, illustrate, transcribe };
+// ---- Google Maps ---------------------------------------------------------
+// The page needs the Maps JavaScript API key to draw the interactive lot view,
+// and that one cannot be proxied: it is the one secret this app hands over
+// deliberately, which is why it has its own variable. Not logged — the local
+// host says it at startup, and the page says it in its own console.
+const mapsConfig = () => maps.config();
+
+// The street-level still of a property. Only the misses are logged: a hit is
+// one line per pin tap and says nothing, while "no imagery at 120 Bolinas Rd"
+// is the reason a preview looks empty.
+async function streetview(q) {
+  const out = await maps.streetview(q);
+  if (!out.buffer) console.warn(`  street view ${q && q.lat},${q && q.lon} [${out.body.code}]: ${out.body.error}`);
+  return out;
+}
+
+module.exports = { status, draft, illustrate, transcribe, mapsConfig, streetview };

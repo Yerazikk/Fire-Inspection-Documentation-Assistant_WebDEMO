@@ -14,14 +14,35 @@ npm install        # playwright, for the tests only
 npm run serve      # http://localhost:8956
 ```
 
-Tests: `npm test` (interaction), `npm run test:route` (routing),
-`npm run test:photo` (photo input), `npm run test:visual` (recommendation
-visuals), `npm run test:ai` (document drafting). The server must be running
-first.
+Tests: `npm test` runs the two free ones — the routing solver against an
+independent brute force (`test_route.js`), and the Google Maps wiring against a
+stubbed Google (`test_maps.js`). Neither costs anything or needs a server.
 
-`npm test` and `npm run test:ai` drive the microphone for real: Chromium is
-given `test_memo.wav` — a spoken inspection note — as its capture device, and
-they assert that holding the memo bar records it and the model transcribes it.
+**The four flow tests are disabled, because they are billed.** Each one walks a
+real inspection against the live model, and a photographed violation entry
+spends one `gemini-3-pro-image` call per recommendation — two to five of them,
+which is the bulk of any Gemini bill this project runs up. A sweep of all four
+is a few dollars. `test_guard.js` is the gate; run one deliberately with:
+
+```sh
+node test.js --live          # the interaction walk-through (also npm run test:flow)
+node test_ai.js --live       # document drafting
+node test_photo.js --live    # photo input
+node test_visual.js --live   # the recommendation visuals
+```
+
+The server must be running first. `FLOW_TESTS=1` works in place of `--live`.
+Pass the port as a bare argument — `node test.js --live 9000`.
+
+Worth knowing which of those actually *means* to spend: only `test_visual.js`
+is about the pictures. The other three draw a deck of them as a side effect of
+saving an entry, because `createRecord` queues the visuals and their memo text
+trips the `violation` branch in `app.js`. `test.js` and `test_ai.js` also drive
+the microphone for real — Chromium is given `test_memo.wav`, a spoken
+inspection note, as its capture device — so each adds a transcription call.
+
+To judge a prompt change, use `npm run ai:check` instead. It is text-only,
+sends no image, and costs about a hundredth of a flow test.
 
 ### Where the files are
 
@@ -30,7 +51,7 @@ The split is the one the deployment needs, and it is also the honest one:
 | | |
 |---|---|
 | `public/` | the app the browser gets — `index.html` and every client script, `assets/` |
-| `api/` | the four endpoints, one file each |
+| `api/` | the endpoints, one file each |
 | `ai/` | the drafting itself: prompts, the code corpus, the Gemini calls |
 | root | `serve.js`, the tests, the documents |
 
@@ -83,7 +104,8 @@ AI drafting on · gemini-3.6-flash via Vertex AI · fireinspector-514022 · glob
 models the key can actually reach.
 
 `.env` is gitignored. **Never commit the key, and never put it in client-side
-JavaScript** — anything in `app.js`, `data.js`, `drafts.js` or `index.html` is
+JavaScript** — the one deliberate exception is `GOOGLE_MAPS_BROWSER_KEY`, which
+the Maps JavaScript API cannot work without; see below — anything in `app.js`, `data.js`, `drafts.js` or `index.html` is
 served to the browser and readable by anyone who opens the page. The key is read
 server-side in `serve.js` via `process.env`, the model call is made from
 `ai/draft.js`, and only the finished document crosses to the client. `serve.js`
@@ -135,9 +157,52 @@ Vertex does not publish a model list to an API key, so on that backend
 `--models` probes each candidate in `PROBE_MODELS` (`ai/draft.js`) with a
 one-token request rather than asking for a list.
 
+## Setup — the Google Maps key
+
+**Two things in the app come from Google Maps Platform, and both degrade on
+their own if the key is missing or refused.**
+
+| where | what | without a key |
+|---|---|---|
+| tap a pin → the preview, and every list thumbnail | a **Street View** still of the property, taken through `api/streetview.js` | the box says *No Street View for this address* |
+| the lot view on the inspection screen | an **interactive satellite map** (Maps JavaScript API) — zoom, pan, pinch | the keyless Esri frame `sat.js` already fetches, and the stylised parcel behind that |
+
+The still is not whatever the nearest camera happened to be pointing at. The
+proxy asks the free metadata endpoint where the panorama actually stands,
+computes the bearing from there to the address, and requests that panorama at
+that heading — so the frame faces the house rather than the road. A property
+with no coverage answers `404 no_imagery`, which is an ordinary fact about a
+rural parcel, not an error.
+
+Two variables, because they are two different exposures:
+
+```
+GOOGLE_MAPS_API_KEY=…        # server side. Needs the Street View Static API.
+GOOGLE_MAPS_BROWSER_KEY=…    # served to the page. Needs the Maps JavaScript API.
+```
+
+`GOOGLE_MAPS_API_KEY` never leaves the server and falls back to
+`GEMINI_API_KEY` when unset — on a single-project setup it is the same key.
+`GOOGLE_MAPS_BROWSER_KEY` is the one deliberate exception to the rule below:
+the Maps JavaScript API runs in the browser and there is no proxying that, so
+the page is handed a key by `GET /api/maps/config`. It **does not** fall back
+to `GEMINI_API_KEY` — that key is never given to a browser. Make it a separate
+key and restrict it by HTTP referrer in the Cloud console; anything the page
+can see is public.
+
+Both APIs have to be **enabled on the Cloud project and listed in the key's own
+API restrictions**, or Maps answers `REQUEST_DENIED · The provided API key is
+invalid` — which is exactly what the Vertex-restricted `AQ.` key above does
+today. `npm run test:maps -- --live` makes one real round trip and prints
+which of the two it was.
+
+Street View is billed per request, so a frame is cached three deep: in the
+process (`ai/maps.js`), by the browser (a day), and in Cache Storage by the
+service worker. A property looked at twice costs once.
+
 ## Deploy it — Vercel
 
-`public/` is the static site, `api/` holds the four endpoints as functions, and
+`public/` is the static site, `api/` holds the endpoints as functions, and
 `ai/` is bundled into those functions without ever being served. `vercel.json`
 is the whole configuration.
 
@@ -147,14 +212,20 @@ npx vercel        # a preview URL
 npx vercel --prod # the one you hand to people
 ```
 
-Then give the project the same three variables `.env` holds locally — the key is
-read inside the function, never sent to the browser:
+Then give the project the same variables `.env` holds locally — the Gemini key
+is read inside the function and never sent to the browser:
 
 ```sh
 npx vercel env add GEMINI_API_KEY production
 npx vercel env add GOOGLE_CLOUD_PROJECT production
 npx vercel env add GOOGLE_CLOUD_LOCATION production
+npx vercel env add GOOGLE_MAPS_API_KEY production      # Street View, server side
+npx vercel env add GOOGLE_MAPS_BROWSER_KEY production  # the interactive lot map
 ```
+
+`GOOGLE_MAPS_BROWSER_KEY` is served to the page, so restrict it by HTTP
+referrer to the deployment's own domains before the link travels — on a
+deployed site that restriction is the only thing protecting it.
 
 Add them to `preview` too if you want preview deployments to draft, and
 re-deploy after adding any of them — a function picks up the environment at
