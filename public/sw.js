@@ -7,7 +7,7 @@
 // keeps the key off the page) and keyed by the whole URL, so a different size
 // or a different address is a different entry. Only successful frames are
 // stored — a 404 means there is no imagery there yet, and that can change.
-const CACHE = 'tiles-v1', MAX = 6000;
+const CACHE = 'tiles-v1', MAX = 20000;
 const TILE_HOSTS = ['tile.openstreetmap.org', 'services.arcgisonline.com', 'server.arcgisonline.com', 'basemap.nationalmap.gov'];
 const STREETVIEW = '/api/streetview';
 let puts = 0;

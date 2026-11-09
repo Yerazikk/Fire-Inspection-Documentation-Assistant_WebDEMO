@@ -101,6 +101,25 @@ const bornPins = new Map();   // pin → when it first landed; repaints inside t
 let LWRAP = null, LMAP = null, LART = null, LBASE = null, LCRED = null, LCREDTXT = '', lastFit = '';
 let LFOCUS = null, focusKey = '';   // the one set of corner brackets: HQ until an address lands, then the newest (or selected) stop
 let kbWired = false, mapBorn = 0, openingZoom = false;
+// Wheel / trackpad zoom that glides: each tick moves a target zoom, and the view
+// eases toward it every frame around the point under the pointer. No steps.
+function smoothWheel(map, el) {
+  let target = null, anchor = null, raf = 0;
+  const step = () => {
+    const z = map.getZoom(), nz = z + (target - z) * .22;
+    if (Math.abs(target - nz) < .003) { map.setZoomAround(anchor, target, { animate: false }); target = null; raf = 0; return; }
+    map.setZoomAround(anchor, nz, { animate: false }); raf = requestAnimationFrame(step);
+  };
+  el.addEventListener('wheel', e => {
+    e.preventDefault();
+    const px = e.deltaMode === 1 ? e.deltaY * 18 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
+    const perLevel = e.ctrlKey ? 90 : 220;              // trackpad pinch arrives as ctrl+wheel with small deltas
+    if (target == null) target = map.getZoom();
+    target = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), target - px / perLevel));
+    anchor = map.mouseEventToContainerPoint(e);
+    if (!raf) raf = requestAnimationFrame(step);
+  }, { passive: false });
+}
 const canAnimate = () => Date.now() - mapBorn > 1200;
 function mountMap() {
   if (!kbWired) { kbWired = true; const ph = document.querySelector('.phone'); ph && ph.addEventListener('kb', () => later(() => { if (canAnimate() && !S.sel) fitMap(true); }, 380)); }
@@ -108,7 +127,8 @@ function mountMap() {
   if (!window.L) { host.innerHTML = mapSVG() + '<div class="offline">Stylised map · tiles unavailable</div>'; wirePins(); return; }
   if (!LWRAP) {
     LWRAP = document.createElement('div'); LWRAP.className = 'lmap'; host.appendChild(LWRAP);
-    LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: .25, inertia: false, wheelPxPerZoomLevel: 40, wheelDebounceTime: 20 });   // 50% more wheel sensitivity than Leaflet’s default 60px/level
+    LMAP = L.map(LWRAP, { zoomControl: false, attributionControl: false, zoomSnap: 0, zoomDelta: .25, inertia: false, scrollWheelZoom: false });
+    smoothWheel(LMAP, LWRAP);
     // Two basemaps, both keyless. Esri World Imagery to see the vegetation on
     // the way in; standard OSM raster, inverted in CSS (.leaflet-tile-pane) to
     // sit under the dark UI, to read the street the route turns on.
@@ -176,8 +196,10 @@ function paintMap() {
 function mapPad() {
   const sheet = $('#sheet'), host = sheet && sheet.parentElement, order = $('#order');
   if (!sheet || !host) return { top: 150, bottom: 380, left: 70, right: 70 };
-  const phone = host.closest('.phone'); const kb = phone && phone.classList.contains('kb') && !S.sel ? parseFloat(getComputedStyle(phone).getPropertyValue('--kb')) || 0 : 0;
-  const real = Math.max(0, kb ? sheet.offsetHeight + kb : host.offsetHeight - sheet.offsetTop);
+  // With stops on the map the framing is fixed for the half-sheet preview, whatever the sheet or keyboard
+  // is doing right now — so selecting, typing or expanding never nudges the camera (and never resets tiles).
+  const phone = host.closest('.phone'); const kb = phone && phone.classList.contains('kb') && !S.stops.length ? parseFloat(getComputedStyle(phone).getPropertyValue('--kb')) || 0 : 0;
+  const real = S.stops.length ? 0 : Math.max(0, kb ? sheet.offsetHeight + kb : host.offsetHeight - sheet.offsetTop);
   // the half sheet is a square map plus chrome; frame for it whenever there are stops so a tap never moves the map
   const previewCover = Math.round((host.offsetWidth - 36) / 2.4) + 176;
   const covered = S.stops.length ? Math.max(real, previewCover) : real;
@@ -205,8 +227,12 @@ function fitMap(force) {
   lastFit = key;
   if (!S.stops.length) { centreOn(CONFIG.station.lat, CONFIG.station.lon, 13, true); return; }
   const pts = [[CONFIG.station.lat, CONFIG.station.lon], ...S.stops.map(id => { const a = addrOf(id); return [a.lat, a.lon]; })];
-  LMAP.fitBounds(L.latLngBounds(pts),
-    { paddingTopLeft: [pad.left, pad.top], paddingBottomRight: [pad.right, pad.bottom], maxZoom: 16, animate: canAnimate() });
+  const opts = { paddingTopLeft: [pad.left, pad.top], paddingBottomRight: [pad.right, pad.bottom], maxZoom: 16 };
+  const target = LMAP._getBoundsCenterZoom(L.latLngBounds(pts), opts);
+  const dz = Math.abs(target.zoom - LMAP.getZoom()), dp = LMAP.latLngToContainerPoint(target.center).distanceTo(LMAP.latLngToContainerPoint(LMAP.getCenter()));
+  if (dz < 1e-3 && dp < 1) return;                       // already there: touching the view would only re-create the tiles
+  if (dz < 1e-3) { LMAP.panTo(target.center, { animate: canAnimate() }); return; }
+  LMAP.setView(target.center, target.zoom, { animate: canAnimate() });
 }
 function paintRoute() {
   if (S.screen !== 'map') return;
