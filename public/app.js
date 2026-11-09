@@ -318,8 +318,8 @@ function previewHTML(id) {
   const more = `<div class="pvmore">
       <div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>
       ${es.length ? `<div class="lbl">Today</div>${es.map(e => `<div class="entry"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${kindChip(e.kind)}</div><div class="s">${esc(e.note || '')}</div></div></div>`).join('')}` : ''}
-      ${hist.length ? `<div class="lbl">History</div>${hist.map(hh => `<div class="loc" data-pvhist="${hh.date}"><div class="thumb">${satThumb(id, hh.entries)}</div><div><div class="t">${fmtDate(hh.date)}</div><div class="s">${hh.entries.length} entr${hh.entries.length === 1 ? 'y' : 'ies'} · ${esc(hh.outcome)}</div></div><div class="r">›</div></div>`).join('')}` : (es.length ? '' : '<div class="pvempty">Nothing on file for this property yet.</div>')}
-      <div class="row2 pvacts"><button class="btn ghost" id="pvRm">Remove</button><button class="btn" id="pvOpen">${done ? 'Open' : es.length ? 'Continue inspection' : 'Start inspection'}</button></div>
+      ${hist.length ? `<div class="lbl">History</div>${hist.slice(0, 2).map(hh => `<div class="loc pvh" data-pvhist="${hh.date}"><div><div class="t">${fmtDate(hh.date)}</div><div class="s">${hh.entries.length} entr${hh.entries.length === 1 ? 'y' : 'ies'} · ${esc(hh.outcome)}</div></div><div class="r">›</div></div>`).join('')}${hist.length > 2 ? `<button class="pvmore-hist" id="pvHist">View full history · ${hist.length}</button>` : ''}` : (es.length ? '' : '<div class="pvempty">Nothing on file for this property yet.</div>')}
+      <div class="pvacts"><button class="btn pvstart" id="pvOpen"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : es.length ? 'Continue inspection' : 'Start inspection'}</button><button class="btn ghost pvremove" id="pvRm">Remove from list</button></div>
     </div>`;
   return `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`;
 }
@@ -448,9 +448,15 @@ AFTER = {
       if (!moved) { sheet.style.height = ''; sizeSheet(); return; }
       settleSheet(target); };
     const ad = $('.addr'); if (ad && S.sel) {
-      ad.addEventListener('pointerdown', e => { e.preventDefault(); S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) setTimeout(() => f.focus({ preventScroll: true }), 30); });
+      ad.addEventListener('pointerdown', e => {
+        e.preventDefault(); if (ad.classList.contains('open')) return;
+        ad.classList.add('open'); $('#sheet').classList.add('leaving');
+        inp.focus({ preventScroll: true });                       // keyboard rises → the sheet (and the pill with it) ascends
+        setTimeout(() => { S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) f.focus({ preventScroll: true }); }, 420);
+      });
     }
     const pvo = $('#pvOpen'); if (pvo) pvo.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
+    const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
     const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
     const pvc2 = $('#pvClose2'); if (pvc2) pvc2.onclick = () => { S.sel = null; render(); };
