@@ -1369,7 +1369,9 @@ function noticeAfter() {
   if (ns.doc) wireEdits(ns.doc, () => { ns.edited = true; });
   $$('[data-deck]').forEach(b => b.onclick = () => { const e = entriesOf(id).find(x => x.id === b.dataset.deck); S.rec = e; S.recDirty = false; S.deck = { idx: e.recs.findIndex(x => !x.decision) < 0 ? 0 : e.recs.findIndex(x => !x.decision) }; S.fromNotice = true; go('deck'); });
   const ao = $('#addOwn'); if (ao) ao.onclick = () => { ns.own.push('Owner-provided document ' + (ns.own.length + 1) + '.pdf'); render(); };
-  const sd = $('#saveDraft'); if (sd) sd.onclick = () => { ns.draft = true; ns.draftAt = clock(); render(); };
+  // Saving a draft closes the letter, the way it does in a mail client. The
+  // "Saved to drafts" line is still there on the notice when it is opened again.
+  const sd = $('#saveDraft'); if (sd) sd.onclick = () => { ns.draft = true; ns.draftAt = clock(); back(); };
   const b = $('#send'); if (!b || b.disabled) return;
   const fill = b.querySelector('.fill'); let t0 = 0, raf = 0; const HOLD = 900;
   const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentAt = clock(); ns.draft = false; render(); } else raf = requestAnimationFrame(tick); };
