@@ -124,7 +124,7 @@ Get a photo and a note with as few taps as possible.
 | Upload (left) | tap | Opens the photo picker instead of shooting one: a file off the device, or one of the reference photos that ship with the app. Continues the same way. |
 | Note only (right, keyboard icon) | tap | Skips the photo; opens the memo bar directly. |
 | Memo bar | tap | Opens a text box with Submit. |
-| Memo bar | press-and-hold | Walkie-talkie: opens the microphone and records while held, with the bars showing the real level and the seconds counting up beside them. The words appear in provisional type as they are spoken, from the browser’s own recogniser — a preview, so the hold is visibly hearing them. Releasing sends the recording to be transcribed properly and drops those words into the editable box. The recording is kept with the entry. |
+| Memo bar | press-and-hold | Walkie-talkie: opens the microphone and records while held, with the bars showing the real level and the seconds counting up beside them. The words appear in provisional type as they are spoken, from the browser’s own recogniser — a preview, so the hold is visibly hearing them. Releasing sends the recording to be transcribed properly; the words stay where they are, untouched, until the real transcript replaces them in the editable box. The recording is kept with the entry. |
 | Use voice instead | tap | Returns from the text box to the bar. |
 | Retake / Change photo | tap | Back to the live viewfinder; the memo is kept. |
 | Picker · Choose from this device | tap | A real file picker. The photo is turned upright from its EXIF orientation, capped at 1600 px and re-encoded. A file the browser cannot open — HEIC off an iPhone, on Chrome — says so in the picker. |

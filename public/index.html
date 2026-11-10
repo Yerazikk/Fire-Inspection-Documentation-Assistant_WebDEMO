@@ -296,11 +296,9 @@
 .say .tx .warn{color:#ffd79a}
 /* The live preview: the browser's own recogniser, shown while the bar is held and replaced on release by the
    real transcript. Provisional type because that is what it is — see the PREVIEW comment in voice.js. */
-.say.hold .tx{height:4.35em;overflow:hidden}
+.say.hold .tx,.say.busy .tx{height:4.35em;overflow:hidden}
 .say .tx .prov{color:var(--soft)}
 .say .tx .prov.words{color:var(--ink);font-style:italic;opacity:.86}
-.say .tx .st{margin-bottom:6px}
-.say .tx .st+.prov{display:block;font-size:14px;line-height:1.4}
 .say.busy .pill{opacity:.5;pointer-events:none}.say.busy .pill .mic{animation:blink 1s infinite}
 .vclip{display:flex;align-items:center;gap:8px;margin-top:9px}
 .vb{border:1px solid rgba(53,224,255,.4);background:rgba(53,224,255,.1);color:#bdf3ff;font:600 12px/1 -apple-system,sans-serif;padding:7px 11px;border-radius:999px;cursor:pointer;flex:none}

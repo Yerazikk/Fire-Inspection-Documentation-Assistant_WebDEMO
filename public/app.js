@@ -939,10 +939,11 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // Release of a real recording: stop, judge the clip, transcribe it.
   const release = async () => {
     mode = 'busy'; stopMeter();
-    // The preview has done its job. The words stay on screen through the wait,
-    // in provisional type, so they are not replaced by an empty box for the
-    // second and a half the real transcript takes.
-    VOICE.PREVIEW.stop(); provEl = null;
+    // The recogniser has done its job, but the words it drew stay exactly where
+    // they are: the next thing to happen to them is being replaced by the real
+    // transcript, and anything swapped in over the top in the meantime is a
+    // second of movement for no information.
+    VOICE.PREVIEW.stop();
     const clip = await VOICE.stop();
     // Too short, or the recorder gave nothing back. Stay in voice mode — the
     // next thing the inspector wants is to hold it again, properly.
@@ -951,9 +952,12 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     // the way out of that, not holding it again.
     if (clip.silent) { mode = 'idle'; return toKeyboard('Nothing was heard · type the note'); }
 
+    // The box keeps its height and its words; the level and the counter give way
+    // to "Transcribing…" in the bar, which is the only thing that has changed.
+    // With no preview to keep, the one line that said "Listening" says this
+    // instead — in place, so it still does not move.
     grow(() => { say.classList.remove('hold'); say.classList.add('busy'); hint.textContent = 'Transcribing…';
-      saying(`<div class="st">Transcribing <b>${clipLen(clip.ms)}</b> of audio<span class="cur"></span></div>`
-        + (prov ? `<span class="prov words">${esc(tail(prov))}</span>` : '')); });
+      if (provEl && !prov) provEl.textContent = 'Transcribing…'; });
     let r;
     try { r = await VOICE.transcribe(clip, { address: addrOf(S.cur).addr, hasPhoto: !!d.photo }); }
     catch (err) { mode = 'idle'; return toKeyboard(err.hint || 'Could not transcribe that · type the note'); }
