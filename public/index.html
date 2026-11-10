@@ -75,8 +75,6 @@
 .lpin.station{cursor:pointer}
 .pvempty{font-size:13px;color:var(--faint);padding:18px 0 6px;text-align:center}
 .pvacts{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:10px}
-.pvacts .pvstart{width:168px;height:168px;border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:17px;font-weight:700;box-shadow:0 18px 44px rgba(53,224,255,.28)}
-.pvacts .pvstart .ico{width:44px;height:44px;border-radius:50%;background:rgba(4,16,20,.16);display:grid;place-items:center;font-size:18px}
 .pvacts .pvremove{width:100%;padding:14px}
 .loc.pvh{padding:9px 12px;margin:6px 0}.loc.pvh .t{font-size:14px}.loc.pvh .s{font-size:12px}
 .pvmore-hist{width:100%;margin-top:4px;padding:11px;border-radius:14px;border:1px dashed var(--line);background:transparent;color:var(--soft);font:600 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;cursor:pointer}
@@ -89,9 +87,26 @@
 #sheet.preview.drag .sbody,#sheet.preview.settling .sbody{overflow:hidden!important}
 #sheet.preview .pvmore{opacity:1}
 #sheet.preview .sbody{padding:0 18px 90px;overflow:auto;scrollbar-width:none}
-#sheet.preview .addr{display:block!important;position:absolute;left:50%;bottom:28px;z-index:3;width:calc(100% - 36px);transform:translateX(-50%);transition:width .38s cubic-bezier(.2,.8,.2,1)}
-#sheet.preview .addr.mini:not(.open){width:168px;cursor:pointer}
+/* at half height the sheet stops just under the status line, so what comes
+   after it is not left half-cut behind the pills — it belongs to the pulled-up
+   sheet. It comes back the moment the handle is dragged. */
+#sheet.preview .pvmore>*{transition:opacity .22s}
+#sheet.preview.half:not(.drag):not(.settling) .pvmore>:not(.pvstat){opacity:0}
+/* whatever the sheet is showing fades out under the pill row rather than
+   running into it — at half height, where the cut lands mid-paragraph, and
+   while scrolling at full height. */
+#sheet.preview::after{content:"";position:absolute;left:0;right:0;bottom:0;height:104px;background:linear-gradient(180deg,rgba(11,15,23,0),rgba(11,15,23,.92) 46%);pointer-events:none;z-index:2;transition:opacity .22s}
+#sheet.preview.leaving::after{opacity:0}
+/* the bottom pill row: the address pill on the left, Start inspection filling
+   the rest. Tapping the address pill widens it over the Start pill, which
+   fades, so the two never fight for the same strip. */
+#sheet.preview .addr{display:block!important;position:absolute;left:18px;bottom:28px;z-index:3;width:calc(100% - 36px);transform:none;transition:width .38s cubic-bezier(.2,.8,.2,1)}
+#sheet.preview .addr.mini:not(.open){width:152px;cursor:pointer}
+#sheet.preview .addr.solo{left:50%;transform:translateX(-50%)}  /* the station preview has no Start, so the pill keeps the middle */
+#sheet.preview .pvgo{position:absolute;right:18px;bottom:28px;z-index:3;width:calc(100% - 198px);height:48px;padding:0;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;box-shadow:0 14px 34px rgba(53,224,255,.3),inset 0 1px 0 rgba(255,255,255,.5);transition:opacity .22s}
+#sheet.preview .pvgo .ico{font-size:12px;line-height:1}
 #sheet.preview.leaving{background:transparent;border-top-color:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:background .3s,border-color .3s,box-shadow .3s,bottom .32s cubic-bezier(.2,.8,.2,1)}
+#sheet.preview.leaving .pvgo{opacity:0;pointer-events:none}
 #sheet.preview.leaving .handle,#sheet.preview.leaving .pvhead,#sheet.preview.leaving .pvmap,#sheet.preview.leaving .pvmore{opacity:0;transform:translateY(16px);transition:opacity .22s,transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 /* liquid glass */
 #sheet .addr input{position:relative;z-index:1;height:48px;border-radius:999px;padding:0 44px 0 18px;color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(22,28,38,.55);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.25);transition:opacity .2s}

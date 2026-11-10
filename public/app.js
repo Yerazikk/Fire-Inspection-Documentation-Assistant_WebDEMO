@@ -319,9 +319,15 @@ function previewHTML(id) {
       <div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>
       ${es.length ? `<div class="lbl">Today</div>${es.map(e => `<div class="entry"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${kindChip(e.kind)}</div><div class="s">${esc(e.note || '')}</div></div></div>`).join('')}` : ''}
       ${hist.length ? `<div class="lbl">History</div>${hist.slice(0, 2).map(hh => `<div class="loc pvh" data-pvhist="${hh.date}"><div><div class="t">${fmtDate(hh.date)}</div><div class="s">${hh.entries.length} entr${hh.entries.length === 1 ? 'y' : 'ies'} · ${esc(hh.outcome)}</div></div><div class="r">›</div></div>`).join('')}${hist.length > 2 ? `<button class="pvmore-hist" id="pvHist">View full history · ${hist.length}</button>` : ''}` : (es.length ? '' : '<div class="pvempty">Nothing on file for this property yet.</div>')}
-      <div class="pvacts"><button class="btn pvstart" id="pvOpen"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : es.length ? 'Continue inspection' : 'Start inspection'}</button><button class="btn ghost pvremove" id="pvRm">Remove from list</button></div>
+      <div class="pvacts"><button class="btn ghost pvremove" id="pvRm">Remove from list</button></div>
     </div>`;
   return `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`;
+}
+// The one action the preview always offers, pinned beside the address pill so
+// it stays reachable whether the sheet is at half height or pulled up.
+function startPillHTML(id) {
+  const done = S.done.has(id), n = entriesOf(id).length;
+  return `<button class="btn pvgo" id="pvGo"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
 }
 function wirePins() { $$('[data-pin]').forEach(p => p.onclick = () => selectStop(p.dataset.pin)); }
 
@@ -336,7 +342,7 @@ function stopRows() {
 VIEWS = {
   map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
 
-  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''}"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div></div></div>`,
+  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''} ${S.sel && S.stops.includes(S.sel) ? '' : 'solo'}"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div>${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
     const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
@@ -455,7 +461,7 @@ AFTER = {
         setTimeout(() => { S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) f.focus({ preventScroll: true }); }, 420);
       });
     }
-    const pvo = $('#pvOpen'); if (pvo) pvo.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
+    const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
     const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
     const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
@@ -471,7 +477,7 @@ AFTER = {
   location() { locationAfter(); }, camera() { cameraAfter(); }, record() { recordAfter(); }, deck() { deckAfter(); }, report() { reportAfter(); }, notice() { noticeAfter(); }, kb() { kbAfter(); },
 };
 // Preview detents in pixels: half ends just under the photo; full is 90% of the screen.
-function sheetHalfPx(sheet) { const m = sheet.querySelector('#pvmap'); if (!m) return Math.round(sheet.parentElement.offsetHeight * .36); return Math.round(m.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 78); }
+function sheetHalfPx(sheet) { const m = sheet.querySelector('#pvmap'); if (!m) return Math.round(sheet.parentElement.offsetHeight * .36); return Math.round(m.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 124); }
 function sheetFullPx(sheet) { return Math.round(sheet.parentElement.offsetHeight * .9); }
 function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.style.transition = 'none'; sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.style.transition = ''; }
 let settling = false;
