@@ -859,7 +859,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // The bar it was being held on is gone, so the microphone goes with it.
   VOICE.cancel();
   const showSheet = () => { cam.classList.add('snap'); d.snapped = true; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').textContent = d.photoMeta ? '↺ Change photo' : '↺ Retake'; };
-  const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
+  const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),bottom .32s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
   const checkMemo = () => { const v = memo.value.trim(); submit.disabled = !v && !d.photo; $('#memoHint').textContent = v ? '' : d.photo ? 'Optional · the scan works from the photo' : 'Add a note to continue'; };
   $('#shutter').onclick = () => { d.photo = 'assets/original.jpg'; showSheet(); };
   const picker = $('#picker'), fileIn = $('#file');
@@ -932,7 +932,12 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // one grow() with whatever else is changing, so the sheet resizes once.
   const resetVoice = () => { stopMeter(); say.classList.remove('hold', 'busy'); hint.textContent = IDLE_HINT; secs.textContent = ''; provEl = null; };
 
-  const toKeyboard = h => { grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); if (h) $('#memoHint').textContent = h; }); setTimeout(() => memo.focus(), 460); };
+  // Focused in the same beat the box appears, not after it. The mock keyboard
+  // rises on focusin and takes 320 ms of its own, so waiting out the sheet's
+  // 450 ms growth put the two end to end and the keys landed three quarters of
+  // a second late. Run together they read as one movement.
+  const openMemo = () => memo.focus({ preventScroll: true });
+  const toKeyboard = h => { grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); if (h) $('#memoHint').textContent = h; }); openMemo(); };
   // Stay on the voice bar, with a line saying why nothing came of that hold.
   const voiceAgain = m => grow(() => { resetVoice(); warn(m); });
 
@@ -979,7 +984,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     // should be — so the only unedited account of what was said is the audio.
     d.clip = { mimeType: clip.mimeType, data: clip.data, ms: clip.ms, model: r.model, flat };
     grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); const had = memo.value.trim(); memo.value = had ? had + ' ' + r.text : r.text; d.memo = memo.value; d.spoken = true; checkMemo(); $('#memoHint').textContent = flat ? 'Transcribed · play it back and check it' : 'Transcribed · edit if needed'; });
-    setTimeout(() => memo.focus(), 460);
+    openMemo();
   };
 
   // VOICE.prime() has to happen here, in the gesture itself: Safari will not
@@ -1010,7 +1015,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   pill.onpointerup = pill.onpointercancel = () => { clearTimeout(wt);
     if (mode === 'opening') { mode = 'abort'; return; }
     if (mode === 'live') return release();
-    if (mode === 'idle' && Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); setTimeout(() => memo.focus(), 460); } };
+    if (mode === 'idle' && Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); openMemo(); } };
   memo.addEventListener('input', () => { d.memo = memo.value; checkMemo(); }); $('#useVoice').onclick = () => grow(() => sheet.classList.remove('type'));
   submit.onclick = () => { d.memo = memo.value.trim(); d.kind = !d.photo ? 'note' : (/compliant|clear|ok|good/i.test(d.memo) ? 'compliance' : 'violation'); if (!d.memo) d.memo = ''; sheet.classList.add('recede'); analyze(); };
   // The boxes used to be a fixture on a timer, so they could be scheduled the
