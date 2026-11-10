@@ -14,6 +14,23 @@ const clone = o => JSON.parse(JSON.stringify(o));
 // the wrong places on a different one.
 const FIXTURE = 'assets/original.jpg';
 
+// scrollIntoView does not stop at the list it was aimed at: it scrolls every
+// scrollable ancestor, and .phone is one of them — the mock keyboard parked
+// just below its bottom edge gives the frame 262 px of scroll height. A nudge
+// inside a list could therefore slide the whole device under its own bezel,
+// carrying the header (and its back button) off the top and the action bar off
+// the bottom, with the parked keyboard rising into the gap. This moves the one
+// container that should move and leaves everything above it alone.
+function scrollWithin(el, box, block = 'center') {
+  if (!el || !box) return;
+  const e = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+  const off = block === 'start' ? e.top - b.top - 8 : (e.top - b.top) - (b.height - e.height) / 2;
+  box.scrollTo({ top: Math.max(0, box.scrollTop + off), behavior: 'smooth' });
+}
+// Belt and braces: the frame itself must never be scrolled, whatever scrolls it.
+const pinPhone = () => { const ph = $('.phone'); if (ph && (ph.scrollTop || ph.scrollLeft)) { ph.scrollTop = 0; ph.scrollLeft = 0; } };
+$('.phone') && $('.phone').addEventListener('scroll', pinPhone);
+
 let timers = []; const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; }; const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 // Drafting a record is a network call, so it outlives the scan animation and
 // can land after the inspector has cancelled or walked away. Every analysis
@@ -365,7 +382,7 @@ AFTER = {
     const addStop = id => {
       const a = addrOf(id); GEO.lookups.record(a);
       inp.value = ''; sg.style.display = 'none';
-      if (S.stops.includes(id)) { S.sel = id; render(); later(() => { const r = $('#order .srow.sel'); r && r.scrollIntoView({ block: 'center' }); }, 50); return; }
+      if (S.stops.includes(id)) { S.sel = id; render(); later(() => { scrollWithin($('#order .srow.sel'), $('#order')); }, 50); return; }
       S.stops.push(id); S.sel = null;
       if (S.sheet === 'peek') S.sheet = 'half';
       render(); $('#addr').focus();
@@ -473,7 +490,7 @@ AFTER = {
   days() { const q = $('#dq'); q.oninput = () => { S.days.q = q.value; const pos = q.selectionStart; render(); const q2 = $('#dq'); q2.focus(); q2.setSelectionRange(pos, pos); };
     $$('[data-loc]').forEach(c => c.onclick = () => { const id = c.dataset.loc, date = c.dataset.date; S.cur = id; if (date === todayISO()) { S.snapshot = null; S.tab = 'today'; } else { const h = (HISTORY[id] || []).find(x => x.date === date); S.snapshot = h ? { date: h.date, entries: h.entries, outcome: h.outcome } : null; S.tab = 'today'; } go('location'); });
     $('#calbtn').onclick = () => { const have = new Set([todayISO(), ...DAYS.map(d => d.date)]); const first = new Date(2026, 10, 1); const dow = first.getDay(); const cells = []; for (let i = 0; i < dow; i++) cells.push('<span></span>'); for (let d = 1; d <= 30; d++) { const iso = `2026-11-${String(d).padStart(2, '0')}`; cells.push(`<span class="${have.has(iso) ? 'has' : ''} ${iso === todayISO() ? 'today' : ''}" data-day="${iso}">${d}</span>`); }
-      const el = document.createElement('div'); el.className = 'cal'; el.innerHTML = `<div class="calbox"><h5><span>November 2026</span><span style="color:var(--faint);font-weight:500">October ‹ ›</span></h5><div class="calgrid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => `<span style="color:var(--faint)">${d}</span>`).join('')}${cells.join('')}</div><div style="font-size:12px;color:var(--faint);margin-top:10px">Highlighted days have inspections. October dates are listed below the November ones.</div></div>`; $('#app').appendChild(el); el.onclick = e => { if (e.target === el) el.remove(); }; el.querySelectorAll('.has').forEach(s => s.onclick = () => { el.remove(); const sec = $('#day-' + s.dataset.day); if (sec) sec.scrollIntoView({ block: 'start', behavior: 'smooth' }); else toast('That day is further down'); }); }; },
+      const el = document.createElement('div'); el.className = 'cal'; el.innerHTML = `<div class="calbox"><h5><span>November 2026</span><span style="color:var(--faint);font-weight:500">October ‹ ›</span></h5><div class="calgrid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => `<span style="color:var(--faint)">${d}</span>`).join('')}${cells.join('')}</div><div style="font-size:12px;color:var(--faint);margin-top:10px">Highlighted days have inspections. October dates are listed below the November ones.</div></div>`; $('#app').appendChild(el); el.onclick = e => { if (e.target === el) el.remove(); }; el.querySelectorAll('.has').forEach(s => s.onclick = () => { el.remove(); const sec = $('#day-' + s.dataset.day); if (sec) scrollWithin(sec, $('#view'), 'start'); else toast('That day is further down'); }); }; },
   location() { locationAfter(); }, camera() { cameraAfter(); }, record() { recordAfter(); }, deck() { deckAfter(); }, report() { reportAfter(); }, notice() { noticeAfter(); }, kb() { kbAfter(); },
 };
 // Preview detents in pixels: half ends just under the photo; full is 90% of the screen.
@@ -696,7 +713,7 @@ function mountLotMap(id, entries) {
 // Tapping a pin, on either map, finds the entry it belongs to in the list.
 function showEntry(eid) {
   const el = $(`[data-e="${eid}"]`); if (!el) return;
-  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  scrollWithin(el, $('#view'));
   el.style.outline = '1px solid var(--cyan)'; later(() => el.style.outline = '', 1200);
 }
 // What the location screen is showing: today's entries, or the ones in the
@@ -823,7 +840,7 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   const q = VISUALS.start(id); if (q) console.log(`drawing ${q} recommendation visual${q === 1 ? '' : 's'} not yet queued`);
   genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); });
   genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
-  el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
+  el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { scrollWithin(sec, $('#view')); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
   mountLotMap(id, shownEntries(id));
   wireLotPan(id);
