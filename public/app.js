@@ -853,7 +853,7 @@ function cameraView() { const d = S.draft || {}; const a = addrOf(S.cur); const 
     <div class="pk-err" id="pkErr" hidden></div>
     <div class="pk-lab">Reference photos</div>
     <div class="pk-grid">${PHOTOLIB.map(x => `<button class="pk-i" data-lib="${x.id}">${img(x.src, x.label)}<span>${esc(x.label)}</span></button>`).join('')}</div></div></div>
-  <div class="sheet2" id="sheet2"><div class="say" id="say"><div class="tx" id="tx"></div><div class="pill" id="pill"><span class="mic">◉</span><span class="hint">Tap to type · hold to speak</span><div class="wave">${'<i></i>'.repeat(18)}</div></div></div><div class="typed" id="typed"><textarea class="memo" id="memo" rows="3" placeholder="What did you see?"></textarea><div class="typed-row"><button class="link" id="useVoice">◉ Use voice instead</button><span class="link-hint" id="memoHint"></span></div><button class="btn" id="submit" style="margin-top:10px" disabled>Submit entry</button></div></div></div>`; }
+  <div class="sheet2" id="sheet2"><div class="say" id="say"><div class="tx" id="tx"></div><div class="pill" id="pill"><span class="mic">◉</span><span class="hint">Tap to type · hold to speak</span><div class="wave">${'<i></i>'.repeat(18)}</div><span class="secs" id="secs"></span></div></div><div class="typed" id="typed"><textarea class="memo" id="memo" rows="3" placeholder="What did you see?"></textarea><div class="typed-row"><button class="link" id="useVoice">◉ Use voice instead</button><span class="link-hint" id="memoHint"></span></div><button class="btn" id="submit" style="margin-top:10px" disabled>Submit entry</button></div></div></div>`; }
 function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#say'), pill = $('#pill'), tx = $('#tx'), memo = $('#memo'), submit = $('#submit'); const d = S.draft;
   // This screen can re-render under a live recording (a photo chosen, a retake).
   // The bar it was being held on is gone, so the microphone goes with it.
@@ -899,10 +899,29 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // → busy (transcribing) → idle. A release during `opening` sets `abort`,
   // because the permission dialog can outlast the gesture that asked for it.
   let t0 = 0, mode = 'idle', wt = null, raf = null, tickT = null;
-  const wave = pill.querySelector('.wave'), bars = [...wave.querySelectorAll('i')], hint = pill.querySelector('.hint');
+  const wave = pill.querySelector('.wave'), bars = [...wave.querySelectorAll('i')], hint = pill.querySelector('.hint'), secs = $('#secs');
   const IDLE_HINT = 'Tap to type · hold to speak';
   const saying = html => { tx.innerHTML = html || ''; };
   const warn = m => saying(`<span class="warn">${esc(m)}</span>`);
+
+  // The provisional words from the browser's own recogniser, for the hold only.
+  // They are shown, never kept: `d.memo` is written from the transcript that
+  // comes back from the model, and this is wiped on every press. See the
+  // PREVIEW comment in voice.js for why the two are not the same transcriber.
+  let prov = '';
+  // The box is three lines tall while held, so only the newest words are shown
+  // and the sheet does not grow a line at a time under the inspector's thumb.
+  const tail = t => (t.length > 120 ? '…' + t.slice(-120) : t);
+  // The held line is built once and then only its text changes — re-rendering
+  // it three times a second restarts the caret and re-lays-out the sheet.
+  let provEl = null;
+  const holdLine = () => { saying('<span class="prov"></span><span class="cur"></span>'); provEl = tx.querySelector('.prov'); };
+  const showHold = () => {
+    secs.textContent = clipLen(VOICE.ms());
+    if (!provEl) return;
+    provEl.textContent = prov ? tail(prov) : 'Listening';
+    provEl.classList.toggle('words', !!prov);
+  };
 
   // The bars are the analyser's last 18 samples, oldest on the left, so the
   // trace scrolls as the voice moves. When the mic is shut they go back to the
@@ -911,7 +930,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   const stopMeter = () => { if (raf) cancelAnimationFrame(raf); raf = null; clearInterval(tickT); tickT = null; wave.classList.remove('live'); bars.forEach(b => { b.style.height = ''; b.style.opacity = ''; }); };
   // Back to the resting bar. Not animated in itself — every caller wraps it in
   // one grow() with whatever else is changing, so the sheet resizes once.
-  const resetVoice = () => { stopMeter(); say.classList.remove('hold', 'busy'); hint.textContent = IDLE_HINT; };
+  const resetVoice = () => { stopMeter(); say.classList.remove('hold', 'busy'); hint.textContent = IDLE_HINT; secs.textContent = ''; provEl = null; };
 
   const toKeyboard = h => { grow(() => { resetVoice(); saying(''); sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); if (h) $('#memoHint').textContent = h; }); setTimeout(() => memo.focus(), 460); };
   // Stay on the voice bar, with a line saying why nothing came of that hold.
@@ -920,6 +939,10 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // Release of a real recording: stop, judge the clip, transcribe it.
   const release = async () => {
     mode = 'busy'; stopMeter();
+    // The preview has done its job. The words stay on screen through the wait,
+    // in provisional type, so they are not replaced by an empty box for the
+    // second and a half the real transcript takes.
+    VOICE.PREVIEW.stop(); provEl = null;
     const clip = await VOICE.stop();
     // Too short, or the recorder gave nothing back. Stay in voice mode — the
     // next thing the inspector wants is to hold it again, properly.
@@ -928,7 +951,9 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     // the way out of that, not holding it again.
     if (clip.silent) { mode = 'idle'; return toKeyboard('Nothing was heard · type the note'); }
 
-    grow(() => { say.classList.remove('hold'); say.classList.add('busy'); hint.textContent = 'Transcribing…'; saying(`Transcribing <b>${clipLen(clip.ms)}</b> of audio<span class="cur"></span>`); });
+    grow(() => { say.classList.remove('hold'); say.classList.add('busy'); hint.textContent = 'Transcribing…';
+      saying(`<div class="st">Transcribing <b>${clipLen(clip.ms)}</b> of audio<span class="cur"></span></div>`
+        + (prov ? `<span class="prov words">${esc(tail(prov))}</span>` : '')); });
     let r;
     try { r = await VOICE.transcribe(clip, { address: addrOf(S.cur).addr, hasPhoto: !!d.photo }); }
     catch (err) { mode = 'idle'; return toKeyboard(err.hint || 'Could not transcribe that · type the note'); }
@@ -956,7 +981,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // VOICE.prime() has to happen here, in the gesture itself: Safari will not
   // start an audio graph outside one, and the hold is not recognised for
   // another 220 ms. Harmless on a tap that turns out to be a tap to type.
-  pill.onpointerdown = e => { e.preventDefault(); if (mode !== 'idle') return; VOICE.prime(); t0 = Date.now(); pill.setPointerCapture(e.pointerId);
+  pill.onpointerdown = e => { e.preventDefault(); if (mode !== 'idle') return; VOICE.prime(); prov = ''; t0 = Date.now(); pill.setPointerCapture(e.pointerId);
     wt = setTimeout(async () => {
       mode = 'opening';
       grow(() => say.classList.add('hold'));
@@ -967,10 +992,15 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
       if (mode !== 'opening') { VOICE.cancel(); mode = 'idle'; voiceAgain('Hold the bar down while you speak'); return; }
       mode = 'live';
       wave.classList.add('live'); meterFrame();
+      holdLine();
+      // Started only now, with the recorder already running, so a recogniser
+      // that cannot open — or that grabs at the microphone — can never cost the
+      // inspector the recording. It is given the words to draw and nothing else.
+      try { VOICE.PREVIEW.start(t => { if (mode === 'live') { prov = t; showHold(); } }); } catch (_) {}
       // voice.js stops itself at two minutes, which is a stuck pointer rather
       // than a memo. If that happens the counter must not keep running as
       // though the mic were still open, so the tick finishes the hold instead.
-      const tick = () => { if (!VOICE.active()) return release(); saying(`Listening <b>${clipLen(VOICE.ms())}</b><span class="cur"></span>`); };
+      const tick = () => { if (!VOICE.active()) return release(); showHold(); };
       tick(); tickT = setInterval(tick, 300);
     }, 220); };
   pill.onpointerup = pill.onpointercancel = () => { clearTimeout(wt);

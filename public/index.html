@@ -287,13 +287,20 @@
 .cam .sheet2{position:absolute;left:0;right:0;bottom:0;background:#0b0f17;border-radius:28px 28px 0 0;padding:16px 18px 40px;transform:translateY(105%);transition:transform .5s cubic-bezier(.2,.8,.2,1);box-shadow:0 -20px 60px rgba(0,0,0,.6);z-index:7}.cam.snap .sheet2{transform:none}.cam .sheet2.recede{transform:translateY(110%)!important;opacity:0;transition:transform .55s cubic-bezier(.4,0,.2,1),opacity .4s}
 .cam.snap .vf{filter:brightness(.55) saturate(.8)}.cam.snap .ctl,.cam.snap .grid{opacity:0;transition:opacity .3s;pointer-events:none}.cam.scanning .vf{filter:none;transition:filter .6s}
 .say .tx{margin:0 4px 12px;font-size:15px;line-height:1.45;color:var(--ink);min-height:44px}.say .tx:empty{display:none}.say .tx .cur{display:inline-block;width:2px;height:1em;background:var(--cyan);vertical-align:-2px;margin-left:2px;animation:blink 1s infinite}@keyframes blink{50%{opacity:.2}}
-.say .pill{display:flex;align-items:center;gap:10px;justify-content:center;height:58px;border-radius:18px;background:var(--glass2);border:1px solid var(--line);color:var(--soft);font-size:15px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}.say .pill .mic{color:var(--cyan);font-size:18px}.say.hold .pill{background:rgba(53,224,255,.12);border-color:rgba(53,224,255,.5);color:var(--ink)}.say.hold .pill .hint{display:none}
+.say .pill{display:flex;align-items:center;gap:10px;justify-content:center;height:58px;border-radius:18px;background:var(--glass2);border:1px solid var(--line);color:var(--soft);font-size:15px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none}.say .pill .mic{color:var(--cyan);font-size:18px}.say.hold .pill{background:rgba(53,224,255,.12);border-color:rgba(53,224,255,.5);color:var(--ink)}.say.hold .pill .hint{display:none}.say .pill .secs{display:none}.say.hold .pill .secs{display:inline-block;font-size:13px;font-weight:600;color:var(--cyan);font-variant-numeric:tabular-nums;min-width:30px;text-align:left}
 .wave{display:none;gap:3px;align-items:center;justify-content:center;height:30px}.say.hold .wave{display:flex}.wave i{width:4px;height:6px;border-radius:2px;background:var(--cyan);animation:wv .9s ease-in-out infinite}.wave i:nth-child(odd){animation-duration:1.3s}.wave i:nth-child(3n){animation-duration:.7s}@keyframes wv{50%{height:26px;opacity:.7}}
 /* The bars are the microphone's own level once it is open, so the keyframes
    stand down and the heights are set per frame from the analyser. */
 .wave.live i{animation:none;transition:height .07s linear}
 .say .tx b{color:var(--cyan);font-weight:600;font-variant-numeric:tabular-nums}
 .say .tx .warn{color:#ffd79a}
+/* The live preview: the browser's own recogniser, shown while the bar is held and replaced on release by the
+   real transcript. Provisional type because that is what it is — see the PREVIEW comment in voice.js. */
+.say.hold .tx{height:4.35em;overflow:hidden}
+.say .tx .prov{color:var(--soft)}
+.say .tx .prov.words{color:var(--ink);font-style:italic;opacity:.86}
+.say .tx .st{margin-bottom:6px}
+.say .tx .st+.prov{display:block;font-size:14px;line-height:1.4}
 .say.busy .pill{opacity:.5;pointer-events:none}.say.busy .pill .mic{animation:blink 1s infinite}
 .vclip{display:flex;align-items:center;gap:8px;margin-top:9px}
 .vb{border:1px solid rgba(53,224,255,.4);background:rgba(53,224,255,.1);color:#bdf3ff;font:600 12px/1 -apple-system,sans-serif;padding:7px 11px;border-radius:999px;cursor:pointer;flex:none}

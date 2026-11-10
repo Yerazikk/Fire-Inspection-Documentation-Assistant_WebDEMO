@@ -240,12 +240,96 @@ window.VOICE = (() => {
 
   /** Throw the recording away and close the microphone. Safe to call any time. */
   function cancel() {
+    PREVIEW.stop();
     const r = rec;
     rec = null;
     if (r && r.state === 'recording') { r.onstop = null; try { r.stop(); } catch (_) {} }
     parts = [];
     teardown();
   }
+
+  // ---- the live preview ---------------------------------------------------
+  //
+  // The browser's own recogniser, SpeechRecognition, used for exactly one
+  // thing: showing the inspector provisional words while the bar is held, so
+  // the hold is visibly hearing them rather than only showing a level. What it
+  // produces is thrown away on release. It never reaches the note.
+  //
+  // It is deliberately not trusted with the note, for the three reasons at the
+  // top of this file. It cannot be told this job's vocabulary, so "Zone 0"
+  // comes back as "zone zero" and "CFC 4906.2" as whatever it makes of the
+  // letters. It has no way to say that nobody spoke, which is the one judgement
+  // ai/prompts.js VOICE is built around. And in Chrome it streams the audio to
+  // Google's speech service, which is not the backend the rest of this app
+  // talks to. So: a preview, drawn in provisional type, replaced on release by
+  // the transcript from the model that was given the vocabulary and the rule.
+  //
+  // Everything here is best-effort. An unsupported browser, a refusal, a
+  // dropped connection — the hold falls back to the level and the counter, and
+  // the recording and the real transcript are a separate path that cannot be
+  // affected by any of it.
+  const PREVIEW = (() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // Chrome ends a continuous session on its own after a pause and fires
+    // `onend`. Restarting keeps the preview alive for the whole hold; the cap
+    // is there so a recogniser that refuses to start cannot spin.
+    const MAX_RESTARTS = 24;
+    // `carried` is what earlier sessions of this hold had settled; `sfinal` and
+    // `partial` are rebuilt from the current session's whole results list on
+    // every event rather than appended to. A result can be revised and
+    // `resultIndex` can point back at one already seen, so accumulating word by
+    // word double-counts — rebuilding is idempotent and cannot.
+    let rec = null, carried = '', sfinal = '', partial = '', cb = null, running = false, restarts = 0;
+
+    const supported = () => !!SR;
+    const join = (...p) => p.join(' ').replace(/\s+/g, ' ').trim();
+    const text = () => join(carried, sfinal, partial);
+
+    function start(onText) {
+      stop();
+      if (!SR) return false;
+      cb = onText; carried = ''; sfinal = ''; partial = ''; restarts = 0;
+      try { rec = new SR(); } catch (_) { rec = null; return false; }
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+      try { rec.lang = navigator.language || 'en-US'; } catch (_) {}
+      rec.onresult = e => {
+        let fin = '', part = '';
+        for (let i = 0; i < e.results.length; i++) {
+          const r = e.results[i];
+          const t = String((r[0] && r[0].transcript) || '').trim();
+          if (!t) continue;
+          if (r.isFinal) fin = join(fin, t); else part = join(part, t);
+        }
+        sfinal = fin; partial = part;
+        if (cb) cb(text());
+      };
+      // A preview that fails just stops updating. Nothing is reported, because
+      // there is nothing the inspector would do about it: the bar is recording.
+      rec.onerror = () => {};
+      rec.onend = () => {
+        // Chrome closes a continuous session of its own accord after a pause,
+        // and the next one starts with an empty results list. What this one had
+        // settled has to be carried over, or the preview loses its first half
+        // the moment the inspector draws breath. The hanging interim carries
+        // over too: a session does not always finalise before it ends, and
+        // those are real words the inspector just watched appear.
+        carried = join(carried, sfinal, partial); sfinal = ''; partial = '';
+        if (running && rec && restarts++ < MAX_RESTARTS) { try { rec.start(); } catch (_) {} }
+      };
+      try { rec.start(); running = true; return true; } catch (_) { rec = null; return false; }
+    }
+
+    /** Stop listening and throw the provisional words away. Safe any time. */
+    function stop() {
+      running = false; cb = null; carried = ''; sfinal = ''; partial = '';
+      const r = rec; rec = null;
+      if (r) { r.onresult = r.onend = r.onerror = null; try { r.abort(); } catch (_) {} }
+    }
+
+    return { supported, start, stop, text };
+  })();
 
   /**
    * Send one clip to be transcribed.
@@ -281,5 +365,5 @@ window.VOICE = (() => {
     return { text: String(body.text || '').trim(), nothing: !!body.nothing, model: body.model || '', ms: body.ms || 0 };
   }
 
-  return { supported, secure, active, prime, start, stop, cancel, transcribe, level, trace, ms, envelope, CAP_MS, MIN_MS };
+  return { supported, secure, active, prime, start, stop, cancel, transcribe, level, trace, ms, envelope, PREVIEW, CAP_MS, MIN_MS };
 })();
