@@ -81,10 +81,10 @@ window.GMAP = (() => {
     return load().then(gm => {
       if (!el) { el = document.createElement('div'); el.className = 'gmapel'; }
       if (el.parentElement !== host) host.appendChild(el);
-      const centre = { lat: +lat, lng: +lon };
+      const at = { lat: +lat, lng: +lon };
       if (!map) {
         map = new gm.Map(el, {
-          center: centre, zoom: ZOOM,
+          center: at, zoom: ZOOM,
           mapTypeId: 'satellite',
           tilt: 0,                      // straight down; a tilted lot cannot be read against a code
           disableDefaultUI: true,
@@ -96,15 +96,76 @@ window.GMAP = (() => {
           maxZoom: 21,
         });
       }
-      if (opts.key !== atKey) { atKey = opts.key || ''; map.setCenter(centre); map.setZoom(ZOOM); }
+      if (opts.key !== atKey) { atKey = opts.key || ''; map.setCenter(at); map.setZoom(ZOOM); }
       // The element was moved in the DOM, which older builds do not notice.
       gm.event.trigger(map, 'resize');
       return true;
     });
   }
 
+  /**
+   * Where the map is looking now, or null if it has never been built. The
+   * element is detached between screens but the map object is not, so this
+   * still answers after the lot view has been left — which is what lets an
+   * entry made two screens later be placed where the inspector left the frame.
+   */
+  function centre() {
+    if (!map) return null;
+    const c = map.getCenter(); if (!c) return null;
+    return { lat: c.lat(), lon: c.lng() };
+  }
+
+  // Entry pins, drawn as our own DOM on an OverlayView rather than as map
+  // markers. The app already has a visual language for an entry — a numbered
+  // disc in the colour of its kind — and matching it matters more here than
+  // a teardrop would; AdvancedMarkerElement needs a cloud-configured mapId,
+  // and the classic Marker is deprecated. An OverlayView is the supported way
+  // to put your own element on the map and have it stay on the same patch of
+  // ground through every pan and zoom.
+  const TONE = { violation: '#ff5c6c', compliance: '#4ade80', note: '#ffb648' };
+  let pinOverlay = null, pinLayer = null, pinList = [], pinPick = null;
+
+  function paintPins() {
+    if (!pinLayer) return;
+    pinLayer.innerHTML = pinList.map(p =>
+      `<button class="gmpin" data-pin="${String(p.id == null ? '' : p.id).replace(/"/g, '&quot;')}" style="--c:${TONE[p.kind] || TONE.note}"><i></i><span>${p.n}</span></button>`).join('');
+    placePins();
+  }
+  function placePins() {
+    if (!pinLayer || !pinOverlay) return;
+    const proj = pinOverlay.getProjection(); if (!proj) return;
+    const kids = pinLayer.children;
+    for (let i = 0; i < kids.length; i++) {
+      const p = pinList[i]; if (!p) continue;
+      const xy = proj.fromLatLngToDivPixel(new google.maps.LatLng(p.lat, p.lon));
+      kids[i].style.transform = `translate(${Math.round(xy.x)}px,${Math.round(xy.y)}px)`;
+    }
+  }
+
+  /**
+   * Show one pin per entry: `{ id, n, kind, lat, lon }`. Called with an empty
+   * list to clear. `onPick` receives the id of a pin that is tapped.
+   */
+  function marks(list, onPick) {
+    pinPick = onPick || null;
+    pinList = (list || []).filter(p => isFinite(p.lat) && isFinite(p.lon));
+    if (!map || !window.google || !google.maps) return;
+    if (pinOverlay) return paintPins();
+    pinOverlay = new google.maps.OverlayView();
+    pinOverlay.onAdd = function () {
+      pinLayer = document.createElement('div');
+      pinLayer.className = 'gmpins';
+      pinLayer.onclick = e => { const b = e.target.closest('.gmpin'); if (b && pinPick) pinPick(b.dataset.pin); };
+      this.getPanes().overlayMouseTarget.appendChild(pinLayer);
+      paintPins();
+    };
+    pinOverlay.onRemove = function () { if (pinLayer && pinLayer.parentElement) pinLayer.parentElement.removeChild(pinLayer); pinLayer = null; };
+    pinOverlay.draw = placePins;
+    pinOverlay.setMap(map);
+  }
+
   /** Take the map off screen without destroying it. */
   function unmount() { if (el && el.parentElement) el.parentElement.removeChild(el); }
 
-  return { load, mount, unmount, street, config, get live() { return !!map && !denied; } };
+  return { load, mount, unmount, marks, centre, street, config, get live() { return !!map && !denied; } };
 })();

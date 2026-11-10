@@ -61,7 +61,17 @@
    pinch and pan. */
 .sat.gmap{touch-action:auto}
 .sat.gmap .gmapel{position:absolute;inset:0;z-index:1;background:#0d1614}
-.sat.gmap.live .satimg{opacity:0;transition:opacity .3s ease}
+.sat.gmap.live .satimg,.sat.gmap.live .satover{opacity:0;transition:opacity .3s ease}
+/* Entry pins on the Google lot view, in the same language as the SVG pips on
+   the Esri frame behind it: a dark disc ringed in the colour of the entry's
+   kind. The halo pings slowly, so a finding is findable on a busy roof
+   without the map becoming a light show. */
+.gmpins{position:absolute;left:0;top:0;width:0;height:0}
+.gmpin{position:absolute;left:0;top:0;width:28px;height:28px;margin:-14px 0 0 -14px;padding:0;border:0;background:none;cursor:pointer;will-change:transform}
+.gmpin i{position:absolute;inset:-7px;border-radius:50%;background:var(--c);animation:gmping 2.6s cubic-bezier(.2,.6,.3,1) infinite}
+.gmpin span{position:absolute;inset:0;border-radius:50%;background:#0b0f17;border:1.6px solid var(--c);color:var(--c);display:grid;place-items:center;font:700 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.55)}
+.gmpin:active span{transform:scale(.92)}
+@keyframes gmping{0%{transform:scale(.7);opacity:.34}70%,100%{transform:scale(1.18);opacity:0}}
 .sat.gmap .gm-style-cc,.sat.gmap .gmnoprint{font-family:-apple-system,BlinkMacSystemFont,sans-serif}
 .thphoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#0d1614}.thphoto.missing{display:grid;place-items:center;color:var(--faint);font-size:9px}.thphoto.missing::after{content:"no view"}
 .pvmore{padding-top:14px}

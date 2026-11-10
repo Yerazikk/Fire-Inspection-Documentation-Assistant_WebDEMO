@@ -550,16 +550,38 @@ const toneOf = k => k === 'violation' ? 'var(--red)' : k === 'compliance' ? 'var
 // what a walk round a house actually looks like.
 const PARCEL_M = 24;
 const geoXY = (v, at, g) => ({ x: at.x + v.pct((g[0] - 50) / 100 * PARCEL_M), y: at.y + v.pct((g[1] - 50) / 100 * PARCEL_M) });
-// The same offset as a coordinate, for the record footer. Still invented — see
-// TODO.md §3 — but invented about the property being inspected rather than a
-// fixed pair of degrees, and labelled as simulated so no document passes it
-// off as a fix. Real GPS replaces the whole function.
-function simFix(id, g) {
-  const a = addrOf(id); if (!a) return 'position unavailable';
-  const lat = a.lat + ((50 - g[1]) / 100 * PARCEL_M) / 111320;
-  const lon = a.lon + ((g[0] - 50) / 100 * PARCEL_M) / (111320 * Math.cos(a.lat * Math.PI / 180));
-  return `${Math.abs(lat).toFixed(5)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(5)}° ${lon < 0 ? 'W' : 'E'} · simulated`;
+const mPerDegLat = 111320;
+const mPerDegLon = lat => 111320 * Math.cos(lat * Math.PI / 180);
+const offsetBy = (c, e, n) => ({ lat: c.lat + n / mPerDegLat, lon: c.lon + e / mPerDegLon(c.lat) });
+// Where an entry was made. The inspector frames the lot view on the thing they
+// are standing in front of, so the centre of that frame is the best fix this
+// demo has — an entry made after panning down the drive belongs on the drive,
+// not on the pin the address geocoded to. The map object outlives the screen,
+// so this still answers from the camera and the record. A few metres of
+// scatter keeps two entries made from one standing position off each other.
+//
+// Still invented — see TODO.md §3 — but invented about the ground the inspector
+// chose to look at, and labelled simulated so no document passes it off as a
+// fix. Real GPS replaces the centre, and nothing downstream changes.
+const ENTRY_SCATTER_M = 7;
+function entryFix(id) {
+  const c = GMAP.centre() || satCentre(id); if (!c) return null;
+  const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * ENTRY_SCATTER_M;
+  return offsetBy(c, Math.cos(a) * r, Math.sin(a) * r);
 }
+// An entry's place on the ground. New ones carry a coordinate; the demo
+// history carries the older 0–100 offset in a notional parcel box, which
+// projects onto the same ground around the address.
+function atOf(id, e) {
+  if (e && e.at && isFinite(e.at.lat) && isFinite(e.at.lon)) return e.at;
+  const a = addrOf(id), g = e && e.geo; if (!a || !g) return null;
+  return offsetBy(a, (g[0] - 50) / 100 * PARCEL_M, (50 - g[1]) / 100 * PARCEL_M);
+}
+const fmtFix = c => c
+  ? `${Math.abs(c.lat).toFixed(5)}° ${c.lat < 0 ? 'S' : 'N'}, ${Math.abs(c.lon).toFixed(5)}° ${c.lon < 0 ? 'W' : 'E'} · simulated`
+  : 'position unavailable';
+// One pin per entry, for whichever map is drawing them.
+const entryPins = (id, entries) => (entries || []).map(e => { const c = atOf(id, e); return c && { id: e.id || e.n, n: e.n, kind: e.kind, lat: c.lat, lon: c.lon }; }).filter(Boolean);
 // ---- where the frame sits over the property ----------------------------
 // The geocoded point is a pin on the street, and the house, the woodpile and
 // the slope behind it are not always in the box drawn around it. So the lot
@@ -592,8 +614,9 @@ function satCentre(id) {
   const p = panOf(id); if (!p) return { lat: a.lat, lon: a.lon };
   return { lat: a.lat + p.n / 111320, lon: a.lon + p.e / (111320 * Math.cos(a.lat * Math.PI / 180)) };
 }
-function pipSVG(entries, mini, v, at) {
-  return (entries || []).map(e => { const c = toneOf(e.kind), r = mini ? 3.2 : 3.6, p = geoXY(v, at, e.geo), x = p.x.toFixed(2), y = p.y.toFixed(2);
+function pipSVG(entries, mini, v, id) {
+  return (entries || []).map(e => { const g = atOf(id, e); if (!g) return '';
+    const c = toneOf(e.kind), r = mini ? 3.2 : 3.6, p = v.xy(g.lat, g.lon), x = p.x.toFixed(2), y = p.y.toFixed(2);
     return `<g class="pip" data-pip="${e.id || e.n}"><circle cx="${x}" cy="${y}" r="${r + 2.2}" fill="${c}" opacity=".18"/><circle cx="${x}" cy="${y}" r="${r}" fill="#0b0f17" stroke="${c}" stroke-width=".8"/><text x="${x}" y="${(p.y + 1.2).toFixed(2)}" font-size="${mini ? 3.6 : 3.8}" font-weight="700" fill="${c}" text-anchor="middle" font-family="-apple-system,sans-serif">${e.n}</text></g>`; }).join('');
 }
 // What sits on top of the imagery: the point we geocoded and routed to, where
@@ -610,7 +633,7 @@ function satOverlay(id, entries, mini, opts) {
   const you = geoXY(v, at, POS[S.posIdx % POS.length]);
   const marks = mini ? '' : (S.satZoom === 'zone' ? SAT.zones(v, at) : '')
     + (opts.noYou ? '' : fovCone(you, at) + `<circle cx="${you.x.toFixed(2)}" cy="${you.y.toFixed(2)}" r="2.1" fill="#35e0ff" stroke="#0b0f17" stroke-width=".6"/>`);
-  return `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${marks}${pipSVG(entries, mini, v, at)}</svg>`;
+  return `<svg class="satover" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${marks}${pipSVG(entries, mini, v, id)}</svg>`;
 }
 // The phone's field of view: a soft cone from where the inspector stands toward
 // the parcel, i.e. the direction the camera is pointing. Heading comes from the
@@ -651,23 +674,36 @@ function kindChip(k) { return k === 'violation' ? '<span class="chip red">Violat
 // Maps key, a refused key, a blocked script or no network, and the box still
 // shows this lot from above rather than an empty rectangle. The Google map is
 // mounted on top once it is ready and the frame underneath is hidden then.
-function lotMapHTML(id) {
+function lotMapHTML(id, entries) {
   const c = satCentre(id);
   if (!c) return `<div id="sathero" class="sat hero photo missing"></div>`;
+  // The entry pips are drawn on the Esri frame as well as on the Google map.
+  // They sit under .gmapel, so they are what shows on the rung of the ladder
+  // where Google is unreachable and are hidden the moment it is not.
   return `<div id="sathero" class="sat hero gmap" data-lat="${c.lat}" data-lon="${c.lon}">` +
-    SAT.tile(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640, eager: 1, dead: sketchSVG(id) }) + `</div>`;
+    SAT.tile(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640, eager: 1, dead: sketchSVG(id) }) +
+    satOverlay(id, entries, false, { noYou: true }) + `</div>`;
 }
 // Hand the host to GMAP, which moves its one long-lived map element into it.
 // `key` is the property, so panning and zooming survive a re-render of the
 // screen and only a move to a different address recentres the view.
-function mountLotMap(id) {
+function mountLotMap(id, entries) {
   const host = $('#sathero');
   if (!host || !host.classList.contains('gmap')) return;
   GMAP.mount(host, +host.dataset.lat, +host.dataset.lon, { key: id })
-    .then(() => { if (host.isConnected) host.classList.add('live'); })
+    .then(() => { if (!host.isConnected) return; host.classList.add('live'); GMAP.marks(entryPins(id, entries), showEntry); })
     .catch(e => { host.classList.remove('live'); console.log('lot view: Esri imagery — ' + e.message); });
 }
-function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = snap ? snap.entries.map((e, i) => ({ ...e, id: 'h' + i })) : entriesOf(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
+// Tapping a pin, on either map, finds the entry it belongs to in the list.
+function showEntry(eid) {
+  const el = $(`[data-e="${eid}"]`); if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.style.outline = '1px solid var(--cyan)'; later(() => el.style.outline = '', 1200);
+}
+// What the location screen is showing: today's entries, or the ones in the
+// snapshot of a past visit being read.
+const shownEntries = id => { const s = S.snapshot; return s ? s.entries.map((e, i) => ({ ...e, id: 'h' + i })) : entriesOf(id); };
+function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = shownEntries(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
   // Keyed on the document existing, not on the state object: visiting the
   // notice screen creates the state before anything has been drafted into it.
   const dst = key => { const st = S[key][id]; return st && st.doc ? st : null; };
@@ -680,7 +716,7 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   // cropped overlay shows the full width of the view and the scale bar below
   // can be a straight percentage of it.
   const span = SAT.spanOf(S.satZoom), bar = SAT.scaleBar(span), ctr = satCentre(id);
-  const body = `${lotMapHTML(id)}
+  const body = `${lotMapHTML(id, entries)}
   ${snap ? `<div class="ban snap">Viewing ${fmtDate(snap.date)} · read-only</div>` : ''}
 
 
@@ -790,14 +826,14 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
   el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { sec.scrollIntoView({ block: 'center', behavior: 'smooth' }); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
-  mountLotMap(id);
+  mountLotMap(id, shownEntries(id));
   wireLotPan(id);
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };
   const tm = $('#toMap'); if (tm) tm.onclick = () => { S.cur = null; S.stack = []; go('map', { replace: true }); };
   const ex = $('#exitSnap'); if (ex) ex.onclick = () => { S.snapshot = null; S.tab = 'history'; render(); };
   $$('[data-hist]').forEach(h => h.onclick = () => { const hh = HISTORY[id].find(x => x.date === h.dataset.hist); S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; render(); });
-  $$('[data-pip]').forEach(p => p.onclick = () => { const el = $(`[data-e="${p.dataset.pip}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.style.outline = '1px solid var(--cyan)'; later(() => el.style.outline = '', 1200); } });
+  $$('[data-pip]').forEach(p => p.onclick = () => showEntry(p.dataset.pip));
   const list = $('#elist'); if (list && !S.snapshot) { list.querySelectorAll('.entry').forEach(card => { let t = null; const eid = card.dataset.e;
       card.onpointerdown = e => { if (e.target.closest('.x')) return; t = setTimeout(() => { t = null; S.wobble = true; render(); }, 500); };
       card.onpointerup = e => { if (e.target.closest('.x')) return; if (t) { clearTimeout(t); if (S.wobble) { S.wobble = false; render(); return; } openRecord(eid); } };
@@ -982,7 +1018,8 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     pending.then(open, e => open(DRAFTS.recordFallback(d.kind, String((e && e.message) || e)))); };
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
 function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
-  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, voice: d.clip || null, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', simFix(S.cur, pos)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
+  const at = entryFix(S.cur);
+  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, voice: d.clip || null, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, at, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', fmtFix(at)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
   // The pictures start here, not at Finish: a card takes fifteen to twenty
   // seconds, and starting now means the first ones have landed by the time the
   // inspector has read the record and reached the deck. Nothing waits on them —
@@ -995,11 +1032,13 @@ function saveRecord() { const list = entriesOf(S.cur); const i = list.findIndex(
 // ---------------- record ----------------
 
 // Where the text on this screen came from. A template is not a draft of this
-// property, so it is never allowed to look like one.
+// property, so it is never allowed to look like one — that is the whole job of
+// this chip. Which model wrote a real draft is not something the inspector
+// acts on, so it no longer sits in the heading of every record; the document
+// footers still name it, which is where the provenance trail belongs.
 function provChip(ai) {
   if (!ai || ai.source === 'template') return '<span class="chip amber" style="margin-left:8px;font-weight:600">Template · not this property</span>';
-  const m = ai.meta && ai.meta.model ? ai.meta.model : 'model';
-  return `<span class="chip cyan" style="margin-left:8px;font-weight:600">${esc(m)}</span>`;
+  return '';
 }
 
 function provNote(ai) {
@@ -1015,7 +1054,6 @@ function codeCaveat(ai) {
   if ((a.unknownCitations || []).length) out.push(`<p style="margin-top:10px;color:var(--red);font-size:12px">${a.unknownCitations.length} citation${a.unknownCitations.length === 1 ? ' is' : 's are'} not in the department code library. Do not rely on ${a.unknownCitations.length === 1 ? 'it' : 'them'}.</p>`);
   if ((a.pendingCitations || []).length) out.push(`<p style="margin-top:8px;color:var(--amber);font-size:12px">${a.pendingCitations.length} cited section${a.pendingCitations.length === 1 ? ' is' : 's are'} adopted but not yet enforceable as a present violation.</p>`);
   if ((a.unsourcedCitations || []).length) out.push(`<p style="margin-top:8px;color:var(--faint);font-size:12px">Marked <b>verify source</b>: in the library, but the wording was never checked against the adopted code. Confirm before this goes on a notice.</p>`);
-  if ((a.mirroredCitations || []).length) out.push(`<p style="margin-top:8px;color:var(--faint);font-size:12px">Marked <b>confirm source</b>: transcribed verbatim, but from a mirror rather than the signed or official publication. Confirm the wording — local sections against the ordinance on file with the Fire Marshal — before this goes on a notice.</p>`);
   if (a.codeEdition) out.push(`<p style="margin-top:8px;color:var(--faint);font-size:12px">Edition: ${esc(a.codeEdition)}${a.codeOrdinance ? ' · ' + esc(a.codeOrdinance) : ''}${a.codeEffective ? ' · effective ' + esc(a.codeEffective) : ''}</p>`);
   return out.join('');
 }
@@ -1034,7 +1072,7 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
   ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : '✓'}</i></div><div><div style="font-weight:650">${ed('severity.level', r.ai.severity.level)}</div><div style="font-size:12px;color:var(--faint)">${ed('severity.why', r.ai.severity.why)}</div></div></div><div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
-  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.mirrored ? '<span class="chip amber" title="Transcribed verbatim, but from a mirror rather than the signed or official publication">confirm source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
+  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<div class="card" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<p>↳ ${esc(f)}</p>`).join('')}</div>` : ''}
   ${r.kind === 'violation' ? `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">Recommendations for the owner</div><div class="s">${dec ? inc + ' included · ' + (dec - inc) + ' left out of ' + r.recs.length : r.recs.length + ' suggested · swipe to decide'}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>` : ''}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
@@ -1165,7 +1203,7 @@ function docSection(s, i, cls, delay) {
   if (s.type === 'prose') inner = ed(`${p}.body`, s.body, 'p', 'margin:0;white-space:pre-wrap');
   else if (s.type === 'list') inner = `<ul class="dlist">${s.items.map((x, j) => ed(`${p}.items.${j}`, x, 'li')).join('')}</ul>`;
   else if (s.type === 'fields') inner = s.fields.map((f, j) => `<div class="st"><b>${esc(f.label)}</b>${ed(`${p}.fields.${j}.value`, f.value)}</div>`).join('');
-  else inner = s.codes.map((c, j) => `<div class="cref"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.citation)}</span>${c.unverified ? '<span class="chip red">not in the code library</span>' : ''}${c.pending ? '<span class="chip amber">not yet enforceable</span>' : ''}${c.unsourced ? '<span class="chip amber">verify source</span>' : ''}${c.mirrored ? '<span class="chip amber">confirm source</span>' : ''}<div class="ct2">${esc(c.title)}</div>${c.edition ? `<div class="ct2">${esc(c.edition)}</div>` : ''}${ed(`${p}.codes.${j}.relevance`, c.relevance, 'p', 'margin:3px 0 0')}</div>`).join('');
+  else inner = s.codes.map((c, j) => `<div class="cref"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.citation)}</span>${c.unverified ? '<span class="chip red">not in the code library</span>' : ''}${c.pending ? '<span class="chip amber">not yet enforceable</span>' : ''}${c.unsourced ? '<span class="chip amber">verify source</span>' : ''}<div class="ct2">${esc(c.title)}</div>${c.edition ? `<div class="ct2">${esc(c.edition)}</div>` : ''}${ed(`${p}.codes.${j}.relevance`, c.relevance, 'p', 'margin:3px 0 0')}</div>`).join('');
   return `<div class="${cls || 'card'} edcard" data-key="${esc(s.id)}"${delay ? ` style="animation-delay:${delay}s"` : ''}><h4>${esc(s.heading)}<button class="edbtn main" data-edit>Edit</button></h4>${inner}</div>`;
 }
 
