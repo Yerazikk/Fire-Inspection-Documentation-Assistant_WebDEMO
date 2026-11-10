@@ -953,7 +953,10 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     setTimeout(() => memo.focus(), 460);
   };
 
-  pill.onpointerdown = e => { e.preventDefault(); if (mode !== 'idle') return; t0 = Date.now(); pill.setPointerCapture(e.pointerId);
+  // VOICE.prime() has to happen here, in the gesture itself: Safari will not
+  // start an audio graph outside one, and the hold is not recognised for
+  // another 220 ms. Harmless on a tap that turns out to be a tap to type.
+  pill.onpointerdown = e => { e.preventDefault(); if (mode !== 'idle') return; VOICE.prime(); t0 = Date.now(); pill.setPointerCapture(e.pointerId);
     wt = setTimeout(async () => {
       mode = 'opening';
       grow(() => say.classList.add('hold'));

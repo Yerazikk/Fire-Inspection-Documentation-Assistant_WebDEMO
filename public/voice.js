@@ -34,8 +34,13 @@ window.VOICE = (() => {
   // wind still peaks well above it.
   const SILENT = 0.02;
 
-  let stream = null, rec = null, parts = [], ac = null, an = null, buf = null, meter = null, capT = null;
+  let stream = null, rec = null, parts = [], ac = null, an = null, src = null, buf = null, meter = null, capT = null;
   let t0 = 0, mime = '', lvl = 0, peak = 0, hist = [], env = [], metered = false;
+  // One audio graph for the life of the page. Safari only lets an AudioContext
+  // start inside the gesture that asked for it, and the hold is not recognised
+  // until 220 ms after the finger lands — by then the gesture is over. So the
+  // bar primes this one on pointerdown, synchronously, and start() reuses it.
+  let shared = null;
 
   const secure = () => window.isSecureContext !== false;
   const supported = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
@@ -44,6 +49,23 @@ window.VOICE = (() => {
   const level = () => lvl;
   // The last `n` level samples, oldest first — the moving trace the bars draw.
   const trace = n => { const out = hist.slice(-n); while (out.length < n) out.unshift(0); return out; };
+
+  /**
+   * Open the audio graph, from inside the gesture that is about to ask for the
+   * microphone. Safe to call on any press, including a tap that turns out to be
+   * a tap to type: one context is made and then reused. Failing is not fatal —
+   * the recording goes ahead unmetered, and an unmetered clip is never judged
+   * silent.
+   */
+  function prime() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!shared || shared.state === 'closed') shared = new AC();
+      if (shared.state === 'suspended') shared.resume().catch(() => {});
+      return shared;
+    } catch (_) { return null; }
+  }
 
   const pick = () => WANTED.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (_) { return false; } }) || '';
 
@@ -111,9 +133,12 @@ window.VOICE = (() => {
     clearInterval(meter); meter = null;
     clearTimeout(capT); capT = null;
     if (stream) { try { stream.getTracks().forEach(t => t.stop()); } catch (_) {} }
-    if (ac) { try { ac.close(); } catch (_) {} }
-    stream = null; rec = null; ac = null; an = null; buf = null;
-    lvl = 0; hist = []; t0 = 0;
+    // The context is shared across holds and stays open; only this hold's
+    // microphone source comes off it. `env` is this clip's envelope and has to
+    // go with it, or the next hold's swing is measured over both recordings.
+    if (src) { try { src.disconnect(); } catch (_) {} }
+    stream = null; rec = null; src = null; ac = null; an = null; buf = null;
+    lvl = 0; hist = []; env = []; t0 = 0;
   }
 
   const b64 = blob => new Promise((resolve, reject) => {
@@ -153,15 +178,21 @@ window.VOICE = (() => {
     // because the microphone is moving. If the audio graph will not open the
     // recording still goes ahead — it just cannot be metered, and a clip that
     // was never metered is never called silent.
-    peak = 0; lvl = 0; hist = []; metered = false;
+    peak = 0; lvl = 0; hist = []; env = []; metered = false;
     try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      ac = new AC();
-      if (ac.state === 'suspended') await ac.resume();
+      ac = prime();
+      if (ac && ac.state === 'suspended') await ac.resume();
+      // A suspended graph does not read quiet audio — it reads nothing at all,
+      // every sample dead centre, however loud the inspector is. Believing that
+      // meter is how a good memo gets thrown away as silence, so a context that
+      // is not running does not get to measure: the recording goes ahead
+      // unmetered and the transcriber decides on the audio instead.
+      if (!ac || ac.state !== 'running') throw err('nometer', 'the level meter would not start');
       an = ac.createAnalyser();
       an.fftSize = 1024;
       an.smoothingTimeConstant = 0.6;
-      ac.createMediaStreamSource(stream).connect(an);
+      src = ac.createMediaStreamSource(stream);
+      src.connect(an);
       buf = new Uint8Array(an.fftSize);
       meter = setInterval(sample, 50);
       metered = true;
@@ -195,8 +226,11 @@ window.VOICE = (() => {
           mimeType: type, data, bytes: blob.size, ms: took, peak: pk,
           meter: wasMetered ? shape : null,
           short: took < MIN_MS,
-          // Only a clip that was actually metered can be judged quiet.
-          silent: wasMetered && pk < SILENT,
+          // Only a clip that was actually metered can be judged quiet — and a
+          // peak of exactly zero is not a quiet room, it is an analyser that
+          // never delivered a sample. Discarding the recording on that reading
+          // loses the memo; sending it costs one call and a true answer.
+          silent: wasMetered && pk > 0 && pk < SILENT,
         });
       };
       r.onstop = finish;
@@ -247,5 +281,5 @@ window.VOICE = (() => {
     return { text: String(body.text || '').trim(), nothing: !!body.nothing, model: body.model || '', ms: body.ms || 0 };
   }
 
-  return { supported, secure, active, start, stop, cancel, transcribe, level, trace, ms, envelope, CAP_MS, MIN_MS };
+  return { supported, secure, active, prime, start, stop, cancel, transcribe, level, trace, ms, envelope, CAP_MS, MIN_MS };
 })();
