@@ -726,7 +726,7 @@ function locationBody() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   const dst = key => { const st = S[key][id]; return st && st.doc ? st : null; };
   // Only drafting-in-progress is worth a pill here: a stale document says so on its own screen, next to Refresh.
   const changed = key => (!dst(key) && S[key][id] && S[key][id].status === 'pending') ? '<span class="badge">drafting…</span>' : '';
-  const today = (S.tab === 'today' || snap) ? (entries.length ? `<div id="elist" class="${S.wobble ? 'wobble' : ''}">${entries.map(e => `<div class="entry" data-e="${e.id}"><span class="en ${e.kind}">${e.n}</span><div class="th">${e.photo ? img(e.photo, 'photo') : I('text', 20, 1.6)}</div><div><div class="t">${kindChip(e.kind)} <span style="color:var(--faint);font-size:12px;font-weight:500">${esc(e.time)}</span></div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : e.note)}</div></div>${snap ? '' : `<button class="x" data-del="${e.id}">${I('x', 12, 2.6)}</button>`}</div>`).join('')}</div>` : `<div class="hint" style="padding:34px 20px">${snap ? 'No entries were recorded that day.' : 'Nothing recorded here yet today.<br>Start with a photo and a note.'}</div>`)
+  const today = (S.tab === 'today' || snap) ? (entries.length ? `<div id="elist" class="${S.wobble ? 'wobble' : ''}">${entries.map(e => `<div class="entry" data-e="${e.id}"><span class="en ${e.kind}">${e.n}</span><div class="th">${e.photo ? img(e.photo, 'photo') : I('text', 20, 1.6)}</div><div><div class="t">${esc(e.time || '')}</div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : e.note)}</div></div>${snap ? '' : `<button class="x" data-del="${e.id}">${I('x', 12, 2.6)}</button>`}</div>`).join('')}</div>` : `<div class="hint" style="padding:34px 20px">${snap ? 'No entries were recorded that day.' : 'Nothing recorded here yet today.<br>Start with a photo and a note.'}</div>`)
     + (snap || !done ? '' : `<div id="docs"><div class="lbl" style="margin-top:18px">Documents</div><div class="docbtn" data-go="report"><span class="ic">${I('doc')}</span><div><div class="t">Internal report</div><div class="s">Technical compilation of all entries</div></div>${changed('report')}</div><div class="docbtn" data-go="notice"><span class="ic">${I('mail')}</span><div><div class="t">Notice to owner</div><div class="s">Plain-language email with approved fixes</div></div>${changed('notice')}</div></div>`)
     : (hist.length ? hist.map(h => `<div class="loc" data-hist="${h.date}"><div class="thumb">${satThumb(id, h.entries)}</div><div><div class="t">${fmtDate(h.date)}</div><div class="s">${h.entries.length} entr${h.entries.length === 1 ? 'y' : 'ies'} · ${esc(h.outcome)}</div></div><div class="r">›</div></div>`).join('') : '<div class="hint">No previous inspections on file for this address.</div>');
   // The hero is wider than it is tall (376 × 300 in the frame), so the slice-
@@ -1101,14 +1101,6 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // stream cover the wait, and the boxes land at the end as the result of it.
   // The hand-measured fixture is kept as a fallback for the one image it was
   // measured against, for when the model is unreachable.
-  const paintScan = (sc, ar) => {
-    if (!sc) return 0;
-    const all = (sc.boxes || []).map(b => [b, false]).concat(sc.issue ? [[sc.issue, true]] : []);
-    const gap = Math.min(300, 1000 / Math.max(1, all.length));
-    all.forEach(([b, isIssue], i) => later(() => ar.insertAdjacentHTML('beforeend',
-      `<div class="${isIssue ? 'issue' : 'bx'} ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), i * gap));
-    return all.length * gap + 400;
-  };
   // Submit. The record draft starts at once, in parallel with the sweep, and carries the
   // prescanned boxes so the record agrees with what the inspector has been shown. The beam
   // waits for the prescan if it is still out, then runs top → bottom revealing each box as it
