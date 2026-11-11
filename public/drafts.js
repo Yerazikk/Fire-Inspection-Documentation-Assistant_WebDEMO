@@ -176,6 +176,15 @@ window.DRAFTS = (() => {
         fields: viol.map(e => ({ label: `Entry ${e.n}`, value: (perKind(e).codes || []).map(c => c.c).join('; ') || 'Not determined.' })) });
       sections.push({ id: 'codes', heading: 'Code references', type: 'codes',
         codes: (AI.violation.codes || []).map(c => ({ scope: c.scope, citation: c.c, title: c.t, relevance: 'Template reference — not matched to this property.' })) });
+      // The approved corrections are rendered under this section, the way the
+      // notice renders them under "What you need to do". Without it they fall
+      // to the bottom of the report, past the limitations.
+      if (viol.length) sections.push({ id: 'actions', heading: 'Required actions and procedure', type: 'list', items: [
+        `Correction due ${ctx.correctBy} — ${ctx.correctionDays} days from the date of inspection.`,
+        `Compliance is verified by photographs sent to ${ctx.inspector.email}${ctx.portal ? ' or uploaded on ' + ctx.portal : ''}, or by reinspection.`,
+        'Failure to correct by the stated date is grounds for reinspection fees and administrative citation.',
+        'The corrections approved for each entry are set out below.',
+      ] });
       sections.push({ id: 'limitations', heading: 'Limitations', type: 'list', items: [
         'This document was assembled from the built-in templates, not drafted for this property.',
         'No measurement was recorded for any entry.',

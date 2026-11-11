@@ -1121,6 +1121,35 @@ function deckSub(r) {
   return r.recs.length + ' options · swipe to decide';
 }
 
+// The corrections the inspector approved for one entry. Three screens show
+// them — the record they were chosen on, the internal report and the notice to
+// the owner — and all three are reading the same decision, so they all read it
+// through here.
+const chosenRecs = e => (e.recs || []).filter(r => r.decision === 'in');
+// One correction and several are different offers, and every screen says which
+// it is: "Option 1 of 1" reads as a choice the owner does not have, and on a
+// finding with one correct repair that is a misleading thing to show.
+const oneChoice = (e, inc) => oneWay(e) || inc.length === 1;
+/**
+ * The approved corrections as blocks, each with its after-image. Identical
+ * wording and identical pictures wherever they appear; only the class names
+ * change, because the notice is on white paper and the other two are not.
+ */
+function recBlocks(e, cls) {
+  const inc = chosenRecs(e); if (!inc.length) return '';
+  const one = oneChoice(e, inc); const c = cls || { opt: 'eopt', ph: 'eph' };
+  return inc.map((s, i) => `<div class="${c.opt}">${VISUALS.has(e.id, s) ? `<div class="${c.ph}${s.img ? ' on' : ''}" data-vis="${VISUALS.key(e.id, s.id)}">${VISUALS.cell(e.id, s)}</div>` : ''}<b>${one ? 'What has to be done' : 'Option ' + (i + 1)}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('');
+}
+// Opening the deck from a finished document, to change what was approved. The
+// entry is the saved one, so a decision changed here changes the documents —
+// `back` bumps the property's version and both drafts go stale.
+function wireDeckLinks(id) {
+  $$('[data-deck]').forEach(b => b.onclick = () => {
+    const e = entriesOf(id).find(x => x.id === b.dataset.deck); if (!e) return;
+    const i0 = e.recs.findIndex(x => !x.decision);
+    S.rec = e; S.recDirty = false; S.deck = { idx: i0 < 0 ? 0 : i0 }; S.fromNotice = true; go('deck');
+  });
+}
 function provNote(ai) {
   if (!ai || ai.source !== 'template') return '';
   return `<p style="margin-top:10px;color:var(--amber);font-size:12px">This is built-in example text, not a description of this property${ai.fallbackReason ? ' — ' + esc(ai.fallbackReason) : ''}. Edit it or try again when the model is reachable.</p>`;
@@ -1146,7 +1175,7 @@ function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab';
 function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const card = (title, body, delay, key) => `<div class="card edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</div>`;
   const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
   const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">Original</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">Scanned</span></div></div>` : '';
-  const inc = r.recs.filter(x => x.decision === 'in').length, dec = r.recs.filter(x => x.decision).length;
+  const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
   <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</div>
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
@@ -1154,10 +1183,12 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
   ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<div class="card" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<p>↳ ${esc(f)}</p>`).join('')}</div>` : ''}
-  ${r.kind === 'violation' ? `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? inc + ' included · ' + (dec - inc) + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>` : ''}
+  ${r.kind !== 'violation' ? '' : inc.length
+    ? `<div class="card" style="animation-delay:.5s"><h4>${oneChoice(r, inc) ? 'Correction for the owner' : 'Recommendations for the owner'}<button class="edbtn main" id="openDeck">Edit</button></h4>${recBlocks(r, { opt: 'ropt', ph: 'rph' })}${dec > inc.length ? `<p class="rleft">${dec - inc.length} of ${r.recs.length} left out</p>` : ''}</div>`
+    : `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? 'none included · ' + dec + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>`}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
   return frame(`Entry ${r.n} · ${kindT}`, addrOf(S.cur).addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="save">Save entry</button></div>`); }
-function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { S.deck = { idx: r.recs.findIndex(x => !x.decision) < 0 ? r.recs.length : r.recs.findIndex(x => !x.decision) }; go('deck'); };
+function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { const i0 = r.recs.findIndex(x => !x.decision); S.deck = { idx: i0 < 0 ? 0 : i0 }; go('deck'); };
   // The dictated memo, playable. The transcript is editable and the model that
   // wrote it is not infallible, so the recording is kept as the one unedited
   // account of what the inspector actually said at the property.
@@ -1312,8 +1343,15 @@ function docFoot(key, id) {
 function reportView() {
   const id = S.cur, a = addrOf(id), es = entriesOf(id), st = docState('report', id), d = st.doc;
   const head = `<div class="card" style="animation-delay:0s"><h4>Inspection report</h4><div class="st"><b>Property</b><span>${esc(a.addr)}</span></div><div class="st"><b>Date</b><span>${fmtDate(todayISO())}</span></div><div class="st"><b>Inspector</b><span>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}</span></div><div class="st"><b>Entries</b><span>${es.length} · ${es.filter(e => e.kind === 'violation').length} violation(s), ${es.filter(e => e.kind === 'compliance').length} compliant, ${es.filter(e => e.kind === 'note').length} note(s)</span></div>${d && d.headline ? `<div class="st"><b>Outcome</b><span>${esc(d.headline)}</span></div>` : ''}</div>`;
+  // The corrections the inspector approved, under the procedure section — the
+  // same blocks, with the same pictures, that the notice to the owner carries.
+  // The internal record and the letter cannot be allowed to disagree about
+  // what was offered, so both render the one decision.
+  const slots = { actions: () => es.filter(e => e.kind === 'violation' && chosenRecs(e).length).map(e => `<div class="card"><h4>Entry ${e.n} · ${oneChoice(e, chosenRecs(e)) ? 'approved correction' : 'approved options'}<button class="edbtn" data-deck="${e.id}">Edit</button></h4>${recBlocks(e, { opt: 'ropt', ph: 'rph' })}</div>`).join('') };
+  const used = new Set();
   const body = docBanner('report', id) + head
-    + (d ? d.sections.map((s, i) => docSection(s, i, 'card', .08 + i * .06)).join('') : st.status === 'pending' ? '' : '<div class="hint">Nothing drafted yet.</div>')
+    + (d ? d.sections.map((s, i) => { used.add(s.id); return docSection(s, i, 'card', .08 + i * .06) + (slots[s.id] ? slots[s.id]() : ''); }).join('') : st.status === 'pending' ? '' : '<div class="hint">Nothing drafted yet.</div>')
+    + (d ? Object.keys(slots).filter(k => !used.has(k)).map(k => slots[k]()).join('') : '')
     + docFoot('report', id);
   return frame('Internal report', a.addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="export" ${d ? '' : 'disabled'}>Export</button></div>`);
 }
@@ -1322,6 +1360,7 @@ function reportAfter() {
   if (st.status === 'idle') { genDoc('report', id); return; }
   const rd = $('#refresh'); if (rd) rd.onclick = () => genDoc('report', id);
   if (st.doc) wireEdits(st.doc, () => { st.edited = true; });
+  wireDeckLinks(id);
   const ex = $('#export'); if (ex) ex.onclick = () => exportDoc('report', id);
 }
 
@@ -1347,6 +1386,22 @@ function sendWhy(id) {
   return '';
 }
 
+// The approved corrections, for the exported text. The after-image cannot
+// travel in a plain-text file, so the line says there is one rather than
+// leaving the reader thinking the correction was never illustrated.
+function corrText(id) {
+  const out = [];
+  entriesOf(id).filter(e => e.kind === 'violation').forEach(e => {
+    const inc = chosenRecs(e); if (!inc.length) return;
+    const one = oneChoice(e, inc);
+    out.push('', `  Entry ${e.n} — ${one ? 'required correction' : inc.length + ' options, any one of which closes it'}`);
+    inc.forEach((s, i) => {
+      out.push(`    ${one ? '' : (i + 1) + '. '}${s.title}`, `       ${s.text}`);
+      if (s.img) out.push('       [visualisation of the finished work — see the app]');
+    });
+  });
+  return out;
+}
 // A real file, rather than a toast claiming one was saved. Plain text, because
 // a PDF needs a renderer the project does not have yet (see TODO.md §7).
 function docToText(key, id) {
@@ -1354,13 +1409,19 @@ function docToText(key, id) {
   const L = [];
   if (key === 'report') L.push(`INTERNAL INSPECTION REPORT`, `${a.addr}${a.where ? ', ' + a.where : ''}`, `${fmtDate(todayISO())} · ${CONFIG.inspector.name} (${CONFIG.inspector.badge}) · ${CONFIG.unit}`, '', d.headline || '');
   else L.push(`Subject: ${d.subject}`, `To: ${noticeTo(id) || '(no recipient chosen)'}`, `From: ${CONFIG.inspector.name} <${CONFIG.inspector.email}>`, '', d.greeting);
+  const slotId = key === 'report' ? 'actions' : 'what-to-do';
+  const corr = corrText(id); let slotted = false;
   d.sections.forEach(s => {
     L.push('', s.heading.toUpperCase());
     if (s.type === 'prose') L.push(s.body);
     if (s.type === 'list') s.items.forEach(x => L.push('  - ' + x));
     if (s.type === 'fields') s.fields.forEach(f => L.push(`  ${f.label}: ${f.value}`));
     if (s.type === 'codes') s.codes.forEach(c => L.push(`  [${c.scope}] ${c.citation} — ${c.title}`, `      ${c.relevance}`));
+    if (s.id === slotId) { L.push(...corr); slotted = true; }
   });
+  // A section plan that came back without the slot section still has to carry
+  // the corrections: they are the point of the document.
+  if (!slotted) L.push(...corr);
   if (d.closing) L.push('', d.closing, '', `${CONFIG.inspector.name} · ${CONFIG.inspector.badge}`, `${CONFIG.unit} · ${CONFIG.inspector.phone}`);
   const au = d.audit || {};
   L.push('', '---', `Drafted ${docState(key, id).at || ''} · source: ${d.source === 'ai' ? (d.meta && d.meta.model) : 'built-in template'}`, au.codeEdition ? `Code edition: ${au.codeEdition}` : '');
@@ -1398,8 +1459,8 @@ function noticeView() {
   // One correction and several are different offers, and the letter says which
   // it is: "Option 1 of 1" reads as a choice the owner does not have, and on a
   // finding with one correct repair that is a misleading thing to send.
-  const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); const one = oneWay(e) || inc.length === 1; return inc.length
-    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${one ? '1 correction' : inc.length + ' options'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${VISUALS.has(e.id, s) ? `<div class="eph" data-vis="${VISUALS.key(e.id, s.id)}">${VISUALS.cell(e.id, s)}</div>` : ''}<b>${one ? 'What has to be done' : 'Option ' + (i + 1)}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
+  const optBlock = e => { const inc = chosenRecs(e); return inc.length
+    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${oneChoice(e, inc) ? '1 correction' : inc.length + ' options'} · Edit ›</span></div>${recBlocks(e)}`
     : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
   const slots = {
     'what-to-do': () => viol.map(optBlock).join(''),
@@ -1431,7 +1492,7 @@ function noticeAfter() {
   if (ns.status === 'idle') { genDoc('notice', id); return; }
   const rd = $('#refresh'); if (rd) rd.onclick = () => genDoc('notice', id);
   if (ns.doc) wireEdits(ns.doc, () => { ns.edited = true; });
-  $$('[data-deck]').forEach(b => b.onclick = () => { const e = entriesOf(id).find(x => x.id === b.dataset.deck); S.rec = e; S.recDirty = false; S.deck = { idx: e.recs.findIndex(x => !x.decision) < 0 ? 0 : e.recs.findIndex(x => !x.decision) }; S.fromNotice = true; go('deck'); });
+  wireDeckLinks(id);
   const ao = $('#addOwn'); if (ao) ao.onclick = () => { ns.own.push('Owner-provided document ' + (ns.own.length + 1) + '.pdf'); render(); };
   // Saving a draft closes the letter, the way it does in a mail client. The
   // "Saved to drafts" line is still there on the notice when it is opened again.

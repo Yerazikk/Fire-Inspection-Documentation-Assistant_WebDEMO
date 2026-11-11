@@ -564,6 +564,12 @@ const REPORT = {
     'not taken, state that explicitly in the Limitations section.',
   ].join('\n'),
 
+  // Sections the app attaches its own interactive blocks beneath. Keep these
+  // ids in sectionPlan or the blocks fall to the bottom of the document.
+  slots: {
+    actions: 'the per-entry corrections the inspector approved in the deck, each with its after-image',
+  },
+
   // The section plan. Edit freely: the app renders whatever sections come back,
   // in order, and the ids are only used to key the edit paths.
   sectionPlan: [
@@ -572,7 +578,7 @@ const REPORT = {
     { id: 'determination', heading: 'Determination and authority', type: 'fields', brief: 'One field per violation entry: label "Entry N", value = the requirement it fails and the citation string. If there are no violations, one field saying no violation was determined.' },
     { id: 'tobemeasured', heading: 'Measurements required', type: 'fields', brief: 'For each violation, the measurements needed to quantify it and the standard each will be tested against (e.g. label "Entry 1 — vertical clearance", value "measure hedge height and lowest branch height; required 3x the lower fuel height per 14 CCR 1299.03"). Use the numeric standards block. Omit this section only if there are no violations.' },
     { id: 'codes', heading: 'Code references', type: 'codes', brief: 'Every code section relied on, once each, with a one-line relevance note tying it to an entry number.' },
-    { id: 'actions', heading: 'Required actions and procedure', type: 'list', brief: 'What happens next procedurally — the correction window, how compliance is verified, what follows if it is not corrected. Straight from the PROCEDURE block.' },
+    { id: 'actions', heading: 'Required actions and procedure', type: 'list', brief: 'What happens next procedurally — the correction window, how compliance is verified, what follows if it is not corrected. Straight from the PROCEDURE block. The corrections the inspector approved are rendered as blocks underneath this section, so do not list or describe them here.' },
     { id: 'limitations', heading: 'Limitations', type: 'list', brief: 'What this report does not establish: measurements not taken, conditions not inspected, anything resting on the owner’s statement rather than observation, and the code edition caveat.' },
   ],
 };
