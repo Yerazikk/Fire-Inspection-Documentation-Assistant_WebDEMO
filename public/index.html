@@ -374,7 +374,6 @@
 .cursor{position:absolute;width:26px;height:26px;border-radius:50%;background:rgba(53,224,255,.35);border:2px solid var(--cyan);box-shadow:0 0 18px var(--cyan);pointer-events:none;z-index:200;transform:translate(-50%,-50%);opacity:0;transition:left .3s cubic-bezier(.2,.8,.2,1),top .3s cubic-bezier(.2,.8,.2,1),opacity .18s}.cursor.on{opacity:1}.cursor.press{animation:press .3s}
 .cursor .ping{position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--cyan);opacity:0;pointer-events:none}.cursor.pulse .ping{animation:cping .55s ease-out both}
 @keyframes cping{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.8);opacity:0}}@keyframes press{50%{transform:translate(-50%,-50%) scale(.6)}}
-.rsay{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);background:rgba(11,15,23,.92);border:1px solid rgba(53,224,255,.45);color:var(--ink);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;z-index:190;white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none}.rsay.on{opacity:1}
 @media (max-width:1180px){.rail{display:none}}
 /* mock keyboard */
 .phone{--kb:0px}

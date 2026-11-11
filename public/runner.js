@@ -1,6 +1,6 @@
 // Executes PROMPTS against the live UI with a visible cursor. Manual tapping keeps working in between.
 (function () {
-  const phone = document.querySelector('.phone'); const cur = document.createElement('div'); cur.className = 'cursor'; cur.innerHTML = '<i class="ping"></i>'; phone.appendChild(cur); const sayEl = document.createElement('div'); sayEl.className = 'rsay'; phone.appendChild(sayEl);
+  const phone = document.querySelector('.phone'); const cur = document.createElement('div'); cur.className = 'cursor'; cur.innerHTML = '<i class="ping"></i>'; phone.appendChild(cur);
   let running = false, stopFlag = false;
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   function find(sel) { if (sel.includes(' >> ')) { const [a, b] = sel.split(' >> '); const base = b === 'last' ? [...document.querySelectorAll(a)].pop() : null; if (b === 'last') return base; const parent = find(a); return parent ? parent.querySelector(b) : null; } if (sel.includes(':has-text(')) { const m = sel.match(/^(.*?):has-text\("(.*)"\)$/); return [...document.querySelectorAll(m[1])].find(e => e.textContent.includes(m[2])) || null; } return document.querySelector(sel); }
@@ -17,7 +17,7 @@
   async function type(el, text) { await moveTo(el); cur.classList.add('press'); await sleep(60); el.focus(); await pulseAway(120); const setter = Object.getOwnPropertyDescriptor(el.__proto__, 'value').set; setter.call(el, ''); el.dispatchEvent(new Event('input', { bubbles: true })); for (let i = 1; i <= text.length; i++) { setter.call(el, text.slice(0, i)); el.dispatchEvent(new Event('input', { bubbles: true })); await sleep(text.length > 40 ? 12 : 28); } }
   async function fill(el, text) { await moveTo(el); cur.classList.add('press'); await sleep(60); el.focus(); await pulseAway(120); el.textContent = text; el.dispatchEvent(new Event('input', { bubbles: true })); }
   async function waitFor(sel, ms = 8000) { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (stopFlag) throw new Error('stopped'); const el = find(sel); if (el && el.offsetParent !== null) return el; await sleep(80); } throw new Error('not found: ' + sel); }
-  function say() {} function sayErr(t) { sayEl.textContent = t; sayEl.classList.add('on'); setTimeout(() => sayEl.classList.remove('on'), 2600); }
+  function say() {}
   async function run(steps, btn) { if (running) return; running = true; stopFlag = false; btn && btn.classList.add('running'); document.getElementById('stopRun').style.display = ''; document.getElementById('raillist').querySelectorAll('.pbtn').forEach(b => { if (b !== btn) b.disabled = true; }); 
     try { for (const st of steps) { if (stopFlag) break; const [op, a, b] = st;
         if (op === 'tap') { const el = await waitFor(a); await tap(el); }
@@ -31,7 +31,7 @@
         else if (op === 'say') say(a);
         else if (op === 'screen') { if (S.screen !== a) { S = fresh(); render(); await sleep(300); } }
         else if (op === 'dragRow') { const rows = document.querySelectorAll('#rows .srow'); const from = rows[a], to = rows[b]; if (!from || !to) continue; await moveTo(from); const r0 = from.getBoundingClientRect(); const grip = from.querySelector('.grip'); pointer(grip, 'pointerdown', { clientY: r0.top + 20 }); await sleep(250); const r1 = to.getBoundingClientRect(); const steps = 8; for (let i = 1; i <= steps; i++) { const y = r0.top + 20 + (r1.top + 8 - r0.top - 20) * i / steps; from.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: r0.left + 120, clientY: y, pointerId: 1 })); cur.style.top = (y - phone.getBoundingClientRect().top) + 'px'; await sleep(45); } from.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: r0.left + 120, clientY: r1.top + 8, pointerId: 1 })); await sleep(400); }
-      } } catch (e) { if (e.message !== 'stopped') sayErr('Could not continue: ' + e.message.replace('not found: ', 'waiting for ')); }
+      } } catch (e) { if (e.message !== 'stopped') console.warn('[runner] ' + e.message); }
     running = false; cur.classList.remove('on'); document.getElementById('stopRun').style.display = 'none'; renderRail(); }
   window.renderRail = function () { const list = document.getElementById('raillist'); const items = (PROMPTS[S.screen] || []).filter(p => { try { return !p.when || p.when(); } catch (e) { return false; } });
     document.getElementById('railsub').textContent = (SPEC.screens.find(s => s.id === S.screen) || {}).name || S.screen;
