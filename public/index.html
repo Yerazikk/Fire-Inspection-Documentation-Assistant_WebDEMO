@@ -404,6 +404,48 @@
    working towards behind the keyboard unless the bar rides up with it. */
 .phone.kb .bottom{bottom:var(--kb)}
 .phone.kb .confirm{align-items:flex-start;padding-top:70px}
+
+/* ---- motion: one easing, unhurried ---- */
+:root{--ease:cubic-bezier(.22,1,.36,1);--easeio:cubic-bezier(.65,0,.35,1)}
+.screen{will-change:transform,opacity}
+.leaving{position:absolute;inset:0;display:flex;flex-direction:column;pointer-events:none;z-index:45;animation:leaveFwd .5s var(--ease) forwards}.leaving.back{animation-name:leaveBack}
+@keyframes leaveFwd{to{transform:translateX(-14%) scale(.98);opacity:0}}@keyframes leaveBack{to{transform:translateX(100%);opacity:.9}}
+#app.entering-fwd{animation:enterFwd .52s var(--ease) both}#app.entering-back{animation:enterBack .52s var(--ease) both}
+@keyframes enterFwd{from{transform:translateX(100%)}to{transform:none}}@keyframes enterBack{from{transform:translateX(-14%) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.sheet{transition:height .62s var(--ease),bottom .5s var(--ease)!important}.sheet.drag{transition:none!important}
+.sheet2{transition:transform .62s var(--ease)!important}.sheet2.recede{transition:transform .6s var(--easeio),opacity .45s!important}
+.preview .addr{transition:width .55s var(--ease)!important}
+.card,.rsec{animation-duration:.6s!important;animation-timing-function:var(--ease)!important}
+.confirm{animation:fadeIn .35s var(--ease)}.confirm.out{animation:fadeOut .3s var(--easeio) forwards}.confirm .cbox{animation:riseIn .5s var(--ease)}.confirm.out .cbox{animation:riseOut .3s var(--easeio) forwards}
+.drawer .scrim{animation:fadeIn .35s var(--ease)}.drawer .pane{animation:slide .5s var(--ease)}.drawer.out .scrim{animation:fadeOut .3s forwards}.drawer.out .pane{animation:slideOut .3s var(--easeio) forwards}
+.lb{animation:fadeIn .35s var(--ease)}.lb.out{animation:fadeOut .3s forwards}.wrap{animation:fadeIn .4s var(--ease)}
+@keyframes fadeIn{from{opacity:0}}@keyframes fadeOut{to{opacity:0}}@keyframes riseIn{from{transform:translateY(28px);opacity:0}}@keyframes riseOut{to{transform:translateY(28px);opacity:0}}@keyframes slideOut{to{transform:translateX(-100%)}}
+.docbtn,.entry,.srow,.loc,.mi{transition:transform .25s var(--ease),border-color .25s,background .25s}.docbtn:active,.entry:active,.loc:active{transform:scale(.985)}
+.btn{transition:transform .3s var(--ease),opacity .3s,background .3s!important}.btn:active{transform:scale(.97)!important}
+/* ---- cold start ---- */
+#boot{position:absolute;inset:0;z-index:120;background:#05070c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .7s var(--easeio)}#boot.out{opacity:0;pointer-events:none}
+.boot-mark{position:relative;width:88px;height:88px;margin-bottom:14px}.boot-mark i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(53,224,255,.55);animation:bootRing 2.4s var(--ease) infinite}.boot-mark i:nth-child(2){animation-delay:.5s}.boot-mark i:nth-child(3){inset:30px;border:2px solid var(--cyan);background:#0b0f17;animation:bootCore 1.6s var(--ease) both}
+@keyframes bootRing{0%{transform:scale(.35);opacity:0}30%{opacity:.9}100%{transform:scale(1.15);opacity:0}}@keyframes bootCore{from{transform:scale(.4);opacity:0}}
+.boot-t{font:600 12px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.22em;color:var(--ink);animation:fadeUp .8s .2s var(--ease) both}.boot-s{font-size:12px;color:var(--faint);animation:fadeUp .8s .35s var(--ease) both}.boot-l{margin-top:14px;animation:fadeUp .8s .5s var(--ease) both}.boot-l span{font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--cyan);border:1px solid rgba(53,224,255,.35);border-radius:999px;padding:6px 12px;background:rgba(11,15,23,.8)}#boot.ready .boot-l span{color:var(--green);border-color:rgba(74,222,128,.5)}
+.boot-sweep{position:absolute;left:0;right:0;top:-3px;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 24px 4px rgba(53,224,255,.55);animation:sweep 1.5s .1s var(--easeio) forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}}
+.phone.booting #app{opacity:0}.phone.booted #app{animation:fadeIn .7s var(--ease) both}.phone.booted .sheet{animation:riseSheet .9s var(--ease) both}@keyframes riseSheet{from{transform:translateY(110%)}}
+/* ---- merged UI ---- */
+.uc{border:1px dashed rgba(53,224,255,.35);border-radius:16px;padding:18px 16px;text-align:center}.uc-ic{width:44px;height:44px;border-radius:14px;margin:0 auto 10px;background:#0b0f17;border:1px solid rgba(53,224,255,.4);display:grid;place-items:center;color:var(--cyan)}.uc-t{font:600 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}.uc-s{font-size:13px;color:var(--faint);line-height:1.45}
+.nonote{display:block;margin:12px auto 0;color:var(--faint);border:0;background:none;font:600 13px/1 -apple-system,sans-serif;cursor:pointer}.nonote:hover{color:var(--soft)}
+.entry .en{width:28px;height:28px;border-radius:50%;flex:none;background:#0b0f17;border:1px solid var(--cyan);box-shadow:0 0 0 3px rgba(53,224,255,.12);color:var(--cyan);display:grid;place-items:center;font-size:12px;font-weight:700}.entry .en.violation{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,92,108,.14);color:var(--red)}.entry .en.compliance{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,.14);color:var(--green)}.entry .en.note{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,182,72,.14);color:var(--amber)}.entry .th{background:#0b0f17;border:1px solid var(--line)}.entry .x{background:#0b0f17;color:var(--red);border:1px solid var(--red);box-shadow:0 0 12px rgba(255,92,108,.5)}
+.rsec{padding:14px 2px 10px;border-bottom:1px solid rgba(255,255,255,.07);opacity:0;animation:in .6s var(--ease) forwards}.rsec h4{margin:0 0 4px;font:600 10.5px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;opacity:.9}.fld{margin:12px 0 2px}.fld b{display:block;font:600 10.5px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}.fld span{display:block;font-size:15.5px;line-height:1.5;color:var(--ink)}.fld span .chip{display:inline-flex}.rsec .ed{display:block;padding:2px 4px;margin:0 -4px;border-radius:8px}.rsec.editing .ed{outline:1px solid rgba(53,224,255,.5);background:rgba(53,224,255,.06);padding:8px 10px;margin:0 -2px}.rsec p{margin:6px 0 0;font-size:15px;color:var(--ink)}
+.chip{font:600 11px/1.2 -apple-system,BlinkMacSystemFont,sans-serif;padding:4px 9px}.chip.red{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--red) 92%,#000)}.chip.amber{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--amber) 92%,#000)}.chip.green{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--green) 92%,#000)}.chip.cyan{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--cyan) 92%,#000)}
+.pbox .lab{font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.08em;background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);color:var(--cyan)}
+.docbtn .ic{background:#0b0f17;border:1px solid rgba(53,224,255,.4)}.docbtn .badge{font:600 10px/1.2 -apple-system,sans-serif;color:#06101a;background:color-mix(in srgb,var(--amber) 92%,#000);border:0;border-radius:999px;padding:4px 8px;white-space:nowrap}
+.ib svg,.camx svg,.side svg,.mic svg{display:block}.camx{display:inline-flex;align-items:center;gap:5px}.link{display:inline-flex;align-items:center;gap:6px}
+.pvx{display:grid;place-items:center}.pvx svg{display:block}.pvtrash{color:var(--red);border-color:rgba(255,92,108,.45)}.pvtrash:active{background:rgba(255,92,108,.12)}
+.leaving.fade{animation-name:leaveFade}@keyframes leaveFade{to{opacity:0}}#app.entering-fade{animation:fadeIn .5s var(--ease) both}
+#sheet.preview.full{border-radius:22px 22px 0 0}#sheet.preview.full .addr.mini{display:none!important}#sheet.preview.full .sbody{padding-bottom:0}
+.pvhome{animation:fadeUp .55s var(--ease) both}.pvhome .sat,.pvhome #sathero{margin-top:14px}.pvhome .tabs{margin-top:14px}
+.pvfoot{position:sticky;bottom:0;margin:0 -18px;padding:30px 18px 22px;background:linear-gradient(transparent,rgba(11,15,23,.9) 38%,#0b0f17 70%);animation:fadeUp .55s .1s var(--ease) both}
+.boot-l{margin-top:4px}
+.pvgo{margin-top:14px}.pvgo .btn{display:flex;align-items:center;justify-content:center;gap:8px}#sheet.preview.half .pvgo{pointer-events:auto}
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 

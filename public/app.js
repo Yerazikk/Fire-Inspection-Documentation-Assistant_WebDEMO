@@ -1,6 +1,8 @@
 // V3 app: implements spec.js. One state object, one router, one render per screen.
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ICONS = { trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', back: '<path d="M15 5l-7 7 7 7"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', check: '<path d="M5 12.5 10 17.5 19 7"/>', nav: '<path d="M7 17 17 7M9 7h8v8"/>', cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-7 7"/>', text: '<path d="M4 6h16M4 12h16M4 18h10"/>', mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>', doc: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>', mail: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="m3 8 9 6 9-8"/>', deck: '<rect x="4" y="5" width="12" height="15" rx="2"/><path d="M16 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5"/>', clip: '<path d="m21.4 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>', cog: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>', undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', pen: '<path d="M4 20h4l10-10-4-4L4 16z"/><path d="m12.5 7.5 4 4"/>', play: '<path d="M7 5v14l11-7z"/>' };
+const I = (n, sz = 18, sw = 2) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).replace(/ ?[AP]M/i, '');
 const dateIn = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }); };
 const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
@@ -37,7 +39,7 @@ let timers = []; const later = (fn, ms) => { const t = setTimeout(fn, ms); timer
 // takes a token; a reply holding a stale one is dropped.
 let runSeq = 0; const newRun = () => ++runSeq; const isCurrentRun = n => n === runSeq;
 const toast = () => {};
-function confirmSheet(title, body, buttons) { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">${esc(title)}</div><div class="cb">${esc(body)}</div><div class="cbtns">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('')}</div></div>`; $('#app').appendChild(el); el.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { el.remove(); const fn = buttons[+b.dataset.i].fn; fn && fn(); }); el.onclick = e => { if (e.target === el) el.remove(); }; return el; }
+function confirmSheet(title, body, buttons) { const el = document.createElement('div'); el.className = 'confirm'; el.innerHTML = `<div class="cbox"><div class="ct">${esc(title)}</div><div class="cb">${esc(body)}</div><div class="cbtns">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('')}</div></div>`; $('#app').appendChild(el); const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }; el.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { close(); const fn = buttons[+b.dataset.i].fn; fn && fn(); }); el.onclick = e => { if (e.target === el) close(); }; return el; }
 function img(src, ph) { return `<img src="${src}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="ph" style="display:none">${ph}</div>`; }
 
 // ---------------- state ----------------
@@ -54,23 +56,25 @@ const bump = id => { S.ver[id] = (S.ver[id] || 0) + 1; };
 // Leaving a screen closes the microphone. Holding the memo bar opens it for
 // real, and an open recording whose UI has been re-rendered away is a live mic
 // nobody can see — the one state this must never be left in.
-function go(screen, opts = {}) { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); if (!opts.replace) S.stack.push(S.screen); S.screen = screen; S.wobble = false; render(); }
-function back() { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); const prev = S.stack.pop() || 'map'; S.screen = prev; S.wobble = false; render(); }
+function go(screen, opts = {}) { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); if (screen === 'location' && !S.snapshot && S.cur && S.stops.includes(S.cur)) { screen = 'map'; S.sel = S.cur; S.pv = 'full'; if (S.screen === 'map') opts = { ...opts, replace: true }; } if (!opts.replace) S.stack.push(S.screen); S.navDir = opts.dir || 'fwd'; S.screen = screen; S.wobble = false; render(); }
+function back() { clearTimers(); VOICE.cancel(); $('#toast').classList.remove('on'); const prev = S.stack.pop() || 'map'; S.navDir = 'back'; S.screen = prev; S.wobble = false; render(); }
 let lastScreen = null;
 function render() { const app = $('#app');
   if (S.screen === 'map' && lastScreen === 'map' && $('#map') && LWRAP && LWRAP.parentElement === $('#map') && $('#sheet')) {
     // the map stays put; only the sheet (and its wiring) is rebuilt
     const tmp = document.createElement('div'); tmp.innerHTML = VIEWS.map();
-    const fresh = tmp.querySelector('#sheet'); if (fresh) $('#sheet').replaceWith(fresh);
+    const fresh = tmp.querySelector('#sheet'); if (fresh) { const ae = document.activeElement; if (ae && $('#sheet').contains(ae)) ae.blur(); $('#sheet').replaceWith(fresh); }
     AFTER.map(); renderHelp(); window.renderRail && renderRail(); return;
   }
+  const switching = lastScreen && lastScreen !== S.screen; { const ae = document.activeElement; if (ae && ae !== document.body && app.contains(ae)) ae.blur(); } if (switching) { const old = document.createElement('div'); old.className = 'leaving ' + (S.navDir || 'fwd'); while (app.firstChild) old.appendChild(app.firstChild); app.parentElement.appendChild(old); setTimeout(() => old.remove(), 520); }
   lastScreen = S.screen;
-  app.innerHTML = VIEWS[S.screen](); app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard()); AFTER[S.screen] && AFTER[S.screen](); renderHelp(); window.renderRail && renderRail(); const v = $('#view'); if (v) v.scrollTop = 0; }
-function backWithGuard() { if (S.screen === 'record' && S.recDirty) { confirmSheet('Save this entry?', 'You have unsaved changes to this record.', [{ label: 'Discard', cls: 'danger', fn: () => { S.rec = null; S.recDirty = false; back(); } }, { label: 'Keep editing', cls: 'ghost' }, { label: 'Save', fn: saveRecord }]); return; }
-  if (S.screen === 'camera' && S.draft && (S.draft.photo || S.draft.memo)) { confirmSheet('Leave without saving?', 'The photo and memo for this entry will be discarded.', [{ label: 'Discard', cls: 'danger', fn: () => { S.draft = null; back(); } }, { label: 'Stay', cls: 'ghost' }]); return; }
+  app.innerHTML = VIEWS[S.screen]();
+  if (switching) { app.classList.remove('entering-fwd', 'entering-back'); void app.offsetWidth; app.classList.add('entering-' + (S.navDir || 'fwd')); setTimeout(() => app.classList.remove('entering-fwd', 'entering-back'), 560); } S.navDir = null; app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard()); AFTER[S.screen] && AFTER[S.screen](); renderHelp(); window.renderRail && renderRail(); const v = $('#view'); if (v) v.scrollTop = 0; }
+function backWithGuard() { if (S.screen === 'record' && S.recDirty) { confirmSheet('Save this entry?', 'Tap outside to keep editing.', [{ label: 'Discard', cls: 'danger', fn: () => { S.rec = null; S.recDirty = false; back(); } }, { label: 'Save', fn: saveRecord }]); return; }
+  if (S.screen === 'camera' && S.draft && (S.draft.photo || S.draft.memo)) { confirmSheet('Leave without saving?', 'The photo and memo for this entry will be discarded. Tap outside to stay.', [{ label: 'Discard', cls: 'danger', fn: () => { S.draft = null; back(); } }]); return; }
   back(); }
 function frame(title, sub, body, bottom, opts = {}) { return `<div class="sb"><span>${clock()}</span><span>●●● ᯤ ▮</span></div>
-<div class="top">${opts.noback ? '' : `<div class="ib" data-back>‹</div>`}<div><div class="ttl">${title}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>${opts.right ? `<div class="sp"></div>${opts.right}` : ''}</div>
+<div class="top">${opts.noback ? '' : `<div class="ib" data-back>${I('back')}</div>`}<div><div class="ttl">${title}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>${opts.right ? `<div class="sp"></div>${opts.right}` : ''}</div>
 <div class="view" id="view">${body}</div>${bottom ? `<div class="bottom">${bottom}</div>` : ''}`; }
 
 // ---------------- map ----------------
@@ -322,23 +326,21 @@ const streetHTML = (id, alt, cls) => {
     : `<div class="${cl} missing" id="${eid}"></div>`;
 };
 function previewHTML(id) {
-  if (id === 'hq') { const st = CONFIG.station, span = SAT.spanOf('block'), v = SAT.view(st.lat, st.lon, span, 640), at = v.xy(st.lat, st.lon);
+  if (id === 'hq') { const st = CONFIG.station;
     const map = streetHTML('hq', st.name);
     const more = `<div class="pvmore"><div class="pvstat"><span>${esc(st.addr)}</span></div>
       <div class="lbl">Today</div><div class="pvempty" style="text-align:left;padding:6px 0">${S.stops.length ? S.stops.length + ' stop' + (S.stops.length === 1 ? '' : 's') + ' planned · ' + S.done.size + ' done' : 'No stops planned yet.'}</div>
       <div class="row2 pvacts"><button class="btn" id="pvClose2">Close</button></div></div>`;
-    return `<div class="pvhead"><div class="pvtitle">${esc(st.name)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`; }
-  const a = addrOf(id), i = S.stops.indexOf(id), done = S.done.has(id), es = entriesOf(id), hist = HISTORY[id] || [];
-  const status = done ? '✓ Completed · ' + es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') : es.length ? es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' so far' : hist.length ? 'Last inspected ' + fmtDate(hist[0].date) : 'Never inspected';
-  const span = SAT.spanOf('parcel'), ctr = satCentre(id);
+    return `<div class="pvhead"><div class="pvtitle">${esc(st.name)}</div><button class="pvx" id="pvClose" title="Close">${I('x', 14, 2.4)}</button></div>${map}${more}`; }
+  const a = addrOf(id), done = S.done.has(id), es = entriesOf(id), hist = HISTORY[id] || [];
+  const status = done ? 'Completed · ' + es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') : es.length ? es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' so far' : hist.length ? 'Last inspected ' + fmtDate(hist[0].date) : 'Never inspected';
   const map = streetHTML(id, a.addr);
-  const more = `<div class="pvmore">
-      <div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>
-      ${es.length ? `<div class="lbl">Today</div>${es.map(e => `<div class="entry"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${esc(e.time || '')}</div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : (e.memo || e.note || ''))}</div></div></div>`).join('')}` : ''}
-      ${hist.length ? `<div class="lbl">History</div>${hist.slice(0, 2).map(hh => `<div class="loc pvh" data-pvhist="${hh.date}"><div><div class="t">${fmtDate(hh.date)}</div><div class="s">${hh.entries.length} entr${hh.entries.length === 1 ? 'y' : 'ies'} · ${esc(hh.outcome)}</div></div><div class="r">›</div></div>`).join('')}${hist.length > 2 ? `<button class="pvmore-hist" id="pvHist">View full history · ${hist.length}</button>` : ''}` : (es.length ? '' : '<div class="pvempty">Nothing on file for this property yet.</div>')}
-      <div class="pvacts"><button class="btn ghost pvremove" id="pvRm">Remove from list</button></div>
-    </div>`;
-  return `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx" id="pvClose" title="Close">✕</button></div>${map}${more}`;
+  const head = `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx pvtrash" id="pvRm" title="Remove from list">${I('trash', 16)}</button></div>`;
+  const stat = `<div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>`;
+  // One sheet: at half it is the stop card; dragged (or started) to full the
+  // location home continues under the same header.
+  if (S.pv === 'full') { S.cur = id; const l = locationBody(); return `${head}${map}<div class="pvmore pvhome">${stat}${l.body}</div><div class="pvfoot">${l.bottom}</div>`; }
+  return `${head}${map}${stat}`;
 }
 // The one action the preview always offers, pinned beside the address pill so
 // it stays reachable whether the sheet is at half height or pulled up.
@@ -357,7 +359,7 @@ function stopRows() {
     + `<div class="cl"></div><div class="cn hq dim" title="Back to ${esc(CONFIG.station.name)}"><i></i><b>HQ</b></div>`;
 }
 VIEWS = {
-  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">☰</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
+  map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">${I('menu')}</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
 
   <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''} ${S.sel && S.stops.includes(S.sel) ? '' : 'solo'}"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div>${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
@@ -478,7 +480,8 @@ AFTER = {
         setTimeout(() => { S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) f.focus({ preventScroll: true }); }, 420);
       });
     }
-    const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
+    const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { S.cur = S.sel; S.snapshot = null; S.tab = 'today'; settleSheet('full'); };
+    if (S.sel && S.pv === 'full' && S.stops.includes(S.sel)) { S.cur = S.sel; locationAfter(); }
     const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
     const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
@@ -495,19 +498,19 @@ AFTER = {
 };
 // Preview detents in pixels: half ends just under the photo; full is 90% of the screen.
 function sheetHalfPx(sheet) { const m = sheet.querySelector('#pvmap'); if (!m) return Math.round(sheet.parentElement.offsetHeight * .36); return Math.round(m.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 124); }
-function sheetFullPx(sheet) { return Math.round(sheet.parentElement.offsetHeight * .9); }
+function sheetFullPx(sheet) { return S.sel === 'hq' ? Math.round(sheet.parentElement.offsetHeight * .9) : sheet.parentElement.offsetHeight - 54; }
 function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.style.transition = 'none'; sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.style.transition = ''; }
 let settling = false;
 function settleSheet(target) {
   const sheet = $('#sheet'); if (!sheet || settling) return; settling = true;
   const to = target === 'full' ? sheetFullPx(sheet) : target === 'half' ? sheetHalfPx(sheet) : 0;
   sheet.classList.remove('drag'); sheet.classList.add('settling');
-  sheet.style.transition = 'height .46s cubic-bezier(.22,1.1,.3,1)';
+  sheet.style.transition = 'height .62s cubic-bezier(.22,1,.36,1)';
   requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
   let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
-    if (target === 'close') { S.sel = null; render(); } else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; } };
+    if (target === 'close') { S.sel = null; render(); } else { const was = S.pv; S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (was !== target && S.sel !== 'hq') { if (target === 'full') { S.cur = S.sel; S.snapshot = null; if (!S.tab) S.tab = 'today'; } render(); } } };
   const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
-  sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 560);
+  sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 720);
 }
 function wireRows() { const rows = $('#rows'); if (!rows) return;
   rows.querySelectorAll('.cn[data-id]').forEach(node => { const id = node.dataset.id;
@@ -516,9 +519,7 @@ function wireRows() { const rows = $('#rows'); if (!rows) return;
       if (n) confirmSheet('Remove this stop?', addrOf(id).addr + ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.', [{ label: 'Remove', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); }; }); }
 
 
-function openMenu() { const nLook = GEO.lookups.count(); const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:14px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div>
-  <div class="mi" data-m="days"><span class="ic">▤</span><div>Previous inspections<small>by day, date or search</small></div></div><div class="mi" data-m="looks"><span class="ic">⌕</span><div>Saved site lookups<small>${nLook ? nLook + ' address' + (nLook === 1 ? '' : 'es') + ' kept on this device' : 'none yet'}</small></div></div><div class="mi" data-m="profile"><span class="ic">◉</span><div>Profile<small>${esc(CONFIG.inspector.email)}</small></div></div><div class="mi" data-m="settings"><span class="ic">⚙</span><div>Settings<small>${esc(CONFIG.localCode)} · ${CONFIG.correctionDays}-day window</small></div></div></div>`;
-  $('#app').appendChild(el); el.querySelector('.scrim').onclick = () => el.remove(); el.querySelectorAll('[data-m]').forEach(m => m.onclick = () => { el.remove(); const k = m.dataset.m; if (k === 'days') go('days'); else if (k === 'looks') lookupsSheet(); else if (k === 'profile') confirmSheet(CONFIG.inspector.name, `${CONFIG.inspector.badge} · ${CONFIG.unit}\n${CONFIG.inspector.email} · ${CONFIG.inspector.phone}`, [{ label: 'Close', cls: 'ghost' }]); else confirmSheet('Settings', `Jurisdiction: ${CONFIG.localCode}. Correction window: ${CONFIG.correctionDays} days. Appeal window: ${CONFIG.appealDays} days. Notices post to ${CONFIG.portal}. Routes start at ${CONFIG.station.name}, ${CONFIG.station.addr}. (Read-only in the demo.)`, [{ label: 'Close', cls: 'ghost' }]); }); }
+function openMenu() { const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:22px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div><div class="uc"><div class="uc-ic">${I('cog', 22, 1.8)}</div><div class="uc-t">Under construction</div><div class="uc-s">Previous inspections, saved lookups, profile and settings are coming in a later build.</div></div></div>`; $('#app').appendChild(el); el.querySelector('.scrim').onclick = () => el.classList.add('out') || setTimeout(() => el.remove(), 320); }
 
 // Every address that has ever been added to a day, kept on the device.
 function lookupsSheet() {
@@ -719,17 +720,14 @@ function showEntry(eid) {
 // What the location screen is showing: today's entries, or the ones in the
 // snapshot of a past visit being read.
 const shownEntries = id => { const s = S.snapshot; return s ? s.entries.map((e, i) => ({ ...e, id: 'h' + i })) : entriesOf(id); };
-function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = shownEntries(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
+function locationBody() { const id = S.cur, a = addrOf(id); const snap = S.snapshot; const entries = shownEntries(id); const done = S.done.has(id); const hist = HISTORY[id] || [];
   // Keyed on the document existing, not on the state object: visiting the
   // notice screen creates the state before anything has been drafted into it.
   const dst = key => { const st = S[key][id]; return st && st.doc ? st : null; };
-  // Only drafting-in-progress is worth a pill here. That a document written
-  // before the entries changed no longer matches them is obvious, and the
-  // document's own screen says so above the text, next to the Refresh that
-  // acts on it.
+  // Only drafting-in-progress is worth a pill here: a stale document says so on its own screen, next to Refresh.
   const changed = key => (!dst(key) && S[key][id] && S[key][id].status === 'pending') ? '<span class="badge">drafting…</span>' : '';
-  const today = (S.tab === 'today' || snap) ? (entries.length ? `<div id="elist" class="${S.wobble ? 'wobble' : ''}">${entries.map(e => `<div class="entry" data-e="${e.id}"><div class="th">${e.photo ? img(e.photo, 'photo') : 'Note'}<span class="n">${e.n}</span></div><div><div class="t">${esc(e.time || '')}</div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : e.note)}</div></div>${snap ? '' : `<button class="x" data-del="${e.id}">✕</button>`}</div>`).join('')}</div>` : `<div class="hint" style="padding:34px 20px">${snap ? 'No entries were recorded that day.' : 'Nothing recorded here yet today.<br>Start with a photo and a note.'}</div>`)
-    + (snap || !done ? '' : `<div id="docs"><div class="lbl" style="margin-top:18px">Documents</div><div class="docbtn" data-go="report"><span class="ic">▤</span><div><div class="t">Internal report</div><div class="s">Technical compilation of all entries</div></div>${changed('report')}</div><div class="docbtn" data-go="notice"><span class="ic">✉</span><div><div class="t">Notice to owner</div><div class="s">Plain-language email with approved fixes</div></div>${changed('notice')}</div></div>`)
+  const today = (S.tab === 'today' || snap) ? (entries.length ? `<div id="elist" class="${S.wobble ? 'wobble' : ''}">${entries.map(e => `<div class="entry" data-e="${e.id}"><span class="en ${e.kind}">${e.n}</span><div class="th">${e.photo ? img(e.photo, 'photo') : I('text', 20, 1.6)}</div><div><div class="t">${kindChip(e.kind)} <span style="color:var(--faint);font-size:12px;font-weight:500">${esc(e.time)}</span></div><div class="s">${esc(e.ai ? e.ai.summary[0][1] : e.note)}</div></div>${snap ? '' : `<button class="x" data-del="${e.id}">${I('x', 12, 2.6)}</button>`}</div>`).join('')}</div>` : `<div class="hint" style="padding:34px 20px">${snap ? 'No entries were recorded that day.' : 'Nothing recorded here yet today.<br>Start with a photo and a note.'}</div>`)
+    + (snap || !done ? '' : `<div id="docs"><div class="lbl" style="margin-top:18px">Documents</div><div class="docbtn" data-go="report"><span class="ic">${I('doc')}</span><div><div class="t">Internal report</div><div class="s">Technical compilation of all entries</div></div>${changed('report')}</div><div class="docbtn" data-go="notice"><span class="ic">${I('mail')}</span><div><div class="t">Notice to owner</div><div class="s">Plain-language email with approved fixes</div></div>${changed('notice')}</div></div>`)
     : (hist.length ? hist.map(h => `<div class="loc" data-hist="${h.date}"><div class="thumb">${satThumb(id, h.entries)}</div><div><div class="t">${fmtDate(h.date)}</div><div class="s">${h.entries.length} entr${h.entries.length === 1 ? 'y' : 'ies'} · ${esc(h.outcome)}</div></div><div class="r">›</div></div>`).join('') : '<div class="hint">No previous inspections on file for this address.</div>');
   // The hero is wider than it is tall (376 × 300 in the frame), so the slice-
   // cropped overlay shows the full width of the view and the scale bar below
@@ -742,7 +740,8 @@ function locationView() { const id = S.cur, a = addrOf(id); const snap = S.snaps
   ${snap ? '' : `<div class="tabs"><button class="${S.tab === 'today' ? 'on' : ''}" data-tab="today">Today${entries.length ? ' · ' + entries.length : ''}</button><button class="${S.tab === 'history' ? 'on' : ''}" data-tab="history">History${hist.length ? ' · ' + hist.length : ''}</button></div>`}
   ${snap ? `<div class="hero" style="margin-top:12px">${fmtDate(snap.date)}<small>${esc(snap.outcome)} · as recorded at the end of that inspection</small></div>` : ''}${today}`;
   const bottom = snap ? `<button class="btn ghost" id="exitSnap">Back to today</button>` : S.tab === 'today' ? (done ? `<div class="row2"><button class="btn ghost" id="finish">Reopen</button><button class="btn" id="toMap">Next stop →</button></div>` : `<div class="row2"><button class="btn ghost" id="finish">Finish</button><button class="btn" id="newEntry">+ New entry</button></div>`) : '';
-  return frame(a.addr, snap ? 'history' : done ? 'Completed · documents ready' : 'inspection in progress', body, bottom); }
+  return { body, bottom, sub: snap ? 'history' : done ? 'Completed · documents ready' : 'inspection in progress' }; }
+function locationView() { const a = addrOf(S.cur); const l = locationBody(); return frame(a.addr, l.sub, l.body, l.bottom); }
 // Dragging the lot view. The imagery and the overlay are translated together
 // under the finger for the whole gesture — a new frame is a round trip to Esri
 // and cannot be re-requested per pointermove — and on release the drag is
@@ -849,7 +848,7 @@ function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onc
   wireLotPan(id);
   const ne = $('#newEntry'); if (ne) ne.onclick = () => { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); };
   const fin = $('#finish'); if (fin) fin.onclick = () => { if (S.done.has(id)) { S.done.delete(id); render(); return; } const n = entriesOf(id).length; const mark = () => { S.done.add(id); S.tab = 'today'; wrapUp(id); }; if (!n) confirmSheet('Finish with no entries?', 'The stop will be marked as visited with no findings recorded.', [{ label: 'Mark visited', fn: mark }, { label: 'Keep inspecting', cls: 'ghost' }]); else mark(); };
-  const tm = $('#toMap'); if (tm) tm.onclick = () => { S.cur = null; S.stack = []; go('map', { replace: true }); };
+  const tm = $('#toMap'); if (tm) tm.onclick = () => { S.cur = null; S.stack = []; S.sel = null; S.pv = 'half'; go('map', { replace: true }); };
   const ex = $('#exitSnap'); if (ex) ex.onclick = () => { S.snapshot = null; S.tab = 'history'; render(); };
   $$('[data-hist]').forEach(h => h.onclick = () => { const hh = HISTORY[id].find(x => x.date === h.dataset.hist); S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; render(); });
   $$('[data-pip]').forEach(p => p.onclick = () => showEntry(p.dataset.pip));
@@ -857,34 +856,34 @@ function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onc
       card.onpointerdown = e => { if (e.target.closest('.x')) return; t = setTimeout(() => { t = null; S.wobble = true; render(); }, 500); };
       card.onpointerup = e => { if (e.target.closest('.x')) return; if (t) { clearTimeout(t); if (S.wobble) { S.wobble = false; render(); return; } openRecord(eid); } };
       card.onpointerleave = () => { if (t) { clearTimeout(t); t = null; } };
-      card.querySelector('.x').onclick = e => { e.stopPropagation(); confirmSheet('Delete this entry?', 'Entry ' + card.querySelector('.n').textContent + ' and its record, recommendations and pip will be removed.', [{ label: 'Delete', cls: 'danger', fn: () => { S.entries[id] = entriesOf(id).filter(x => x.id !== eid); entriesOf(id).forEach((x, i) => x.n = i + 1); bump(id); S.wobble = false; render(); toast('Entry deleted'); } }, { label: 'Keep', cls: 'ghost' }]); }; }); }
+      card.querySelector('.x').onclick = e => { e.stopPropagation(); confirmSheet('Delete this entry?', 'Entry ' + card.querySelector('.en').textContent + ' and its record, recommendations and pip will be removed.', [{ label: 'Delete', cls: 'danger', fn: () => { S.entries[id] = entriesOf(id).filter(x => x.id !== eid); entriesOf(id).forEach((x, i) => x.n = i + 1); bump(id); S.wobble = false; render(); toast('Entry deleted'); } }, { label: 'Keep', cls: 'ghost' }]); }; }); }
   if (S.wobble) { const v = $('#view'); v.onclick = e => { if (!e.target.closest('.entry')) { S.wobble = false; render(); } }; } }
 
 // ---------------- camera ----------------
 function cameraView() { const d = S.draft || {}; const a = addrOf(S.cur); const m = d.photoMeta;
   const vf = `<div class="vf">${img(d.photo || FIXTURE, d.photo ? 'Photo' : 'Live viewfinder')}${m ? `<span class="src">${esc(PHOTO.caption(m))}</span>` : ''}</div>`;
-  return `<div class="cam ${d.snapped ? 'snap' : ''} ${d.photo ? '' : 'nophoto'}" id="cam">${vf}<div class="grid"></div><div class="hud"><div style="display:flex;gap:8px"><button class="camx" id="camBack">‹ Back</button><button class="camx" id="retake" style="display:none">↺ Retake</button><button class="camx" id="cancelScan" style="display:none">Cancel</button></div><span class="addr2">${esc(a.addr)}<small>${esc(CONFIG.inspector.name)} · ${clock()}</small></span></div>
+  return `<div class="cam ${d.snapped ? 'snap' : ''} ${d.photo ? '' : 'nophoto'}" id="cam">${vf}<div class="grid"></div><div class="hud"><div style="display:flex;gap:8px"><button class="camx" id="camBack">${I('back', 14)} Back</button><button class="camx" id="retake" style="display:none">${I('undo', 14)} Retake</button><button class="camx" id="cancelScan" style="display:none">Cancel</button></div><span class="addr2">${esc(a.addr)}<small>${esc(CONFIG.inspector.name)} · ${clock()}</small></span></div>
   <div class="scanline" id="scan"></div><div class="ar" id="ar"></div><div class="stat" id="status"><div class="dot spin"></div><div><div class="t"></div><div class="d"></div></div></div>
-  <div class="ctl"><button class="side" id="upload" title="Upload a photo">▲<small>Upload</small></button><button class="shutter" id="shutter" aria-label="Take picture"><i></i></button><button class="side" id="noteOnly" title="Note without a photo">⌨<small>Note only</small></button></div><div class="flash"></div>
+  <div class="ctl"><button class="side" id="upload" title="Add a photo">${I('image', 22, 1.8)}<small>Library</small></button><button class="shutter" id="shutter" aria-label="Take picture"><i></i></button><button class="side" id="noteOnly" title="Note without a photo">${I('text', 22, 1.8)}<small>Note only</small></button></div><div class="flash"></div>
   <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
   <div class="picker" id="picker"><div class="pk"><div class="pk-h">Add a photo<button class="pk-x" id="pkX" aria-label="Close">✕</button></div>
     <button class="pk-file" id="pkFile">Choose from this device<small>JPEG, PNG or WebP · rotated and resized automatically</small></button>
     <div class="pk-err" id="pkErr" hidden></div>
     <div class="pk-lab">Reference photos</div>
     <div class="pk-grid">${PHOTOLIB.map(x => `<button class="pk-i" data-lib="${x.id}">${img(x.src, x.label)}<span>${esc(x.label)}</span></button>`).join('')}</div></div></div>
-  <div class="sheet2" id="sheet2"><div class="say" id="say"><div class="tx" id="tx"></div><div class="pill" id="pill"><span class="mic">◉</span><span class="hint">Tap to type · hold to speak</span><div class="wave">${'<i></i>'.repeat(18)}</div><span class="secs" id="secs"></span></div></div><div class="typed" id="typed"><textarea class="memo" id="memo" rows="3" placeholder="What did you see?"></textarea><div class="typed-row"><button class="link" id="useVoice">◉ Use voice instead</button><span class="link-hint" id="memoHint"></span></div><button class="btn" id="submit" style="margin-top:10px" disabled>Submit entry</button></div></div></div>`; }
+  <div class="sheet2" id="sheet2"><div class="say" id="say"><div class="lbl" style="margin:0 2px 10px">Note your observation</div><div class="tx" id="tx"></div><div class="pill" id="pill"><span class="mic">${I('mic', 18)}</span><span class="hint">Tap to type · hold to speak</span><div class="wave">${'<i></i>'.repeat(18)}</div><span class="secs" id="secs"></span></div><button class="link nonote" id="noNote" style="display:none">Submit without a note</button></div><div class="typed" id="typed"><textarea class="memo" id="memo" rows="3" placeholder="What did you see?"></textarea><div class="typed-row"><button class="link" id="useVoice">◉ Use voice instead</button><span class="link-hint" id="memoHint"></span></div><button class="btn" id="submit" style="margin-top:10px" disabled>Submit entry</button></div></div></div>`; }
 function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#say'), pill = $('#pill'), tx = $('#tx'), memo = $('#memo'), submit = $('#submit'); const d = S.draft;
   // This screen can re-render under a live recording (a photo chosen, a retake).
   // The bar it was being held on is gone, so the microphone goes with it.
   VOICE.cancel();
-  const showSheet = () => { cam.classList.add('snap'); d.snapped = true; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').textContent = d.photoMeta ? '↺ Change photo' : '↺ Retake'; };
+  const showSheet = () => { cam.classList.add('snap'); d.snapped = true; $('#noNote').style.display = d.photo ? '' : 'none'; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').innerHTML = I('undo', 14) + (d.photoMeta ? ' Change photo' : ' Retake'); };
   const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),bottom .32s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
   const checkMemo = () => { const v = memo.value.trim(); submit.disabled = !v && !d.photo; $('#memoHint').textContent = v ? '' : d.photo ? 'Optional · the scan works from the photo' : 'Add a note to continue'; };
   $('#shutter').onclick = () => { d.photo = 'assets/original.jpg'; showSheet(); };
   const picker = $('#picker'), fileIn = $('#file');
   const closePicker = () => picker.classList.remove('on');
   const setPhoto = p => { d.photo = p.src; d.photoMeta = p; S.draft = d; closePicker(); render();
-    later(() => { const c = $('#cam'); if (!c) return; c.classList.add('snap'); S.draft.snapped = true; const r = $('#retake'); if (r) { r.style.display = ''; r.textContent = '↺ Change photo'; } }, 60); };
+    later(() => { const c = $('#cam'); if (!c) return; c.classList.add('snap'); S.draft.snapped = true; const r = $('#retake'); if (r) { r.style.display = ''; r.innerHTML = I('undo', 14) + ' Change photo'; } const nn = $('#noNote'); if (nn) nn.style.display = ''; }, 60); };
   $('#upload').onclick = () => picker.classList.add('on');
   $('#pkX').onclick = closePicker;
   picker.onclick = e => { if (e.target === picker) closePicker(); };
@@ -1036,6 +1035,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     if (mode === 'live') return release();
     if (mode === 'idle' && Date.now() - t0 < 600) { grow(() => { sheet.classList.add('type'); if (!memo.value) memo.value = d.memo || ''; checkMemo(); }); openMemo(); } };
   memo.addEventListener('input', () => { d.memo = memo.value; checkMemo(); }); $('#useVoice').onclick = () => grow(() => sheet.classList.remove('type'));
+  const nn = $('#noNote'); if (nn) nn.onclick = () => { d.memo = ''; d.kind = 'violation'; if (!d.memo) d.memo = ''; sheet.classList.add('recede'); analyze(); };
   submit.onclick = () => { d.memo = memo.value.trim(); d.kind = !d.photo ? 'note' : (/compliant|clear|ok|good/i.test(d.memo) ? 'compliance' : 'violation'); if (!d.memo) d.memo = ''; sheet.classList.add('recede'); analyze(); };
   // The boxes used to be a fixture on a timer, so they could be scheduled the
   // moment the scan began. Now the model draws them from the photograph, which
@@ -1172,20 +1172,20 @@ function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab';
   // one; a model that labelled elements without isolating a finding may not.
   const issue = sc.issue ? `<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div>` : '';
   return `<div class="ov ${cls || ''}">${(sc.boxes || []).map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}${issue}</div>`; }
-function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const card = (title, body, delay, key) => `<div class="card edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</div>`;
+function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const fld = (k, val) => `<div class="fld"><b>${esc(k)}</b>${val}</div>`; const card = (title, body, delay, key) => `<section class="rsec edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</section>`;
   const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
-  const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">Original</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">Scanned</span></div></div>` : '';
+  const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">ORIGINAL</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">SCANNED</span></div></div>` : '';
   const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
-  <div class="card" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</div>
-  ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('summary.' + i + '.1', x[1])}</div>`).join('') + provNote(r.ai), .1, 'summary')}
-  ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : '✓'}</i></div><div><div style="font-weight:650">${ed('severity.level', r.ai.severity.level)}</div><div style="font-size:12px;color:var(--faint)">${ed('severity.why', r.ai.severity.why)}</div></div></div><div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
-  ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
-  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
-  ${r.feedback.length ? `<div class="card" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<p>↳ ${esc(f)}</p>`).join('')}</div>` : ''}
+  <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
+  ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => fld(x[0], ed('summary.' + i + '.1', x[1]))).join('') + provNote(r.ai), .1, 'summary')}
+  ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : I('check', 16, 2.6)}</i></div><div><div style="font-weight:650;font-size:16px">${ed('severity.level', r.ai.severity.level)}</div></div></div>${fld('Why', ed('severity.why', r.ai.severity.why))}<div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
+  ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => fld(x[0], ed('estimates.' + i + '.1', x[1]))).join(''), .3, 'estimates') : ''}
+  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.mirrored ? '<span class="chip amber" title="Transcribed verbatim, but from a mirror rather than the signed or official publication">confirm source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
+  ${r.feedback.length ? `<section class="rsec" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<div class="fld"><span>↳ ${esc(f)}</span></div>`).join('')}</section>` : ''}
   ${r.kind !== 'violation' ? '' : inc.length
-    ? `<div class="card" style="animation-delay:.5s"><h4>${oneChoice(r, inc) ? 'Correction for the owner' : 'Recommendations for the owner'}<button class="edbtn main" id="openDeck">Edit</button></h4>${recBlocks(r, { opt: 'ropt', ph: 'rph' })}${dec > inc.length ? `<p class="rleft">${dec - inc.length} of ${r.recs.length} left out</p>` : ''}</div>`
-    : `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? 'none included · ' + dec + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>`}
+    ? `<section class="rsec" style="animation-delay:.5s"><h4>${oneChoice(r, inc) ? 'Correction for the owner' : 'Recommendations for the owner'}<button class="edbtn main" id="openDeck">Edit</button></h4>${recBlocks(r, { opt: 'ropt', ph: 'rph' })}${dec > inc.length ? `<p class="rleft">${dec - inc.length} of ${r.recs.length} left out</p>` : ''}</section>`
+    : `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">${I('deck')}</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? 'none included · ' + dec + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">${I('nav', 16)}</span></div>`}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
   return frame(`Entry ${r.n} · ${kindT}`, addrOf(S.cur).addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="save">Save entry</button></div>`); }
 function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { const i0 = r.recs.findIndex(x => !x.decision); S.deck = { idx: i0 < 0 ? 0 : i0 }; go('deck'); };
@@ -1252,7 +1252,7 @@ async function rescan(text) {
   VISUALS.startEntry(S.cur, r);
   return { ok: true };
 }
-function lightbox(html, wire) { const el = document.createElement('div'); el.className = 'lb'; el.innerHTML = html; $('#app').appendChild(el); el.querySelectorAll('[data-close]').forEach(b => b.onclick = () => el.remove()); wire && wire(el); return el; }
+function lightbox(html, wire) { const el = document.createElement('div'); el.className = 'lb'; el.innerHTML = html; $('#app').appendChild(el); el.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }); wire && wire(el); return el; }
 function getPath(root, p) { let o = root; for (let i = 0; i < p.length - 1; i++) o = o[p[i]]; return o; }
 function wireEdits(root, onChange) { $$('.edcard').forEach(card => { const btn = card.querySelector('[data-edit]'); if (!btn) return; const snap = card.dataset.snap || (card.dataset.snap = JSON.stringify([...card.querySelectorAll('.ed')].map(e => e.textContent)));
     const changed = () => JSON.stringify([...card.querySelectorAll('.ed')].map(e => e.textContent)) !== snap; const save = e => { const p = e.dataset.path.split('.'); getPath(root, p)[p[p.length - 1]] = e.textContent; onChange && onChange(); };
@@ -1559,4 +1559,9 @@ setInterval(() => { const sb = document.querySelector('.sb span'); if (sb) sb.te
 // demo seed: nothing on the route yet (the inspector types addresses); press R to reset.
 // Past site lookups come back from localStorage first, so they are in the typeahead.
 restoreLookups();
+function coldStart() { const ph = document.querySelector('.phone'); if (!ph || document.getElementById('boot')) return; const b = document.createElement('div'); b.id = 'boot'; b.innerHTML = `<div class="boot-mark"><i></i><i></i><i></i></div><div class="boot-l"><span>LOADING</span></div><div class="boot-sweep"></div>`; ph.appendChild(b); ph.classList.add('booting');
+  setTimeout(() => { b.classList.add('ready'); b.querySelector('.boot-l span').textContent = 'READY'; }, 1100);
+  setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); }, 1500);
+  setTimeout(() => { b.remove(); ph.classList.remove('booted'); }, 2300); }
+coldStart();
 render();

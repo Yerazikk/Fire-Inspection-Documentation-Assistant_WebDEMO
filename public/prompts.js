@@ -31,7 +31,5 @@ window.PROMPTS = {
     { title: 'Refresh after changes', hint: 'only when stale', steps: [['tap', '#refresh'], ['wait', 300]], when: () => !!document.querySelector('#refresh') },
   ],
   kb: [],
-  days: [
-    { title: 'Search for “juniper”', hint: '', steps: [['type', '#dq', 'juniper'], ['wait', 500], ['say', 'One location matches']] },
-  ],
+  days: [],
 };

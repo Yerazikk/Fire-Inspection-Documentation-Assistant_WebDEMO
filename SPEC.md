@@ -7,6 +7,7 @@ Generated from `spec.js`. The app implements exactly these screens and affordanc
 - One primary action per screen, at the bottom. Secondary actions are quiet.
 - Tap opens or selects. Press-and-hold acts (reorder, delete, speak, send). Swipe decides (deck). Drag moves (sheet, order).
 - Nothing is lost silently: leaving an unsaved record asks; deleting asks; retaking restarts on purpose.
+- Motion is unhurried: screens slide with one easing (forward and back), sheets and cards ease over about half a second, and a cold start plays a short acquisition sequence before the map rises.
 - No confirmation pills or toasts: the result of an action is visible in the UI itself.
 - Generated text is always editable in place. The AI drafts, the inspector decides.
 - Stale derived documents (report, notice) say so and offer Refresh; they never silently change.
@@ -27,13 +28,15 @@ Plan and run the day: HQ, today’s stops, their order on real roads, and what i
 
 | Control | Gesture | Result |
 |---|---|---|
-| ☰ (top-left) | tap | Opens the menu: previous inspections, saved site lookups, profile, settings. |
+| ☰ (top-left) | tap | Opens the menu. Under construction in this build: inspector name and unit, and a notice that previous inspections, lookups, profile and settings come later. |
 | Address field | type | Typeahead over saved and seeded addresses, then over OpenStreetMap, bounded to California — this unit does not inspect out of state, and a near-miss in Nevada is a wasted drive rather than a harmless extra row. Every suggestion carries a satellite thumbnail of the property it would pin, so the right one is recognised before it is chosen. Enter or tapping a suggestion geocodes the address and adds the stop: a pin drops on the real map and a row appears in the sheet. |
 | Address field | focus when empty | Lists recent site lookups — every address ever added to a day, kept on the device. |
 | Address field | Enter with nothing highlighted | Geocodes whatever was typed and adds the first match. |
 | Map pin | tap | Opens the property preview in the sheet: a Google Street View photograph of the house — aimed at it, not down the road, because the server works out where the camera stands first — over the status, today’s entries and the inspection history. An address with no Street View coverage says so rather than showing an empty box. |
-| Sheet handle | drag or tap | Three detents: peek, half, full (Apple Maps style). |
-| Stop row | tap | Opens the Location home for that stop. |
+| Sheet handle | drag or tap | One sheet, two detents once a stop is chosen. Half is the stop card: address, street view, status, Start inspection. Full keeps that header and continues into the Location home underneath (lot view, Today/History, entries, Finish / New entry). Drag down to return to the card, further to close. |
+| Start / Continue / Open inspection | tap | The same sheet rises smoothly to full; nothing else changes. |
+| Stop card trash | tap | Removes the stop from today’s list (asks first if it already has entries). |
+| Stop row | tap | Opens that stop’s sheet at full: the Location home. |
 | Stop row ➚ | tap | Deep-links to Apple Maps for turn-by-turn (asks first); the app stays where it is. |
 | Stop row ≡ handle | drag | Lifts the row instantly and follows the finger; other rows slide out of the way; the route redraws on drop. |
 | Stop row | press-and-hold anywhere, then drag | Same lift after a short hold. |
@@ -56,7 +59,7 @@ Edge cases
 
 ## Menu (`menu`)
 
-Everything that is not today’s route.
+Everything that is not today’s route. Under construction in this build.
 
 | Control | Gesture | Result |
 |---|---|---|
@@ -87,7 +90,7 @@ Edge cases
 
 ## Location home (`location`)
 
-Everything about one property today, and its history.
+Everything about one property today, and its history. It is the stop sheet at full height, not a separate screen: the stop header stays on top and the home continues below it.
 
 | Control | Gesture | Result |
 |---|---|---|
@@ -156,7 +159,7 @@ The inspector’s technical record for one entry, editable, with recommendations
 | Any text line | tap Edit on its card | Lines become editable; Done saves; Revert restores the generated text. |
 | Recommendations | tap | Opens the deck. Each card carries the property's own photograph with that correction marked on it in cyan. The pictures are drawn after Finish, so a card opened before its own has arrived says “Generating suggestion visual” and keeps its place in the deck; one that could not be drawn says so and keeps its text. |
 | Save | tap | Saves the entry and returns to Location home; a numbered pip appears at the capture position. |
-| ‹ | tap | If anything changed: Save / Discard / Keep editing. Otherwise just goes back. |
+| ‹ | tap | If anything changed: Discard or Save; tapping outside the sheet keeps editing. Otherwise just goes back. |
 
 Edge cases
 
