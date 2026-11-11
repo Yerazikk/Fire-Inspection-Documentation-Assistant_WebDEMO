@@ -213,9 +213,10 @@ Plain-language email: what we found, what to do, with the approved visuals and a
 | Edit options | tap | Reopens the deck for that entry. |
 | Find attachments | tap | Searches the department library; each hit has an include toggle. |
 | Add your own | tap | Attach a file from the device (demo: adds a placeholder document). |
-| Refresh | tap | Shown when entries, decisions or attachments changed after the draft, or when drafting failed; redrafts. |
+| Refresh | tap | Shown when entries or decisions changed after the draft, or when drafting failed; redrafts. Attaching documents does not stale the draft. |
 | Save draft | tap | Saves to the inspector’s Mail drafts for the desktop; the screen then says it is saved and not sent. |
-| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option and the owner has a deliverable address. Afterwards the screen says who it went to and when. |
+| Recipient | tap | The To: line picks who the notice goes to: the owner on the assessor roll, the demo inbox, or an address typed in. |
+| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option and a recipient is set. Afterwards the screen says who it went to and when. |
 | ‹ | tap | Back to Location home; the draft is kept. |
 
 Edge cases
@@ -223,7 +224,7 @@ Edge cases
 - Drafted in plain language per property; code citations stay out of the letter body.
 - The correction deadline, the hearing and the appeal windows come from the jurisdiction’s abatement procedure, not from a generic default.
 - Compliance-only visits produce a short “no action needed” notice.
-- With no mailing address on file the notice says so and Hold to send is disabled.
+- With no owner on the roll — an address geocoded on the spot — the notice says so and the To: line starts empty; choosing a recipient there enables Hold to send.
 - If drafting is unavailable the screen says so and shows generic template text, marked as not being about this property.
 
 ## Department library search (`kb`)

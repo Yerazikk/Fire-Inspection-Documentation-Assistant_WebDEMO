@@ -1232,7 +1232,7 @@ function deckAfter() { renderDeck(); $('#bNo').onclick = () => swipe(false); $('
 // drafts; the inspector decides.
 
 const docState = (key, id) => (S[key][id] = S[key][id] || (key === 'notice'
-  ? { ver: null, status: 'idle', doc: null, error: null, at: null, attached: new Set(), kbDone: false, own: [], draft: false, sent: false }
+  ? { ver: null, status: 'idle', doc: null, error: null, at: null, attached: new Set(), kbDone: false, own: [], draft: false, sent: false, to: null, other: false }
   : { ver: null, status: 'idle', doc: null, error: null, at: null }));
 const noticeState = () => docState('notice', S.cur);
 
@@ -1306,13 +1306,35 @@ function reportAfter() {
   const ex = $('#export'); if (ex) ex.onclick = () => exportDoc('report', id);
 }
 
+// Who the notice is addressed to. Most properties carry an owner on the
+// assessor roll, and that address is the default — but an address geocoded on
+// the spot has nobody on file, and the inspector still has to be able to send
+// the letter somewhere. So the recipient is a field on the notice, not a fact
+// about the property: the roll fills it in when it can, and otherwise the
+// inspector picks the demo inbox or types an address in.
+const TEST_TO = 'test@gmail.com';
+const onFileTo = a => (a.owner && a.owner.email) || '';
+// Deliberately loose. It is here to catch a half-typed address, not to decide
+// whether a mailbox exists.
+const deliverable = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e || '');
+function noticeTo(id) { const ns = docState('notice', id); if (ns.to === null) ns.to = onFileTo(addrOf(id)); return ns.to; }
+// Why "Hold to send" is greyed, or '' when it is not. Both the button's title
+// and the live re-check while an address is being typed read this.
+function sendWhy(id) {
+  const ns = docState('notice', id), viol = entriesOf(id).filter(e => e.kind === 'violation');
+  if (!ns.doc) return 'Nothing drafted yet';
+  if (viol.length && !viol.some(e => e.recs.some(r => r.decision === 'in'))) return 'Choose at least one option first';
+  if (!deliverable(noticeTo(id))) return 'Choose who this notice goes to';
+  return '';
+}
+
 // A real file, rather than a toast claiming one was saved. Plain text, because
 // a PDF needs a renderer the project does not have yet (see TODO.md §7).
 function docToText(key, id) {
   const d = docState(key, id).doc, a = addrOf(id); if (!d) return '';
   const L = [];
   if (key === 'report') L.push(`INTERNAL INSPECTION REPORT`, `${a.addr}${a.where ? ', ' + a.where : ''}`, `${fmtDate(todayISO())} · ${CONFIG.inspector.name} (${CONFIG.inspector.badge}) · ${CONFIG.unit}`, '', d.headline || '');
-  else L.push(`Subject: ${d.subject}`, `To: ${(a.owner && a.owner.email) || '(no address on file)'}`, `From: ${CONFIG.inspector.name} <${CONFIG.inspector.email}>`, '', d.greeting);
+  else L.push(`Subject: ${d.subject}`, `To: ${noticeTo(id) || '(no recipient chosen)'}`, `From: ${CONFIG.inspector.name} <${CONFIG.inspector.email}>`, '', d.greeting);
   d.sections.forEach(s => {
     L.push('', s.heading.toUpperCase());
     if (s.type === 'prose') L.push(s.body);
@@ -1338,7 +1360,20 @@ function noticeView() {
   const id = S.cur, a = addrOf(id), ns = docState('notice', id), d = ns.doc;
   const es = entriesOf(id), viol = es.filter(e => e.kind === 'violation');
   const att = KB.filter(k => ns.attached.has(k.id));
-  const canSend = !!d && (viol.length ? viol.some(e => e.recs.some(r => r.decision === 'in')) : true) && !!(a.owner && a.owner.email);
+  const canSend = !sendWhy(id);
+
+  // The To: line is a control, not a label. An address typed in is remembered
+  // on the notice, so a re-render (choosing an option, attaching a document)
+  // keeps the select on "Another address…" rather than snapping back.
+  const onFile = onFileTo(a), to = noticeTo(id);
+  if (to && to !== onFile && to !== TEST_TO) ns.other = true;
+  const toOpt = (v, label, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(label)}</option>`;
+  const toCtl = `<span class="torow"><select class="tosel" id="toPick" aria-label="Recipient">`
+    + (!to && !ns.other ? toOpt('', 'Choose a recipient…', true) : '')
+    + (onFile ? toOpt(onFile, ((a.owner && a.owner.name) || 'Owner of record') + ' · ' + onFile, !ns.other && to === onFile) : '')
+    + toOpt(TEST_TO, 'Demo inbox · ' + TEST_TO, !ns.other && to === TEST_TO)
+    + toOpt('__other', 'Another address…', ns.other)
+    + `</select>${ns.other ? `<input class="toin" id="toCustom" type="email" inputmode="email" autocomplete="off" spellcheck="false" placeholder="name@example.com" value="${esc(to)}">` : ''}</span>`;
 
   // Blocks the app owns, dropped in under the section whose id names them.
   const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); return inc.length
@@ -1351,19 +1386,23 @@ function noticeView() {
       : `<div class="slot cta" data-go="kb"><span class="cta-ic">📎</span><span class="cta-t">Find supporting documents</span><span class="cta-ch">›</span></div><div class="ctl-row" style="justify-content:flex-start"><span class="ctl" id="addOwn">+ Add your own</span></div>`,
   };
   const used = new Set();
-  const letter = d ? `<div class="mail fade"><div class="hd"><b>${esc(d.subject || '')}</b><br>To: ${esc((a.owner && a.owner.name) || 'Owner of record')} &lt;${esc((a.owner && a.owner.email) || 'no address on file')}&gt;<br>From: ${esc(CONFIG.inspector.name)}, ${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.email)}</div>
+  const letter = d ? `<div class="mail fade"><div class="hd"><b>${esc(d.subject || '')}</b><div class="tol">To: ${toCtl}</div>From: ${esc(CONFIG.inspector.name)}, ${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.email)}</div>
     <p class="ed" data-path="greeting">${esc(d.greeting || '')}</p>
     ${d.sections.map((s, i) => { used.add(s.id); return docSection(s, i, 'msec') + (slots[s.id] ? slots[s.id]() : ''); }).join('')}
     ${Object.keys(slots).filter(k => !used.has(k)).map(k => slots[k]()).join('')}
     <p class="ed" data-path="closing">${esc(d.closing || '')}</p>
     <p>${esc(CONFIG.inspector.name)} · ${esc(CONFIG.inspector.badge)}<br>${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.phone)}</p></div>` : '';
 
-  const warn = !(a.owner && a.owner.email) ? `<div class="stale bad">No mailing address is on file for this property, so this notice cannot be sent. Look the owner up on the assessor roll first.</div>` : '';
-  const sentLine = ns.sent ? `<div class="stale ok">Sent to ${esc(a.owner.email)} at ${esc(ns.sentAt)}.</div>` : ns.draft ? `<div class="stale ok">Saved to drafts at ${esc(ns.draftAt)} · not sent.</div>` : '';
+  // Not a dead end any more: nothing on the roll just means the inspector says
+  // where it goes.
+  const warn = ns.sent || deliverable(to) ? '' : onFile
+    ? `<div class="stale">The address on file looks incomplete. Set the recipient on the To: line below.</div>`
+    : `<div class="stale">No owner is on file for this property. Choose who this notice goes to on the To: line below.</div>`;
+  const sentLine = ns.sent ? `<div class="stale ok">Sent to ${esc(ns.sentTo || to)} at ${esc(ns.sentAt)}.</div>` : ns.draft ? `<div class="stale ok">Saved to drafts at ${esc(ns.draftAt)} · not sent.</div>` : '';
   const body = docBanner('notice', id) + warn + sentLine + letter
     + (!d && ns.status !== 'pending' ? '<div class="hint">Nothing drafted yet.</div>' : '') + docFoot('notice', id);
-  return frame('Notice to owner', (a.owner && a.owner.email) ? 'to ' + a.owner.email : 'no recipient on file', body,
-    `<div class="row2"><button class="btn ghost" id="saveDraft" ${d ? '' : 'disabled'}>Save draft</button><button class="btn" id="send" ${canSend ? '' : 'disabled'} title="${canSend ? '' : !d ? 'Nothing drafted yet' : !(a.owner && a.owner.email) ? 'No address on file for the owner' : 'Choose at least one option first'}"><span class="fill"></span><span style="position:relative">Hold to send</span></button></div>`);
+  return frame('Notice to owner', deliverable(to) ? 'to ' + esc(to) : 'no recipient yet', body,
+    `<div class="row2"><button class="btn ghost" id="saveDraft" ${d ? '' : 'disabled'}>Save draft</button><button class="btn" id="send" ${canSend ? '' : 'disabled'} title="${esc(sendWhy(id))}"><span class="fill"></span><span style="position:relative">Hold to send</span></button></div>`);
 }
 function noticeAfter() {
   const id = S.cur, ns = docState('notice', id);
@@ -1375,11 +1414,36 @@ function noticeAfter() {
   // Saving a draft closes the letter, the way it does in a mail client. The
   // "Saved to drafts" line is still there on the notice when it is opened again.
   const sd = $('#saveDraft'); if (sd) sd.onclick = () => { ns.draft = true; ns.draftAt = clock(); back(); };
-  const b = $('#send'); if (!b || b.disabled) return;
+  const b = $('#send');
+  // Recipient. Choosing an option re-renders — the header line, the banner and
+  // the subtitle all read the new address — but typing one must not: the field
+  // would lose focus on the first keystroke. So the typed case only re-checks
+  // the send button and repaints the subtitle in place.
+  const why = () => { if (!b) return; const w = sendWhy(id); b.disabled = !!w; b.title = w; const sub = $('.sub'); if (sub) sub.textContent = w === 'Choose who this notice goes to' ? 'no recipient yet' : 'to ' + noticeTo(id); };
+  const pick = $('#toPick');
+  if (pick) pick.onchange = () => {
+    if (pick.value === '__other') { ns.other = true; ns.to = ''; } else { ns.other = false; ns.to = pick.value; }
+    render();
+    if (ns.other) later(() => { const c = $('#toCustom'); if (c) c.focus(); }, 30);
+  };
+  const custom = $('#toCustom');
+  if (custom) { custom.oninput = () => { ns.to = custom.value.trim(); why(); };
+    custom.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); custom.blur(); } }; }
+  if (!b) return;
   const fill = b.querySelector('.fill'); let t0 = 0, raf = 0; const HOLD = 900;
-  const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentAt = clock(); ns.draft = false; render(); } else raf = requestAnimationFrame(tick); };
-  const start = e => { e.preventDefault(); t0 = Date.now(); raf = requestAnimationFrame(tick); }; const stop = () => { cancelAnimationFrame(raf); fill.style.width = '0'; };
-  b.onpointerdown = start; b.onpointerup = stop; b.onpointerleave = stop; b.onpointercancel = stop;
+  const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentTo = noticeTo(id); ns.sentAt = clock(); ns.draft = false; render(); } else raf = requestAnimationFrame(tick); };
+  // The button can be enabled after this ran — an address typed into the To:
+  // line does not re-render — so the gesture checks for itself rather than
+  // being wired only when it starts out live.
+  const start = e => { if (b.disabled) return; e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (_) {} t0 = Date.now(); raf = requestAnimationFrame(tick); };
+  const stop = () => { cancelAnimationFrame(raf); raf = 0; fill.style.width = '0'; };
+  // Sliding off the button still abandons the send, but leaving it is not the
+  // test for that: typing a recipient and then reaching for Send retracts the
+  // keyboard, and the bar comes down to meet a finger that never moved. Only a
+  // release, or a drag that is actually away from the button, counts.
+  const inside = e => { const r = b.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
+  b.onpointerdown = start; b.onpointerup = stop; b.onpointercancel = stop;
+  b.onpointermove = e => { if (raf && !inside(e)) stop(); };
 }
 
 // when the deck was opened from the notice, "back" should return there with decisions saved into the entry

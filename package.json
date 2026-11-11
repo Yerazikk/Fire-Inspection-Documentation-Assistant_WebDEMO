@@ -4,9 +4,10 @@
   "description": "Vegetation inspection · V3 — interaction demo",
   "scripts": {
     "serve": "node serve.js",
-    "test": "node test_route.js && node test_maps.js",
+    "test": "node test_route.js && node test_maps.js && node test_notice.js",
     "test:route": "node test_route.js",
     "test:maps": "node test_maps.js",
+    "test:notice": "node test_notice.js",
     "spec": "node build_spec.js",
     "ai:check": "node ai/check.js",
     "test:flow": "node test.js",
