@@ -23,6 +23,7 @@ window.GMAP = (() => {
 
   let cfgP = null, loadP = null, denied = false;
   let el = null, map = null, atKey = '';
+  let drawn = false, tilesHook = false;
 
   const config = () => (cfgP = cfgP || fetch('/api/maps/config')
     .then(r => r.json())
@@ -83,6 +84,7 @@ window.GMAP = (() => {
       if (el.parentElement !== host) host.appendChild(el);
       const at = { lat: +lat, lng: +lon };
       if (!map) {
+        drawn = false;
         map = new gm.Map(el, {
           center: at, zoom: ZOOM,
           mapTypeId: 'satellite',
@@ -96,9 +98,15 @@ window.GMAP = (() => {
           maxZoom: 21,
         });
       }
+      if (!tilesHook && gm.event && gm.event.addListener) { tilesHook = true; gm.event.addListener(map, 'tilesloaded', () => { drawn = true; }); }
       if (opts.key !== atKey) { atKey = opts.key || ''; map.setCenter(at); map.setZoom(ZOOM); }
       // The element was moved in the DOM, which older builds do not notice.
       gm.event.trigger(map, 'resize');
+      // A map that was built in a box with no size (or whose box has since
+      // changed) has no centre to draw from; give it one again now that it
+      // has pixels, or the lot view stays dark.
+      const r = el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0 };
+      if (r.width > 0 && r.height > 0 && map.getCenter) { const c = map.getCenter(); if (!c || !isFinite(c.lat()) || !isFinite(c.lng())) map.setCenter(at); requestAnimationFrame(() => { gm.event.trigger(map, 'resize'); const c2 = map.getCenter(); if (c2) map.setCenter(c2); }); }
       return true;
     });
   }
@@ -109,6 +117,23 @@ window.GMAP = (() => {
    * still answers after the lot view has been left — which is what lets an
    * entry made two screens later be placed where the inspector left the frame.
    */
+  /**
+   * Resolves once the map has actually painted tiles in its current box, so a
+   * caller can hide its fallback imagery only behind a real picture. Rejects
+   * if nothing has painted in a few seconds — the fallback stays up then.
+   */
+  function whenDrawn(ms) {
+    if (!map) return Promise.reject(new Error('no map'));
+    if (drawn) return Promise.resolve(true);
+    return new Promise((resolve, reject) => {
+      const gm = window.google && window.google.maps; if (!gm) return reject(new Error('no maps api'));
+      // A build of the API without events (the test stub) is taken as drawn.
+      if (!gm.event || !gm.event.addListenerOnce) { drawn = true; return resolve(true); }
+      const t = setTimeout(() => reject(new Error('the lot view did not paint')), ms || 7000);
+      gm.event.addListenerOnce(map, 'tilesloaded', () => { clearTimeout(t); drawn = true; resolve(true); });
+    });
+  }
+
   function centre() {
     if (!map) return null;
     const c = map.getCenter(); if (!c) return null;
@@ -167,5 +192,5 @@ window.GMAP = (() => {
   /** Take the map off screen without destroying it. */
   function unmount() { if (el && el.parentElement) el.parentElement.removeChild(el); }
 
-  return { load, mount, unmount, marks, centre, street, config, get live() { return !!map && !denied; } };
+  return { load, mount, unmount, marks, centre, whenDrawn, street, config, get live() { return !!map && !denied; } };
 })();

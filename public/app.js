@@ -359,7 +359,10 @@ function warmStop(id) {
   [[640, 267], [192, 144]].forEach(([w, h]) => { const im = new Image(); im.src = GMAP.street(a.lat, a.lon, w, h); });
   try { const c = satCentre(id); if (c) SAT.prefetch(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640 }).catch(() => {}); } catch (_) {}
   let host = document.getElementById('gmwarm');
-  if (!host) { host = document.createElement('div'); host.id = 'gmwarm'; host.setAttribute('aria-hidden', 'true'); host.style.cssText = 'position:fixed;left:-2000px;top:0;width:376px;height:300px;overflow:hidden;pointer-events:none'; document.body.appendChild(host); }
+  // The warm host is a real lot-view box (same classes, same size as the hero), parked off
+  // screen: Google builds the map at that size and loads its tiles; a map built in a box
+  // with no size never draws, even after it is moved.
+  if (!host) { host = document.createElement('div'); host.id = 'gmwarm'; host.className = 'sat hero gmap'; host.setAttribute('aria-hidden', 'true'); host.style.cssText = 'position:fixed;left:-2000px;top:0;width:376px;height:300px;overflow:hidden;pointer-events:none;visibility:visible'; document.body.appendChild(host); }
   // Only warm into the hidden host when the map is not on screen; a live lot view must not be pulled away.
   const live = document.querySelector('#sathero .gmapel');
   if (!live) GMAP.mount(host, a.lat, a.lon, { key: id }).catch(() => {});
@@ -724,6 +727,8 @@ function mountLotMap(id, entries) {
   const host = $('#sathero');
   if (!host || !host.classList.contains('gmap')) return;
   GMAP.mount(host, +host.dataset.lat, +host.dataset.lon, { key: id })
+    // The Esri frame underneath is hidden only once Google has really painted.
+    .then(() => GMAP.whenDrawn())
     .then(() => { if (!host.isConnected) return; host.classList.add('live'); GMAP.marks(entryPins(id, entries), showEntry); })
     .catch(e => { host.classList.remove('live'); console.log('lot view: Esri imagery — ' + e.message); });
 }
