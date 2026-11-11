@@ -51,6 +51,11 @@ window.DRAFTS = (() => {
         hasPhoto: !!e.photo,
         spoken: !!e.spoken,
         note: e.memo || e.note || '',
+        // Whether the approved corrections are alternatives at all, so the
+        // letter does not invite the owner to choose where there is nothing to
+        // choose between. Set when the record was drafted; see `solutionType`
+        // in ai/prompts.js.
+        solutionType: (e.ai && e.ai.solution) || 'multiple_valid_options',
         approvedOptions: (e.recs || []).filter(r => r.decision === 'in').map(r => ({ title: r.title, text: r.text })),
       })),
       history: (window.HISTORY[a.id] || []).slice(0, 4).map(h => ({

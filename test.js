@@ -1,5 +1,5 @@
 // node test.js [port] — walks the V3 interaction system end to end in Chrome via Playwright
-// Billed: two live transcriptions, four text drafts and two decks of annotated
+// Billed: two live transcriptions, four text drafts and two decks of generated
 // photos. Disabled unless asked for with --live; see test_guard.js.
 const gate = require('./test_guard');
 gate('test.js', 'walks two photographed violation entries and the wrap-up');

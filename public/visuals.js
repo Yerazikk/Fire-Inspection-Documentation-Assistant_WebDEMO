@@ -1,4 +1,11 @@
-// The annotated photo on each recommendation card, fetched in the background.
+// The after-image on each recommendation card, fetched in the background.
+//
+// Each one is the property's own photograph re-rendered with that correction
+// carried out and nothing else changed — what the owner gets for the money,
+// rather than a second look at the problem. It is a visualisation and never
+// passes for a photograph: every card and every copy in the notice carries the
+// caption that says so. See ai/prompts.js VISUAL for the rules it is drawn
+// under.
 //
 // Drawing one takes fifteen to twenty seconds, and a violation entry can carry
 // five recommendations, so nothing in the app is allowed to wait on them. The
@@ -28,18 +35,30 @@ window.VISUALS = (() => {
 
   /** The inner HTML of a card's visual area, for whatever state it is in. */
   function cell(entryId, rec) {
-    if (rec.img) return img(rec.img, 'Annotated photo');
+    // The caption is not decoration. This picture is sent to the property
+    // owner, it is of their house, and it shows work that has not been done —
+    // so it says what it is wherever it appears. A card the inspector wrote
+    // themselves shows the real photograph and carries its own label.
+    if (rec.img) return img(rec.img, 'The property with this correction carried out')
+      + (rec.own ? '' : '<span class="vcap">Visualisation · how it could look once this is done</span>');
     const st = statusOf(entryId, rec.id);
-    if (st === 'pending') return '<div class="vgen"><span class="vdots"><i></i><i></i><i></i></span>Generating suggestion visual</div>';
+    if (st === 'pending') return '<div class="vgen"><span class="vdots"><i></i><i></i><i></i></span>Visualising the finished work</div>';
     if (st === 'failed') return '<div class="vgen bad">Visual could not be drawn<small>the recommendation still stands</small></div>';
     return '';
   }
 
   // Which recommendations on an entry can be drawn at all: the picture is the
-  // entry's own photograph with the fix marked on it, so there has to be one,
+  // entry's own photograph with the work done to it, so there has to be one,
   // and only a violation carries recommendations worth illustrating. A rec the
   // inspector wrote themselves already arrives with `img` set.
   const drawable = entry => !!entry && !!entry.photo && entry.kind === 'violation';
+
+  // And which single recommendation is worth a picture. Replacing a painted
+  // sprinkler head or filing a permit looks identical in an after-image, so
+  // the model says which of its corrections would actually show, and the ones
+  // that would not get a text card rather than a picture of nothing. Anything
+  // written before this field existed is drawn, as it always was.
+  const worthDrawing = rec => !!rec && rec.illustrable !== false;
 
   /** Does this card reserve space for a visual at all? */
   const has = (entryId, rec) => !!rec.img || !!statusOf(entryId, rec.id);
@@ -152,6 +171,7 @@ window.VISUALS = (() => {
       if (!drawable(entry)) continue;
       for (const rec of entry.recs || []) {
         if (rec.img || state.has(key(entry.id, rec.id))) continue;
+        if (!worthDrawing(rec)) continue;
         jobs.push({ addrId, entry, rec, chosen: rec.decision === 'in' });
       }
     }

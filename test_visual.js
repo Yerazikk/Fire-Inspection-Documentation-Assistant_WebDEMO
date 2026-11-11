@@ -1,4 +1,4 @@
-// node test_visual.js [port] — the annotated photo on each recommendation card.
+// node test_visual.js [port] — the after-image on each recommendation card.
 // The server must be running first.
 //
 // What this guards is as much about WHEN as about what. Drawing one card takes
@@ -9,11 +9,11 @@
 //
 // Without a key the image calls fail; the queue still runs and every card ends
 // up in the failed state, which is also worth asserting.
-// Billed: three text drafts and one deck of annotated photos — the only test
+// Billed: three text drafts and one deck of after-images — the only test
 // whose spend is the thing under test. Disabled unless asked for with --live;
 // see test_guard.js.
 const gate = require('./test_guard');
-gate('test_visual.js', 'draws a deck of annotated recommendation photos');
+gate('test_visual.js', 'draws a deck of recommendation after-images');
 const PORT = gate.port();
 
 (async () => {
@@ -76,7 +76,7 @@ const PORT = gate.port();
   const stillGoing = await p.evaluate(() => VISUALS.pending() > 0);
   if (stillGoing) {
     const txt = (await p.locator('.dcard .vgen').first().textContent().catch(() => '')) || '';
-    ok(/generating suggestion visual/i.test(txt), `a card still waiting says what it is doing: "${txt.trim()}"`);
+    ok(/visualising the finished work/i.test(txt), `a card still waiting says what it is doing: "${txt.trim()}"`);
     ok((await p.locator('.dcard .vdots').count()) > 0, 'and animates while it waits');
   } else {
     console.log('-- every picture had already landed; the waiting state was not observable');
@@ -98,17 +98,17 @@ const PORT = gate.port();
   out.forEach(o => console.log(`   ${o.drawn ? 'drew  ' : 'failed'} ${String(o.kb).padStart(4)} KB  ${o.title}`));
 
   if (status.key) {
-    ok(out.some(o => o.drawn), 'the recommendations come back with an annotated photo');
+    ok(out.some(o => o.drawn), 'the recommendations come back with an after-image');
     ok(out.filter(o => o.drawn).every(o => o.data), 'each one is image data held on the entry');
     ok(out.filter(o => o.drawn).every(o => o.kb > 0 && o.kb < 700),
       'each one is shrunk to card size rather than kept at full weight');
-    // The annotation is drawn over the entry's own photograph, so it must not
-    // be the photograph itself coming back unchanged.
+    // The picture is the entry's own photograph with the work done to it, so
+    // it must not be the photograph itself coming back unchanged.
     const same = await p.evaluate(() => {
       const e = (S.entries[S.cur] || []).find(x => x.kind === 'violation');
       return e && (e.recs || []).some(r => r.img === e.photo);
     });
-    ok(!same, 'a card shows the annotated copy, not the bare entry photo');
+    ok(!same, 'a card shows the re-rendered copy, not the bare entry photo');
   } else {
     ok(out.every(o => o.status === 'failed'), 'with no key every card ends in the failed state, not pending forever');
   }

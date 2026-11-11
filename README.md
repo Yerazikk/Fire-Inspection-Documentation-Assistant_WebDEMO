@@ -117,7 +117,7 @@ Every entry costs **one** request as it is saved, each Re-scan costs another,
 each dictated memo **one** to transcribe — a few seconds of audio, so the
 cheapest call in the app — and the wrap-up costs **two** more (report + notice). On top of that, Finish
 queues **one image request per recommendation on every violation entry** — the
-annotated card photos — which is typically two to five per violation and is by
+after-image on each card, the property with that correction carried out — which is typically two to five per violation and is by
 far the largest share. A three-entry inspection with two violations is five
 text requests and perhaps six image ones. Every Refresh is another text
 request, and `npm run ai:check` spends two.
@@ -125,7 +125,10 @@ request, and `npm run ai:check` spends two.
 Image requests go to `gemini-3-pro-image` and are rate-limited more tightly
 than text: a run of consecutive calls draws `429 resource has been exhausted`,
 which is why they are issued one at a time with a gap and backed off 4s/8s/16s.
-A card that still cannot be drawn says so and keeps its recommendation.
+A card that still cannot be drawn says so and keeps its recommendation. A
+correction that would not show in a picture at all — a permit, a test, a part
+swapped at a size nobody can see — is never queued, and goes out as a text
+card.
 
 A Vertex AI key draws on the Cloud project's own quota and is billed per token,
 so it is not the hard wall a free key is. A free AI Studio key is capped at
@@ -234,7 +237,7 @@ fall back to the built-in templates, which is a fine way to show the
 interaction and a poor way to show the drafting.
 
 **Anyone with the link spends your quota.** The site is public, the key sits
-behind it, and a single annotated photograph is the expensive call. For a demo
+behind it, and a single generated after-image is the expensive call. For a demo
 to a handful of people that is usually the point; for a link that might travel,
 turn on Deployment Protection in the project's settings, or rotate the key
 afterwards.
@@ -243,7 +246,7 @@ Neither platform limit is anywhere near a normal inspection: a request body
 may be 100 MB and a record posts 100–250 KB of photograph, and a function may
 run for the plan's maximum duration, which `vercel.json` asks for by name
 (`"maxDuration": "max"`) rather than a fixed number — 300 s by default, against
-the fifteen to twenty seconds an annotated photograph takes.
+the fifteen to twenty seconds a generated after-image takes.
 
 ## How the drafting works
 

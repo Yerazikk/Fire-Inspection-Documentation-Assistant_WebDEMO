@@ -185,6 +185,8 @@ Edge cases
 
 - Only violation entries have a deck; notes and compliance entries have none.
 - When the deck is exhausted the end card shows the tally and the only action is to return.
+- Not every finding has alternatives. The record says whether it has several valid options, one required action, or an action a qualified professional has to scope first; where there is one, the deck carries that single card, marked as required, and the notice presents it as what has to be done rather than as an option out of one. The deck is never padded with an invented alternative to fill it.
+- Each card carries a visualisation of the property with that correction carried out — same house, same camera angle, same light, nothing else changed — captioned as a visualisation wherever it appears, on the card and in the owner’s notice. A correction that would make no visible difference (a permit, a test, a part swapped out of sight) is given no picture and the card is text.
 
 ## Internal report (`report`)
 

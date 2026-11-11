@@ -1,4 +1,4 @@
-// The annotated photo on a recommendation card.
+// The after-image on a recommendation card.
 //
 // Separate from draft.js because it is a different kind of call: a different
 // model, an image out rather than JSON, and nothing to validate against the
@@ -15,7 +15,7 @@ const { backend, apiKey, DraftError } = require('./draft');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /**
- * Draw one recommendation onto the entry's photograph.
+ * Draw the entry's photograph again with one recommendation carried out.
  *
  * @param {object} photo  { mimeType, data } the entry photo, base64
  * @param {object} rec    { title, text }
@@ -25,7 +25,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function illustrate(photo, rec, ctx) {
   const key = apiKey();
   if (!key) throw new DraftError('No GEMINI_API_KEY in the environment', 'no_key');
-  if (!photo || !photo.data) throw new DraftError('No photograph to annotate', 'no_photo');
+  if (!photo || !photo.data) throw new DraftError('No photograph to work from', 'no_photo');
   if (!rec || !rec.title) throw new DraftError('No recommendation to illustrate', 'bad_request');
 
   const V = prompts.VISUAL;

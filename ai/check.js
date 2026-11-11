@@ -83,7 +83,10 @@ const showRecord = (e, r) => {
   console.log(`  CATEGORY         ${r.category.join(' | ')}`);
   if (r.estimates.length) r.estimates.forEach(([a, b]) => console.log(`  ${(a + ':').padEnd(18)} ${b}`));
   r.codes.forEach(c => console.log(`  [${c.scope}] ${c.c}${c.unverified ? '  <-- NOT IN LIBRARY' : ''}${c.unsourced ? '  (verify source)' : ''}${c.mirrored ? '  (confirm source)' : ''}${c.edition ? `\n      edition: ${c.edition}` : ''}\n      ${c.t}`));
-  r.recs.forEach(x => console.log(`  · ${x.title} — ${x.text}`));
+  // The solution type is the thing to read first on a violation: it says
+  // whether the deck it just wrote is a real choice or a padded one.
+  if (e.kind === 'violation') console.log(`  SOLUTION         ${r.solution}  (${r.recs.length} card${r.recs.length === 1 ? '' : 's'})`);
+  r.recs.forEach(x => console.log(`  · ${x.title}${x.illustrable === false ? '  [no picture]' : ''} — ${x.text}`));
   console.log(`  -- ${r.meta.model} · ${r.meta.ms} ms · ${r.meta.tokens ? r.meta.tokens.in + ' in / ' + r.meta.tokens.out + ' out' : '?'}`);
 };
 

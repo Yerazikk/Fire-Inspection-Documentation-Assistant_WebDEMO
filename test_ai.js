@@ -9,7 +9,7 @@
 //
 // Needs the server running with a GEMINI_API_KEY. Without a key it still runs,
 // and asserts the fallback path instead (template text, clearly marked).
-// Billed: one live transcription, six text drafts and two decks of annotated
+// Billed: one live transcription, six text drafts and two decks of generated
 // photos. Disabled unless asked for with --live; see test_guard.js.
 const gate = require('./test_guard');
 gate('test_ai.js', 'drafts four records, a report and a notice');
@@ -218,7 +218,9 @@ const PORT = gate.port();
   await p.click('[data-go="notice"]'); await p.waitForSelector('.mail', { timeout: 200000 });
   const nText = await p.locator('.mail').textContent();
   ok((await p.locator('.mail .msec').count()) >= 3, 'the notice renders as editable sections inside the letter');
-  ok(/Option 1:/.test(nText), 'the options the inspector approved appear in the notice');
+  // Either heading, depending on whether the finding has alternatives at all:
+  // a single required correction is not labelled as one option out of one.
+  ok(/Option 1:|What has to be done:/.test(nText), 'the corrections the inspector approved appear in the notice');
   ok(!/the app inserts|this brief|section plan/i.test(nText), 'no prompt instructions leaked into the letter');
   if (live) {
     ok(/November 17|10 days/.test(nText), 'the notice states the real Marin correction window, not a generic 45 days');

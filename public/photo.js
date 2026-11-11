@@ -184,7 +184,7 @@ window.PHOTO = (() => {
    * throwing if the browser cannot decode it.
    *
    * Used for what goes to a model, and for what comes back: a generated
-   * annotation lands as a 2 MB PNG, and an entry holds one per recommendation
+   * visualisation lands as a 2 MB PNG, and an entry holds one per recommendation
    * for the life of the session.
    */
   async function fit(src, edge, quality) {

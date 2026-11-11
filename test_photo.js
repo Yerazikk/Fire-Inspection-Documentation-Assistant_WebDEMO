@@ -7,7 +7,7 @@
 // decoded, upright, size-capped, and carried through to the saved entry.
 const fs = require('fs'), os = require('os'), path = require('path');
 // Billed: one text draft, and — because its memo classifies the entry as a
-// violation — one deck of annotated photos it never looks at. Disabled unless
+// violation — one deck of after-images it never looks at. Disabled unless
 // asked for with --live; see test_guard.js.
 const gate = require('./test_guard');
 gate('test_photo.js', 'saves a photographed violation entry');

@@ -902,7 +902,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   $('#noteOnly').onclick = () => { d.photo = null; showSheet(); };
   $('#camBack').onclick = () => backWithGuard();
   $('#retake').onclick = () => { d.photo = null; d.photoMeta = null; d.snapped = false; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
-  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
+  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go', 'off'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
   // ---- hold to speak ----------------------------------------------------
   // The microphone, for real: voice.js opens it on the hold, meters it while
   // the bar is down, and posts the recording to be transcribed on release. The
@@ -1052,7 +1052,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     return all.length * gap + 400;
   };
   const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 600; const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
-    if (d.photo) later(() => $('#scan').classList.add('go'), 350);
+    if (d.photo) later(() => { const sl = $('#scan'); sl.classList.remove('off'); sl.classList.add('go'); }, 350);
     later(() => st.classList.add('on'), 500); steps.forEach((x, i) => later(() => { st.classList.remove('swap'); void st.offsetWidth; st.classList.add('swap'); st.querySelector('.t').textContent = x.t; st.querySelector('.d').textContent = x.d; }, 600 + i * stepMs));
     // The record is drafted by the model from the note that was just typed, so
     // the call starts here, in parallel with the animation, and the last status
@@ -1067,6 +1067,9 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
       // What the model saw, or the fixture if it never answered.
       const sc = (ai && ai.scan) || fallbackScan;
       const done = () => { const paintMs = paintScan(sc, ar);
+        // The sweep has been running the whole wait; this is the moment it has
+        // been waiting for, so it stops before the boxes land on the frame.
+        const sl = $('#scan'); if (sl) sl.classList.add('off');
         st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓';
         st.querySelector('.t').textContent = ai.source === 'template' ? 'Templates used' : sc && sc.source === 'model' ? 'Photograph read' : 'Record drafted';
         st.querySelector('.d').textContent = ai.source === 'template' ? 'the model could not be reached' : sc && sc.source === 'model' ? (sc.boxes.length + (sc.issue ? 1 : 0)) + ' things found in the frame' : 'opening…';
@@ -1102,6 +1105,22 @@ function provChip(ai) {
   return '';
 }
 
+// How many corrections the finding legitimately has, as the model ruled on it
+// before writing any — see `solutionType` in ai/prompts.js. A swipeable deck
+// of alternatives is the right offer for mulch against siding and the wrong
+// one for a painted-over sprinkler head, where the single answer is a
+// qualified replacement and a second card would be an invented choice. Entries
+// saved before this field existed, and the fixtures, were written as options.
+const solutionOf = r => (r && r.ai && r.ai.solution) || 'multiple_valid_options';
+const oneWay = r => solutionOf(r) !== 'multiple_valid_options';
+// What the deck is, said once, wherever the inspector is told about it.
+function deckSub(r) {
+  const s = solutionOf(r);
+  if (s === 'professional_assessment_required') return 'Scope has to be assessed · one action to offer';
+  if (s === 'single_required_action') return 'One correct way to fix this · no alternatives';
+  return r.recs.length + ' options · swipe to decide';
+}
+
 function provNote(ai) {
   if (!ai || ai.source !== 'template') return '';
   return `<p style="margin-top:10px;color:var(--amber);font-size:12px">This is built-in example text, not a description of this property${ai.fallbackReason ? ' — ' + esc(ai.fallbackReason) : ''}. Edit it or try again when the model is reachable.</p>`;
@@ -1135,7 +1154,7 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => `<div class="st"><b>${esc(x[0])}</b>${ed('estimates.' + i + '.1', x[1])}</div>`).join(''), .3, 'estimates') : ''}
   ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<div class="card" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<p>↳ ${esc(f)}</p>`).join('')}</div>` : ''}
-  ${r.kind === 'violation' ? `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">Recommendations for the owner</div><div class="s">${dec ? inc + ' included · ' + (dec - inc) + ' left out of ' + r.recs.length : r.recs.length + ' suggested · swipe to decide'}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>` : ''}
+  ${r.kind === 'violation' ? `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">▥</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? inc + ' included · ' + (dec - inc) + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">›</span></div>` : ''}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
   return frame(`Entry ${r.n} · ${kindT}`, addrOf(S.cur).addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="save">Save entry</button></div>`); }
 function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { S.deck = { idx: r.recs.findIndex(x => !x.decision) < 0 ? r.recs.length : r.recs.findIndex(x => !x.decision) }; go('deck'); };
@@ -1211,10 +1230,10 @@ function wireEdits(root, onChange) { $$('.edcard').forEach(card => { const btn =
     card.querySelectorAll('.ed').forEach(e => { e.addEventListener('input', () => save(e)); e.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); e.blur(); } }); }); showRevert(); }); }
 
 // ---------------- deck ----------------
-function deckView() { return frame('Recommendations', 'swipe right to include · left to leave out', `<div class="deck" id="deck"></div><div class="dbtns"><button class="info" id="bUndo" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button class="no" id="bNo">✕</button><button class="yes" id="bYes">✓</button><span class="info spacer"></span></div><div style="text-align:center;font-size:12px;color:var(--faint);margin:8px 0 0" id="dcount"></div>`, `<button class="link" id="own" style="display:block;margin:0 auto 12px">✎ Write your own recommendation</button><button class="btn ghost" id="deckDone">Skip the rest</button>`); }
+function deckView() { return frame(oneWay(S.rec) ? 'Correction' : 'Recommendations', oneWay(S.rec) ? deckSub(S.rec).toLowerCase() + ' · swipe right to include it' : 'swipe right to include · left to leave out', `<div class="deck" id="deck"></div><div class="dbtns"><button class="info" id="bUndo" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button class="no" id="bNo">✕</button><button class="yes" id="bYes">✓</button><span class="info spacer"></span></div><div style="text-align:center;font-size:12px;color:var(--faint);margin:8px 0 0" id="dcount"></div>`, `<button class="link" id="own" style="display:block;margin:0 auto 12px">✎ Write your own recommendation</button><button class="btn ghost" id="deckDone">Skip the rest</button>`); }
 function renderDeck() { const r = S.rec, dk = S.deck; const deck = $('#deck'); const rest = r.recs.slice(dk.idx, dk.idx + 3); const inc = r.recs.filter(x => x.decision === 'in').length;
   const eid = S.rec.id;
-  deck.innerHTML = rest.map((s, i) => `<div class="dcard ${VISUALS.has(eid, s) ? '' : 'text'} ${i === 1 ? 'back' : i === 2 ? 'back2' : ''}" style="z-index:${10 - i}">${VISUALS.has(eid, s) ? `<div class="img${s.img ? ' on' : ''}" data-vis="${VISUALS.key(eid, s.id)}">${VISUALS.cell(eid, s)}${s.own && s.img ? `<div class="arph"><span>${esc(s.title)}</span></div>` : ''}</div>` : ''}<div class="body"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div><div class="stamp in">Include</div><div class="stamp out">Leave out</div></div>`).reverse().join('');
+  deck.innerHTML = rest.map((s, i) => `<div class="dcard ${VISUALS.has(eid, s) ? '' : 'text'} ${i === 1 ? 'back' : i === 2 ? 'back2' : ''}" style="z-index:${10 - i}">${VISUALS.has(eid, s) ? `<div class="img${s.img ? ' on' : ''}" data-vis="${VISUALS.key(eid, s.id)}">${VISUALS.cell(eid, s)}${s.own && s.img ? `<div class="arph"><span>${esc(s.title)}</span></div>` : ''}</div>` : ''}<div class="body">${!s.own && oneWay(r) ? `<span class="chip">${solutionOf(r) === 'professional_assessment_required' ? 'Assessment required' : 'Required action'}</span>` : ''}<h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div><div class="stamp in">Include</div><div class="stamp out">Leave out</div></div>`).reverse().join('');
   $('#dcount').textContent = dk.idx < r.recs.length ? `${dk.idx + 1} of ${r.recs.length} · ${inc} included` : `All reviewed · ${inc} included`; $('#deckDone').disabled = !inc; $('#deckDone').textContent = inc ? (dk.idx < r.recs.length ? `Skip the rest · use ${inc}` : `Back to the record · use ${inc}`) : 'Include at least one to continue';
   const top = deck.querySelector('.dcard:not(.back):not(.back2)'); if (!top) { deck.innerHTML = `<div class="deck-end"><div class="big">${inc}</div><div>included · ${r.recs.length - inc} left out</div></div>`; return; }
   let sx = 0, dx = 0, dragging = false; top.onpointerdown = e => { dragging = true; sx = e.clientX; top.setPointerCapture(e.pointerId); top.classList.add('drag'); };
@@ -1376,8 +1395,11 @@ function noticeView() {
     + `</select>${ns.other ? `<input class="toin" id="toCustom" type="email" inputmode="email" autocomplete="off" spellcheck="false" placeholder="name@example.com" value="${esc(to)}">` : ''}</span>`;
 
   // Blocks the app owns, dropped in under the section whose id names them.
-  const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); return inc.length
-    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${inc.length} option${inc.length === 1 ? '' : 's'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${VISUALS.has(e.id, s) ? `<div class="eph" data-vis="${VISUALS.key(e.id, s.id)}">${VISUALS.cell(e.id, s)}</div>` : ''}<b>Option ${i + 1}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
+  // One correction and several are different offers, and the letter says which
+  // it is: "Option 1 of 1" reads as a choice the owner does not have, and on a
+  // finding with one correct repair that is a misleading thing to send.
+  const optBlock = e => { const inc = e.recs.filter(r => r.decision === 'in'); const one = oneWay(e) || inc.length === 1; return inc.length
+    ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${one ? '1 correction' : inc.length + ' options'} · Edit ›</span></div>${inc.map((s, i) => `<div class="eopt">${VISUALS.has(e.id, s) ? `<div class="eph" data-vis="${VISUALS.key(e.id, s.id)}">${VISUALS.cell(e.id, s)}</div>` : ''}<b>${one ? 'What has to be done' : 'Option ' + (i + 1)}: ${esc(s.title)}</b><p>${esc(s.text)}</p></div>`).join('')}`
     : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
   const slots = {
     'what-to-do': () => viol.map(optBlock).join(''),

@@ -45,7 +45,7 @@ async function draft(ctx) {
 }
 
 async function illustrate(ctx) {
-  if (!ctx || !ctx.photo || !ctx.photo.data) return { status: 400, body: { error: 'no photograph to annotate' } };
+  if (!ctx || !ctx.photo || !ctx.photo.data) return { status: 400, body: { error: 'no photograph to work from' } };
   if (!ctx.rec || !ctx.rec.title) return { status: 400, body: { error: 'no recommendation to illustrate' } };
   try {
     const out = await visual.illustrate(ctx.photo, ctx.rec, { finding: ctx.finding });

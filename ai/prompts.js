@@ -246,29 +246,74 @@ const RECORD = {
     'codes — the sections this entry turns on, from the library only, 1 to 4 of them. `relevance`',
     '  is one plain line saying what this section requires of this entry. For a compliant entry,',
     '  say what was checked and that it meets. Empty array for an informational note.',
-    'recommendations — ONLY for a violation: 2 to 5 alternative ways the owner could correct it,',
-    '  each a title and two or three sentences. They are alternatives, not steps: any one of them',
-    '  fixes the finding. Order them cheapest-and-simplest first. Empty array for anything that',
-    '  is not a violation.',
+    'solutionType — how many legitimately different corrections this finding has. Decide this',
+    '  before you write any of them, from the finding and the code library, not from how many',
+    '  cards would look good:',
+    '    "multiple_valid_options" — there are genuinely different ways to comply and each one is',
+    '      sufficient on its own. Combustible mulch against siding: remove it, replace it with',
+    '      noncombustible material, or move the planting bed back off the wall.',
+    '    "single_required_action" — the code or the trade leaves one correct correction. A',
+    '      painted-over sprinkler head is replaced by qualified personnel; a missing exit sign is',
+    '      replaced with a compliant one. Write that one action, and only that one.',
+    '    "professional_assessment_required" — what has to be done cannot be settled from this',
+    '      finding: the extent of the deficiency is unknown, or a licensed contractor, engineer',
+    '      or the authority having jurisdiction has to determine the scope first. The one',
+    '      recommendation is that assessment, and what it has to establish.',
+    '  Choose "multiple_valid_options" only where every option you write would independently',
+    '  bring the property into compliance and is as safe as the others. For anything that is not',
+    '  a violation, use "single_required_action" with an empty recommendations array.',
+    'recommendations — ONLY for a violation, and as many as solutionType allows: 2 to 5 for',
+    '  "multiple_valid_options", exactly one for either of the others. Each is a title and two or',
+    '  three sentences. Where there are several they are alternatives, not steps — any one of',
+    '  them fixes the finding — and they go cheapest-and-simplest first. Never pad the list to',
+    '  fill it out: an option that is weaker, partial or not equivalent, offered beside a repair',
+    '  that is actually required, is a safety problem and not a convenience. Empty array for',
+    '  anything that is not a violation.',
+    '  `illustrable` on each: true when a picture of this property with the work done would help',
+    '  the owner see what is being asked of them; false when it would not — the work is not',
+    '  visible in this photograph, or it is paperwork, a test, a permit, a service call or a part',
+    '  swapped at a size nobody can see. No card is better than a card showing nothing.',
     'scan — only when a photograph is attached, otherwise empty. 2 to 6 labelled boxes over the',
     '  things in the frame the record turns on, as they are drawn back on the photograph for the',
-    '  inspector to check. Box the specific object, not the whole frame; a box covering most of',
-    '  the image tells the inspector nothing. Name elements in cyan, and give the finding itself',
-    '  one red box (a violation) or one green box (compliant), last.',
+    '  inspector to check. Name elements in cyan, and give the finding itself one red box (a',
+    '  violation) or one green box (compliant), last.',
+    '  BOUNDING BOX ACCURACY:',
+    '  - Use the tightest rectangle enclosing the visible target.',
+    '  - Include only the object or component relevant to the finding.',
+    '  - Do not include unrelated surrounding objects.',
+    '  - For small components, box the component, not the whole assembly: the sprinkler head,',
+    '    not the ceiling; the blocked panic bar, not the whole door; the gutter run holding the',
+    '    litter, not the roof.',
+    '  - A box covering most of the frame tells the inspector nothing and will be discarded.',
+    '  - If the visible object cannot be located reliably, omit its box.',
   ].join('\n'),
 };
 
 // ---------------------------------------------------------------------------
-// VISUAL — the annotated photo on a recommendation card
+// VISUAL — the after-image on a recommendation card
 // ---------------------------------------------------------------------------
 
-// Each recommendation card carries the property's own photograph with the work
-// drawn on it in cyan: a guide line where a cut goes, a dimension bar where a
-// distance matters, a label in the inspector's words. The owner receives this
-// in the notice, so the photograph underneath must stay the photograph — the
-// model is drawing over it, never repainting it, and never showing the work
-// already done. A doctored picture of someone's property inside an enforcement
-// notice is a different thing from a drawing over a true one.
+// Each recommendation card carries a picture of the property with the work
+// done: the same house from the same spot in the same light, with the proposed
+// correction carried out and nothing else about it touched. That is the thing
+// the owner is actually deciding about. This used to be the photograph with
+// cyan guide lines drawn over it, which showed them the problem a second time
+// and left them to imagine the result.
+//
+// So it is a visualisation, not a photograph, and it has to read as one
+// everywhere it appears — the card and the copy in the notice are both
+// captioned as a proposed result, because an uncaptioned generated picture of
+// someone's property inside an enforcement notice is a doctored photograph.
+//
+// Two rules keep it honest. The property stays recognisably itself — same
+// angle, same structure, same windows, doors, roofline, paving and planting
+// except where the work changes them — so the owner can see their own house
+// and check the claim against it. And nothing is measured off a photograph: a
+// number appears only when the code or the inspector supplied it. That rule is
+// SHARED.noFabrication for the documents, and this is a separate request to a
+// different model that never sees that block, so it is restated here. Without
+// it the model estimates from the frame, and a "10 ft" label lands across a
+// window that has nothing to do with the finding.
 const VISUAL = {
   model: process.env.GEMINI_IMAGE_MODEL || 'gemini-3-pro-image',
   timeoutMs: Number(process.env.GEMINI_IMAGE_TIMEOUT_MS || 120000),
@@ -283,34 +328,64 @@ const VISUAL = {
 
   instruction: (rec, ctx) => [
     'You are producing the visual for a fire inspector’s recommendation card. It is shown to the',
-    'inspector and sent to the property owner with the correction notice.',
+    'inspector and sent to the property owner with the correction notice, captioned there as a',
+    'proposed result rather than as a photograph.',
     '',
-    'Return the SAME photograph, unchanged, with annotation drawn on top of it showing the work',
-    'that has to be done.',
+    'Return a realistic photographic visualisation of THIS property as it would look once the',
+    'correction below has been carried out — and with nothing else about it changed.',
     '',
     'THE CORRECTION TO ILLUSTRATE',
     `Title: ${rec.title}`,
     `Detail: ${rec.text}`,
-    ctx && ctx.finding ? `What the inspector recorded here: ${ctx.finding}` : '',
+    ctx && ctx.finding ? `What the inspector recorded here: ${ctx.finding}` : null,
     '',
-    'HOW TO DRAW IT',
-    '- Do not alter the scene. Every plant, wall, window, roof and path stays exactly as',
-    '  photographed, in the same place, the same size, the same condition. You are drawing over',
-    '  the photo, not repainting it.',
-    '- Never show the work already done. This is the property as it is now, marked up with what',
-    '  must change — not a picture of it corrected. Do not remove, trim, tidy or replace anything.',
-    '- Draw in bright cyan (#35E0FF): thin guide lines along where a cut or a boundary goes, a',
-    '  dimension bar with a plain label such as "3 ft" where a distance matters, and short label',
-    '  pills joined to what they name by a leader line ending in a dot.',
-    '- Label text is the instruction in a few words — "Cut back 3 ft from wall", "Remove dead',
-    '  centre", "Clear to bare soil". Never a sentence.',
-    '- At most three annotations, and they must not overlap each other or hide the thing they',
-    '  point at. An unreadable diagram is worse than a plain photograph.',
-    '- No watermark, no title bar, no legend, no caption strip, no added border.',
+    'KEEP THE PROPERTY ITSELF',
+    '- Same camera position, angle, lens and framing. Same time of day, same light, same shadow',
+    '  direction, same weather, same exposure. It must look like the next photograph taken from',
+    '  the same spot, not a different visit and not a different house.',
+    '- The structure stays exactly itself: roofline, siding, colour, windows, doors, trim,',
+    '  railings, steps, paving, fences, vehicles, outbuildings, and every plant and tree the work',
+    '  does not touch. The owner is holding their own photograph next to this and has to',
+    '  recognise their own property in it.',
+    '- Change only what the correction changes. Clearing vegetation reveals what was behind it —',
+    '  the wall, the soil, the bare ground — it does not substitute new landscaping, fresh paint,',
+    '  a repaired fence or a staged garden. Do not tidy, modernise or improve anything that was',
+    '  not the finding.',
+    '- No people, pets or vehicles that were not in the photograph, and keep the ones that were.',
     '',
-    'If the correction is about something not visible in this photograph, return the photograph',
-    'with no annotation rather than inventing a place to put one.',
-  ].filter(Boolean).join('\n'),
+    'WHAT THE PICTURE HAS TO SHOW',
+    '- The corrected condition, plainly legible: what had to go is gone, what had to be cleared',
+    '  is clear, what had to be replaced is the compliant thing sitting in its place. Show the',
+    '  separation, the clearance or the access the work creates, so the owner can see what',
+    '  finished looks like.',
+    '- If the work is only partly inside this frame, show the part that is in frame and leave the',
+    '  rest of the scene as photographed. Never re-frame, zoom or widen the shot to fit it in.',
+    '',
+    'MEASUREMENTS — the same evidence rule the documents are written under',
+    '- Never measure anything off the photograph. One camera, one angle, no scale: you cannot',
+    '  tell a 3 ft gap from a 10 ft one from an image, and must not try.',
+    '- A number may appear in the picture only if it is written in the correction or the',
+    '  inspector’s finding above, where it came from a code requirement or from a measurement the',
+    '  inspector took on site. If it is not written there, it does not go in.',
+    '- Annotate a distance only when that distance is the thing the owner has to get right, and',
+    '  put it on what the work touches. Never place a dimension on a window, a door, a roof, a',
+    '  driveway or anything else the correction is not about.',
+    '- If no such number exists, show no number. The corrected condition, clearly visualised, is',
+    '  the whole point; a dimension is at best a caption on it, and a wrong one discredits it.',
+    '- At most one such annotation: a thin dimension bar in bright cyan (#35E0FF) with a plain',
+    '  label such as "3 ft", drawn against the corrected state.',
+    '',
+    'NOTHING ELSE ADDED',
+    '- No watermark, no title bar, no legend, no caption strip, no added border, no before/after',
+    '  split or inset, and no arrows, outlines or callouts beyond the one dimension bar above.',
+    '',
+    'If this correction would make no visible difference to this photograph — it is paperwork, a',
+    'test, a permit, a part swapped at a size nobody can see, or work on something outside the',
+    'frame — return the photograph unchanged rather than inventing a change to show.',
+    // Only the conditional line above drops out (it is null). `filter(Boolean)`
+    // would have taken the blank separators with it and run the whole prompt
+    // together as one block.
+  ].filter(x => x !== null).join('\n'),
 };
 
 // ---------------------------------------------------------------------------
@@ -524,14 +599,14 @@ const NOTICE = {
   // Sections the app attaches its own interactive blocks beneath. Keep these
   // ids in sectionPlan or the blocks fall to the bottom of the document.
   slots: {
-    'what-to-do': 'the per-entry recommendation options the inspector approved in the deck',
+    'what-to-do': 'the per-entry corrections the inspector approved in the deck — several alternatives on some entries, one required action on others',
     'attached-documents': 'the department library attachments',
   },
 
   sectionPlan: [
     { id: 'what-we-found', heading: 'What we found', type: 'list', brief: 'One item per violation entry, in plain words, no citations. Say what is there and why it matters for fire. If there are no violations, omit this section.' },
     { id: 'why-it-matters', heading: 'Why this matters', type: 'prose', brief: 'Two to four sentences on how fire would actually move through what was found and reach the house. Concrete, calm, no statistics. Omit if there are no violations.' },
-    { id: 'what-to-do', heading: 'What you need to do', type: 'prose', brief: 'The deadline, where the work has to happen, and the fact that the options shown underneath this paragraph are alternatives so any one of them fixes it. Do not list or describe the options; they are rendered separately. Never refer to the app, this brief, or anything being inserted.' },
+    { id: 'what-to-do', heading: 'What you need to do', type: 'prose', brief: 'The deadline, where the work has to happen, and how to read the blocks shown underneath this paragraph. Where an entry has alternatives, say any one of them fixes that finding; where it has a single required correction, say that plainly and do not imply a choice — the entry lines tell you which is which, and never offer a choice they do not show. Do not list or describe the corrections; they are rendered separately. Never refer to the app, this brief, or anything being inserted.' },
     { id: 'also-checked', heading: 'Also checked and fine', type: 'list', brief: 'One item per compliant entry, in plain words. Omit this section if there are none.' },
     { id: 'attached-documents', heading: 'Attached documents', type: 'prose', brief: 'One or two sentences saying what the attached documents are for and that they are listed underneath. Do not list the filenames; they are rendered separately. Never refer to the app, this brief, or anything being inserted.' },
     { id: 'how-to-close', heading: 'How to close this notice', type: 'list', brief: 'Exactly how to show the work is done, where to send proof, what happens if the deadline passes (reinspection, cost recovery, the penalty figure), and the hearing and appeal rights with their windows. All numbers from the PROCEDURE block.' },
@@ -610,13 +685,41 @@ const SCHEMAS = {
           required: ['scope', 'citation', 'relevance'],
         },
       },
+      // Before the recommendations, not after: the answer is generated left to
+      // right, so deciding how many corrections this finding legitimately has
+      // is what stops the model filling five cards on a finding with one
+      // correct repair. See `solutionType` in RECORD.fieldPlan.
+      solutionType: {
+        type: 'string',
+        enum: ['multiple_valid_options', 'single_required_action', 'professional_assessment_required'],
+        description:
+          'How many legitimately different corrections this finding has. ' +
+          '"multiple_valid_options" only where each recommendation would independently bring ' +
+          'the property into compliance and is as safe as the others; otherwise one ' +
+          'recommendation, and "professional_assessment_required" when the scope has to be ' +
+          'determined by a licensed trade or the authority having jurisdiction first.',
+      },
       recommendations: {
         type: 'array',
-        description: 'Alternative corrections, violations only. Any one of them fixes the finding.',
+        description:
+          'Corrections, violations only. 2 to 5 alternatives when solutionType is ' +
+          '"multiple_valid_options", any one of which fixes the finding; exactly one otherwise. ' +
+          'Never an invented alternative to a required repair.',
         items: {
           type: 'object',
-          properties: { title: { type: 'string' }, text: { type: 'string' } },
-          required: ['title', 'text'],
+          properties: {
+            title: { type: 'string' },
+            text: { type: 'string' },
+            illustrable: {
+              type: 'boolean',
+              description:
+                'True when a picture of this property with the work done would help the owner ' +
+                'understand the correction. False when the work is not visible in this ' +
+                'photograph, or is paperwork, a test, a permit, a service call or a part ' +
+                'swapped at a size nobody can see.',
+            },
+          },
+          required: ['title', 'text', 'illustrable'],
         },
       },
       photoNote: {
@@ -646,7 +749,10 @@ const SCHEMAS = {
               items: { type: 'integer' },
               description:
                 'Exactly four integers, [ymin, xmin, ymax, xmax], each 0–1000 normalised to the ' +
-                'image: y down from the top edge, x right from the left edge.',
+                'image: y down from the top edge, x right from the left edge. The tightest ' +
+                'rectangle enclosing the visible target and nothing around it; for a small ' +
+                'component, the component rather than the assembly it sits in. Omit the box ' +
+                'entirely if the object cannot be located reliably.',
             },
             tone: {
               type: 'string',
@@ -660,7 +766,8 @@ const SCHEMAS = {
         },
       },
     },
-    required: ['summary', 'determination', 'categories', 'measurements', 'codes', 'recommendations', 'photoNote', 'scan'],
+    required: ['summary', 'determination', 'categories', 'measurements', 'codes', 'solutionType', 'recommendations', 'photoNote', 'scan'],
+    propertyOrdering: ['summary', 'determination', 'categories', 'measurements', 'codes', 'solutionType', 'recommendations', 'photoNote', 'scan'],
   },
   report: {
     type: 'object',
@@ -875,7 +982,22 @@ function userFor(kind, ctx) {
       `Inspector's note${e.spoken ? ' (spoken, transcribed)' : ''}: ${e.note ? '"' + e.note + '"' : '(none recorded)'}`,
     );
     if (e.approvedOptions && e.approvedOptions.length) {
-      lines.push('Options the inspector approved to offer the owner for this entry:');
+      // Whether these are alternatives at all. A deck of options is right for
+      // mulch against siding and wrong for a painted-over sprinkler head, and
+      // a letter that offers the owner a choice they do not have is worse than
+      // one that is blunt about it.
+      // Two different reasons there is only one: the finding has one correct
+      // repair, or the inspector approved one of several. Either way the owner
+      // is not being offered a choice, and the letter says so.
+      const ruledSingle = e.solutionType && e.solutionType !== 'multiple_valid_options';
+      lines.push(
+        e.solutionType === 'professional_assessment_required'
+          ? 'The one correction the inspector approved for this entry. The scope has to be determined by a qualified professional first; there is no alternative to it:'
+          : ruledSingle
+            ? 'The one correction the inspector approved for this entry. This finding has a single correct fix and there is no alternative to offer, so do not imply the owner has a choice:'
+            : e.approvedOptions.length === 1
+              ? 'The one correction the inspector chose to offer for this entry. Present it as what has to be done, not as one option among others:'
+              : 'Options the inspector approved to offer the owner for this entry. They are alternatives — any one of them fixes it:');
       e.approvedOptions.forEach((o, i) => lines.push(`  ${i + 1}. ${o.title} — ${o.text}`));
     }
     lines.push('');

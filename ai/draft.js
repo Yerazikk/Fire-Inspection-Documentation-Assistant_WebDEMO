@@ -246,10 +246,12 @@ function validate(kind, raw) {
 //   category   [chip, ...]
 //   estimates  [[label, value], ...]
 //   codes      [{ scope, c, t }, ...]
-//   recs       [{ id, title, text }, ...]
+//   recs       [{ id, title, text, illustrable }, ...]
+//   solution   'multiple_valid_options' | 'single_required_action' | 'professional_assessment_required'
 // ---------------------------------------------------------------------------
 
 const LEVELS = { Violation: 'violation', Compliant: 'compliance', Note: 'note' };
+const SOLUTIONS = ['multiple_valid_options', 'single_required_action', 'professional_assessment_required'];
 
 const pairs = (arr, cap) => (Array.isArray(arr) ? arr : [])
   .map(x => [String((x && x.label) || '').trim(), String((x && x.value) || '').trim()])
@@ -335,11 +337,27 @@ function validateRecord(raw, ctx) {
             id: 'r' + (i + 1),
             title: String((r && r.title) || '').trim(),
             text: String((r && r.text) || '').trim(),
+            // Whether an after-image of this property would explain the
+            // correction at all. Absent, assume it would: that is the common
+            // case and the old behaviour.
+            illustrable: !(r && r.illustrable === false),
           }))
           .filter(r => r.title && r.text)
           .slice(0, 5)
       : [],
   };
+
+  // How many corrections this finding legitimately has. A deck of alternatives
+  // is right for mulch against siding and wrong for a painted sprinkler head,
+  // where the one answer is a qualified replacement — so the model rules on it
+  // and the app offers only what it says exists.
+  rec.solution = SOLUTIONS.includes(raw.solutionType) ? raw.solutionType : 'multiple_valid_options';
+  // Where it says there is one correct action, one is what the deck gets,
+  // whatever came back. And a single card is a single required action however
+  // it was labelled — otherwise the notice offers the owner "Option 1" out of
+  // one, which reads as a choice they do not have.
+  if (rec.solution !== 'multiple_valid_options') rec.recs = rec.recs.slice(0, 1);
+  else if (rec.recs.length < 2 && level === 'Violation') rec.solution = 'single_required_action';
 
   rec.scan = normalizeScan(raw.scan);
   // What the photograph appears to show that the note does not account for.
