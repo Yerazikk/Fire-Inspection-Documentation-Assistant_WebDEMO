@@ -216,7 +216,7 @@ Plain-language email: what we found, what to do, with the approved visuals and a
 | Refresh | tap | Shown when entries or decisions changed after the draft, or when drafting failed; redrafts. Attaching documents does not stale the draft. |
 | Save draft | tap | Saves to the inspector’s Mail drafts for the desktop; the screen then says it is saved and not sent. |
 | Recipient | tap | The To: line picks who the notice goes to: the owner on the assessor roll, the demo inbox, or an address typed in. |
-| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option and a recipient is set. Afterwards the screen says who it went to and when. |
+| Hold to send | press-and-hold | Sends from the phone; greyed until at least one violation entry has an included option and a recipient is set. It then closes back to Location home; reopening the notice says who it went to and when. |
 | ‹ | tap | Back to Location home; the draft is kept. |
 
 Edge cases

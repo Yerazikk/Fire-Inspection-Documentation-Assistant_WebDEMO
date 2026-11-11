@@ -15,6 +15,8 @@
 //   the gesture  The keyboard retracting as the inspector reaches for Send
 //                drops the bar towards a finger that has not moved. The hold
 //                has to live through that.
+//   the exit     A completed send closes the letter; who it went to is on the
+//                notice when it is opened again.
 //
 // Costs nothing: the document is the built-in template, so no model is called.
 const { spawn } = require('child_process');
@@ -33,7 +35,7 @@ function seed(blankOwner) {
   const ctx = DRAFTS.context('notice', a, entriesOf(id), { attachments: [] });
   S.notice[id] = { ver: 0, status: 'ready', doc: DRAFTS.fallback('notice', ctx, null), error: null, at: '10:20',
     attached: new Set(), kbDone: true, own: [], draft: false, sent: false, to: null, other: false };
-  S.ver[id] = 0; go('notice');
+  S.ver[id] = 0; go('location'); go('notice');
 }
 
 (async () => {
@@ -77,6 +79,8 @@ function seed(blankOwner) {
     const bb = await p.locator('#send').boundingBox();
     await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
     await p.mouse.down(); await p.waitForTimeout(1100); await p.mouse.up(); await p.waitForTimeout(200);
+    ok((await p.locator('.mail').count()) === 0 && (await p.locator('#toMap').count()) === 1, 'a completed send closes the letter back to the address');
+    await p.click('[data-go="notice"]'); await p.waitForSelector('.mail');
     ok(/Sent to someone@else\.org/.test(await p.textContent('#view')), 'the notice goes to the typed address');
 
     // ---- the ordinary case is untouched ----------------------------------

@@ -1431,7 +1431,10 @@ function noticeAfter() {
     custom.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); custom.blur(); } }; }
   if (!b) return;
   const fill = b.querySelector('.fill'); let t0 = 0, raf = 0; const HOLD = 900;
-  const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentTo = noticeTo(id); ns.sentAt = clock(); ns.draft = false; render(); } else raf = requestAnimationFrame(tick); };
+  // A completed send closes the letter the same way saving a draft does: the
+  // mail is gone from the phone, so staying on it with nothing left to do is
+  // wrong. The sent line is kept on the notice for whoever opens it again.
+  const tick = () => { const p = Math.min(1, (Date.now() - t0) / HOLD); fill.style.width = (p * 100) + '%'; if (p >= 1) { cancelAnimationFrame(raf); ns.sent = true; ns.sentTo = noticeTo(id); ns.sentAt = clock(); ns.draft = false; back(); } else raf = requestAnimationFrame(tick); };
   // The button can be enabled after this ran — an address typed into the To:
   // line does not re-render — so the gesture checks for itself rather than
   // being wired only when it starts out live.
