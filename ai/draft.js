@@ -511,6 +511,25 @@ async function draft(kind, ctx) {
   return doc;
 }
 
+/**
+ * The prescan: box and name what is in one photograph. No note, no code
+ * library, no determination — the cheapest vision call the app makes, so it
+ * can start the instant the picture lands.
+ * @param {{photo:{mimeType:string,data:string}}} ctx
+ */
+async function detect(ctx) {
+  if (!ctx || !ctx.photo || !ctx.photo.data) throw new DraftError("No photograph to read", "bad_shape");
+  const req = prompts.assembleDetect(ctx);
+  const t0 = Date.now();
+  const { parsed, usage } = await callWithRetry(req);
+  const scan = normalizeScan(parsed && parsed.scan) || { boxes: [], issue: null, source: "model" };
+  // The prescan names elements only; a finding needs the note, so a stray
+  // red or green box here goes back to being an element.
+  if (scan.issue) { scan.boxes.push({ ...scan.issue, tone: "cyan" }); scan.issue = null; }
+  scan.meta = { model: req.model.name, ms: Date.now() - t0, tokens: usage ? usage.totalTokenCount : null };
+  return scan;
+}
+
 // Candidates to probe on Vertex, which has no key-readable model list. Keep the
 // ids the app might plausibly be pinned to; a 404 here just means "not served
 // to this project in this location", which is the answer being looked for.
@@ -565,4 +584,4 @@ async function listModels() {
   return results.filter(Boolean);
 }
 
-module.exports = { draft, listModels, keyPresent, backend, apiKey, DraftError, validate, validateRecord };
+module.exports = { draft, detect, listModels, keyPresent, backend, apiKey, DraftError, validate, validateRecord };

@@ -97,6 +97,9 @@ window.DRAFTS = (() => {
         note: entry.memo || '',
         // Re-scan: what the inspector told the previous draft it got wrong.
         corrections: (entry.feedback || []).slice(-8),
+        // What the prescan already boxed, back in the model's own coordinates
+        // so the record can keep them and add only the finding.
+        prescan: (entry.prescan && entry.prescan.boxes || []).map(b => ({ label: b.label, box: [Math.round(b.box[1] * 10), Math.round(b.box[0] * 10), Math.round((b.box[1] + b.box[3]) * 10), Math.round((b.box[0] + b.box[2]) * 10)] })),
       },
       history: (window.HISTORY[a.id] || []).slice(0, 2).map(h => ({
         date: h.date, outcome: h.outcome, notes: h.entries.map(x => x.note).join(' '),
@@ -132,6 +135,24 @@ window.DRAFTS = (() => {
    * The old fixture, clearly marked. window.AI is keyed by the draft kind, and
    * falls back to the note fixture for a kind it does not carry.
    */
+  /**
+   * The prescan: box what is in the photograph, the moment it lands. Resolves
+   * to { boxes, issue:null, source:'model' } or to { boxes:[], reason } —
+   * never throws, because the sweep must run whatever happened here.
+   */
+  async function detect(src) {
+    const st = await status();
+    if (!st.key) return { boxes: [], issue: null, reason: st.offline ? 'server not reachable' : 'no AI key' };
+    try {
+      const photo = await window.PHOTO.forModel(src);
+      if (!photo) return { boxes: [], issue: null, reason: 'photo not readable' };
+      const res = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photo }) });
+      const body = await res.json().catch(() => ({ error: 'bad response' }));
+      if (!res.ok) return { boxes: [], issue: null, reason: body.error || 'prescan failed' };
+      return body.scan;
+    } catch (e) { return { boxes: [], issue: null, reason: String((e && e.message) || e) }; }
+  }
+
   function recordFallback(kind, reason) {
     const t = window.AI[kind] || window.AI.note;
     return {
@@ -216,5 +237,5 @@ window.DRAFTS = (() => {
     };
   }
 
-  return { status, context, draft, fallback, record, recordContext, recordFallback };
+  return { status, context, draft, detect, fallback, record, recordContext, recordFallback };
 })();

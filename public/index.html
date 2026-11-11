@@ -446,6 +446,16 @@
 .pvfoot{position:sticky;bottom:0;margin:0 -18px;padding:30px 18px 22px;background:linear-gradient(transparent,rgba(11,15,23,.9) 38%,#0b0f17 70%);animation:fadeUp .55s .1s var(--ease) both}
 .boot-l{margin-top:4px}
 .pvgo{margin-top:14px}.pvgo .btn{display:flex;align-items:center;justify-content:center;gap:8px}#sheet.preview.half .pvgo{pointer-events:auto}
+/* ---- scan fx: hairline box · pin · 45° callout · decoded label, all one line weight ---- */
+.ar{color:var(--cyan);overflow:visible;width:100%;height:100%;display:block}.ar g.bx,.ar g.issue{position:static;opacity:1;animation:none;border:0;box-shadow:none;background:none}.ar .red{color:var(--red)}.ar .green{color:var(--green)}
+.ar rect.rc{stroke:currentColor;vector-effect:non-scaling-stroke}.ar .issue rect.rc{fill-opacity:.12}
+.ar .halo{fill:currentColor;fill-opacity:.22;r:0;transition:r .5s var(--ease)}.ar .dot{fill:currentColor;r:0;transition:r .35s var(--ease)}.ar g.pinned .dot{r:3}.ar g.pinned .halo{animation:arPulse 1.6s ease-in-out infinite}@keyframes arPulse{0%,100%{r:5px}50%{r:8px}}
+.ar .lead{stroke:currentColor}
+.ar .lab{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.8);stroke-width:3px;opacity:0;transition:opacity .3s}.ar .lab.on{opacity:1}.ar .issue .lab{fill:#ffc2c8}.ar .green .lab{fill:#c8f7d8}
+.scanline.pend{opacity:1;top:0;animation:pendPulse 1.4s ease-in-out infinite}@keyframes pendPulse{50%{opacity:.2}}
+.cam .readout{position:absolute;right:18px;top:128px;z-index:6;font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--cyan);background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);border-radius:999px;padding:6px 10px;opacity:0;transform:translateY(4px);transition:opacity .35s,transform .35s,color .3s,border-color .3s;pointer-events:none;white-space:nowrap}.cam .readout.on{opacity:1;transform:none}.cam .readout.pend{animation:blink 1.4s infinite}.cam .readout.dim{color:var(--faint);border-color:var(--line)}.cam .readout.ok{color:var(--green);border-color:rgba(74,222,128,.45)}
+.pbox .ov .bx{border-radius:0}.pbox .ov .bx.issue{border-radius:0}
+.cam .hud .addr2{white-space:nowrap;flex:none}.cam .hud>div{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 

@@ -44,6 +44,17 @@ async function draft(ctx) {
   }
 }
 
+async function detect(ctx) {
+  try {
+    const scan = await ai.detect(ctx);
+    console.log(`  prescan · ${scan.boxes.length} boxes · ${scan.meta.ms} ms`);
+    return { status: 200, body: { scan } };
+  } catch (e) {
+    console.error(`  prescan failed [${e.code || "error"}]: ${e.message}`);
+    return { status: e.code === "no_key" ? 503 : 502, body: { error: e.message, code: e.code || "error" } };
+  }
+}
+
 async function illustrate(ctx) {
   if (!ctx || !ctx.photo || !ctx.photo.data) return { status: 400, body: { error: 'no photograph to work from' } };
   if (!ctx.rec || !ctx.rec.title) return { status: 400, body: { error: 'no recommendation to illustrate' } };
@@ -90,4 +101,4 @@ async function streetview(q) {
   return out;
 }
 
-module.exports = { status, draft, illustrate, transcribe, mapsConfig, streetview };
+module.exports = { status, draft, detect, illustrate, transcribe, mapsConfig, streetview };

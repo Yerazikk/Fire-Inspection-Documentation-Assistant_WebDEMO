@@ -926,6 +926,20 @@ function recordUserFor(ctx) {
     );
   }
 
+  // The prescan already boxed the elements while the inspector was typing; the
+  // overlay has drawn them. Keep them so the record agrees with what was shown.
+  if (e.photo && Array.isArray(e.prescan) && e.prescan.length) {
+    lines.push(
+      "",
+      "ELEMENTS ALREADY LOCATED IN THIS PHOTOGRAPH by a first pass, as [ymin, xmin, ymax, xmax] 0–1000:",
+      ...e.prescan.map((b, i) => `  ${i + 1}. "${b.label}" at [${b.box.join(", ")}]`),
+      "",
+      "Return these same boxes in `scan`, with the same labels and coordinates, in this order —",
+      "correct one only if it is plainly wrong — and then add the finding as the last box: one red",
+      "box on the deficiency, or one green box on what meets the requirement.",
+    );
+  }
+
   // Re-scan. The inspector read the draft and told it what it got wrong.
   if (e.corrections && e.corrections.length) {
     lines.push(
@@ -1028,6 +1042,46 @@ function userFor(kind, ctx) {
   return lines.join('\n');
 }
 
+// ---------------------------------------------------------------------------
+// DETECT — the prescan: what is in the frame, boxed and named, nothing else.
+// Runs the moment a photograph lands, before the inspector has typed a note,
+// so the scan sweep has its boxes ready by the time Submit is tapped. The
+// record call later receives these boxes and keeps them, adding the finding.
+// ---------------------------------------------------------------------------
+const DETECT = {
+  system: [
+    SHARED.persona,
+    "",
+    "You are reading ONE photograph taken by a fire inspector at a property. Your only job is to",
+    "locate the things in the frame a vegetation / fire-safety record could turn on and box them:",
+    "vegetation (trees, hedges, ground cover, dead material), the structure and its parts (roof,",
+    "eaves, gutters, deck, fence, wall), utilities (poles, conductors, meters), stored material,",
+    "access and exits. Name each in under 38 characters, with an eyeballed size marked ≈ where it",
+    "matters (\"Juniper hedge ≈ 5 ft\"). Box the specific object, not the whole frame.",
+    "Do not judge compliance here: every box is cyan. No sentences, no markdown.",
+  ].join("\n"),
+  user: "Locate 2 to 6 things in the photograph attached above, as JSON matching the schema. Boxes are [ymin, xmin, ymax, xmax], each 0–1000 normalised to the image.",
+  schema: {
+    type: "object",
+    properties: {
+      scan: {
+        type: "array",
+        items: { type: "object", properties: {
+          label: { type: "string", description: "Under 38 characters, drawn on the image." },
+          box: { type: "array", items: { type: "integer" }, description: "Exactly four integers, [ymin, xmin, ymax, xmax], 0–1000." },
+          tone: { type: "string", enum: ["cyan"] },
+        }, required: ["label", "box", "tone"] },
+      },
+    },
+    required: ["scan"],
+  },
+  model: { ...MODEL, maxOutputTokens: 2048, timeoutMs: Number(process.env.GEMINI_DETECT_TIMEOUT_MS || 45000), retries: 1 },
+};
+function assembleDetect(ctx) {
+  const photo = ctx && ctx.photo;
+  return { system: DETECT.system, user: DETECT.user, image: photo && photo.data ? { mimeType: photo.mimeType || "image/jpeg", data: photo.data } : null, schema: DETECT.schema, model: DETECT.model };
+}
+
 function assemble(kind, ctx) {
   // Only a record carries a photograph: the report and the notice are compiled
   // from records already written, and re-reading every photo to rewrite them
@@ -1044,5 +1098,5 @@ function assemble(kind, ctx) {
 
 module.exports = {
   MODEL, VISUAL, VOICE, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
-  SCHEMAS, SECTION_SCHEMA, assemble, systemFor, userFor,
+  SCHEMAS, SECTION_SCHEMA, assemble, assembleDetect, DETECT, systemFor, userFor,
 };

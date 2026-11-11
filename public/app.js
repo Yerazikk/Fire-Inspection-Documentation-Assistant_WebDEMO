@@ -860,10 +860,61 @@ function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onc
   if (S.wobble) { const v = $('#view'); v.onclick = e => { if (!e.target.closest('.entry')) { S.wobble = false; render(); } }; } }
 
 // ---------------- camera ----------------
+/* ---- SCAN FX: the NEXUS box treatment (hairline rectangle · pin on the top edge · 45° lead ·
+   the word), drawn in pixels over the viewfinder. A box is revealed as the beam reaches its
+   top edge: the rectangle draws edge by edge, the pin lands, the lead runs out and the label
+   decodes. The finding (red or green) is drawn the same way once the record has arrived. */
+const SCANFX = (() => {
+  const NS = 'http://www.w3.org/2000/svg', GL = '0123456789ABCDEF<>/|-_=+#';
+  const el = (n, at) => { const e = document.createElementNS(NS, n); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const px = ar => ({ W: ar.clientWidth || 430, H: ar.clientHeight || 880 });
+  const timers = new Set(); const after = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
+  function clear(ar) { timers.forEach(clearTimeout); timers.clear(); if (ar) { ar.innerHTML = ''; ar._labels = []; } }
+  function decode(node, text, ms) { const n = text.length; const t0 = performance.now(); const tick = () => { const pr = Math.min(1, (performance.now() - t0) / ms); const k = Math.floor(n * Math.min(1, pr * 1.25)); node.textContent = text.slice(0, k) + text.slice(k).replace(/\S/g, (_, i) => GL[(i * 13 + Math.floor(pr * 40)) % GL.length]); if (pr < 1) requestAnimationFrame(tick); }; tick(); }
+  /** one box: b = { label, box:[left%,top%,w%,h%], tone }; delay = ms until the beam reaches it */
+  function box(ar, b, delay, isIssue) {
+    const { W, H } = px(ar); const x0 = b.box[0] / 100 * W, y0 = b.box[1] / 100 * H, w = b.box[2] / 100 * W, h = b.box[3] / 100 * H, x1 = x0 + w;
+    const g = el('g', { class: (isIssue ? 'issue ' : 'bx ') + (b.tone || 'cyan') }); const L = 2 * (w + h);
+    const rect = el('rect', { x: x0, y: y0, width: w, height: h, fill: 'none', 'stroke-width': isIssue ? 1.5 : 1, pathLength: L, 'stroke-dasharray': L, 'stroke-dashoffset': L, class: 'rc' });
+    if (isIssue) rect.setAttribute('fill', 'currentColor');
+    g.appendChild(rect);
+    // The callout: a pin on the box, a lead that kinks 45° then runs level, the word at its
+    // end. Outside to the right when there is room, outside to the left when not, and inside
+    // the box (kinking down) when the box spans the frame. The HUD owns the top 150 px, so
+    // nothing is placed above it, and labels already placed push a new one down.
+    const fs = 11, tw = b.label.length * fs * .62 + 14, kd = 16, run = 38, TOP = 160;
+    const placed = ar._labels || (ar._labels = []);
+    const hits = r => placed.some(q => r.x < q.x + q.w && r.x + r.w > q.x && r.y < q.y + q.h && r.y + r.h > q.y);
+    let sx, py, dir, down, anchor;
+    const py0 = Math.max(y0, TOP);
+    if (x1 + kd + run + 6 + tw < W - 8 && y0 >= TOP) { sx = x1; py = y0; dir = 1; down = false; anchor = 'start'; }
+    else if (x0 - kd - run - 6 - tw > 8 && y0 >= TOP) { sx = x0; py = y0; dir = -1; down = false; anchor = 'end'; }
+    else { sx = x0; py = Math.min(py0, y0 + h - 8); dir = 1; down = true; anchor = 'start'; }
+    let ky = down ? py + kd : py - kd; let kx = sx + dir * kd; let ex = kx + dir * run;
+    if (anchor === 'start' && ex + 6 + tw > W - 8) ex = Math.max(kx, W - 8 - 6 - tw);
+    let r = { x: anchor === 'start' ? ex + 6 : ex - 6 - tw, y: ky - 12, w: tw, h: 16 }; let guard = 0;
+    while (hits(r) && guard++ < 12) { ky += 18; kx = sx + dir * Math.abs(ky - py); r.y = ky - 12; }
+    placed.push(r);
+    const len = Math.hypot(kx - sx, ky - py) + Math.abs(ex - kx);
+    const halo = el('circle', { cx: sx, cy: py, r: 0, class: 'halo' }); const dot = el('circle', { cx: sx, cy: py, r: 0, class: 'dot' });
+    const lead = el('path', { d: `M${sx} ${py} L${kx} ${ky} H${ex}`, fill: 'none', 'stroke-width': isIssue ? 1.5 : 1, pathLength: len, 'stroke-dasharray': len, 'stroke-dashoffset': len, class: 'lead' });
+    const text = el('text', { x: ex + dir * 6, y: ky + 4, 'text-anchor': anchor, class: 'lab' }); text.textContent = '';
+    g.append(halo, dot, lead, text); ar.appendChild(g);
+    after(() => { rect.style.transition = 'stroke-dashoffset .62s cubic-bezier(.22,1,.36,1)'; rect.setAttribute('stroke-dashoffset', 0); }, delay);
+    after(() => { g.classList.add('pinned'); lead.style.transition = 'stroke-dashoffset .4s cubic-bezier(.22,1,.36,1)'; lead.setAttribute('stroke-dashoffset', 0); }, delay + 380);
+    after(() => { text.classList.add('on'); decode(text, b.label, 420); }, delay + 620);
+    return delay + 1050;
+  }
+  /** the sweep: beam top → bottom over BEAM ms; each box reveals as the beam passes its top edge */
+  const BEAM = 2600;
+  function sweep(ar, scan) { const all = (scan && scan.boxes) || []; let end = BEAM; all.forEach(b => { end = Math.max(end, box(ar, b, Math.round(BEAM * b.box[1] / 100) + 80, false)); }); return end; }
+  function issue(ar, b) { return b ? box(ar, b, 60, true) : 0; }
+  return { sweep, issue, clear, box, BEAM };
+})();
 function cameraView() { const d = S.draft || {}; const a = addrOf(S.cur); const m = d.photoMeta;
   const vf = `<div class="vf">${img(d.photo || FIXTURE, d.photo ? 'Photo' : 'Live viewfinder')}${m ? `<span class="src">${esc(PHOTO.caption(m))}</span>` : ''}</div>`;
   return `<div class="cam ${d.snapped ? 'snap' : ''} ${d.photo ? '' : 'nophoto'}" id="cam">${vf}<div class="grid"></div><div class="hud"><div style="display:flex;gap:8px"><button class="camx" id="camBack">${I('back', 14)} Back</button><button class="camx" id="retake" style="display:none">${I('undo', 14)} Retake</button><button class="camx" id="cancelScan" style="display:none">Cancel</button></div><span class="addr2">${esc(a.addr)}<small>${esc(CONFIG.inspector.name)} · ${clock()}</small></span></div>
-  <div class="scanline" id="scan"></div><div class="ar" id="ar"></div><div class="stat" id="status"><div class="dot spin"></div><div><div class="t"></div><div class="d"></div></div></div>
+  <div class="scanline" id="scan"></div><svg class="ar" id="ar"></svg><div class="readout" id="readout"></div><div class="stat" id="status"><div class="dot spin"></div><div><div class="t"></div><div class="d"></div></div></div>
   <div class="ctl"><button class="side" id="upload" title="Add a photo">${I('image', 22, 1.8)}<small>Library</small></button><button class="shutter" id="shutter" aria-label="Take picture"><i></i></button><button class="side" id="noteOnly" title="Note without a photo">${I('text', 22, 1.8)}<small>Note only</small></button></div><div class="flash"></div>
   <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
   <div class="picker" id="picker"><div class="pk"><div class="pk-h">Add a photo<button class="pk-x" id="pkX" aria-label="Close">✕</button></div>
@@ -876,14 +927,21 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // This screen can re-render under a live recording (a photo chosen, a retake).
   // The bar it was being held on is gone, so the microphone goes with it.
   VOICE.cancel();
-  const showSheet = () => { cam.classList.add('snap'); d.snapped = true; $('#noNote').style.display = d.photo ? '' : 'none'; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').innerHTML = I('undo', 14) + (d.photoMeta ? ' Change photo' : ' Retake'); };
+  const readout = (t, cls) => { const r = $('#readout'); if (!r) return; r.textContent = t || ''; r.className = 'readout' + (cls ? ' ' + cls : '') + (t ? ' on' : ''); };
+  // The prescan: the moment a photograph lands, the model is asked what is in it,
+  // so the boxes are ready for the sweep by the time Submit is tapped.
+  const prescan = () => { if (!d.photo || (d.prescan && d.prescan.src === d.photo)) return; const src = d.photo; const ps = { src, status: 'pending', scan: null }; d.prescan = ps; S.draft = d; readout('PRESCAN · ACQUIRING', 'pend'); $('#scan').classList.add('pend');
+    const t0 = Date.now(); const land = scan => { if (d.prescan !== ps) return; ps.status = 'ready'; ps.scan = scan; const r = $('#scan'); if (r) r.classList.remove('pend'); readout(scan.boxes.length ? `PRESCAN · ${scan.boxes.length} ELEMENT${scan.boxes.length === 1 ? '' : 'S'} LOCATED` : `PRESCAN · ${(scan.reason || 'nothing located').toUpperCase()}`, scan.boxes.length ? 'ok' : 'dim'); };
+    DRAFTS.detect(src).then(scan => { if (!scan.boxes.length && src === FIXTURE) scan = { boxes: SCAN.violation.boxes.map(b => ({ ...b })), issue: null, source: 'fixture', reason: scan.reason }; setTimeout(() => land(scan), Math.max(0, 900 - (Date.now() - t0))); }); };
+  const showSheet = () => { cam.classList.add('snap'); d.snapped = true; prescan(); $('#noNote').style.display = d.photo ? '' : 'none'; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').innerHTML = I('undo', 14) + (d.photoMeta ? ' Change photo' : ' Retake'); };
   const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),bottom .32s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
   const checkMemo = () => { const v = memo.value.trim(); submit.disabled = !v && !d.photo; $('#memoHint').textContent = v ? '' : d.photo ? 'Optional · the scan works from the photo' : 'Add a note to continue'; };
   $('#shutter').onclick = () => { d.photo = 'assets/original.jpg'; showSheet(); };
   const picker = $('#picker'), fileIn = $('#file');
   const closePicker = () => picker.classList.remove('on');
   const setPhoto = p => { d.photo = p.src; d.photoMeta = p; S.draft = d; closePicker(); render();
-    later(() => { const c = $('#cam'); if (!c) return; c.classList.add('snap'); S.draft.snapped = true; const r = $('#retake'); if (r) { r.style.display = ''; r.innerHTML = I('undo', 14) + ' Change photo'; } const nn = $('#noNote'); if (nn) nn.style.display = ''; }, 60); };
+    later(() => { const c = $('#cam'); if (!c) return; c.classList.add('snap'); S.draft.snapped = true; const ev = new Event('prescan'); c.dispatchEvent(ev); const r = $('#retake'); if (r) { r.style.display = ''; r.innerHTML = I('undo', 14) + ' Change photo'; } const nn = $('#noNote'); if (nn) nn.style.display = ''; }, 60); };
+  cam.addEventListener('prescan', prescan);
   $('#upload').onclick = () => picker.classList.add('on');
   $('#pkX').onclick = closePicker;
   picker.onclick = e => { if (e.target === picker) closePicker(); };
@@ -900,8 +958,8 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
     catch (err) { showErr(err.message); reset(); } };
   $('#noteOnly').onclick = () => { d.photo = null; showSheet(); };
   $('#camBack').onclick = () => backWithGuard();
-  $('#retake').onclick = () => { d.photo = null; d.photoMeta = null; d.snapped = false; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
-  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); $('#ar').innerHTML = ''; $('#scan').classList.remove('go', 'off'); $('#status').classList.remove('on'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
+  $('#retake').onclick = () => { d.photo = null; d.photoMeta = null; d.snapped = false; d.prescan = null; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
+  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); SCANFX.clear($('#ar')); $('#scan').classList.remove('go', 'off'); $('#status').classList.remove('on'); readout(d.prescan && d.prescan.scan && d.prescan.scan.boxes.length ? `PRESCAN · ${d.prescan.scan.boxes.length} ELEMENTS LOCATED` : '', 'ok'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
   // ---- hold to speak ----------------------------------------------------
   // The microphone, for real: voice.js opens it on the hold, meters it while
   // the bar is down, and posts the recording to be transcribed on release. The
@@ -1051,34 +1109,30 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
       `<div class="${isIssue ? 'issue' : 'bx'} ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%"><span>${esc(b.label)}</span></div>`), i * gap));
     return all.length * gap + 400;
   };
-  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const st = $('#status'); const ar = $('#ar'); const stepMs = 600; const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null; const steps = d.photo ? STREAM : [STREAM[0], STREAM[4], STREAM[5], STREAM[6]];
-    if (d.photo) later(() => { const sl = $('#scan'); sl.classList.remove('off'); sl.classList.add('go'); }, 350);
-    later(() => st.classList.add('on'), 500); steps.forEach((x, i) => later(() => { st.classList.remove('swap'); void st.offsetWidth; st.classList.add('swap'); st.querySelector('.t').textContent = x.t; st.querySelector('.d').textContent = x.d; }, 600 + i * stepMs));
-    // The record is drafted by the model from the note that was just typed, so
-    // the call starts here, in parallel with the animation, and the last status
-    // step waits on the reply instead of on a timer. The animation is the floor
-    // on how fast this can feel, not the whole of it.
+  // Submit. The record draft starts at once, in parallel with the sweep, and carries the
+  // prescanned boxes so the record agrees with what the inspector has been shown. The beam
+  // waits for the prescan if it is still out, then runs top → bottom revealing each box as it
+  // passes; the finding is drawn when the record lands; the record opens after both.
+  const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const ar = $('#ar'); SCANFX.clear(ar);
     const run = newRun();
-    const entry = { n: entriesOf(S.cur).length + 1, kind: d.kind, time: clock(), photo: d.photo, spoken: d.spoken, memo: d.memo };
+    const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null;
+    const ps = d.photo ? d.prescan : null;
+    const entry = { n: entriesOf(S.cur).length + 1, kind: d.kind, time: clock(), photo: d.photo, spoken: d.spoken, memo: d.memo, prescan: ps && ps.scan };
     const pending = DRAFTS.record(addrOf(S.cur), entry);
-    const animMs = 600 + steps.length * stepMs;
-    later(() => { st.querySelector('.t').textContent = 'Drafting the record'; st.querySelector('.d').textContent = 'writing it up from your note…'; }, animMs);
+    const boxesReady = () => new Promise(res => { if (!d.photo) return res(null); const tick = () => { if (!isCurrentRun(run)) return; if (!ps || ps.status === 'ready') res(ps && ps.scan); else later(tick, 120); }; tick(); });
+    const sweepDone = boxesReady().then(scan => { if (!isCurrentRun(run)) return null;
+      if (!d.photo) { readout('DRAFTING RECORD', 'pend'); return null; }
+      const sc = scan && scan.boxes.length ? scan : fallbackScan ? { boxes: fallbackScan.boxes, issue: null, source: 'fixture' } : { boxes: [], issue: null };
+      readout('SCANNING', 'pend'); const line = $('#scan'); line.classList.remove('pend'); void line.offsetWidth; line.classList.add('go');
+      const end = SCANFX.sweep(ar, sc);
+      return new Promise(res => later(() => { if (!isCurrentRun(run)) return; readout('DRAFTING RECORD', 'pend'); res(sc); }, end + 200)); });
     const open = ai => { if (!isCurrentRun(run)) return;
-      // What the model saw, or the fixture if it never answered.
-      const sc = (ai && ai.scan) || fallbackScan;
-      const done = () => { const paintMs = paintScan(sc, ar);
-        // The sweep has been running the whole wait; this is the moment it has
-        // been waiting for, so it stops before the boxes land on the frame.
-        const sl = $('#scan'); if (sl) sl.classList.add('off');
-        st.querySelector('.dot').classList.remove('spin'); st.querySelector('.dot').textContent = '✓';
-        st.querySelector('.t').textContent = ai.source === 'template' ? 'Templates used' : sc && sc.source === 'model' ? 'Photograph read' : 'Record drafted';
-        st.querySelector('.d').textContent = ai.source === 'template' ? 'the model could not be reached' : sc && sc.source === 'model' ? (sc.boxes.length + (sc.issue ? 1 : 0)) + ' things found in the frame' : 'opening…';
-        later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, Math.max(paintMs, ai.source === 'template' ? 1100 : 700)); };
-      // Never open sooner than the animation would have: a 2-second record
-      // reads as a stunt, and the status line has steps still to show.
-      const wait = Math.max(0, animMs + 300 - (Date.now() - t1));
-      later(done, wait); };
-    const t1 = Date.now();
+      sweepDone.then(shown => { if (!isCurrentRun(run)) return;
+        const modelScan = ai && ai.scan; let sc = null;
+        if (d.photo) { const boxes = shown && shown.boxes.length ? shown.boxes : (modelScan && modelScan.boxes) || []; const iss = (modelScan && modelScan.issue) || (fallbackScan && fallbackScan.issue) || null; sc = { boxes, issue: iss, source: modelScan ? modelScan.source : (shown && shown.source) || 'fixture' }; }
+        const ms = sc && sc.issue ? SCANFX.issue(ar, sc.issue) : 0;
+        readout(ai.source === 'template' ? 'TEMPLATE · MODEL NOT REACHED' : 'RECORD READY', ai.source === 'template' ? 'dim' : 'ok');
+        later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, Math.max(ms + 500, 900)); }); };
     pending.then(open, e => open(DRAFTS.recordFallback(d.kind, String((e && e.message) || e)))); };
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
 function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;

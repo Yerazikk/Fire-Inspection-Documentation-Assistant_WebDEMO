@@ -62,7 +62,7 @@ async function route(req, res, p) {
     return res.end(out.buffer);
   }
 
-  const run = p === '/api/draft' ? api.draft : p === '/api/visual' ? api.illustrate : p === '/api/transcribe' ? api.transcribe : null;
+  const run = p === '/api/draft' ? api.draft : p === '/api/detect' ? api.detect : p === '/api/visual' ? api.illustrate : p === '/api/transcribe' ? api.transcribe : null;
   if (!run) return json(res, 404, { error: 'no such endpoint' });
   if (req.method !== 'POST') return json(res, 405, { error: 'POST only' });
   let ctx;
