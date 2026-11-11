@@ -78,7 +78,7 @@ function seed(blankOwner) {
     await p.waitForTimeout(600);
     const bb = await p.locator('#send').boundingBox();
     await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
-    await p.mouse.down(); await p.waitForTimeout(1100); await p.mouse.up(); await p.waitForTimeout(200);
+    await p.mouse.down(); await p.waitForTimeout(1100); await p.mouse.up(); await p.waitForTimeout(700); // the letter slides out over half a second
     ok((await p.locator('.mail').count()) === 0 && (await p.locator('#toMap').count()) === 1, 'a completed send closes the letter back to the address');
     await p.click('[data-go="notice"]'); await p.waitForSelector('.mail');
     ok(/Sent to someone@else\.org/.test(await p.textContent('#view')), 'the notice goes to the typed address');
