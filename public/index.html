@@ -456,6 +456,11 @@
 .cam .readout{position:absolute;right:18px;top:128px;z-index:6;font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--cyan);background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);border-radius:999px;padding:6px 10px;opacity:0;transform:translateY(4px);transition:opacity .35s,transform .35s,color .3s,border-color .3s;pointer-events:none;white-space:nowrap}.cam .readout.on{opacity:1;transform:none}.cam .readout.pend{animation:blink 1.4s infinite}.cam .readout.dim{color:var(--faint);border-color:var(--line)}.cam .readout.ok{color:var(--green);border-color:rgba(74,222,128,.45)}
 .pbox .ov .bx{border-radius:0}.pbox .ov .bx.issue{border-radius:0}
 .cam .hud .addr2{white-space:nowrap;flex:none}.cam .hud>div{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
+.cam.upload .vf{background:#000}.cam.upload .vf img{object-fit:contain}
+.cam .camx.round{width:38px;height:38px;padding:0;display:grid;place-items:center}.cam .camx.round svg{display:block}
+.cam.scanning .hud #camBack,.cam.scanning .hud #retake{display:none}.cam.scanning .hud .addr2{opacity:.45;transition:opacity .4s}
+.pbox .ovsvg{position:absolute;inset:0;width:100%;height:100%;display:block;color:var(--cyan)}.pbox .ovsvg rect{fill:none;stroke:currentColor;stroke-width:1}.pbox .ovsvg rect.red{color:var(--red)}.pbox .ovsvg rect.green{color:var(--green)}.pbox .ovsvg rect.issue{stroke-width:1.5;fill:currentColor;fill-opacity:.14}
+.lb-pic .lbar{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--cyan)}
 </style></head><body>
 <div class="stage"><aside class="rail" id="rail"><div class="rail-h">Actions<small id="railsub"></small></div><div id="raillist"></div><div class="rail-tour"><button class="pbtn stop" id="stopRun" style="display:none">■ Stop</button></div></aside><div class="phone"><div class="screen" id="app"></div><div class="toast" id="toast"></div></div></div>
 

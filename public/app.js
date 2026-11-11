@@ -302,7 +302,7 @@ function mapSVG() {
   ${S.stops.map((id, i) => { const a = addrOf(id); const done = S.done.has(id); return `<g class="pin ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-pin="${id}" style="cursor:pointer"><circle class="halo" cx="${a.x}" cy="${a.y}" r="4.4"/><circle class="body" cx="${a.x}" cy="${a.y}" r="2.7" fill="${done ? '#1f6f49' : '#35e0ff'}" stroke="#0b0f17" stroke-width=".6"/><text x="${a.x}" y="${a.y + .95}" font-size="2.6" font-weight="700" fill="${done ? '#b9f5cf' : '#06101a'}" text-anchor="middle" font-family="-apple-system,sans-serif">${done ? '✓' : i + 1}</text></g>`; }).join('')}
   </svg>`;
 }
-function selectStop(id) { S.sel = S.sel === id ? null : id; S.pv = 'half'; const inp = $('#addr'); if (inp) inp.blur(); render(); }
+function selectStop(id) { S.sel = S.sel === id ? null : id; S.pv = 'half'; if (S.sel && S.sel !== 'hq') warmStop(S.sel); const inp = $('#addr'); if (inp) inp.blur(); render(); }
 // Street-level photographs shown in the preview instead of the satellite
 // square. Every one is a Google Street View still, fetched through
 // api/streetview.js — which keeps the key on the server and, more to the
@@ -348,6 +348,22 @@ function startPillHTML(id) {
   const done = S.done.has(id), n = entriesOf(id).length;
   return `<button class="btn pvgo" id="pvGo"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
 }
+// Everything the pulled-up sheet will show is fetched the moment a stop is added, so
+// dragging up (or Start) finds it already there: the Maps script, the lot view itself
+// (the one map object is built offscreen and centred on the lot, so its tiles land now and
+// the later mount only moves the element), the Street View stills in both sizes, and the
+// Esri frame that stands in when Google is unavailable. Idempotent per stop.
+const WARMED = new Set();
+function warmStop(id) {
+  const a = addrOf(id); if (!a || !isFinite(a.lat) || !isFinite(a.lon) || WARMED.has(id)) return; WARMED.add(id);
+  [[640, 267], [192, 144]].forEach(([w, h]) => { const im = new Image(); im.src = GMAP.street(a.lat, a.lon, w, h); });
+  try { const c = satCentre(id); if (c) SAT.prefetch(c.lat, c.lon, { span: SAT.spanOf(S.satZoom), px: 640 }).catch(() => {}); } catch (_) {}
+  let host = document.getElementById('gmwarm');
+  if (!host) { host = document.createElement('div'); host.id = 'gmwarm'; host.setAttribute('aria-hidden', 'true'); host.style.cssText = 'position:fixed;left:-2000px;top:0;width:376px;height:300px;overflow:hidden;pointer-events:none'; document.body.appendChild(host); }
+  // Only warm into the hidden host when the map is not on screen; a live lot view must not be pulled away.
+  const live = document.querySelector('#sathero .gmapel');
+  if (!live) GMAP.mount(host, a.lat, a.lon, { key: id }).catch(() => {});
+}
 function wirePins() { $$('[data-pin]').forEach(p => p.onclick = () => selectStop(p.dataset.pin)); }
 
 function stopRows() {
@@ -385,7 +401,7 @@ AFTER = {
       const a = addrOf(id); GEO.lookups.record(a);
       inp.value = ''; sg.style.display = 'none';
       if (S.stops.includes(id)) { S.sel = id; render(); later(() => { scrollWithin($('#order .srow.sel'), $('#order')); }, 50); return; }
-      S.stops.push(id); S.sel = null;
+      S.stops.push(id); S.sel = null; warmStop(id);
       if (S.sheet === 'peek') S.sheet = 'half';
       render(); $('#addr').focus();
     };
@@ -534,7 +550,7 @@ function lookupsSheet() {
     if (e.target.closest('[data-drop]')) return;
     const id = row.dataset.look; el.remove();
     if (S.screen !== 'map') go('map', { replace: true });
-    if (!S.stops.includes(id)) { S.stops.push(id); GEO.lookups.record(addrOf(id)); }
+    if (!S.stops.includes(id)) { S.stops.push(id); GEO.lookups.record(addrOf(id)); warmStop(id); }
     S.sel = id; if (S.sheet === 'peek') S.sheet = 'half'; render();
   });
   el.querySelectorAll('[data-drop]').forEach(b => b.onclick = e => { e.stopPropagation(); GEO.lookups.forget(b.dataset.drop); el.remove(); lookupsSheet(); });
@@ -868,12 +884,16 @@ const SCANFX = (() => {
   const NS = 'http://www.w3.org/2000/svg', GL = '0123456789ABCDEF<>/|-_=+#';
   const el = (n, at) => { const e = document.createElementNS(NS, n); for (const k in at) e.setAttribute(k, at[k]); return e; };
   const px = ar => ({ W: ar.clientWidth || 430, H: ar.clientHeight || 880 });
+  /** Where the photograph actually sits inside the overlay. Boxes are fractions of the
+   *  photograph, not of the screen: a cover-fitted upload is cropped, a contain-fitted one
+   *  letterboxed, and either way the box must follow the pixels it was drawn on. */
+  function imageRect(ar, img, fit) { const { W, H } = px(ar); const iw = (img && img.naturalWidth) || W, ih = (img && img.naturalHeight) || H; const sc = fit === 'contain' ? Math.min(W / iw, H / ih) : Math.max(W / iw, H / ih); const w = iw * sc, h = ih * sc; return { x: (W - w) / 2, y: (H - h) / 2, w, h }; }
   const timers = new Set(); const after = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
   function clear(ar) { timers.forEach(clearTimeout); timers.clear(); if (ar) { ar.innerHTML = ''; ar._labels = []; } }
   function decode(node, text, ms) { const n = text.length; const t0 = performance.now(); const tick = () => { const pr = Math.min(1, (performance.now() - t0) / ms); const k = Math.floor(n * Math.min(1, pr * 1.25)); node.textContent = text.slice(0, k) + text.slice(k).replace(/\S/g, (_, i) => GL[(i * 13 + Math.floor(pr * 40)) % GL.length]); if (pr < 1) requestAnimationFrame(tick); }; tick(); }
   /** one box: b = { label, box:[left%,top%,w%,h%], tone }; delay = ms until the beam reaches it */
-  function box(ar, b, delay, isIssue) {
-    const { W, H } = px(ar); const x0 = b.box[0] / 100 * W, y0 = b.box[1] / 100 * H, w = b.box[2] / 100 * W, h = b.box[3] / 100 * H, x1 = x0 + w;
+  function box(ar, b, delay, isIssue, R, instant) {
+    const { W, H } = px(ar); R = R || { x: 0, y: 0, w: W, h: H }; const x0 = R.x + b.box[0] / 100 * R.w, y0 = R.y + b.box[1] / 100 * R.h, w = b.box[2] / 100 * R.w, h = b.box[3] / 100 * R.h, x1 = x0 + w;
     const g = el('g', { class: (isIssue ? 'issue ' : 'bx ') + (b.tone || 'cyan') }); const L = 2 * (w + h);
     const rect = el('rect', { x: x0, y: y0, width: w, height: h, fill: 'none', 'stroke-width': isIssue ? 1.5 : 1, pathLength: L, 'stroke-dasharray': L, 'stroke-dashoffset': L, class: 'rc' });
     if (isIssue) rect.setAttribute('fill', 'currentColor');
@@ -882,7 +902,7 @@ const SCANFX = (() => {
     // end. Outside to the right when there is room, outside to the left when not, and inside
     // the box (kinking down) when the box spans the frame. The HUD owns the top 150 px, so
     // nothing is placed above it, and labels already placed push a new one down.
-    const fs = 11, tw = b.label.length * fs * .62 + 14, kd = 16, run = 38, TOP = 160;
+    const fs = 11, tw = b.label.length * fs * .62 + 14, kd = 16, run = 38, TOP = ar.closest('.cam') ? 150 : 14;
     const placed = ar._labels || (ar._labels = []);
     const hits = r => placed.some(q => r.x < q.x + q.w && r.x + r.w > q.x && r.y < q.y + q.h && r.y + r.h > q.y);
     let sx, py, dir, down, anchor;
@@ -891,15 +911,16 @@ const SCANFX = (() => {
     else if (x0 - kd - run - 6 - tw > 8 && y0 >= TOP) { sx = x0; py = y0; dir = -1; down = false; anchor = 'end'; }
     else { sx = x0; py = Math.min(py0, y0 + h - 8); dir = 1; down = true; anchor = 'start'; }
     let ky = down ? py + kd : py - kd; let kx = sx + dir * kd; let ex = kx + dir * run;
-    if (anchor === 'start' && ex + 6 + tw > W - 8) ex = Math.max(kx, W - 8 - 6 - tw);
+    if (anchor === 'start' && ex + 6 + tw > W - 8) { if (kx - 6 - tw > 8) { anchor = 'end'; dir = -1; ex = kx; } else ex = Math.max(kx, W - 8 - 6 - tw); }
     let r = { x: anchor === 'start' ? ex + 6 : ex - 6 - tw, y: ky - 12, w: tw, h: 16 }; let guard = 0;
     while (hits(r) && guard++ < 12) { ky += 18; kx = sx + dir * Math.abs(ky - py); r.y = ky - 12; }
     placed.push(r);
     const len = Math.hypot(kx - sx, ky - py) + Math.abs(ex - kx);
     const halo = el('circle', { cx: sx, cy: py, r: 0, class: 'halo' }); const dot = el('circle', { cx: sx, cy: py, r: 0, class: 'dot' });
     const lead = el('path', { d: `M${sx} ${py} L${kx} ${ky} H${ex}`, fill: 'none', 'stroke-width': isIssue ? 1.5 : 1, pathLength: len, 'stroke-dasharray': len, 'stroke-dashoffset': len, class: 'lead' });
-    const text = el('text', { x: ex + dir * 6, y: ky + 4, 'text-anchor': anchor, class: 'lab' }); text.textContent = '';
+    const text = el('text', { x: ex + (anchor === 'start' ? 6 : -6), y: ky + 4, 'text-anchor': anchor, class: 'lab' }); text.textContent = '';
     g.append(halo, dot, lead, text); ar.appendChild(g);
+    if (instant) { rect.setAttribute('stroke-dashoffset', 0); lead.setAttribute('stroke-dashoffset', 0); g.classList.add('pinned'); text.classList.add('on'); text.textContent = b.label; return 0; }
     after(() => { rect.style.transition = 'stroke-dashoffset .62s cubic-bezier(.22,1,.36,1)'; rect.setAttribute('stroke-dashoffset', 0); }, delay);
     after(() => { g.classList.add('pinned'); lead.style.transition = 'stroke-dashoffset .4s cubic-bezier(.22,1,.36,1)'; lead.setAttribute('stroke-dashoffset', 0); }, delay + 380);
     after(() => { text.classList.add('on'); decode(text, b.label, 420); }, delay + 620);
@@ -907,13 +928,15 @@ const SCANFX = (() => {
   }
   /** the sweep: beam top → bottom over BEAM ms; each box reveals as the beam passes its top edge */
   const BEAM = 2600;
-  function sweep(ar, scan) { const all = (scan && scan.boxes) || []; let end = BEAM; all.forEach(b => { end = Math.max(end, box(ar, b, Math.round(BEAM * b.box[1] / 100) + 80, false)); }); return end; }
-  function issue(ar, b) { return b ? box(ar, b, 60, true) : 0; }
-  return { sweep, issue, clear, box, BEAM };
+  function sweep(ar, scan, R) { const all = (scan && scan.boxes) || []; const { H } = px(ar); const yOf = b => (R ? R.y + b.box[1] / 100 * R.h : b.box[1] / 100 * H); let end = BEAM; all.forEach(b => { end = Math.max(end, box(ar, b, Math.round(BEAM * Math.max(0, Math.min(1, yOf(b) / H))) + 80, false, R)); }); return end; }
+  function issue(ar, b, R) { return b ? box(ar, b, 60, true, R) : 0; }
+  /** everything at once, no beam: the lightbox and anywhere else the result is simply shown */
+  function draw(ar, scan, R) { clear(ar); ((scan && scan.boxes) || []).forEach(b => box(ar, b, 0, false, R, true)); if (scan && scan.issue) box(ar, scan.issue, 0, true, R, true); }
+  return { sweep, issue, draw, clear, box, imageRect, BEAM };
 })();
 function cameraView() { const d = S.draft || {}; const a = addrOf(S.cur); const m = d.photoMeta;
   const vf = `<div class="vf">${img(d.photo || FIXTURE, d.photo ? 'Photo' : 'Live viewfinder')}${m ? `<span class="src">${esc(PHOTO.caption(m))}</span>` : ''}</div>`;
-  return `<div class="cam ${d.snapped ? 'snap' : ''} ${d.photo ? '' : 'nophoto'}" id="cam">${vf}<div class="grid"></div><div class="hud"><div style="display:flex;gap:8px"><button class="camx" id="camBack">${I('back', 14)} Back</button><button class="camx" id="retake" style="display:none">${I('undo', 14)} Retake</button><button class="camx" id="cancelScan" style="display:none">Cancel</button></div><span class="addr2">${esc(a.addr)}<small>${esc(CONFIG.inspector.name)} · ${clock()}</small></span></div>
+  return `<div class="cam ${d.snapped ? 'snap' : ''} ${d.photo ? '' : 'nophoto'} ${d.photoMeta ? 'upload' : ''}" id="cam">${vf}<div class="grid"></div><div class="hud"><div style="display:flex;gap:8px"><button class="camx round" id="camBack" aria-label="Back">${I('back', 16)}</button><button class="camx" id="retake" style="display:none">${I('undo', 14)} Retake</button><button class="camx" id="cancelScan" style="display:none">Cancel</button></div><span class="addr2">${esc(a.addr)}<small>${esc(CONFIG.inspector.name)} · ${clock()}</small></span></div>
   <div class="scanline" id="scan"></div><svg class="ar" id="ar"></svg><div class="readout" id="readout"></div><div class="stat" id="status"><div class="dot spin"></div><div><div class="t"></div><div class="d"></div></div></div>
   <div class="ctl"><button class="side" id="upload" title="Add a photo">${I('image', 22, 1.8)}<small>Library</small></button><button class="shutter" id="shutter" aria-label="Take picture"><i></i></button><button class="side" id="noteOnly" title="Note without a photo">${I('text', 22, 1.8)}<small>Note only</small></button></div><div class="flash"></div>
   <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
@@ -930,8 +953,8 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   const readout = (t, cls) => { const r = $('#readout'); if (!r) return; r.textContent = t || ''; r.className = 'readout' + (cls ? ' ' + cls : '') + (t ? ' on' : ''); };
   // The prescan: the moment a photograph lands, the model is asked what is in it,
   // so the boxes are ready for the sweep by the time Submit is tapped.
-  const prescan = () => { if (!d.photo || (d.prescan && d.prescan.src === d.photo)) return; const src = d.photo; const ps = { src, status: 'pending', scan: null }; d.prescan = ps; S.draft = d; readout('PRESCAN · ACQUIRING', 'pend'); $('#scan').classList.add('pend');
-    const t0 = Date.now(); const land = scan => { if (d.prescan !== ps) return; ps.status = 'ready'; ps.scan = scan; const r = $('#scan'); if (r) r.classList.remove('pend'); readout(scan.boxes.length ? `PRESCAN · ${scan.boxes.length} ELEMENT${scan.boxes.length === 1 ? '' : 'S'} LOCATED` : `PRESCAN · ${(scan.reason || 'nothing located').toUpperCase()}`, scan.boxes.length ? 'ok' : 'dim'); };
+  const prescan = () => { if (!d.photo || (d.prescan && d.prescan.src === d.photo)) return; const src = d.photo; const ps = { src, status: 'pending', scan: null }; d.prescan = ps; S.draft = d; $('#scan').classList.add('pend');
+    const t0 = Date.now(); const land = scan => { if (d.prescan !== ps) return; ps.status = 'ready'; ps.scan = scan; const r = $('#scan'); if (r) r.classList.remove('pend'); };
     DRAFTS.detect(src).then(scan => { if (!scan.boxes.length && src === FIXTURE) scan = { boxes: SCAN.violation.boxes.map(b => ({ ...b })), issue: null, source: 'fixture', reason: scan.reason }; setTimeout(() => land(scan), Math.max(0, 900 - (Date.now() - t0))); }); };
   const showSheet = () => { cam.classList.add('snap'); d.snapped = true; prescan(); $('#noNote').style.display = d.photo ? '' : 'none'; $('#retake').style.display = d.photo ? '' : 'none'; $('#retake').innerHTML = I('undo', 14) + (d.photoMeta ? ' Change photo' : ' Retake'); };
   const grow = fn => { const h0 = sheet.offsetHeight; fn(); const h1 = sheet.offsetHeight; if (h0 === h1) return; sheet.style.height = h0 + 'px'; sheet.style.overflow = 'hidden'; void sheet.offsetHeight; sheet.style.transition = 'height .45s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),bottom .32s cubic-bezier(.2,.8,.2,1),opacity .4s'; sheet.style.height = h1 + 'px'; setTimeout(() => { sheet.style.height = ''; sheet.style.overflow = ''; sheet.style.transition = ''; }, 480); };
@@ -959,7 +982,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   $('#noteOnly').onclick = () => { d.photo = null; showSheet(); };
   $('#camBack').onclick = () => backWithGuard();
   $('#retake').onclick = () => { d.photo = null; d.photoMeta = null; d.snapped = false; d.prescan = null; S.draft = d; render(); toast('Viewfinder live · memo kept'); };
-  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); SCANFX.clear($('#ar')); $('#scan').classList.remove('go', 'off'); $('#status').classList.remove('on'); readout(d.prescan && d.prescan.scan && d.prescan.scan.boxes.length ? `PRESCAN · ${d.prescan.scan.boxes.length} ELEMENTS LOCATED` : '', 'ok'); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
+  $('#cancelScan').onclick = () => { newRun(); clearTimers(); cam.classList.remove('scanning'); SCANFX.clear($('#ar')); $('#scan').classList.remove('go', 'off'); $('#status').classList.remove('on'); readout(''); $('#cancelScan').style.display = 'none'; sheet.classList.remove('recede'); sheet.classList.add('type'); toast('Analysis cancelled · memo kept'); };
   // ---- hold to speak ----------------------------------------------------
   // The microphone, for real: voice.js opens it on the hold, meters it while
   // the bar is down, and posts the recording to be transcribed on release. The
@@ -1106,6 +1129,7 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
   // waits for the prescan if it is still out, then runs top → bottom revealing each box as it
   // passes; the finding is drawn when the record lands; the record opens after both.
   const analyze = () => { cam.classList.add('scanning'); $('#cancelScan').style.display = ''; const ar = $('#ar'); SCANFX.clear(ar);
+    const vfImg = $('#cam .vf img'); const R = d.photo ? SCANFX.imageRect(ar, vfImg, d.photoMeta ? 'contain' : 'cover') : null; if (vfImg && vfImg.naturalWidth) d.photoSize = { w: vfImg.naturalWidth, h: vfImg.naturalHeight };
     const run = newRun();
     const fallbackScan = d.photo === FIXTURE ? SCAN[d.kind === 'violation' ? 'violation' : 'compliance'] : null;
     const ps = d.photo ? d.prescan : null;
@@ -1116,20 +1140,20 @@ function cameraAfter() { const cam = $('#cam'), sheet = $('#sheet2'), say = $('#
       if (!d.photo) { readout('DRAFTING RECORD', 'pend'); return null; }
       const sc = scan && scan.boxes.length ? scan : fallbackScan ? { boxes: fallbackScan.boxes, issue: null, source: 'fixture' } : { boxes: [], issue: null };
       readout('SCANNING', 'pend'); const line = $('#scan'); line.classList.remove('pend'); void line.offsetWidth; line.classList.add('go');
-      const end = SCANFX.sweep(ar, sc);
+      const end = SCANFX.sweep(ar, sc, R);
       return new Promise(res => later(() => { if (!isCurrentRun(run)) return; readout('DRAFTING RECORD', 'pend'); res(sc); }, end + 200)); });
     const open = ai => { if (!isCurrentRun(run)) return;
       sweepDone.then(shown => { if (!isCurrentRun(run)) return;
         const modelScan = ai && ai.scan; let sc = null;
         if (d.photo) { const boxes = shown && shown.boxes.length ? shown.boxes : (modelScan && modelScan.boxes) || []; const iss = (modelScan && modelScan.issue) || (fallbackScan && fallbackScan.issue) || null; sc = { boxes, issue: iss, source: modelScan ? modelScan.source : (shown && shown.source) || 'fixture' }; }
-        const ms = sc && sc.issue ? SCANFX.issue(ar, sc.issue) : 0;
+        const ms = sc && sc.issue ? SCANFX.issue(ar, sc.issue, R) : 0;
         readout(ai.source === 'template' ? 'TEMPLATE · MODEL NOT REACHED' : 'RECORD READY', ai.source === 'template' ? 'dim' : 'ok');
         later(() => { if (isCurrentRun(run)) createRecord(sc, ai); }, Math.max(ms + 500, 900)); }); };
     pending.then(open, e => open(DRAFTS.recordFallback(d.kind, String((e && e.message) || e)))); };
   if (d.snapped) { cam.classList.add('snap'); $('#retake').style.display = d.photo ? '' : 'none'; } }
 function createRecord(sc, drafted) { const d = S.draft; const ai = drafted || clone(AI[d.kind]); const n = entriesOf(S.cur).length + 1; const pos = POS[S.posIdx % POS.length]; S.posIdx++;
   const at = entryFix(S.cur);
-  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, memo: d.memo, spoken: !!d.spoken, voice: d.clip || null, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, at, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', fmtFix(at)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
+  S.rec = { id: 'e' + Date.now(), n, kind: d.kind, kindRaw: d.kind, photo: d.photo, photoMeta: d.photoMeta || null, photoSize: d.photoSize || null, memo: d.memo, spoken: !!d.spoken, voice: d.clip || null, ai, recs: ai.recs.map(r => ({ ...r, decision: null })), scan: sc, geo: pos, at, time: clock(), meta: [['Date', fmtDate(todayISO())], ['Time', clock()], ['Location', fmtFix(at)], ['Address', addrOf(S.cur).addr], ['Inspector', CONFIG.inspector.name + ' · ' + CONFIG.inspector.badge]], feedback: [] };
   // The pictures start here, not at Finish: a card takes fifteen to twenty
   // seconds, and starting now means the first ones have landed by the time the
   // inspector has read the record and reached the deck. Nothing waits on them —
@@ -1213,14 +1237,18 @@ function codeCaveat(ai) {
   return out.join('');
 }
 
-function overlay(sc, cls) { if (!sc) return ''; const lab = cls === 'lab';
+function overlay(sc, cls, size) { if (!sc) return ''; const lab = cls === 'lab';
+  // With the photograph's own size known the boxes are drawn in its pixels and the SVG is
+  // sliced the way object-fit: cover slices the image, so they stay on what they point at.
+  if (size && size.w && size.h && !lab) { const r = (b, iss) => `<rect class="${iss ? 'issue ' : ''}${b.tone}" x="${b.box[0] / 100 * size.w}" y="${b.box[1] / 100 * size.h}" width="${b.box[2] / 100 * size.w}" height="${b.box[3] / 100 * size.h}" vector-effect="non-scaling-stroke"/>`;
+    return `<svg class="ov ovsvg" viewBox="0 0 ${size.w} ${size.h}" preserveAspectRatio="xMidYMid slice">${(sc.boxes || []).map(b => r(b, false)).join('')}${sc.issue ? r(sc.issue, true) : ''}</svg>`; }
   // `issue` is the one highlighted box. The hand-measured fixtures always have
   // one; a model that labelled elements without isolating a finding may not.
   const issue = sc.issue ? `<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div>` : '';
   return `<div class="ov ${cls || ''}">${(sc.boxes || []).map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}${issue}</div>`; }
 function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const fld = (k, val) => `<div class="fld"><b>${esc(k)}</b>${val}</div>`; const card = (title, body, delay, key) => `<section class="rsec edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</section>`;
   const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
-  const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">ORIGINAL</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan)}<span class="lab">SCANNED</span></div></div>` : '';
+  const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">ORIGINAL</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan, '', r.photoSize)}<span class="lab">SCANNED</span></div></div>` : '';
   const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
   <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
@@ -1248,7 +1276,11 @@ function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const
   wireEdits(r.ai, () => { S.recDirty = true; });
   const pic = img(r.photo, 'photo');
   const po = $('#pOrig'); if (po) po.onclick = () => lightbox(`<div class="lb-top"><span>Original photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}</div></div><div class="foot"><button class="btn" id="lbRetake">Retake photo</button></div>`, el => { el.querySelector('#lbRetake').onclick = () => { confirmSheet('Retake and start over?', 'A new photo means a new scan, new notes and a new deck. This entry’s current draft is discarded.', [{ label: 'Retake', cls: 'danger', fn: () => { el.remove(); S.draft = { photo: null, memo: r.memo, kind: null, snapped: false }; S.rec = null; S.recDirty = false; go('camera', { replace: true }); } }, { label: 'Keep', cls: 'ghost' }]); }; });
-  const ps = $('#pScan'); if (ps) ps.onclick = () => lightbox(`<div class="lb-top"><span>Scanned photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic">${pic}${overlay(r.scan, 'lab')}</div></div><div class="foot"><div class="fb"><input id="fbin" placeholder="Tell the scan what it got wrong…"><button id="fbgo">Re-scan</button></div><div class="fbnote" id="fbnote" hidden></div></div>`, el => {
+  const ps = $('#pScan'); if (ps) ps.onclick = () => lightbox(`<div class="lb-top"><span>Scanned photo</span><button class="ib" data-close>✕</button></div><div class="lb-wrap"><div class="lb-pic" style="${r.photoSize ? `aspect-ratio:${r.photoSize.w}/${r.photoSize.h}` : ''}">${pic}<svg class="ar lbar"></svg></div></div><div class="foot"><div class="fb"><input id="fbin" placeholder="Tell the scan what it got wrong…"><button id="fbgo">Re-scan</button></div><div class="fbnote" id="fbnote" hidden></div></div>`, el => {
+    const lar = el.querySelector('.lbar'), lim = el.querySelector('.lb-pic img'), lpic = el.querySelector('.lb-pic'), lwrap = el.querySelector('.lb-wrap');
+    // The box takes the photograph's own shape inside the space it has, so nothing is cropped and every label stays in frame.
+    const fitLb = () => { const iw = (lim && lim.naturalWidth) || 820, ih = (lim && lim.naturalHeight) || 1474; const W = lwrap.clientWidth - 36, H = lwrap.clientHeight; const sc = Math.min(W / iw, H / ih); lpic.style.width = Math.round(iw * sc) + 'px'; lpic.style.height = Math.round(ih * sc) + 'px'; lpic.style.aspectRatio = 'auto'; };
+    const drawLb = () => { if (!lar) return; fitLb(); SCANFX.draw(lar, r.scan, SCANFX.imageRect(lar, lim, 'contain')); }; if (lim && lim.complete) requestAnimationFrame(drawLb); else if (lim) lim.onload = drawLb;
     const inp = el.querySelector('#fbin'), b = el.querySelector('#fbgo'), note = el.querySelector('#fbnote');
     const say = (m, bad) => { note.textContent = m || ''; note.hidden = !m; note.classList.toggle('bad', !!bad); };
     const idle = () => { b.textContent = 'Re-scan'; b.disabled = false; inp.disabled = false; };

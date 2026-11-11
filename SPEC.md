@@ -123,7 +123,7 @@ Get a photo and a note with as few taps as possible.
 
 | Control | Gesture | Result |
 |---|---|---|
-| Shutter (centre) | tap or space | Takes the photo; the memo bar slides up and the prescan starts at once (the model locates what is in the frame while the note is typed; the readout under the address says PRESCAN · ACQUIRING, then how many elements it found). |
+| Shutter (centre) | tap or space | Takes the photo; the memo bar slides up and the prescan starts at once (the model locates what is in the frame while the note is typed; nothing is shown for it beyond a faint pulse of the beam line at the top). |
 | Library (left) | tap | Opens the photo picker instead of shooting one: a file off the device (JPEG, PNG, WebP, HEIC; rotated and resized automatically), or one of the reference photos that ship with the app. Continues the same way, prescan included. |
 | Note only (right, keyboard icon) | tap | Skips the photo; opens the memo bar directly. |
 | Memo bar | tap | Opens a text box with Submit. |
