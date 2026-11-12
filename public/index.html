@@ -426,11 +426,14 @@
 #boot{position:absolute;inset:0;z-index:120;pointer-events:none;background:#05070c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .7s var(--easeio)}#boot.out{opacity:0;pointer-events:none}
 .boot-mark{position:relative;width:88px;height:88px;margin-bottom:14px}.boot-mark i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(53,224,255,.55);animation:bootRing 2.4s var(--ease) infinite}.boot-mark i:nth-child(2){animation-delay:.5s}.boot-mark i:nth-child(3){inset:30px;border:2px solid var(--cyan);background:#0b0f17;animation:bootCore 1.6s var(--ease) both}
 @keyframes bootRing{0%{transform:scale(.35);opacity:0}30%{opacity:.9}100%{transform:scale(1.15);opacity:0}}@keyframes bootCore{from{transform:scale(.4);opacity:0}}
-.boot-t{font:600 12px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.22em;color:var(--ink);animation:fadeUp .8s .2s var(--ease) both}.boot-s{font-size:12px;color:var(--faint);animation:fadeUp .8s .35s var(--ease) both}.boot-l{margin-top:14px;animation:fadeUp .8s .5s var(--ease) both}.boot-l span{font:600 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.22em;color:var(--cyan);transition:color .3s}#boot.ready .boot-l span{color:var(--green)}
+.boot-t{font:600 12px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.22em;color:var(--ink);animation:fadeUp .8s .2s var(--ease) both}.boot-s{font-size:12px;color:var(--faint);animation:fadeUp .8s .35s var(--ease) both}.boot-l{margin-top:14px;animation:fadeIn .6s var(--ease) both;transition:opacity .22s}#boot.bye .boot-l{opacity:0}.boot-l span{font:600 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.22em;color:var(--cyan);transition:color .3s}#boot.ready .boot-l span{color:var(--green)}
 /* the cold-start reticle: four corners, spinning, that land on HQ */
-.bootret{position:absolute;z-index:121;pointer-events:none;--c:var(--cyan);--k:20px;width:156px;height:156px;left:50%;top:50%;margin:-78px 0 0 -78px;background-image:linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c));background-repeat:no-repeat;background-size:var(--k) 2px,2px var(--k),var(--k) 2px,2px var(--k),var(--k) 2px,2px var(--k),var(--k) 2px,2px var(--k);background-position:left top,left top,right top,right top,left bottom,left bottom,right bottom,right bottom;filter:drop-shadow(0 0 8px rgba(53,224,255,.55));animation:retSpin 1.6s cubic-bezier(.65,.05,.35,.95) infinite;transition:opacity .22s}
+.bootret{position:absolute;z-index:121;pointer-events:none;--c:var(--cyan);--k:20px;width:156px;height:156px;left:50%;top:50%;margin:-78px 0 0 -78px;filter:drop-shadow(0 0 8px rgba(53,224,255,.45));animation:retSpin 1.6s cubic-bezier(.65,.05,.35,.95) infinite,fadeIn .6s var(--ease) both;transition:opacity .22s,filter .4s}
+.bootret i{position:absolute;width:var(--k);height:var(--k);border:2px solid var(--c);transition:border-color .35s,width .8s var(--ease),height .8s var(--ease)}
+.bootret i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.bootret i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}.bootret i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}.bootret i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+.bootret.amber,.bootret.ready.amber{--c:#ffb648;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9))}
 @keyframes retSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(.84)}100%{transform:rotate(360deg) scale(1)}}
-.bootret.ready{--c:var(--green);filter:drop-shadow(0 0 8px rgba(74,222,128,.5))}
+.bootret.ready{--c:var(--green);filter:drop-shadow(0 0 8px rgba(74,222,128,.45))}
 .bootret.snap{animation:none;transition:left .8s var(--ease),top .8s var(--ease),width .8s var(--ease),height .8s var(--ease),margin .8s var(--ease),transform .8s var(--ease),filter .8s,opacity .22s}
 .phone.snapping .lfocus{opacity:0}.lfocus{transition:opacity .25s}
 .boot-sweep{position:absolute;left:0;right:0;top:-3px;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 24px 4px rgba(53,224,255,.55);animation:sweep 1.5s .1s var(--easeio) forwards}
@@ -463,6 +466,26 @@
 .boot-l{margin-top:0}
 #sheet.preview.full .pvgo{display:none}#sheet.preview.full::after{display:none}
 /* the home is in the sheet at half too, under the fade; its footer (Finish / New entry) only belongs to the full detent, where the Start pill has gone */
+/* ---- the address bar above the sheet ---- */
+.addrbar{position:absolute;left:18px;right:18px;bottom:28px;z-index:5;transition:bottom .32s cubic-bezier(.2,.8,.2,1)}
+.phone.kb .addrbar{bottom:calc(var(--kb) + 28px)}
+.addrbar.up{bottom:290px}
+.addrbar.full{pointer-events:none}
+.addrbar .addr input{position:relative;z-index:1;height:48px;border-radius:999px;padding:0 44px 0 18px;color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(22,28,38,.55);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.25)}
+.addrbar .addr .ic{right:16px;z-index:2;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:0}.addrbar .addr .ic svg{width:19px;height:19px;display:block}
+.addrbar .sugg{top:auto;bottom:calc(100% + 10px);max-height:272px;border-radius:16px;box-shadow:0 -20px 50px rgba(0,0,0,.55);display:flex;flex-direction:column-reverse;justify-content:flex-start}.addrbar .sugg div{flex:none}.addrbar .sugg div[data-i]{border-bottom:0;border-top:1px solid rgba(255,255,255,.05)}.addrbar .sugg .sgx small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+#sheet:not(.preview){height:0!important;min-height:0;overflow:visible;padding:0}
+.phone.kb .sheet{bottom:0}
+#sheet.preview .sbody{padding:0 18px 80px}
+#sheet.preview .pvgo{left:84px;right:18px;width:auto;bottom:14px}
+.pvtrash2{position:absolute;left:18px;bottom:14px;z-index:3;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,92,108,.45);background:rgba(255,92,108,.1);color:var(--red);display:grid;place-items:center;cursor:pointer;transition:opacity .22s}.pvtrash2 svg{display:block}.pvtrash2:active{background:rgba(255,92,108,.2)}
+#sheet.preview.full .pvtrash2,#sheet.preview.leaving .pvtrash2{opacity:0;pointer-events:none}
+#sheet.preview.half .sat.pvmap{aspect-ratio:3.3/1}
+#sheet.preview.half .pvmore{padding-top:10px}
+#sheet.preview .handle{height:22px}
+.sheet{transition:height .62s var(--ease),bottom .5s var(--ease),transform .6s var(--ease)!important}
+#sheet.preview.rise{transform:translateY(100%)}
+.phone.booted .addrbar{animation:riseSheet .9s var(--ease) both}
 #sheet.prep,#sheet.prep .addr{transition:none!important}
 #sheet.preview:not(.full) .pvfoot{opacity:0;pointer-events:none}#sheet.preview.full .pvfoot{transition:opacity .25s}
 /* ---- scan fx: hairline box · pin · 45° callout · decoded label, all one line weight ---- */

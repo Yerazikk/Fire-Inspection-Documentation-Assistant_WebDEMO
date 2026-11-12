@@ -64,6 +64,7 @@ function render() { const app = $('#app');
     // the map stays put; only the sheet (and its wiring) is rebuilt
     const tmp = document.createElement('div'); tmp.innerHTML = VIEWS.map();
     const fresh = tmp.querySelector('#sheet'); if (fresh) { const ae = document.activeElement; if (ae && $('#sheet').contains(ae)) ae.blur(); $('#sheet').replaceWith(fresh); }
+    const ab = $('#addrbar'), nb = tmp.querySelector('#addrbar'); if (ab && nb) { ab.className = nb.className; ab.style.opacity = ''; }
     AFTER.map(); renderHelp(); window.renderRail && renderRail(); return;
   }
   const switching = lastScreen && lastScreen !== S.screen; { const ae = document.activeElement; if (ae && ae !== document.body && app.contains(ae)) ae.blur(); } if (switching) { const old = document.createElement('div'); old.className = 'leaving ' + (S.navDir || 'fwd'); while (app.firstChild) old.appendChild(app.firstChild); app.parentElement.appendChild(old); setTimeout(() => old.remove(), 520); }
@@ -228,7 +229,7 @@ function mapPad() {
   const phone = host.closest('.phone'); const kb = phone && phone.classList.contains('kb') && !S.stops.length ? parseFloat(getComputedStyle(phone).getPropertyValue('--kb')) || 0 : 0;
   const real = S.stops.length ? 0 : Math.max(0, kb ? sheet.offsetHeight + kb : host.offsetHeight - sheet.offsetTop);
   // the half sheet is a square map plus chrome; frame for it whenever there are stops so a tap never moves the map
-  const previewCover = Math.round((host.offsetWidth - 36) / 2.4) + 176;
+  const previewCover = HALF_PX + 12 + 48 + 12;
   const covered = S.stops.length ? Math.max(real, previewCover) : real;
   const ob = order && !order.classList.contains('empty') ? order.offsetTop + order.offsetHeight : 0;
   // a short list pads the top; a long one pads the right so the route keeps the left two thirds
@@ -305,11 +306,30 @@ function mapSVG() {
 // Tapping a pin: the keyboard, if it is up, goes down first; then the half
 // sheet grows up from behind the address pill, which stays where it is (the
 // sheet is bottom-anchored, so growing its height is the rise). Nothing jumps.
+function nudgeTo(id) {
+  if (!LMAP || id === 'hq' || !canAnimate()) return;
+  const a = addrOf(id); if (!a) return;
+  const p = mapPad(), size = LMAP.getSize();
+  const strip = { x0: p.left, x1: size.x - p.right, y0: p.top, y1: size.y - p.bottom };
+  const c = { x: (strip.x0 + strip.x1) / 2, y: (strip.y0 + strip.y1) / 2 };
+  // the bound for the other pins is the map that can be seen — below the top controls, above the bar — not the fit padding
+  const keep = { x0: 26, x1: size.x - 26, y0: 112, y1: size.y - (HALF_PX + 12 + 48 + 10) };
+  const pt = LMAP.latLngToContainerPoint([a.lat, a.lon]);
+  let dx = (c.x - pt.x) * .45, dy = (c.y - pt.y) * .45;
+  // scale the shift down until every point still sits inside the strip
+  const pts = [[CONFIG.station.lat, CONFIG.station.lon], ...S.stops.map(s => { const b = addrOf(s); return [b.lat, b.lon]; })].map(ll => LMAP.latLngToContainerPoint(ll));
+  let t = 1;
+  pts.forEach(q => { if (dx > 0 && q.x + dx > keep.x1) t = Math.min(t, Math.max(0, (keep.x1 - q.x) / dx)); if (dx < 0 && q.x + dx < keep.x0) t = Math.min(t, Math.max(0, (keep.x0 - q.x) / dx)); if (dy > 0 && q.y + dy > keep.y1) t = Math.min(t, Math.max(0, (keep.y1 - q.y) / dy)); if (dy < 0 && q.y + dy < keep.y0) t = Math.min(t, Math.max(0, (keep.y0 - q.y) / dy)); });
+  dx *= t; dy *= t; if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+  LMAP.panBy([-dx, -dy], { animate: true, duration: .55, easeLinearity: .25 });
+}
 function selectStop(id) {
   const next = S.sel === id ? null : id; const inp = $('#addr'); const kbUp = !!document.querySelector('.phone.kb');
   if (inp) inp.blur();
-  const show = () => { S.sel = next; S.pv = 'half'; if (S.sel && S.sel !== 'hq') warmStop(S.sel); S.rise = !!next; render(); };
-  if (kbUp && next) later(show, 540); else show();
+  const show = () => { S.sel = next; S.pv = 'half'; if (S.sel && S.sel !== 'hq') warmStop(S.sel); S.rise = !!next; render(); if (next) nudgeTo(next); };
+  // The bar is told to hold its place now, before the keyboard under it has gone.
+  const bar = $('#addrbar'); if (kbUp && next && bar) bar.classList.add('up');
+  if (kbUp && next) later(show, 380); else show();
 }
 // Street-level photographs shown in the preview instead of the satellite
 // square. Every one is a Google Street View still, fetched through
@@ -343,7 +363,7 @@ function previewHTML(id) {
   const a = addrOf(id), done = S.done.has(id), es = entriesOf(id), hist = HISTORY[id] || [];
   const status = done ? 'Completed · ' + es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') : es.length ? es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' so far' : hist.length ? 'Last inspected ' + fmtDate(hist[0].date) : 'Never inspected';
   const map = streetHTML(id, a.addr);
-  const head = `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx pvtrash" id="pvRm" title="Remove from list">${I('trash', 16)}</button></div>`;
+  const head = `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx" id="pvX" title="Close" aria-label="Close">${I('x', 14, 2.4)}</button></div>`;
   const stat = `<div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>`;
   // One sheet: at half it is the stop card; dragged (or started) to full the
   // location home continues under the same header. The home is built at half
@@ -356,7 +376,7 @@ function previewHTML(id) {
 // it stays reachable whether the sheet is at half height or pulled up.
 function startPillHTML(id) {
   const done = S.done.has(id), n = entriesOf(id).length;
-  return `<button class="btn pvgo" id="pvGo"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
+  return `<button class="pvtrash2" id="pvRm" title="Remove this address" aria-label="Remove this address">${I('trash', 17)}</button><button class="btn pvgo" id="pvGo"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
 }
 // Everything the pulled-up sheet will show is fetched the moment a stop is added, so
 // dragging up (or Start) finds it already there: the Maps script, the lot view itself
@@ -390,7 +410,11 @@ function stopRows() {
 VIEWS = {
   map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">${I('menu')}</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
 
-  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''} ${S.sel && S.stops.includes(S.sel) ? '' : 'solo'}"><input id="addr" placeholder="Add an address" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div>${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`,
+  ${(() => { const pv = !!(S.sel && (S.stops.includes(S.sel) || S.sel === 'hq'));
+  // The address bar is its own element above the sheet: it holds its place while the keyboard
+  // goes and the sheet slides up beneath it, and it rides the keyboard at the keyboard's own speed.
+  return `<div class="addrbar${pv ? ' up' : ''}${pv && S.pv === 'full' ? ' full' : ''}" id="addrbar"><div class="addr"><input id="addr" placeholder="Add an address" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><div class="sugg" id="sugg" style="display:none"></div></div></div>
+  <div class="sheet ${pv ? 'preview ' + (S.pv || 'half') + (S.rise ? ' rise' : '') : ''}" id="sheet"><div class="handle" id="handle" ${pv ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${pv ? previewHTML(S.sel) : ''}${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`; })()}`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
     const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
@@ -485,20 +509,15 @@ AFTER = {
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
     handle.onclick = () => { if (moved || !S.sel) return; settleSheet(S.pv === 'full' ? 'half' : 'full'); };
     sizeSheet();
-    // The rise: the sheet starts as the pill strip and grows to half; the pill
-    // widens back from full to its mini width in step, and Start fades in after.
-    if (S.rise) { S.rise = false; if (sheet.classList.contains('preview')) { const ad = $('.addr'), pg = $('#pvGo');
-      // .prep switches the sheet's and the pill's transitions off (they are !important in the stylesheet) while the start values are set.
-      sheet.classList.add('prep'); sheet.style.height = '104px'; if (ad) ad.style.width = 'calc(100% - 36px)'; if (pg) pg.style.opacity = '0';
-      sheet.getBoundingClientRect(); sheet.classList.remove('prep');
-      requestAnimationFrame(() => { settleSheet('half'); if (ad) ad.style.width = ''; later(() => { if (pg) pg.style.opacity = ''; }, 420); }); } }
+    // The rise: the sheet is painted translated below the frame (.rise) and slides up to its detent on the next frame.
+    if (S.rise) { S.rise = false; if (sheet.classList.contains('rise')) { sheet.getBoundingClientRect(); requestAnimationFrame(() => sheet.classList.remove('rise')); } }
     sheet.ontransitionend = e => { if (e.target !== sheet || !(e.propertyName === 'height' || e.propertyName === 'bottom') || !canAnimate()) return; fitMap(); };
     const ord = $('#order'); if (ord && 'ResizeObserver' in window) { let last = ord.offsetHeight + 'x' + ord.offsetWidth; const ro = new ResizeObserver(() => { const now = ord.offsetHeight + 'x' + ord.offsetWidth; if (now === last) return; last = now; fitMap(true); }); ro.observe(ord); }
     let vy = 0, ly = 0, lt = 0;
     handle.onpointerdown = e => { if (settling) return; sy = ly = e.clientY; lt = performance.now(); vy = 0; sh = sheet.offsetHeight; moved = false; handle.setPointerCapture(e.pointerId); sheet.classList.add('drag'); };
     handle.onpointermove = e => { if (!sheet.classList.contains('drag')) return; const now = performance.now(); const dt = Math.max(1, now - lt); vy = vy * .6 + ((ly - e.clientY) / dt) * .4; ly = e.clientY; lt = now; const dy = sy - e.clientY; if (Math.abs(dy) > 4) moved = true;
       // past the top detent the sheet resists like rubber
-      const max = sheetFullPx(sheet), raw = sh + dy, over = raw - max; sheet.style.height = (over > 0 ? max + over * .18 : Math.max(90, raw)) + 'px'; };
+      const max = sheetFullPx(sheet), raw = sh + dy, over = raw - max, hNow = over > 0 ? max + over * .18 : Math.max(90, raw); sheet.style.height = hNow + 'px'; };
     handle.onpointerup = handle.onpointercancel = e => { if (!sheet.classList.contains('drag')) return; sheet.classList.remove('drag'); later(() => moved = false, 50);
       if (!S.sel) { sheet.style.height = ''; return; }
       const h0 = sheet.offsetHeight, half = sheetHalfPx(sheet), full = sheetFullPx(sheet), flick = Math.abs(vy) > .9;
@@ -511,7 +530,7 @@ AFTER = {
     const ad = $('.addr'); if (ad && S.sel) {
       ad.addEventListener('pointerdown', e => {
         e.preventDefault(); if (ad.classList.contains('open')) return;
-        ad.classList.add('open'); $('#sheet').classList.add('leaving');
+        ad.classList.add('open'); $('#sheet').classList.add('leaving'); $('#addrbar').classList.remove('full'); $('#addrbar').style.opacity = '';
         inp.focus({ preventScroll: true });                       // keyboard rises → the sheet (and the pill with it) ascends
         setTimeout(() => { S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) f.focus({ preventScroll: true }); }, 420);
       });
@@ -521,9 +540,10 @@ AFTER = {
     const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
     const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
+    const pvx = $('#pvX'); if (pvx) pvx.onclick = () => settleSheet('close');   // the same slide down as pulling the sheet away
     const pvc2 = $('#pvClose2'); if (pvc2) pvc2.onclick = () => { S.sel = null; render(); };
     const pvr = $('#pvRm'); if (pvr) pvr.onclick = () => { const id = S.sel; const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); S.sel = null; render(); };
-      if (n) confirmSheet('Remove this stop?', addrOf(id).addr + ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.', [{ label: 'Remove', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); };
+      confirmSheet('Remove this address?', addrOf(id).addr + (n ? ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.' : ' will come off today’s route.'), [{ label: 'Remove', cls: 'danger', fn: rm }, { label: 'Keep', cls: 'ghost' }]); };
     wireRows(); paintRoute();
   },
   days() { const q = $('#dq'); q.oninput = () => { S.days.q = q.value; const pos = q.selectionStart; render(); const q2 = $('#dq'); q2.focus(); q2.setSelectionRange(pos, pos); };
@@ -533,7 +553,10 @@ AFTER = {
   location() { locationAfter(); }, camera() { cameraAfter(); }, record() { recordAfter(); }, deck() { deckAfter(); }, report() { reportAfter(); }, notice() { noticeAfter(); }, kb() { kbAfter(); },
 };
 // Preview detents in pixels: half ends just under the photo; full is 90% of the screen.
-function sheetHalfPx(sheet) { const m = sheet.querySelector('#pvmap'); if (!m) return Math.round(sheet.parentElement.offsetHeight * .36); return Math.round(m.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top + 124); }
+// Half is the keyboard's height: the bar sits 28 px above the keyboard when it is up and 12 px above the
+// half sheet when a stop is chosen, so the keyboard going down and the sheet coming up leave it exactly where it was.
+const HALF_PX = 278;
+function sheetHalfPx() { return HALF_PX; }
 function sheetFullPx(sheet) { return S.sel === 'hq' ? Math.round(sheet.parentElement.offsetHeight * .9) : sheet.parentElement.offsetHeight - 54; }
 function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.style.transition = 'none'; sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.style.transition = ''; }
 let settling = false;
@@ -544,7 +567,7 @@ function settleSheet(target) {
   sheet.style.transition = 'height .62s cubic-bezier(.22,1,.36,1)';
   requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
   let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
-    if (target === 'close') { S.sel = null; render(); } else { const was = S.pv; S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (was !== target && S.sel !== 'hq') { if (target === 'full') { S.cur = S.sel; S.snapshot = null; if (!S.tab) S.tab = 'today'; } render(); } } };
+    if (target === 'close') { S.sel = null; render(); } else { const was = S.pv; S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (was !== target && S.sel !== 'hq') { if (target === 'full') { S.cur = S.sel; S.snapshot = null; if (!S.tab) S.tab = 'today'; } render(); } } };
   const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
   sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 720);
 }
@@ -552,7 +575,7 @@ function wireRows() { const rows = $('#rows'); if (!rows) return;
   rows.querySelectorAll('.cn[data-id]').forEach(node => { const id = node.dataset.id;
     node.onclick = e => { if (e.target.closest('.rm')) return; S.cur = id; S.snapshot = null; S.tab = 'today'; go('location'); };
     node.querySelector('.rm').onclick = e => { e.stopPropagation(); const n = entriesOf(id).length; const rm = () => { S.stops = S.stops.filter(x => x !== id); S.done.delete(id); if (S.sel === id) S.sel = null; render(); };
-      if (n) confirmSheet('Remove this stop?', addrOf(id).addr + ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.', [{ label: 'Remove', fn: rm }, { label: 'Keep', cls: 'ghost' }]); else rm(); }; }); }
+      confirmSheet('Remove this address?', addrOf(id).addr + (n ? ' has ' + n + ' entr' + (n === 1 ? 'y' : 'ies') + ' today.' : ' will come off today’s route.'), [{ label: 'Remove', cls: 'danger', fn: rm }, { label: 'Keep', cls: 'ghost' }]); }; }); }
 
 
 function openMenu() { const el = document.createElement('div'); el.className = 'drawer'; el.innerHTML = `<div class="scrim"></div><div class="pane"><div class="hero" style="margin-bottom:22px">${esc(CONFIG.inspector.name)}<small>${esc(CONFIG.inspector.badge)} · ${esc(CONFIG.unit)}</small></div><div class="uc"><div class="uc-ic">${I('cog', 22, 1.8)}</div><div class="uc-t">Under construction</div><div class="uc-s">Previous inspections, saved lookups, profile and settings are coming in a later build.</div></div></div>`; $('#app').appendChild(el); el.querySelector('.scrim').onclick = () => el.classList.add('out') || setTimeout(() => el.remove(), 320); }
@@ -1663,10 +1686,12 @@ restoreLookups();
 // underneath; when the app is ready the dark lifts and the reticle finishes
 // its turn by landing on HQ, where the map's own corner marker takes over.
 function coldStart() { const ph = document.querySelector('.phone'); if (!ph || document.getElementById('boot')) return; const b = document.createElement('div'); b.id = 'boot'; b.innerHTML = `<div class="boot-l"><span>LOADING</span></div><div class="boot-sweep"></div>`; ph.appendChild(b);
-  const ret = document.createElement('div'); ret.className = 'bootret'; ret.setAttribute('aria-hidden', 'true'); ph.appendChild(ret); ph.classList.add('booting', 'snapping');
+  const ret = document.createElement('div'); ret.className = 'bootret'; ret.innerHTML = '<i></i><i></i><i></i><i></i>'; ret.setAttribute('aria-hidden', 'true'); ph.appendChild(ret); ph.classList.add('booting', 'snapping');
+  // LOADING and the reticle fade in together → READY, both green → READY fades → the reticle turns amber → it flies to HQ.
   setTimeout(() => { b.classList.add('ready'); ret.classList.add('ready'); b.querySelector('.boot-l span').textContent = 'READY'; }, 1100);
-  setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); snapToHQ(ret, ph); }, 1500);
-  setTimeout(() => { b.remove(); ph.classList.remove('booted'); }, 2300); }
+  setTimeout(() => b.classList.add('bye'), 1500);
+  setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); snapToHQ(ret, ph); }, 1800);
+  setTimeout(() => { b.remove(); ph.classList.remove('booted'); }, 2650); }
 // The flight: the spin is a CSS animation, so its current angle is read off
 // the transform and the reticle continues to the end of that turn while it
 // moves and shrinks onto the HQ corners (44 px, amber). The real marker is
@@ -1674,7 +1699,7 @@ function coldStart() { const ph = document.querySelector('.phone'); if (!ph || d
 function snapToHQ(ret, ph) {
   const target = (LFOCUS && LFOCUS.getElement()) || document.querySelector('.lpin.station');
   let ang = 0; try { const m = new DOMMatrixReadOnly(getComputedStyle(ret).transform); ang = Math.atan2(m.b, m.a) * 180 / Math.PI; if (ang < 0) ang += 360; } catch (e) { /* no transform yet */ }
-  ret.style.transform = `rotate(${ang.toFixed(1)}deg)`; ret.classList.add('snap'); ret.getBoundingClientRect();
+  ret.style.transform = `rotate(${ang.toFixed(1)}deg)`; ret.classList.add('snap', 'amber'); ret.getBoundingClientRect();   // amber as it starts to shrink
   const done = () => { ph.classList.remove('snapping'); ret.style.opacity = '0'; setTimeout(() => ret.remove(), 240); };
   if (!target) { ret.style.opacity = '0'; setTimeout(done, 400); return; }
   const pr = ph.getBoundingClientRect(), r = target.getBoundingClientRect(), size = 44;
