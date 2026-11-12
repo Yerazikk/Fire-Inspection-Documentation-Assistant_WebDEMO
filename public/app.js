@@ -302,7 +302,15 @@ function mapSVG() {
   ${S.stops.map((id, i) => { const a = addrOf(id); const done = S.done.has(id); return `<g class="pin ${done ? 'done' : ''} ${S.sel === id ? 'sel' : ''}" data-pin="${id}" style="cursor:pointer"><circle class="halo" cx="${a.x}" cy="${a.y}" r="4.4"/><circle class="body" cx="${a.x}" cy="${a.y}" r="2.7" fill="${done ? '#1f6f49' : '#35e0ff'}" stroke="#0b0f17" stroke-width=".6"/><text x="${a.x}" y="${a.y + .95}" font-size="2.6" font-weight="700" fill="${done ? '#b9f5cf' : '#06101a'}" text-anchor="middle" font-family="-apple-system,sans-serif">${done ? '✓' : i + 1}</text></g>`; }).join('')}
   </svg>`;
 }
-function selectStop(id) { S.sel = S.sel === id ? null : id; S.pv = 'half'; if (S.sel && S.sel !== 'hq') warmStop(S.sel); const inp = $('#addr'); if (inp) inp.blur(); render(); }
+// Tapping a pin: the keyboard, if it is up, goes down first; then the half
+// sheet grows up from behind the address pill, which stays where it is (the
+// sheet is bottom-anchored, so growing its height is the rise). Nothing jumps.
+function selectStop(id) {
+  const next = S.sel === id ? null : id; const inp = $('#addr'); const kbUp = !!document.querySelector('.phone.kb');
+  if (inp) inp.blur();
+  const show = () => { S.sel = next; S.pv = 'half'; if (S.sel && S.sel !== 'hq') warmStop(S.sel); S.rise = !!next; render(); };
+  if (kbUp && next) later(show, 540); else show();
+}
 // Street-level photographs shown in the preview instead of the satellite
 // square. Every one is a Google Street View still, fetched through
 // api/streetview.js — which keeps the key on the server and, more to the
@@ -338,9 +346,11 @@ function previewHTML(id) {
   const head = `<div class="pvhead"><div class="pvtitle">${esc(a.addr)}</div><button class="pvx pvtrash" id="pvRm" title="Remove from list">${I('trash', 16)}</button></div>`;
   const stat = `<div class="pvstat"><span>${status}${approxNote(id)}</span><span class="pvwhere">${esc(a.where || '')}</span></div>`;
   // One sheet: at half it is the stop card; dragged (or started) to full the
-  // location home continues under the same header.
-  if (S.pv === 'full') { S.cur = id; const l = locationBody(); return `${head}${map}<div class="pvmore pvhome">${stat}${l.body}</div><div class="pvfoot">${l.bottom}</div>`; }
-  return `${head}${map}${stat}`;
+  // location home continues under the same header. The home is built at half
+  // as well — hidden under the status line, imagery already loading — so the
+  // drag reveals it rather than an empty sheet that fills in on settle.
+  S.cur = id; const l = locationBody();
+  return `${head}${map}<div class="pvmore pvhome">${stat}${l.body}</div><div class="pvfoot">${l.bottom}</div>`;
 }
 // The one action the preview always offers, pinned beside the address pill so
 // it stays reachable whether the sheet is at half height or pulled up.
@@ -380,7 +390,7 @@ function stopRows() {
 VIEWS = {
   map: () => `<div class="mapwrap" id="map"></div><div class="mtop"><div class="ib" id="menu">${I('menu')}</div><div class="mtr"><div class="seg" id="basemap" role="radiogroup" aria-label="Map style"><button class="${S.basemap === 'sat' ? 'on' : ''}" data-bm="sat" title="Satellite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/><circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/></svg><span>Satellite</span></button><button class="${S.basemap === 'map' ? 'on' : ''}" data-bm="map" title="Roads"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21l3-18M17 21l-3-18"/><path d="M12 5v2M12 11v2M12 17v2" stroke-dasharray="2 2"/></svg><span>Roads</span></button></div></div></div>
 
-  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''} ${S.sel && S.stops.includes(S.sel) ? '' : 'solo'}"><input id="addr" placeholder="Add an address for today" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div>${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`,
+  <div class="sheet ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'preview ' + (S.pv || 'half') : ''}" id="sheet"><div class="handle" id="handle" ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? previewHTML(S.sel) : ''}<div class="addr ${S.sel && (S.stops.includes(S.sel) || S.sel === 'hq') ? 'mini' : ''} ${S.sel && S.stops.includes(S.sel) ? '' : 'solo'}"><input id="addr" placeholder="Add an address" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span class="addlbl" aria-hidden="true">＋ Add address</span><div class="sugg" id="sugg" style="display:none"></div></div>${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
     const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
@@ -475,6 +485,13 @@ AFTER = {
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
     handle.onclick = () => { if (moved || !S.sel) return; settleSheet(S.pv === 'full' ? 'half' : 'full'); };
     sizeSheet();
+    // The rise: the sheet starts as the pill strip and grows to half; the pill
+    // widens back from full to its mini width in step, and Start fades in after.
+    if (S.rise) { S.rise = false; if (sheet.classList.contains('preview')) { const ad = $('.addr'), pg = $('#pvGo');
+      // .prep switches the sheet's and the pill's transitions off (they are !important in the stylesheet) while the start values are set.
+      sheet.classList.add('prep'); sheet.style.height = '104px'; if (ad) ad.style.width = 'calc(100% - 36px)'; if (pg) pg.style.opacity = '0';
+      sheet.getBoundingClientRect(); sheet.classList.remove('prep');
+      requestAnimationFrame(() => { settleSheet('half'); if (ad) ad.style.width = ''; later(() => { if (pg) pg.style.opacity = ''; }, 420); }); } }
     sheet.ontransitionend = e => { if (e.target !== sheet || !(e.propertyName === 'height' || e.propertyName === 'bottom') || !canAnimate()) return; fitMap(); };
     const ord = $('#order'); if (ord && 'ResizeObserver' in window) { let last = ord.offsetHeight + 'x' + ord.offsetWidth; const ro = new ResizeObserver(() => { const now = ord.offsetHeight + 'x' + ord.offsetWidth; if (now === last) return; last = now; fitMap(true); }); ro.observe(ord); }
     let vy = 0, ly = 0, lt = 0;
@@ -500,7 +517,7 @@ AFTER = {
       });
     }
     const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { S.cur = S.sel; S.snapshot = null; S.tab = 'today'; settleSheet('full'); };
-    if (S.sel && S.pv === 'full' && S.stops.includes(S.sel)) { S.cur = S.sel; locationAfter(); }
+    if (S.sel && S.stops.includes(S.sel)) { S.cur = S.sel; locationAfter(); }
     const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
     const pvc = $('#pvClose'); if (pvc) pvc.onclick = () => { S.sel = null; render(); };
@@ -907,7 +924,7 @@ const SCANFX = (() => {
     // end. Outside to the right when there is room, outside to the left when not, and inside
     // the box (kinking down) when the box spans the frame. The HUD owns the top 150 px, so
     // nothing is placed above it, and labels already placed push a new one down.
-    const fs = 11, tw = b.label.length * fs * .62 + 14, kd = 16, run = 38, TOP = ar.closest('.cam') ? 150 : 14;
+    const fs = 11.5, tw = b.label.length * fs * .56 + 14, kd = 16, run = 38, TOP = ar.closest('.cam') ? 150 : 14;
     const placed = ar._labels || (ar._labels = []);
     const hits = r => placed.some(q => r.x < q.x + q.w && r.x + r.w > q.x && r.y < q.y + q.h && r.y + r.h > q.y);
     let sx, py, dir, down, anchor;
@@ -1176,7 +1193,7 @@ function saveRecord() { const list = entriesOf(S.cur); const i = list.findIndex(
 // acts on, so it no longer sits in the heading of every record; the document
 // footers still name it, which is where the provenance trail belongs.
 function provChip(ai) {
-  if (!ai || ai.source === 'template') return '<span class="chip amber" style="margin-left:8px;font-weight:600">Template · not this property</span>';
+  if (!ai || ai.source === 'template') return '<span class="provt">· template, not this property</span>';
   return '';
 }
 
@@ -1252,19 +1269,19 @@ function overlay(sc, cls, size) { if (!sc) return ''; const lab = cls === 'lab';
   const issue = sc.issue ? `<div class="bx issue ${sc.issue.tone}" style="left:${sc.issue.box[0]}%;top:${sc.issue.box[1]}%;width:${sc.issue.box[2]}%;height:${sc.issue.box[3]}%">${lab ? `<span class="il">${esc(sc.issue.label)}</span>` : ''}</div>` : '';
   return `<div class="ov ${cls || ''}">${(sc.boxes || []).map(b => `<div class="bx ${b.tone}" style="left:${b.box[0]}%;top:${b.box[1]}%;width:${b.box[2]}%;height:${b.box[3]}%">${lab ? `<span>${esc(b.label)}</span>` : ''}</div>`).join('')}${issue}</div>`; }
 function recordView() { const r = S.rec; const ed = (path, v) => `<span class="ed" data-path="${path}">${esc(v)}</span>`; const fld = (k, val) => `<div class="fld"><b>${esc(k)}</b>${val}</div>`; const card = (title, body, delay, key) => `<section class="rsec edcard" data-key="${key || title}" style="animation-delay:${delay}s"><h4>${title}<button class="edbtn main" data-edit>Edit</button></h4>${body}</section>`;
-  const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note'; const sevColor = r.kind === 'violation' ? 'var(--red)' : r.kind === 'compliance' ? 'var(--green)' : 'var(--amber)';
+  const kindT = r.kind === 'violation' ? 'Violation' : r.kind === 'compliance' ? 'Compliant' : 'Note';
   const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">ORIGINAL</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan, '', r.photoSize)}<span class="lab">SCANNED</span></div></div>` : '';
   const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
-  <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note ${r.spoken ? `<span class="chip cyan" style="margin:0 0 0 8px;padding:3px 8px">${r.voice ? 'Voice · ' + clipLen(r.voice.ms) : 'Voice · transcribed'}</span>` : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
+  <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note${r.spoken ? ' · voice' + (r.voice ? ' ' + clipLen(r.voice.ms) : '') : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => fld(x[0], ed('summary.' + i + '.1', x[1]))).join('') + provNote(r.ai), .1, 'summary')}
-  ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', `<div class="sev"><div class="ring" style="background:conic-gradient(${sevColor} 0 ${Math.max(r.ai.severity.score, 6)}%,rgba(255,255,255,.08) ${Math.max(r.ai.severity.score, 6)}% 100%)"><i style="color:${sevColor}">${r.kind === 'violation' ? r.ai.severity.score : I('check', 16, 2.6)}</i></div><div><div style="font-weight:650;font-size:16px">${ed('severity.level', r.ai.severity.level)}</div></div></div>${fld('Why', ed('severity.why', r.ai.severity.why))}<div style="margin-top:8px">${r.ai.category.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`, .2, 'severity')}
+  ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', fld('Level', ed('severity.level', r.ai.severity.level)) + (r.kind === 'violation' ? fld('Score', `<span>${esc(String(r.ai.severity.score))} / 100</span>`) : '') + fld('Why', ed('severity.why', r.ai.severity.why)) + (r.ai.category.length ? fld('Category', `<span>${r.ai.category.map(esc).join(' · ')}</span>`) : ''), .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => fld(x[0], ed('estimates.' + i + '.1', x[1]))).join(''), .3, 'estimates') : ''}
-  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div style="margin:6px 0"><span class="chip ${c.scope === 'Local' ? 'amber' : 'cyan'}">${esc(c.scope)} · ${esc(c.c)}</span>${c.unverified ? '<span class="chip red" title="This section is not in the department code library">not in library</span>' : ''}${c.unsourced ? '<span class="chip amber" title="In the library, but its text was never checked against a primary source">verify source</span>' : ''}${c.mirrored ? '<span class="chip amber" title="Transcribed verbatim, but from a mirror rather than the signed or official publication">confirm source</span>' : ''}${c.edition ? `<div class="ct2" style="margin-top:3px">${esc(c.edition)}</div>` : ''}<p style="margin-top:4px">${ed('codes.' + i + '.t', c.t)}</p></div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
+  ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div class="fld"><b>${esc(c.scope)} · ${esc(c.c)}${c.unverified ? ' · not in library' : ''}${c.unsourced ? ' · verify source' : ''}${c.mirrored ? ' · confirm source' : ''}</b>${c.edition ? `<i class="ed2">${esc(c.edition)}</i>` : ''}${ed('codes.' + i + '.t', c.t)}</div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<section class="rsec" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<div class="fld"><span>↳ ${esc(f)}</span></div>`).join('')}</section>` : ''}
   ${r.kind !== 'violation' ? '' : inc.length
     ? `<section class="rsec" style="animation-delay:.5s"><h4>${oneChoice(r, inc) ? 'Correction for the owner' : 'Recommendations for the owner'}<button class="edbtn main" id="openDeck">Edit</button></h4>${recBlocks(r, { opt: 'ropt', ph: 'rph' })}${dec > inc.length ? `<p class="rleft">${dec - inc.length} of ${r.recs.length} left out</p>` : ''}</section>`
-    : `<div class="docbtn" id="openDeck" style="margin-top:14px"><span class="ic">${I('deck')}</span><div><div class="t">${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</div><div class="s">${dec ? 'none included · ' + dec + ' left out of ' + r.recs.length : deckSub(r)}</div></div><span style="margin-left:auto;color:var(--cyan)">${I('nav', 16)}</span></div>`}
+    : `<section class="rsec" style="animation-delay:.5s"><div class="fld docrow" id="openDeck" role="button" tabindex="0"><b>${oneWay(r) ? 'Correction for the owner' : 'Recommendations for the owner'}</b><span>${dec ? 'none included · ' + dec + ' left out of ' + r.recs.length : deckSub(r)} ›</span></div></section>`}
   <div class="metaf fade">${r.meta.map(m => `<span><b>${esc(m[0])}</b> ${esc(m[1])}</span>`).join('')}</div>`;
   return frame(`Entry ${r.n} · ${kindT}`, addrOf(S.cur).addr, body, `<div class="row2"><button class="btn ghost" data-back>Back</button><button class="btn" id="save">Save entry</button></div>`); }
 function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const od = $('#openDeck'); if (od) od.onclick = () => { const i0 = r.recs.findIndex(x => !x.decision); S.deck = { idx: i0 < 0 ? 0 : i0 }; go('deck'); };

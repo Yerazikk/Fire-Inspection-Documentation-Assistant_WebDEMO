@@ -439,6 +439,12 @@
 .fld{margin:12px 0 2px}.fld b{display:block;font:500 13.5px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;letter-spacing:.03em;text-transform:uppercase;color:#aab2bd;margin-bottom:4px}.fld span{display:block;font-size:16.5px;line-height:1.45;color:var(--ink)}.fld span .chip{display:inline-flex}
 .rsec .ed{display:block;padding:2px 4px;margin:0 -4px;border-radius:8px}.rsec.editing .ed{outline:1px solid rgba(53,224,255,.5);background:rgba(53,224,255,.06);padding:8px 10px;margin:0 -2px}.rsec p{margin:4px 0 0;font-size:16.5px;line-height:1.45;color:var(--ink)}
 .rsec h4+.fld{margin-top:4px}
+/* plain text all the way down: Edit and Play are words, the template note is a word, flags are words in the label */
+.rsec h4 .edbtn,.rsec .edbtn{border:0;background:none;color:var(--faint);padding:0 2px;font:500 12.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;letter-spacing:0;text-transform:none}.rsec.editing .edbtn.main{color:var(--cyan);background:none;border:0}.rsec .revert{color:var(--amber)}
+.rsec .provt{margin-left:6px;color:var(--amber);font-weight:500;text-transform:none;letter-spacing:0}
+.fld .ed2{display:block;font-style:normal;color:var(--faint);font-size:13px;line-height:1.4;margin-bottom:2px}
+.fld.docrow{cursor:pointer}.fld.docrow span{color:var(--cyan)}
+.vb{border:0;background:none;padding:0;color:var(--cyan);font-weight:500}.vb.on{background:none;color:var(--green)}
 .chip{font:600 11px/1.2 -apple-system,BlinkMacSystemFont,sans-serif;padding:4px 9px}.chip.red{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--red) 92%,#000)}.chip.amber{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--amber) 92%,#000)}.chip.green{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--green) 92%,#000)}.chip.cyan{color:#06101a;border-color:transparent;background:color-mix(in srgb,var(--cyan) 92%,#000)}
 .pbox .lab{font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.08em;background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);color:var(--cyan)}
 .docbtn .ic{background:#0b0f17;border:1px solid rgba(53,224,255,.4)}.docbtn .badge{font:600 10px/1.2 -apple-system,sans-serif;color:#06101a;background:color-mix(in srgb,var(--amber) 92%,#000);border:0;border-radius:999px;padding:4px 8px;white-space:nowrap}
@@ -450,12 +456,15 @@
 .pvfoot{position:sticky;bottom:0;margin:0 -18px;padding:30px 18px 22px;background:linear-gradient(transparent,rgba(11,15,23,.9) 38%,#0b0f17 70%);animation:fadeUp .55s .1s var(--ease) both}
 .boot-l{margin-top:4px}
 #sheet.preview.full .pvgo{display:none}#sheet.preview.full::after{display:none}
+/* the home is in the sheet at half too, under the fade; its footer (Finish / New entry) only belongs to the full detent, where the Start pill has gone */
+#sheet.prep,#sheet.prep .addr{transition:none!important}
+#sheet.preview:not(.full) .pvfoot{opacity:0;pointer-events:none}#sheet.preview.full .pvfoot{transition:opacity .25s}
 /* ---- scan fx: hairline box · pin · 45° callout · decoded label, all one line weight ---- */
 .ar{color:var(--cyan);overflow:visible;width:100%;height:100%;display:block}.ar g.bx,.ar g.issue{position:static;opacity:1;animation:none;border:0;box-shadow:none;background:none}.ar .red{color:var(--red)}.ar .green{color:var(--green)}
 .ar rect.rc{stroke:currentColor;vector-effect:non-scaling-stroke}.ar .issue rect.rc{fill-opacity:.12}
 .ar .halo{fill:currentColor;fill-opacity:.22;r:0;transition:r .5s var(--ease)}.ar .dot{fill:currentColor;r:0;transition:r .35s var(--ease)}.ar g.pinned .dot{r:3}.ar g.pinned .halo{animation:arPulse 1.6s ease-in-out infinite}@keyframes arPulse{0%,100%{r:5px}50%{r:8px}}
 .ar .lead{stroke:currentColor}
-.ar .lab{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.8);stroke-width:3px;opacity:0;transition:opacity .3s}.ar .lab.on{opacity:1}.ar .issue .lab{fill:#ffc2c8}.ar .green .lab{fill:#c8f7d8}
+.ar .lab{font:600 11.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;letter-spacing:.01em;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.8);stroke-width:3px;opacity:0;transition:opacity .3s}.ar .lab.on{opacity:1}.ar .issue .lab{fill:#ffc2c8}.ar .green .lab{fill:#c8f7d8}
 .scanline.pend{opacity:1;top:0;animation:pendPulse 1.4s ease-in-out infinite}@keyframes pendPulse{50%{opacity:.2}}
 .cam .readout{position:absolute;right:18px;top:128px;z-index:6;font:600 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--cyan);background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);border-radius:999px;padding:6px 10px;opacity:0;transform:translateY(4px);transition:opacity .35s,transform .35s,color .3s,border-color .3s;pointer-events:none;white-space:nowrap}.cam .readout.on{opacity:1;transform:none}.cam .readout.pend{animation:blink 1.4s infinite}.cam .readout.dim{color:var(--faint);border-color:var(--line)}.cam .readout.ok{color:var(--green);border-color:rgba(74,222,128,.45)}
 .pbox .ov .bx{border-radius:0}.pbox .ov .bx.issue{border-radius:0}
