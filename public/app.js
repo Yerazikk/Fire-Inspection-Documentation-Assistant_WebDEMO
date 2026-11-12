@@ -1664,7 +1664,7 @@ restoreLookups();
 // its turn by landing on HQ, where the map's own corner marker takes over.
 function coldStart() { const ph = document.querySelector('.phone'); if (!ph || document.getElementById('boot')) return; const b = document.createElement('div'); b.id = 'boot'; b.innerHTML = `<div class="boot-l"><span>LOADING</span></div><div class="boot-sweep"></div>`; ph.appendChild(b);
   const ret = document.createElement('div'); ret.className = 'bootret'; ret.setAttribute('aria-hidden', 'true'); ph.appendChild(ret); ph.classList.add('booting', 'snapping');
-  setTimeout(() => { b.classList.add('ready'); b.querySelector('.boot-l span').textContent = 'READY'; }, 1100);
+  setTimeout(() => { b.classList.add('ready'); ret.classList.add('ready'); b.querySelector('.boot-l span').textContent = 'READY'; }, 1100);
   setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); snapToHQ(ret, ph); }, 1500);
   setTimeout(() => { b.remove(); ph.classList.remove('booted'); }, 2300); }
 // The flight: the spin is a CSS animation, so its current angle is read off
@@ -1679,7 +1679,7 @@ function snapToHQ(ret, ph) {
   if (!target) { ret.style.opacity = '0'; setTimeout(done, 400); return; }
   const pr = ph.getBoundingClientRect(), r = target.getBoundingClientRect(), size = 44;
   const cx = r.left + r.width / 2 - pr.left, cy = r.top + r.height / 2 - pr.top;
-  ret.style.setProperty('--c', '#ffb648'); ret.style.setProperty('--k', '10px'); ret.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,.9))';
+  ret.style.setProperty('--k', '10px'); /* stays green for the flight; the amber HQ corners take over on landing */
   ret.style.left = cx + 'px'; ret.style.top = cy + 'px'; ret.style.width = size + 'px'; ret.style.height = size + 'px'; ret.style.margin = `${-size / 2}px 0 0 ${-size / 2}px`; ret.style.transform = 'rotate(360deg)';
   setTimeout(done, 800);
 }
