@@ -79,7 +79,7 @@
 .pvtitle{font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:pvIn .38s cubic-bezier(.2,.8,.2,1) both}
 @keyframes pvIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .pvx{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--glass2);color:var(--soft);font:700 14px/1 -apple-system,sans-serif;cursor:pointer;flex:none}
-.sat.pvmap{height:auto;aspect-ratio:2.4/1;width:100%;border-radius:22px;transition:aspect-ratio .3s;animation:pvIn .42s .05s cubic-bezier(.2,.8,.2,1) both}
+.sat.pvmap{height:auto;aspect-ratio:3.3/1;width:100%;border-radius:22px;animation:pvIn .42s .05s cubic-bezier(.2,.8,.2,1) both}
 .sat.pvmap.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .sat.pvmap.photo.missing img{display:none}
 .sat.photo.missing::after{content:"No Street View for this address";position:absolute;inset:0;display:grid;place-items:center;color:var(--faint);font-size:12px;text-align:center;padding:0 16px}
@@ -509,7 +509,7 @@
 #sheet.preview .pvgo{left:84px;right:18px;width:auto;bottom:14px}
 .pvtrash2{position:absolute;left:18px;bottom:14px;z-index:3;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,92,108,.45);background:rgba(255,92,108,.1);color:var(--red);display:grid;place-items:center;cursor:pointer;transition:opacity .22s}.pvtrash2 svg{display:block}.pvtrash2:active{background:rgba(255,92,108,.2)}
 #sheet.preview.full .pvtrash2,#sheet.preview.leaving .pvtrash2{opacity:0;pointer-events:none}
-#sheet.preview.half .sat.pvmap{aspect-ratio:3.3/1}
+
 #sheet.preview.half .pvmore{padding-top:10px}
 #sheet.preview .handle{height:22px}
 .sheet{transition:height .62s var(--ease),bottom .5s var(--ease),transform .6s var(--ease)!important}
