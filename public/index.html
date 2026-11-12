@@ -143,7 +143,7 @@
 #sheet.preview .addr.mini:not(.open){width:152px;cursor:pointer}
 #sheet.preview .addr.solo{left:50%;transform:translateX(-50%)}  /* the station preview has no Start, so the pill keeps the middle */
 #sheet.preview .pvgo{position:absolute;right:18px;bottom:28px;z-index:3;width:calc(100% - 198px);height:48px;padding:0;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;box-shadow:var(--shadow-2),inset 0 1px 0 rgba(255,255,255,.5);transition:opacity .22s}
-#sheet.preview .pvgo .ico{font-size:12px;line-height:1}
+#sheet.preview .pvgo .ico{display:inline-flex;line-height:1}#sheet.preview .pvgo .ico svg{display:block}
 #sheet.preview.leaving{background:transparent;border-top-color:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:background .3s,border-color .3s,box-shadow .3s,bottom .32s cubic-bezier(.2,.8,.2,1)}
 #sheet.preview.leaving .pvgo{opacity:0;pointer-events:none}
 #sheet.preview.leaving .handle,#sheet.preview.leaving .pvhead,#sheet.preview.leaving .pvmap,#sheet.preview.leaving .pvmore{opacity:0;transform:translateY(16px);transition:opacity .22s,transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none}
@@ -482,7 +482,7 @@
 .rsec .provt{margin-left:6px;color:var(--amber);font-weight:500;text-transform:none;letter-spacing:0}
 .fld .ed2{display:block;font-style:normal;color:var(--faint);font-size:13px;line-height:1.4;margin-bottom:2px}
 .fld.docrow{cursor:pointer}.fld.docrow span{color:var(--cyan)}
-.vb{border:0;background:none;padding:0;color:var(--cyan);font-weight:500}.vb.on{background:none;color:var(--green)}
+.vb{border:0;background:none;padding:0;color:var(--cyan);font-weight:500;display:inline-flex;align-items:center;gap:5px}.vb svg{display:block}.vb.on{background:none;color:var(--green)}
 .chip{font:600 11px/1.2 -apple-system,BlinkMacSystemFont,sans-serif;padding:4px 9px}.chip.red{color:var(--on-accent);border-color:transparent;background:color-mix(in srgb,var(--red) 92%,#000)}.chip.amber{color:var(--on-accent);border-color:transparent;background:color-mix(in srgb,var(--amber) 92%,#000)}.chip.green{color:var(--on-accent);border-color:transparent;background:color-mix(in srgb,var(--green) 92%,#000)}.chip.cyan{color:var(--on-accent);border-color:transparent;background:color-mix(in srgb,var(--cyan) 92%,#000)}
 .pbox .lab{font:600 11px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;letter-spacing:.02em;background:rgba(11,15,23,.78);border:1px solid rgba(53,224,255,.35);color:var(--cyan)}
 .docbtn .ic{background:var(--bg-1);border:1px solid rgba(53,224,255,.4)}.docbtn .badge{font:600 10px/1.2 -apple-system,sans-serif;color:var(--on-accent);background:color-mix(in srgb,var(--amber) 92%,#000);border:0;border-radius:999px;padding:4px 8px;white-space:nowrap}

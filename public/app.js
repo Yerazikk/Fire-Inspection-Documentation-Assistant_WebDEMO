@@ -376,7 +376,7 @@ function previewHTML(id) {
 // it stays reachable whether the sheet is at half height or pulled up.
 function startPillHTML(id) {
   const done = S.done.has(id), n = entriesOf(id).length;
-  return `<button class="pvtrash2" id="pvRm" title="Remove this address" aria-label="Remove this address">${I('trash', 17)}</button><button class="btn pvgo" id="pvGo"><span class="ico">${done ? '✓' : '▶'}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
+  return `<button class="pvtrash2" id="pvRm" title="Remove this address" aria-label="Remove this address">${I('trash', 17)}</button><button class="btn pvgo" id="pvGo"><span class="ico">${done ? I('check', 15, 2.4) : I('play', 15, 2)}</span>${done ? 'Open' : n ? 'Continue inspection' : 'Start inspection'}</button>`;
 }
 // Everything the pulled-up sheet will show is fetched the moment a stop is added, so
 // dragging up (or Start) finds it already there: the Maps script, the lot view itself
@@ -1296,7 +1296,7 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   const photos = r.photo ? `<div class="photos fade"><div class="pbox" id="pOrig">${img(r.photo, 'photo')}<span class="lab">ORIGINAL</span></div><div class="pbox" id="pScan">${img(r.photo, 'photo')}${overlay(r.scan, '', r.photoSize)}<span class="lab">SCANNED</span></div></div>` : '';
   const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
-  <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note${r.spoken ? ' · voice' + (r.voice ? ' ' + clipLen(r.voice.ms) : '') : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">▶ Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
+  <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note${r.spoken ? ' · voice' + (r.voice ? ' ' + clipLen(r.voice.ms) : '') : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">${I('play', 13, 2)} Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
   ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => fld(x[0], ed('summary.' + i + '.1', x[1]))).join('') + provNote(r.ai), .1, 'summary')}
   ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', fld('Level', ed('severity.level', r.ai.severity.level)) + (r.kind === 'violation' ? fld('Score', `<span>${esc(String(r.ai.severity.score))} / 100</span>`) : '') + fld('Why', ed('severity.why', r.ai.severity.why)) + (r.ai.category.length ? fld('Category', `<span>${r.ai.category.map(esc).join(' · ')}</span>`) : ''), .2, 'severity')}
   ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => fld(x[0], ed('estimates.' + i + '.1', x[1]))).join(''), .3, 'estimates') : ''}
@@ -1312,11 +1312,11 @@ function recordAfter() { const r = S.rec; $('#save').onclick = saveRecord; const
   // wrote it is not infallible, so the recording is kept as the one unedited
   // account of what the inspector actually said at the property.
   const vp = $('#vplay');
-  if (vp && r.voice) { let au = null; const idle = '▶ Play what was said';
-    const rest = () => { vp.classList.remove('on'); vp.textContent = idle; };
+  if (vp && r.voice) { let au = null; const idle = I('play', 13, 2) + ' Play what was said';
+    const rest = () => { vp.classList.remove('on'); vp.innerHTML = idle; };
     vp.onclick = () => {
       if (!au) { au = new Audio(`data:${r.voice.mimeType.split(';')[0]};base64,${r.voice.data}`); au.onended = rest; au.onerror = () => { au = null; rest(); vp.textContent = 'This browser cannot play it back'; }; }
-      if (au.paused) { vp.classList.add('on'); vp.textContent = '❙❙ Playing…'; au.play().catch(() => { rest(); vp.textContent = 'This browser cannot play it back'; }); }
+      if (au.paused) { vp.classList.add('on'); vp.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg> Playing…'; au.play().catch(() => { rest(); vp.textContent = 'This browser cannot play it back'; }); }
       else { au.pause(); au.currentTime = 0; rest(); } }; }
   wireEdits(r.ai, () => { S.recDirty = true; });
   const pic = img(r.photo, 'photo');
@@ -1584,12 +1584,12 @@ function noticeView() {
   // finding with one correct repair that is a misleading thing to send.
   const optBlock = e => { const inc = chosenRecs(e); return inc.length
     ? `<div class="ctl-row"><span class="ctl" data-deck="${e.id}">${oneChoice(e, inc) ? '1 correction' : inc.length + ' options'} · Edit ›</span></div>${recBlocks(e)}`
-    : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">▥</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
+    : `<div class="slot cta" data-deck="${e.id}"><span class="cta-ic">${I('deck', 18, 1.8)}</span><span class="cta-t">Choose what to offer for entry ${e.n}</span><span class="cta-ch">›</span></div>`; };
   const slots = {
     'what-to-do': () => viol.map(optBlock).join(''),
     'attached-documents': () => att.length || ns.own.length
       ? `<div class="ctl-row"><span class="ctl" data-go="kb">${att.length + ns.own.length} attached · Edit ›</span><span class="ctl" id="addOwn">+ Add your own</span></div><div class="eatts">${att.map(k => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(k.title)}</b><span>${esc(k.src)} · ${esc(k.size)}</span></div></div>`).join('')}${ns.own.map(o => `<div class="eatt"><span class="eatt-ic">PDF</span><div><b>${esc(o)}</b><span>from this device</span></div></div>`).join('')}</div>`
-      : `<div class="slot cta" data-go="kb"><span class="cta-ic">📎</span><span class="cta-t">Find supporting documents</span><span class="cta-ch">›</span></div><div class="ctl-row" style="justify-content:flex-start"><span class="ctl" id="addOwn">+ Add your own</span></div>`,
+      : `<div class="slot cta" data-go="kb"><span class="cta-ic">${I('clip', 18, 1.8)}</span><span class="cta-t">Find supporting documents</span><span class="cta-ch">›</span></div><div class="ctl-row" style="justify-content:flex-start"><span class="ctl" id="addOwn">+ Add your own</span></div>`,
   };
   const used = new Set();
   const letter = d ? `<div class="mail fade"><div class="hd"><b>${esc(d.subject || '')}</b><div class="tol">To: ${toCtl}</div>From: ${esc(CONFIG.inspector.name)}, ${esc(CONFIG.unit)} · ${esc(CONFIG.inspector.email)}</div>
