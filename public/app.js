@@ -369,7 +369,7 @@ function previewHTML(id) {
   // location home continues under the same header. The home is built at half
   // as well — hidden under the status line, imagery already loading — so the
   // drag reveals it rather than an empty sheet that fills in on settle.
-  S.cur = id; const l = locationBody();
+  S.cur = id; S.snapshot = null; if (!S.tab) S.tab = 'today'; const l = locationBody();
   return `${head}${map}<div class="pvmore pvhome">${stat}${l.body}</div><div class="pvfoot">${l.bottom}</div>`;
 }
 // The one action the preview always offers, pinned beside the address pill so
@@ -558,16 +558,19 @@ AFTER = {
 const HALF_PX = 278;
 function sheetHalfPx() { return HALF_PX; }
 function sheetFullPx(sheet) { return S.sel === 'hq' ? Math.round(sheet.parentElement.offsetHeight * .9) : sheet.parentElement.offsetHeight - 54; }
-function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.style.transition = 'none'; sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.style.transition = ''; }
+function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.classList.add('prep'); sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.classList.remove('prep'); }
 let settling = false;
 function settleSheet(target) {
-  const sheet = $('#sheet'); if (!sheet || settling) return; settling = true;
+  const sheet = $('#sheet'); if (!sheet || settling) return; settling = true; const fromFull = S.pv === 'full';
   const to = target === 'full' ? sheetFullPx(sheet) : target === 'half' ? sheetHalfPx(sheet) : 0;
   sheet.classList.remove('drag'); sheet.classList.add('settling');
   sheet.style.transition = 'height .62s cubic-bezier(.22,1,.36,1)';
   requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
   let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
-    if (target === 'close') { S.sel = null; render(); } else { const was = S.pv; S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (was !== target && S.sel !== 'hq') { if (target === 'full') { S.cur = S.sel; S.snapshot = null; if (!S.tab) S.tab = 'today'; } render(); } } };
+    if (target === 'close') { S.sel = null; render();
+      // closing from full: the bar was hidden under the sheet, so it appears at the bottom instead of sliding down from mid-screen
+      const b = $('#addrbar'); if (fromFull && b) { b.classList.add('jump', 'hide'); b.classList.remove('up', 'full'); b.getBoundingClientRect(); b.classList.remove('jump'); requestAnimationFrame(() => b.classList.remove('hide')); } }
+    else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (target === 'full') { S.cur = S.sel; } } };
   const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
   sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 720);
 }
