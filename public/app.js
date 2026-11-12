@@ -1659,9 +1659,29 @@ setInterval(() => { const sb = document.querySelector('.sb span'); if (sb) sb.te
 // demo seed: nothing on the route yet (the inspector types addresses); press R to reset.
 // Past site lookups come back from localStorage first, so they are in the typeahead.
 restoreLookups();
-function coldStart() { const ph = document.querySelector('.phone'); if (!ph || document.getElementById('boot')) return; const b = document.createElement('div'); b.id = 'boot'; b.innerHTML = `<div class="boot-mark"><i></i><i></i><i></i></div><div class="boot-l"><span>LOADING</span></div><div class="boot-sweep"></div>`; ph.appendChild(b); ph.classList.add('booting');
+// Cold start: a four-corner reticle spins over the dark while the map mounts
+// underneath; when the app is ready the dark lifts and the reticle finishes
+// its turn by landing on HQ, where the map's own corner marker takes over.
+function coldStart() { const ph = document.querySelector('.phone'); if (!ph || document.getElementById('boot')) return; const b = document.createElement('div'); b.id = 'boot'; b.innerHTML = `<div class="boot-l"><span>LOADING</span></div><div class="boot-sweep"></div>`; ph.appendChild(b);
+  const ret = document.createElement('div'); ret.className = 'bootret'; ret.setAttribute('aria-hidden', 'true'); ph.appendChild(ret); ph.classList.add('booting', 'snapping');
   setTimeout(() => { b.classList.add('ready'); b.querySelector('.boot-l span').textContent = 'READY'; }, 1100);
-  setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); }, 1500);
+  setTimeout(() => { b.classList.add('out'); ph.classList.remove('booting'); ph.classList.add('booted'); snapToHQ(ret, ph); }, 1500);
   setTimeout(() => { b.remove(); ph.classList.remove('booted'); }, 2300); }
+// The flight: the spin is a CSS animation, so its current angle is read off
+// the transform and the reticle continues to the end of that turn while it
+// moves and shrinks onto the HQ corners (44 px, amber). The real marker is
+// kept invisible until the reticle has landed on it, then the two swap.
+function snapToHQ(ret, ph) {
+  const target = (LFOCUS && LFOCUS.getElement()) || document.querySelector('.lpin.station');
+  let ang = 0; try { const m = new DOMMatrixReadOnly(getComputedStyle(ret).transform); ang = Math.atan2(m.b, m.a) * 180 / Math.PI; if (ang < 0) ang += 360; } catch (e) { /* no transform yet */ }
+  ret.style.transform = `rotate(${ang.toFixed(1)}deg)`; ret.classList.add('snap'); ret.getBoundingClientRect();
+  const done = () => { ph.classList.remove('snapping'); ret.style.opacity = '0'; setTimeout(() => ret.remove(), 240); };
+  if (!target) { ret.style.opacity = '0'; setTimeout(done, 400); return; }
+  const pr = ph.getBoundingClientRect(), r = target.getBoundingClientRect(), size = 44;
+  const cx = r.left + r.width / 2 - pr.left, cy = r.top + r.height / 2 - pr.top;
+  ret.style.setProperty('--c', '#ffb648'); ret.style.setProperty('--k', '10px'); ret.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,.9))';
+  ret.style.left = cx + 'px'; ret.style.top = cy + 'px'; ret.style.width = size + 'px'; ret.style.height = size + 'px'; ret.style.margin = `${-size / 2}px 0 0 ${-size / 2}px`; ret.style.transform = 'rotate(360deg)';
+  setTimeout(done, 800);
+}
 coldStart();
 render();
