@@ -63,7 +63,7 @@ function render() { const app = $('#app');
   if (S.screen === 'map' && lastScreen === 'map' && $('#map') && LWRAP && LWRAP.parentElement === $('#map') && $('#sheet')) {
     // the map stays put; only the sheet (and its wiring) is rebuilt
     const tmp = document.createElement('div'); tmp.innerHTML = VIEWS.map();
-    const fresh = tmp.querySelector('#sheet'); if (fresh) { const ae = document.activeElement; if (ae && $('#sheet').contains(ae)) ae.blur(); $('#sheet').replaceWith(fresh); }
+    const fresh = tmp.querySelector('#sheet'); if (fresh) { const old = $('#sheet'); if (old.dataset.key && old.dataset.key === fresh.dataset.key) { fresh.classList.add('still'); fresh.style.height = old.style.height; if (old.classList.contains('top')) fresh.classList.add('top'); } const ae = document.activeElement; if (ae && old.contains(ae)) ae.blur(); old.replaceWith(fresh); }
     const ab = $('#addrbar'), nb = tmp.querySelector('#addrbar'); if (ab && nb) { ab.className = nb.className; ab.style.opacity = ''; }
     AFTER.map(); renderHelp(); window.renderRail && renderRail(); return;
   }
@@ -414,7 +414,7 @@ VIEWS = {
   // The address bar is its own element above the sheet: it holds its place while the keyboard
   // goes and the sheet slides up beneath it, and it rides the keyboard at the keyboard's own speed.
   return `<div class="addrbar${pv ? ' up' : ''}${pv && S.pv === 'full' ? ' full' : ''}" id="addrbar"><div class="addr"><input id="addr" placeholder="Add an address" autocomplete="off"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><div class="sugg" id="sugg" style="display:none"></div></div></div>
-  <div class="sheet ${pv ? 'preview ' + (S.pv || 'half') + (S.rise ? ' rise' : '') : ''}" id="sheet"><div class="handle" id="handle" ${pv ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${pv ? previewHTML(S.sel) : ''}${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`; })()}`,
+  <div class="sheet ${pv ? 'preview ' + (S.pv || 'half') + (S.rise ? ' rise' : '') : ''}" id="sheet" data-key="${pv ? (S.sel || '') + ':' + (S.pv || 'half') : ''}"><div class="handle" id="handle" ${pv ? '' : 'style="display:none"'}><i></i></div><div class="sbody">${pv ? previewHTML(S.sel) : ''}${S.sel && S.stops.includes(S.sel) ? startPillHTML(S.sel) : ''}</div></div>`; })()}`,
   days: () => { const q = S.days.q.toLowerCase(); const today = { label: 'Today', date: todayISO(), stops: S.stops }; const days = [today, ...DAYS].filter(d => d.stops.length);
     const match = (id, d) => { if (!q) return true; const a = addrOf(id); const hist = (HISTORY[id] || []).find(h => h.date === d.date); const txt = [a.addr, ...(hist ? hist.entries.map(e => e.note + ' ' + e.kind) : entriesOf(id).map(e => e.memo + ' ' + e.kind)), hist ? hist.outcome : ''].join(' ').toLowerCase(); return txt.includes(q); };
     const body = days.map(d => { const ids = d.stops.filter(id => match(id, d)); if (!ids.length) return ''; return `<div class="dsec" id="day-${d.date}">${esc(d.label)}${d.label === 'Today' ? '' : ''}</div>${ids.map(id => { const a = addrOf(id); const h = (HISTORY[id] || []).find(x => x.date === d.date); const n = d.label === 'Today' ? entriesOf(id).length : (h ? h.entries.length : 0); const outcome = d.label === 'Today' ? (S.done.has(id) ? 'Completed' : n ? 'In progress' : 'Not started') : (h ? h.outcome : '—'); return `<div class="loc" data-loc="${id}" data-date="${d.date}"><div class="thumb">${satThumb(id, d.label === 'Today' ? entriesOf(id) : (h ? h.entries : []))}</div><div><div class="t">${esc(a.addr)}</div><div class="s">${n} entr${n === 1 ? 'y' : 'ies'} · ${esc(outcome)}</div></div><div class="r">${d.label === 'Today' ? 'today' : esc(d.label.replace(', 2026', ''))}</div></div>`; }).join('')}`; }).join('') || `<div class="hint">Nothing matches “${esc(S.days.q)}”.</div>`;
@@ -509,6 +509,7 @@ AFTER = {
     const sheet = $('#sheet'), handle = $('#handle'); const order = ['peek', 'half', 'full']; let sy = 0, sh = 0, moved = false;
     handle.onclick = () => { if (moved || !S.sel) return; settleSheet(S.pv === 'full' ? 'half' : 'full'); };
     sizeSheet();
+    const sb = sheet.querySelector('.sbody'); if (sb) sb.onscroll = () => { if (S.pv !== 'full' || sheet.classList.contains('drag') || sheet.classList.contains('settling')) return; sheet.classList.toggle('top', sb.scrollTop > 6); };
     // The rise: the sheet is painted translated below the frame (.rise) and slides up to its detent on the next frame.
     if (S.rise) { S.rise = false; if (sheet.classList.contains('rise')) { sheet.getBoundingClientRect(); requestAnimationFrame(() => sheet.classList.remove('rise')); } }
     sheet.ontransitionend = e => { if (e.target !== sheet || !(e.propertyName === 'height' || e.propertyName === 'bottom') || !canAnimate()) return; fitMap(); };
@@ -562,15 +563,14 @@ function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList
 let settling = false;
 function settleSheet(target) {
   const sheet = $('#sheet'); if (!sheet || settling) return; settling = true; const fromFull = S.pv === 'full';
+  const bar0 = $('#addrbar'); if (fromFull && bar0 && target !== 'full') { bar0.classList.add('jump'); bar0.classList.remove('full'); if (target === 'close') bar0.classList.remove('up'); bar0.getBoundingClientRect(); bar0.classList.remove('jump'); }
   const to = target === 'full' ? sheetFullPx(sheet) : target === 'half' ? sheetHalfPx(sheet) : 0;
   sheet.classList.remove('drag'); sheet.classList.add('settling');
   sheet.style.transition = 'height .62s cubic-bezier(.22,1,.36,1)';
   requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
   let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
-    if (target === 'close') { S.sel = null; render();
-      // closing from full: the bar was hidden under the sheet, so it appears at the bottom instead of sliding down from mid-screen
-      const b = $('#addrbar'); if (fromFull && b) { b.classList.add('jump', 'hide'); b.classList.remove('up', 'full'); b.getBoundingClientRect(); b.classList.remove('jump'); requestAnimationFrame(() => b.classList.remove('hide')); } }
-    else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (target === 'full') { S.cur = S.sel; } } };
+    if (target === 'close') { S.sel = null; render(); }
+    else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.dataset.key = (S.sel || '') + ':' + target; if (target !== 'full') sheet.classList.remove('top'); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (target === 'full') { S.cur = S.sel; } } };
   const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
   sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 720);
 }
@@ -1300,9 +1300,9 @@ function recordView() { const r = S.rec; const ed = (path, v) => `<span class="e
   const inc = chosenRecs(r), dec = r.recs.filter(x => x.decision).length;
   const body = `${photos}
   <section class="rsec" style="animation-delay:.05s"><h4>Inspector’s note${r.spoken ? ' · voice' + (r.voice ? ' ' + clipLen(r.voice.ms) : '') : ''}</h4><p style="color:${r.memo ? 'var(--ink)' : 'var(--faint)'}">${r.memo ? esc(r.memo) : 'No note · record drafted from the photo alone'}</p>${r.voice ? `<div class="vclip"><button class="vb" id="vplay">${I('play', 13, 2)} Play what was said</button><span class="vm${r.voice.flat ? ' warn' : ''}">${r.voice.flat ? 'The level did not look like speech · check the note against the recording' : 'Transcribed from this recording · the note is editable, the recording is not'}</span></div>` : ''}${r.ai && r.ai.photoNote ? `<div class="pdiff"><b>The photograph also shows</b>${esc(r.ai.photoNote)}</div>` : ''}</section>
-  ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => fld(x[0], ed('summary.' + i + '.1', x[1]))).join('') + provNote(r.ai), .1, 'summary')}
-  ${r.kind === 'note' ? '' : card(r.kind === 'violation' ? 'Severity' : 'Determination', fld('Level', ed('severity.level', r.ai.severity.level)) + (r.kind === 'violation' ? fld('Score', `<span>${esc(String(r.ai.severity.score))} / 100</span>`) : '') + fld('Why', ed('severity.why', r.ai.severity.why)) + (r.ai.category.length ? fld('Category', `<span>${r.ai.category.map(esc).join(' · ')}</span>`) : ''), .2, 'severity')}
-  ${r.ai.estimates.length ? card('Estimates', r.ai.estimates.map((x, i) => fld(x[0], ed('estimates.' + i + '.1', x[1]))).join(''), .3, 'estimates') : ''}
+  ${card(`AI summary ${provChip(r.ai)}`, r.ai.summary.map((x, i) => fld(x[0], ed('summary.' + i + '.1', x[1]))).join('')
+    + (r.kind === 'note' ? '' : fld(r.kind === 'violation' ? 'Severity' : 'Determination', ed('severity.level', r.ai.severity.level)) + (r.kind === 'violation' ? fld('Score', `<span>${esc(String(r.ai.severity.score))} / 100</span>`) : '') + fld('Reason', ed('severity.why', r.ai.severity.why)) + (r.ai.category.length ? fld('Category', `<span>${r.ai.category.map(esc).join(' · ')}</span>`) : ''))
+    + r.ai.estimates.map((x, i) => fld(x[0], ed('estimates.' + i + '.1', x[1]))).join('') + provNote(r.ai), .1, 'summary')}
   ${r.ai.codes.length ? card('Code references', r.ai.codes.map((c, i) => `<div class="fld"><b>${esc(c.scope)} · ${esc(c.c)}${c.unverified ? ' · not in library' : ''}${c.unsourced ? ' · verify source' : ''}${c.mirrored ? ' · confirm source' : ''}</b>${c.edition ? `<i class="ed2">${esc(c.edition)}</i>` : ''}${ed('codes.' + i + '.t', c.t)}</div>`).join('') + codeCaveat(r.ai), .4, 'codes') : ''}
   ${r.feedback.length ? `<section class="rsec" style="animation-delay:.45s"><h4>Scan feedback applied</h4>${r.feedback.map(f => `<div class="fld"><span>↳ ${esc(f)}</span></div>`).join('')}</section>` : ''}
   ${r.kind !== 'violation' ? '' : inc.length
@@ -1703,7 +1703,7 @@ function snapToHQ(ret, ph) {
   const target = (LFOCUS && LFOCUS.getElement()) || document.querySelector('.lpin.station');
   let ang = 0; try { const m = new DOMMatrixReadOnly(getComputedStyle(ret).transform); ang = Math.atan2(m.b, m.a) * 180 / Math.PI; if (ang < 0) ang += 360; } catch (e) { /* no transform yet */ }
   ret.style.transform = `rotate(${ang.toFixed(1)}deg)`; ret.classList.add('snap', 'amber'); ret.getBoundingClientRect();   // amber as it starts to shrink
-  const done = () => { ph.classList.remove('snapping'); ret.style.opacity = '0'; setTimeout(() => ret.remove(), 240); };
+  const done = () => { ph.classList.remove('snapping'); ph.classList.add('landed'); ret.style.opacity = '0'; setTimeout(() => ret.remove(), 240); };
   if (!target) { ret.style.opacity = '0'; setTimeout(done, 400); return; }
   const pr = ph.getBoundingClientRect(), r = target.getBoundingClientRect(), size = 44;
   const cx = r.left + r.width / 2 - pr.left, cy = r.top + r.height / 2 - pr.top;
