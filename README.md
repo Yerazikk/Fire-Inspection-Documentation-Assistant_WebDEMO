@@ -215,6 +215,10 @@ npx vercel        # a preview URL
 npx vercel --prod # the one you hand to people
 ```
 
+The project is also linked to this repository, so a push to `main` builds and
+promotes production on its own — the CLI is for a preview you do not want to
+commit for.
+
 Then give the project the same variables `.env` holds locally — the Gemini key
 is read inside the function and never sent to the browser:
 
