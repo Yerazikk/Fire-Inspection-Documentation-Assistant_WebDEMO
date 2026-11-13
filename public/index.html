@@ -493,8 +493,9 @@
 .pvhome{animation:fadeUp .55s var(--ease) both}#sheet.still .pvhome,#sheet.still .pvfoot,#sheet.still .pvtitle,#sheet.still .sat.pvmap,#sheet.still .card,#sheet.still .rsec,#sheet.still .cbox,#sheet.still .plan{animation:none!important}.pvhome .sat,.pvhome #sathero{margin-top:14px}.pvhome .tabs{margin-top:14px}
 .pvfoot{position:sticky;bottom:0;margin:0 -18px;padding:30px 18px 22px;background:linear-gradient(transparent,rgba(11,15,23,.9) 38%,var(--bg-1) 70%);animation:fadeUp .55s .1s var(--ease) both}
 .boot-l{margin-top:0}
-#sheet.preview.full .pvgo{opacity:0;pointer-events:none}#sheet.preview.full::after{display:none}
-/* the home is in the sheet at half too, under the fade; its footer (Finish / New entry) only belongs to the full detent, where the Start pill has gone */
+/* the home is in the sheet at half too, under the fade. The bottom row is the same at every detent: trash + Start pill;
+   the home's own Finish / New entry footer never shows inside the sheet (Andrew, 2026-11-12). */
+#sheet.preview .pvfoot{display:none}
 /* ---- the address bar above the sheet ---- */
 .addrbar{position:absolute;left:18px;right:18px;bottom:28px;z-index:5;transition:bottom .32s cubic-bezier(.2,.8,.2,1),opacity .22s}.addrbar.jump{transition:none!important}.addrbar.hide{opacity:0}
 .phone.kb .addrbar{bottom:calc(var(--kb) + 28px)}
@@ -508,7 +509,7 @@
 #sheet.preview .sbody{padding:0 18px 80px}
 #sheet.preview .pvgo{left:84px;right:18px;width:auto;bottom:14px}
 .pvtrash2{position:absolute;left:18px;bottom:14px;z-index:3;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,92,108,.45);background:rgba(255,92,108,.1);color:var(--red);display:grid;place-items:center;cursor:pointer;transition:opacity .22s}.pvtrash2 svg{display:block}.pvtrash2:active{background:rgba(255,92,108,.2)}
-#sheet.preview.full .pvtrash2,#sheet.preview.leaving .pvtrash2{opacity:0;pointer-events:none}
+#sheet.preview.leaving .pvtrash2{opacity:0;pointer-events:none}
 
 #sheet.preview.half .pvmore{padding-top:10px}
 #sheet.preview .handle{height:22px}

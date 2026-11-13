@@ -536,7 +536,7 @@ AFTER = {
         setTimeout(() => { S.sel = null; S.pv = 'half'; render(); const f = $('#addr'); if (f) f.focus({ preventScroll: true }); }, 420);
       });
     }
-    const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { S.cur = S.sel; S.snapshot = null; S.tab = 'today'; settleSheet('full'); };
+    const pvo = $('#pvGo'); if (pvo) pvo.onclick = () => { S.cur = S.sel; S.snapshot = null; S.tab = 'today'; if (S.pv === 'full') { S.draft = { photo: null, memo: '', kind: null, snapped: false }; go('camera'); } else settleSheet('full'); };  // at full the pill is the way into capture
     if (S.sel && S.stops.includes(S.sel)) { S.cur = S.sel; locationAfter(); }
     const pvh = $('#pvHist'); if (pvh) pvh.onclick = () => { const id = S.sel; S.cur = id; S.snapshot = null; S.tab = 'history'; go('location'); };
     $$('[data-pvhist]').forEach(r => r.onclick = () => { const id = S.sel, hh = (HISTORY[id] || []).find(x => x.date === r.dataset.pvhist); if (!hh) return; S.cur = id; S.snapshot = { date: hh.date, entries: hh.entries, outcome: hh.outcome }; go('location'); });
