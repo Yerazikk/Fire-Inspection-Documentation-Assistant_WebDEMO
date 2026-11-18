@@ -215,10 +215,6 @@ npx vercel        # a preview URL
 npx vercel --prod # the one you hand to people
 ```
 
-The project is also linked to this repository, so a push to `main` builds and
-promotes production on its own — the CLI is for a preview you do not want to
-commit for.
-
 Then give the project the same variables `.env` holds locally — the Gemini key
 is read inside the function and never sent to the browser:
 
@@ -550,18 +546,3 @@ Two things about them are worth knowing before changing that code:
   `<img>` asking for the same ground. Until a frame lands the box holds a
   skeleton; the stylised parcel drawing is kept for the one case it is honest
   about, which is every provider having failed.
-
-## Design checks
-
-The stylesheet opens with a token block (surfaces, ink, accents with their paired ink, radii, a 4 px space scale, durations, easings, one neutral shadow scale) and a Hallmark check stamp that records the waivers: the record's uppercase labels, the height-driven sheet motion, the scan beam's glow and the HQ lock-on overshoot are deliberate. Three checkers were run against the app and can be re-run after a change (the skills live under `~/.claude/skills-research/repos`):
-
-```sh
-# Hallmark gates, app scope (static; add --render --url http://localhost:8957/ for the rendered tier)
-node ~/.claude/skills-research/repos/hallmark/skills/hallmark/scripts/sloplint.mjs public/index.html public/app.js --scope app
-# Impeccable anti-pattern detector on a DOM snapshot of every screen (node /tmp/fi-snap.js writes them)
-sh ~/.claude/skills-research/repos/impeccable/.claude/skills/impeccable/scripts/impeccable detect /tmp/fi-dom-*.html
-# UI/UX Pro Max rule lookup
-python3 ~/.claude/skills-research/repos/ui-ux-pro-max/.claude/skills/ui-ux-pro-max/scripts/search.py "keyboard focus visible" --domain ux
-```
-
-What the pass changed: every text role meets 4.5:1 (faint text raised from 3.1:1), focus is an instant outline on every field rather than a border change, disabled controls dim, change cursor and lose colour, no functional text is under 11 px, labels are untracked, coloured glow shadows became neutral offset shadows, `prefers-reduced-motion` keeps every state change and drops the travel, and a phone-sized viewport gets the phone edge to edge.
