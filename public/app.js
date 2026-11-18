@@ -570,6 +570,14 @@ const HALF_PX = 278;
 function sheetHalfPx() { return HALF_PX; }
 function sheetFullPx(sheet) { return S.sel === 'hq' ? Math.round(sheet.parentElement.offsetHeight * .9) : sheet.parentElement.offsetHeight - 54; }
 function sizeSheet() { const sheet = $('#sheet'); if (!sheet || !sheet.classList.contains('preview')) return; sheet.classList.add('prep'); sheet.style.height = (S.pv === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; sheet.getBoundingClientRect(); sheet.classList.remove('prep'); }
+// The documents sit at the end of the home, and at the full detent the footer
+// floats over the foot of the scroller rather than sitting below it. A stop
+// opened from the map therefore lands with its report and notice behind the
+// Reopen / Next stop row — on screen, but taking the tap meant for them. The
+// wrap-up card already brings them up on its way out; a stop reopened later
+// has to do the same.
+function revealDocs() { if (!S.cur || !S.done.has(S.cur)) return;
+  later(() => { const sec = $('#docs'); if (sec) scrollWithin(sec, scroller()); }, 60); }
 let settling = false;
 function settleSheet(target) {
   const sheet = $('#sheet'); if (!sheet || settling) return; settling = true; const fromFull = S.pv === 'full';
@@ -580,7 +588,7 @@ function settleSheet(target) {
   requestAnimationFrame(() => { sheet.style.height = to + 'px'; });
   let done = false; const finish = () => { if (done) return; done = true; settling = false; sheet.removeEventListener('transitionend', onEnd); sheet.classList.remove('settling'); sheet.style.transition = '';
     if (target === 'close') { S.sel = null; render(); }
-    else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.dataset.key = (S.sel || '') + ':' + target; if (target !== 'full') sheet.classList.remove('top'); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (target === 'full') { S.cur = S.sel; } } };
+    else { S.pv = target; sheet.classList.remove('half', 'full'); sheet.classList.add(target); sheet.dataset.key = (S.sel || '') + ':' + target; if (target !== 'full') sheet.classList.remove('top'); const bar = $('#addrbar'); if (bar) { bar.style.opacity = ''; bar.classList.toggle('full', target === 'full'); } sheet.style.height = (target === 'full' ? sheetFullPx(sheet) : sheetHalfPx(sheet)) + 'px'; if (target === 'full') { S.cur = S.sel; revealDocs(); } } };
   const onEnd = e => { if (e.target === sheet && e.propertyName === 'height') finish(); };
   sheet.addEventListener('transitionend', onEnd); setTimeout(finish, 720);
 }
