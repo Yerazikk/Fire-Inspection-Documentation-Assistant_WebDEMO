@@ -29,6 +29,11 @@ function scrollWithin(el, box, block = 'center') {
   const off = block === 'start' ? e.top - b.top - 8 : (e.top - b.top) - (b.height - e.height) / 2;
   box.scrollTo({ top: Math.max(0, box.scrollTop + off), behavior: 'smooth' });
 }
+// The location home renders inside the map sheet as well as on a screen of its
+// own, and the two scroll different boxes: #view on a full screen, the sheet
+// body on the map. Whichever is on is the one that has to be scrolled —
+// reaching for #view alone makes the scroll a no-op on the map.
+const scroller = () => $('#view') || $('#sheet .sbody');
 // Belt and braces: the frame itself must never be scrolled, whatever scrolls it.
 const pinPhone = () => { const ph = $('.phone'); if (ph && (ph.scrollTop || ph.scrollLeft)) { ph.scrollTop = 0; ph.scrollLeft = 0; } };
 $('.phone') && $('.phone').addEventListener('scroll', pinPhone);
@@ -783,7 +788,7 @@ function mountLotMap(id, entries) {
 // Tapping a pin, on either map, finds the entry it belongs to in the list.
 function showEntry(eid) {
   const el = $(`[data-e="${eid}"]`); if (!el) return;
-  scrollWithin(el, $('#view'));
+  scrollWithin(el, scroller());
   el.style.outline = '1px solid var(--cyan)'; later(() => el.style.outline = '', 1200);
 }
 // What the location screen is showing: today's entries, or the ones in the
@@ -911,7 +916,7 @@ function wrapUp(id) { const a = addrOf(id); const es = entriesOf(id); const v = 
   const q = VISUALS.start(id); if (q) console.log(`drawing ${q} recommendation visual${q === 1 ? '' : 's'} not yet queued`);
   genDoc('report', id, { silent: true }).then(st => { settle('#wd1', st, es.length + ' entr' + (es.length === 1 ? 'y' : 'ies') + ' compiled · ' + st.doc.sections.length + ' sections'); tickDown(); });
   genDoc('notice', id, { silent: true }).then(st => { settle('#wd2', st, v ? v + ' violation' + (v === 1 ? '' : 's') + ' explained · options and attachments to confirm' : 'no action needed for the owner'); tickDown(); });
-  el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { scrollWithin(sec, $('#view')); sec.classList.add('reveal'); } }, 80); }; }
+  el.querySelector('#wgo').onclick = () => { el.remove(); render(); later(() => { const sec = $('#docs'); if (sec) { scrollWithin(sec, scroller()); sec.classList.add('reveal'); } }, 80); }; }
 function locationAfter() { const id = S.cur; $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); });
   mountLotMap(id, shownEntries(id));
   wireLotPan(id);
