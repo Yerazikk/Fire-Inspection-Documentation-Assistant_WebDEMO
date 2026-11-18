@@ -65,6 +65,11 @@ function render() { const app = $('#app');
     const tmp = document.createElement('div'); tmp.innerHTML = VIEWS.map();
     const fresh = tmp.querySelector('#sheet'); if (fresh) { const old = $('#sheet'); if (old.dataset.key && old.dataset.key === fresh.dataset.key) { fresh.classList.add('still'); fresh.style.height = old.style.height; if (old.classList.contains('top')) fresh.classList.add('top'); } const ae = document.activeElement; if (ae && old.contains(ae)) ae.blur(); old.replaceWith(fresh); }
     const ab = $('#addrbar'), nb = tmp.querySelector('#addrbar'); if (ab && nb) { ab.className = nb.className; ab.style.opacity = ''; }
+    // The rebuilt sheet carries [data-go] and [data-back] controls of its own —
+    // the Documents section is inside it — so they are wired here exactly as the
+    // full render below does. Without this the sheet comes back dead on this path.
+    app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+    app.querySelectorAll('[data-back]').forEach(b => b.onclick = () => backWithGuard());
     AFTER.map(); renderHelp(); window.renderRail && renderRail(); return;
   }
   const switching = lastScreen && lastScreen !== S.screen; { const ae = document.activeElement; if (ae && ae !== document.body && app.contains(ae)) ae.blur(); } if (switching) { const old = document.createElement('div'); old.className = 'leaving ' + (S.navDir || 'fwd'); while (app.firstChild) old.appendChild(app.firstChild); app.parentElement.appendChild(old); setTimeout(() => old.remove(), 520); }
