@@ -1,0 +1,12 @@
+URL: https://library.municode.com/ca/san_anselmo/codes/code_of_ordinances?nodeId=TIT3PUSA_CH3FIPR
+TITLE: Just a moment...
+STATUS: 403
+
+library.municode.com
+Performing security verification
+
+This website uses a security service to protect against malicious bots. This page is displayed while the website verifies you are not a bot.
+
+Ray ID: a5eca2cf8be667ad
+Performance and Security by Cloudflare
+Privacy

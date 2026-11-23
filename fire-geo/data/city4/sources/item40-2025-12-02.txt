@@ -1,0 +1,1315 @@
+
+=== page 1 ===
+Page 1 of 35
+Internal
+Office of the City Manager
+PUBLIC HEARING
+December 2, 2025
+To: Honorable Mayor and Members of the City Council
+From: Paul Buddenhagen, City Manager
+Submitted by: David Sprague, Fire Chief
+Subject: Adoption of the 2025 California Fire Code with Local Amendments – Second
+Reading
+RECOMMENDATION
+Conduct a public hearing and upon conclusion adopt the second reading of Ordinance
+No. 7,990-N.S.(Attachment 1) repealing and reenacting the Berkeley Fire Code,
+including amendments to the California Fire Code as outlined in the proposed
+ordinance, plus Appendix Chapters D, E, F, O and P published by the International
+Code Council not included in the California Building Standards Code, as Berkeley
+Municipal Code Chapter 19.48.
+FISCAL IMPACTS OF RECOMMENDATION
+The fiscal impact to the City will be approximately $15,000 for the purchase of new fire
+codebooks, inspection guides, inspection forms, and training. The fire department has
+allocated the expenditure as part of its FY 2026 budget. Neither the new State code
+overall, or our continuing or new local amendments are expected to create significant
+cost increases for homeowners, builders or developers.
+CURRENT SITUATION AND ITS EFFECTS
+As part of a regular three-year cycle, the California Building Standards Commission
+promulgated the 2025 California Fire Code. The California Fire Code as referred to in
+Title 24 Part 9 of the California Code of Regulations will take effect on January 1, 2026.
+The Fire Code provides minimum standards for fire and life safety. The State of
+California amends and adopts a model fire code every three years.
+To create the 2025 California Fire Code, the State of California amended and adopted a
+model fire code published by the International Code Council. The 2025 California Fire
+Code reflects the 2024 International Fire Code (“IFC”) with State amendments. Local
+jurisdictions must enforce the California Fire Code, as adopted by the state, 180 days
+after publication.
+2180 Milvia Street, Berkeley, CA 94704 ● Tel: (510) 981-7000 ● TDD: (510) 981-6903 ● Fax: (510) 981-7099
+E-mail: manager@CityofBerkeley.info Website: http://www.CityofBerkeley.info/Manager
+
+=== page 2 ===
+Page 2 of 35
+Internal
+Adoption of the 2025 California Fire Code with Local Amendments – Second Reading BACKGROUND
+PUBLIC HEARING
+December 2, 2025
+The City of Berkeley has unique climatic, geological, and topographical conditions,
+which require local amendments to mitigate potential hazards, and to reduce loss of life
+caused by fires or natural disasters. To address local fire and life safety impacts, the
+City of Berkeley has adopted local amendments to address sprinkler system and fire
+alarm requirements for existing hotels, fraternities, sororities, window bars, smoke
+detectors, and firefighter safety and operations in high-rise construction. Without the
+adoption of the local amendments, the new and past amendments cannot be enforced.
+At the November 10, 2025 meeting, Council adopted Resolution No. 72,023-N.S. which
+sets forth findings of local conditions that require more stringent regulations than those
+provided by the 2025 California Fire Code.
+The City of Berkeley also creates and adopts by resolution a fee schedule which
+specifies fees associated with operational and construction permits required by the fire
+code, and for other general and specific fire inspection services as well as establishing
+billing and collection procedures and setting forth delinquency charges. At the
+November 10, 2025 meeting, Council adopted Resolution No. 72,024-N.S. setting forth
+such fees.
+ENVIRONMENTAL SUSTAINABILITY AND CLIMATE IMPACTS
+Unwanted fires have a significant, detrimental effect on the environment, climate, and
+the sustainability of our society. Unwanted fires have impacts which include air
+particulate, fire gas and carbon dioxide emissions and runoff of water contaminated
+when it is used to extinguish fires. Firefighting efforts generally use treated potable
+water that must be processed and transported into the City via a water utility service at
+some financial expense and expense to the City’s overall carbon-footprint. Fires also
+damage structures and other built-environment infrastructure that ultimately must be
+removed and replaced, further increasing the city’s carbon-footprint. The adoption of a
+strong fire code ultimately serves to reduce the frequency, severity and cost of fires to
+society, environment, and the climate.
+RATIONALE FOR RECOMMENDATION
+Local amendments to the California Fire Code must be adopted every three years, or
+the state code goes into effect without local amendments. Adoption of local
+amendments and findings-of-fact are needed to customize the state code to Berkeley’s
+particular topographic, geologic and climatic conditions.
+ALTERNATIVE ACTIONS CONSIDERED
+None
+CONTACT PERSON
+Drew Whyte, Fire Marshal, Berkeley Fire Prevention and Office of Emergency Services,
+(510) 981-5585
+Attachments:
+1: Ordinance
+2: Public Hearing Notice
+
+=== page 3 ===
+Page 3 of 35
+ORDINANCE NO. 7,990–N.S.
+REPEALING AND RE-ENACTING BERKELEY MUNICIPAL CODE CHAPTER 19.48
+(BERKELEY FIRE CODE)
+BE IT ORDAINED by the Council of the City of Berkeley as follows:
+Section 1. That Berkeley Municipal Code Chapter 19.48 is hereby repealed and
+reenacted as to read as follows:
+Chapter 19.48
+BERKELEY FIRE CODE*
+Sections:
+19.48.010 Adoption of the California Fire Code
+Article 1. Scope and Administrative Provisions
+19.48.020 Adoption of Chapter 1 Scope and Administration
+Article 2. Definitions
+19.48.030 Amendments to Chapter 2 Definitions
+Article 3. Fire Service Features
+19.48.040 Amendments to Chapter 5 Fire Service Features
+Article 4. Fire and Smoke Protection Features
+19.48.050 Amendments to Chapter 7 Fire and Smoke Protection Features
+Article 5. Fire Protection and Life Safety Systems
+19.48.060 Amendments to Chapter 9 Fire Protection and Life Safety Systems
+Article 6. Means of Egress
+19.48.070 Amendments to Chapter 10 Means of Egress
+Article 7. Construction Requirements for Existing Buildings
+19.48.080 Amendments to Chapter 11 Construction Requirements for Existing
+Buildings
+Article 8. Hazardous Materials – General Provisions
+19.48.090 Amendments to Chapter 50 Hazardous Materials - General Provisions
+Article 9. Explosives and Fireworks
+19.48.100 Amendments to Chapter 56 Explosives and Fireworks
+Article 10. Flammable and Combustible Liquids
+19.48.110 Amendments to Chapter 57 Flammable and Combustible Liquids
+Article 11. Liquid Petroleum Gas
+19.48.120 Amendments to Chapter 61 Liquid Petroleum Gas
+Article 12. Fire-Flow Requirements for Buildings
+19.48.130 Amendments to Appendix B Fire-Flow Requirements for Buildings
+Ordinance No. 7,990-N.S. Page 1 of 32
+
+=== page 4 ===
+Page 4 of 35
+19.48.140 Validity
+Section 19.48.010 Adoption of the California Fire Code
+A. The California Fire Code, 2025 edition, as adopted in Title 24, Part 9 of the
+California Code of Regulations published by the International Code Council not
+included in the California Building Standards Code, are adopted by this reference
+into this Chapter, and are hereby adopted and made a part of this Chapter as
+though fully set forth herein, subject to the modifications thereto which are set forth
+in this ordinance, including:
+ Chapter 1, Administration, in its entirety as amended
+ Chapter 2, Definitions, in its entirety as amended
+ Chapter 3, General Requirements, in its entirety
+ Section 503, Fire Apparatus Access Road, of Chapter 5, in its entirety
+ Section 504.1.1, Marking of Exterior Building Openings, additional section
+as amended
+ Section 705.2.5, Smoke- and Heat-Activated Doors, as amended
+ Chapter 9, Fire Protection and Life Safety Systems, as amended
+ Section 1031.2, [Emergency Escape and Rescue] Where Required, as
+amended
+ Chapter 11, Construction Requirements for Existing Buildings, as amended
+ Section 5001.7, Hazardous Materials Transport Restrictions, additional
+section as amended
+ Section 5601.1.3, Fireworks, and 5604.1, General [Explosive Materials
+Storage and Handling], as amended
+ Section 5701.4.1, Transfer of Flammable and Combustible Liquids, and
+5704.2.11.1.1, Restrictions on Underground Storage Tanks, additional
+sections as amended
+ Section 5704.2.13.1.4, Tanks Abandoned in Place, and 5704.2.14,
+Removal and Disposal of Tanks, as amended
+ Section 6104.1.1, Restrictions on Storage of LP-Gas Containers, additional
+section as amended
+ Appendix B, Fire-Flow Requirements for Buildings, as amended
+ Appendix D, Fire Apparatus Access Roads, in its entirety
+ Appendix E, Hazard Categories, in its entirety
+ Appendix F, Hazard Ranking, in its entirety
+ Appendix O, Valet Trash and Recycling Collection in Group R-2
+Occupancies, in its entirety
+Ordinance No. 7,990-N.S. Page 2 of 32
+
+=== page 5 ===
+Page 5 of 35
+ Appendix P, Temporary Haunted Houses, Ghost Walks and Similar
+Amusement, in its entirety
+One copy of this Code is on file in the office of the City Clerk of the City of Berkeley.
+B. This chapter shall be known as the "Berkeley Fire Code" and shall be referred to
+in this chapter as "this code".
+C. This Chapter will become effective on January 1, 2026.
+Article 1. Scope and Administrative Provisions
+19.48.020 Adoption of Chapter 1 Scope and Administration
+Chapter 1 of the California Fire Code is adopted in its entirety subject to the
+modifications thereto which are set forth below.
+CHAPTER 1 – SCOPE AND ADMINISTRATION
+SECTION 101 – SCOPE AND GENERAL REQUIREMENTS
+101.1 Title. These regulations shall be known as the Berkeley Fire Code of [NAME OF
+JURISDICTION], hereinafter referred to as "this code."
+SECTION 102 – APPLICABILITY
+102.6 Historic buildings. The provisions of this code relating to the construction, alteration,
+repair, enlargement, restoration, relocation or moving of buildings or structures shall not
+be mandatory for existing buildings or structures identified and classified by the state or
+local jurisdiction as historic buildings where such buildings or structures do not constitute
+a distinct hazard to life or property. Fire protection in designated historic buildings shall
+be provided with an approved fire protection plan as required in Section 1103.1.1 in
+accordance with the 2025 California Historical Code.
+SECTION 103 – CODE COMPLIANCE AGENCY
+103.1 Creation of enforcement agency. The Berkeley Fire Department [INSERT NAME
+OF DEPARTMENT] is hereby created and the official in charge thereof shall be known
+as the Fire Chief fire code official. The function of the agency shall be the implementation,
+administration and enforcement of the provisions of this code.
+103.2 Appointment. The Fire Chief fire code official shall be appointed by the City
+Manager chief appointing authority of the jurisdiction.
+Ordinance No. 7,990-N.S. Page 3 of 32
+
+=== page 6 ===
+Page 6 of 35
+103.3 Deputies. In accordance with the prescribed procedures of this jurisdiction the
+City of Berkeley and with the concurrence of the appointing authority, the Fire Chief,
+hereinafter referred to as the fire code official shall have the authority to appoint a
+dDeputy fFire Chief, Fire Marshal, Fire Plans Examiner and code official, other related
+technical officers, inspectors and other employees. Such employees shall have powers
+as delegated by the fire code official. For purposes of this code, the term “code official”
+shall also include their designees.
+SECTION 104 – DUTIES AND POWERS OF THE FIRE CODE OFFICIAL
+104.7 Official records. The fire code official shall keep official records as required by
+Sections 104.7.1 through 104.7.6. Such official records shall be retained for not less than
+5 years or for as long as the building, or structure or activity to which such records relate
+remains in existence, unless otherwise provided by other regulations required for a longer
+period by the retention of public record policy of the city.
+104.7.2 Inspections. The fire code official shall keep a record of each inspection made,
+including notices of violations issued, notices and orders issued, administrative citation
+warning letters issued, citations issued and appeals received showing the findings and
+disposition of each.
+104.7.6 Fees. The fire code official shall keep a record of invoices issued, fees collected
+and fees refunded in accordance with Section 108.
+104.9.1 Materials and equipment reuse. Materials, equipment and devices shall not be
+reused unless such elements are in good working order with proper reports and tests
+justifying the condition, labeled and graded as required and expressly approved by the
+fire code official.
+104.12. Authority to arrest and issue citations. The Fire Chief, or their designee shall have
+authority to arrest or to cite any person who violates any provision of this Chapter involving
+the International Fire Code or the California Building Standards Code regulations relating
+to fire and panic safety as adopted by the State Fire Marshal, in the manner provided for
+the arrest or release on citation and notice to appear with respect to misdemeanors or
+infractions, as prescribed by Chapters 5, 5c and 5d of Title 3, Part 2 of the California
+Penal Code, including Section 853.6, or as the same hereafter may be amended. It is the
+intent of the City Council that the immunities provided in Penal Code Section 836.5 are
+applicable to aforementioned officers and employees exercising their arrest or citation
+authority within the course and scope of their employment pursuant to this Chapter.
+104.13 Authority to abate fire nuisance. The Fire Chief or the Fire Chief’s designee shall
+have the authority to order the abatement of fire nuisances.
+Ordinance No. 7,990-N.S. Page 4 of 32
+
+=== page 7 ===
+Page 7 of 35
+SECTION 105 – PERMITS
+105.3.1 Expiration. An operational permit shall remain in effect until reissued, renewed or
+revoked, or for such a period of time as specified in the permit. Operational permits shall
+expire 12 months after the date of issue. Construction permits shall automatically become
+invalid unless the work authorized by such permit is commenced within 180 days after its
+issuance, or if the work authorized by such permit is suspended or abandoned for a period
+of 180 days after the time the work is commenced. Before such work recommences, a
+new permit shall be first obtained and the fee to recommence work, if any, shall be one-
+half the amount required for a new permit for such work, provided that changes have not
+been made and will not be made in the original construction documents for such work,
+and provided further that such suspension or abandonment has not exceeded one year.
+Permits are not transferable and any change in occupancy, operation, tenancy or
+ownership shall require that a new permit be issued.
+105.3.1.1 Expiration. On or after January 1, 2019, every permit issued shall become
+invalid unless the work on the site authorized by such permit is commenced within 12
+months after its issuance or if the work authorized on the site by such permit is suspended
+or abandoned for a period of 12 months after the time the work is commenced. The
+building fire code official is authorized to grant, in writing, one or more extensions of time
+for periods not more than 180 days each. The extension shall be requested in writing and
+justifiable cause demonstrated. (See Health and Safety Code Section 18938.5 and
+18938.6.)
+105.5.18 Flammable and combustible liquids. An operational permit is required:
+1. To use or operate a pipeline for the transportation within facilities of flammable or
+combustible liquids. This requirement shall not apply to the offsite transportation in
+pipelines regulated by the Department of Transportation (DOT) nor does it apply
+to piping systems.
+To store, handle or use Class I liquids in excess of 5 gallons (19 L) in a building or
+in excess of 10 gallons (37.9 L) outside of a building, except that a permit is not
+required for the following:
+2.1 The storage or use of Class I liquids in the fuel tank of a motor vehicle,
+aircraft, motorboat, mobile power plant or mobile heating plant, unless such
+storage, in the opinion of the fire code official, would cause an unsafe
+condition.
+The storage or use of paints, oils, varnishes or similar flammable mixtures
+where such liquids are stored for maintenance, painting or similar purposes
+for a period of not more than 30 days.
+To store, handle or use Class II or Class IIIA liquids in excess of 25 gallons (95 L)
+in a building or in excess of 60 gallons (227 L) outside a building, except for fuel
+oil used in connection with oil-burning equipment.
+To store, handle or use Class IIIB liquids in excess of 110 gallons in containers, or
+in tanks or portable tanks for fueling motor vehicles at motor fuel-dispensing
+facilities or where connected to fuel-burning equipment.
+2. 2.2 3. 4. Ordinance No. 7,990-N.S. Page 5 of 32
+
+=== page 8 ===
+Page 8 of 35
+7. 8. Exception: Fuel oil and used motor oil used for space heating or water heating.
+5. To remove Class I or II liquids from an underground storage tank used for fueling
+motor vehicles by any means other than the approved, stationary on-site pumps
+normally used for dispensing purposes.
+6. To operate tank vehicles, equipment, tanks, plants, terminals, wells, fuel-
+dispensing stations, refineries, distilleries and similar facilities where flammable
+and combustible liquids are produced, processed, transported, stored, dispensed
+or used.
+To place temporarily out of service (for more than 90 days) an underground,
+protected above-ground or above-ground flammable or combustible liquid tank.
+To change the type of contents stored in a flammable or combustible liquid tank to
+a material that poses a greater hazard than that for which the tank was designed
+and constructed.
+To manufacture, process, blend or refine flammable or combustible liquids.
+10. To engage in the dispensing of liquid fuels into the fuel tanks of motor vehicles at
+commercial, industrial, governmental or manufacturing establishments in
+accordance with Section 5706.5.4 or to engage in on-demand mobile fueling
+operations in accordance with Section 5707.
+11. To utilize a site for the dispensing of liquid fuels from tank vehicles into the fuel
+tanks of motor vehicles, marine craft and other special equipment at commercial,
+industrial, governmental or manufacturing establishments in accordance with
+Section 5706.5.4 or, where required by the fire code official, to utilize a site for on-
+demand mobile fueling operations in accordance with Section 5707.
+105.5.60 Christmas tree sales lot. An operational permit is required to operate a
+Christmas tree sales lot.
+9. 105.5.61 Escort convoy service. Police and/or Fire Department convoy service is required
+for vehicle transportation of extremely hazardous materials.
+Section 105.5.64 Fire Fighter Air Replenishment System (FARS). An annual operational
+permit is required to maintain a FARS system in accordance with Appendix L.
+Section 105.5.62 General use permit. For any activity or operation not specifically
+described in this code, which the fire code official reasonably determines, may produce
+conditions hazardous to life or property.
+105.5.63 Parking facility, special events. An operational permit is required to use buildings
+or structures for vehicle parking, including parking for special events (i.e. football games,
+etc.).
+105.6.26 Window bars, operational constraints and opening control devices. A building
+permit is required to install window bars or other equipment which imposes operational
+constraints and opening controls on emergency escape and rescue openings on exterior
+doors or windows of any sleeping rooms in accordance with fire code Section 1031.2.1
+of this code.
+Ordinance No. 7,990-N.S. Page 6 of 32
+
+=== page 9 ===
+Page 9 of 35
+SECTION 108 – FEES
+108.2 Schedule of permit fees. Where a permit is required, a fee for each permit shall be
+paid as required, in accordance with the schedule as established by the applicable
+governing authority. of fees for permits and inspections as set forth by resolution of the
+City Council.
+108.4 Work commencing before permit issuance. A person who commences any work,
+activity or operation regulated by this code before obtaining the necessary permits shall
+be subject to a fee established by the applicable governing authority, which shall be in
+addition to the required permit fees. as set forth by resolution of the City Council to be
+twice the amount of the required fees to obtain a permit for that work, activity or operation
+regulated by this code. This is in addition to the permit fees for the portion of the scope of
+work performed without the permit.
+108.7. Expense of securing emergencies. The expense of securing any emergency that
+is within the responsibility for enforcement of the fire code official as given in Sections
+104.1 or 104.10 is a charge against the person who caused the emergency. Damages
+and expenses incurred by any public agency having jurisdiction or any public agency
+assisting the agency having jurisdiction shall constitute a debt of such person and shall
+be collectible by the fire code official for proper distribution in the same manner as in the
+case of an obligation under contract expressed or implied. Expenses as stated above
+shall include, but not be limited to, equipment and personnel committed and any
+payments required by the public agency to outside business firms requested by the public
+agency to secure the emergency, monitor remediation, and clean up.
+SECTION 109 – INSPECTIONS
+109.2.3 Reinspections. To determine compliance with this code, the fire code official can
+cause a structure to be reinspected. A fee can be assessed for each inspection or
+reinspection where work for such inspection is called is not complete or where corrections
+called for are not made.
+Reinspection fees can be assessed where the approved plans are not readily available
+to the inspector, for failure to provide access on the date for which inspection is requested
+or for deviating from plans requiring the approval of the fire code official.
+To obtain a reinspection, the applicant shall pay the reinspection fee as set forth in the
+fee schedule adopted by the jurisdiction. Where reinspection fees have been assessed,
+additional inspection of the work will not be performed until the required fees have been
+paid.
+109.2.3.1 Testing. Installations shall be tested as required in this code and in accordance
+with Sections 109.1.4.1 through 109.1.4.3. Tests shall be made by the permit holder or
+authorized agent and observed by the fire code official.
+109.2.3.2 New, altered, extended or repaired installations. New installations and parts of
+existing installations that have been altered, extended, renovated or repaired, shall be
+tested as prescribed herein to disclose defects.
+Ordinance No. 7,990-N.S. Page 7 of 32
+
+=== page 10 ===
+Page 10 of 35
+109.2.3.3 Apparatus, instruments, material and labor for tests. Apparatus, instruments,
+material and labor required for testing an installation or part thereof shall be furnished by
+the permit holder or authorized agent.
+109.2.3.4 Reinspection and testing. Where any work or installation does not pass an initial
+test or inspection, the necessary corrections shall be made so as to achieve compliance
+with this code. The work or installation shall then be resubmitted to the fire code official
+for inspection and testing.
+109.2.3.5 Re-inspection fees. A re-inspection fee, as set forth by resolution of the City
+Council, may be assessed for each re-inspection when such portion of work for which an
+inspection is scheduled is not complete, is required to be reinspected after receiving a
+previously approved inspection for the same work or when corrections previously called
+for are not made.
+Re-inspection fees shall not be required each time a job is disapproved for failure to
+comply with the requirements of this Code. This section shall be invoked for the following
+reasons:
+1. When the work is not ready for inspection when the inspector arrives at the site.
+2. When excessive scheduling of inspections for work not yet completed at the site.
+3. When the approved plans, permit and inspection card are not readily available to the
+inspector at the work site.
+4. For failure to provide access on the date for which the inspection is requested.
+5. When work deviates from the approved plans and no approved revision to approved
+plans has been obtained by the permittee.
+6. When other reasons, as determined by the fire code official, requires a re-inspection
+fee to be assessed.
+The applicant shall pay the re-inspection fee as set forth by resolution of the City Council.
+In instances where re-inspection fees have been assessed, no additional inspection of
+the work will be performed until the required fees have been paid.
+Ordinance No. 7,990-N.S. Page 8 of 32
+
+=== page 11 ===
+Page 11 of 35
+SECTION 112 – MEANS OF APPEALS
+112.1 General Appeals Procedure. In order to hear and decide appeals of orders,
+decisions or determinations made by the fire code official relative to the application and
+interpretation of this code, there shall be and is hereby created a board of appeals. The
+board of appeals shall be appointed by the applicable governing authority and shall hold
+office at its pleasure. The board shall adopt rules of procedure for conducting its business
+and shall render all decisions and findings in writing to the appellant with a duplicate copy
+to the fire code official. The City Council shall hear and decide on appeals of orders,
+decisions, or determinations made by the Fire Code Official relative to the application and
+interpretation of this code. A property owner may appeal an order, decision, or
+determination of the Fire Code Official within 10 calendar days of the date of mailing of
+the appealable action. The notice of appeal shall contain a statement of the reasons for
+the appeal and be filed with the City Clerk of the City of Berkeley. The City Clerk shall
+forward one copy thereof to the Fire Code Official, who shall transmit to the City Council
+all their records pertaining to the decision being appealed.
+Section 112.1.1 Payment of Fees and Fines. Prior to the deadline to appeal, the property
+owner must pay the appeal fee, per the adopted fee schedule, in addition to an advance
+deposit of the fine or file an application for an advanced deposit hardship waiver. If the
+hardship waiver is not granted, the fine must be deposited to the City within 14 days of
+mailed notice of that decision. No hearing shall be scheduled prior to receipt of payment
+or approval of the hardship waiver.
+112.1.2 Stay of Proceedings. The filing of the notice of appeal shall stay all proceedings
+by all parties in connection with the matter upon which the appeal is taken until
+determination of the appeal as hereinafter provided, unless the fire code official
+determines that such a stay could result in an imminent threat to public safety.
+112.2 Limitations on authority. An application for appeal shall be based on a claim that
+the true intent of this code or the rules legally adopted thereunder have been incorrectly
+interpreted, the provisions of this code do not fully apply or an equivalent or better form
+of construction is proposed. The board City Council shall not have authority to waive
+requirements of this code.
+112.3 Qualifications. The board of appeals shall consist of members who are qualified by
+experience and training on matters pertaining to the provisions of this code and are not
+employees of the jurisdiction. Decisions. The City Council shall review the action of the
+fire code official and shall do any one of the following:
+Refer the matter back to the fire code official.
+a. b. If the facts stated in, or ascertainable from the, Notice of Appeal, the written
+statement of the fire code official setting forth the reason for their decision, and the
+other papers, if any, constituting the record do not, in the opinion of the City
+Council, warrant further hearing, the City Council may affirm the decision of the fire
+code official. Such decision shall be final.
+Ordinance No. 7,990-N.S. Page 9 of 32
+
+=== page 12 ===
+Page 12 of 35
+c. If, in the opinion of the City Council, said facts warrant further hearing, the City
+Council shall set the matter for hearing and shall give notice of the time and place
+of said hearing by mailing a copy of such notice by certified mail to the address of
+the appellant as stated in the Notice of Appeal, at least ten (10) days before the
+time fixed for the hearing. The City Council may continue the hearing from time to
+time.
+d. Following such hearing, the City Council shall reverse, affirm wholly or partly
+modify any decision of the fire code official, or make any other decisions or
+determinations or impose such conditions as the facts warrant. Such decision or
+determination shall be final.
+e. If none of the above actions have been taken by the City Council within thirty (30)
+days from the date the appeal first appears on the City Council agenda, then the
+decision of the fire code official shall be deemed affirmed and the appeal shall be
+deemed dismissed.
+f. If the appeal is set for hearing but the disposition of the appeal has not been
+determined within ninety (90) days from the date the appeal first appears on the
+City Council agenda, then the decision of the fire code official shall be deemed
+affirmed and the appeal deemed dismissed.
+112.4 Administration. The fire code official shall take action without delay in accordance
+with the decision of the board City Council.
+SECTION 113 – VIOLATIONS
+113.1 Unlawful acts. It shall be unlawful for a person, firm or corporation to erect,
+construct, alter, repair, remove, demolish or utilize a building, occupancy, premises or
+system regulated by this code, or cause same to be done, in conflict with or in violation
+of any of the provisions of this code, or to create, maintain or allow to continue any fire
+hazard.
+Ordinance No. 7,990-N.S. Page 10 of 32
+
+=== page 13 ===
+Page 13 of 35
+113.4 Violation penalties. Persons who shall violate a provision of this code or shall fail
+to comply with any of the requirements thereof or who shall erect, install, construct, alter,
+repair or do work for a building or structure in violation of the approved construction
+documents or directive of the fire code official, or of a permit or certificate used under
+provisions of this code, shall be guilty of a [SPECIFY OFFENSE], punishable by a fine of
+not more than [AMOUNT] dollars or by imprisonment not exceeding [NUMBER OF
+DAYS], or both such fine and imprisonment subject to penalties as prescribed by law.
+Violations of this code are misdemeanors, but may be cited or charged, at the election of
+the enforcing officer, code official, or City Attorney, as infractions, subject to an election
+by the defendant under Penal Code Subsection 17 (d). Nothing in this section shall
+prevent any other remedy afforded by law. Each day that a violation continues after due
+notice has been served shall be deemed a separate offense. In addition to all other legal
+remedies, civil or criminal (as set forth above), any violation of this code constitutes a
+public nuisance in accordance with B.M.C Chapter 1.26, and is subject to all provisions
+of B.M.C. Chapter 1.26, as well as abatement under B.M.C. Chapter 1.24, “Abatement of
+Nuisances,” with the exception of Section 112 (Means of Appeals) which supersedes
+these provisions. All such violations are also subject to the issuance of an administrative
+citation in accordance with B.M.C Chapter 1.28 at the discretion of the enforcing officer
+or the City Attorney.
+SECTION 115 – UNSAFE STRUCTURES OR EQUIPMENT
+115.4 Notice. If an unsafe condition is found, the fire code official shall serve on the owner
+of the structure or the, owner’s authorized agent or person in control of the building,
+structure or premises, a written notice that describes the condition deemed unsafe and
+specifies the required repairs or improvements to be made to abate the unsafe condition,
+or requires the unsafe structure to be demolished within a stipulated time. Such notice
+shall require the person, or their designee, thus notified to declare immediately to the fire
+code official, within a stipulated time, acceptance or rejection of the terms of the order.
+115.7 Summary abatement. Where conditions exist that are deemed hazardous to life
+and property, the fire code official or fire department official in charge of the incident is
+authorized to abate summarily such hazardous conditions that are in violation of this code.
+Where the owner does not comply with an abatement order under Section 115.4 within
+the period specified, the City of Berkeley may perform or cause to be performed the
+necessary work. The costs incurred shall be recoverable under the procedures in Section
+115.7.1
+115.7.1 Abatement process. The abatement process shall be conducted in accordance
+with the notice and hearing requirements of the nuisance abatement provisions of
+Berkeley Municipal code chapter 1.24, including summary abatements of structures or
+premises determined by the City of Berkeley to constitute an imminent hazard or
+emergency condition.
+Article 2. Definitions
+19.48.030 Amendments to Chapter 2 Definitions
+Ordinance No. 7,990-N.S. Page 11 of 32
+
+=== page 14 ===
+Page 14 of 35
+Chapter 2 of the California Fire Code is adopted in its entirety subject to the modifications
+thereto which are set forth below.
+CHAPTER 2 – DEFINITIONS
+SECTION 202 – GENERAL DEFINITIONS
+202 BERKELEY MARINA. The area shall mean all those, parts of the City of Berkeley
+west of the Interstate 80 Freeway
+202 FIRE HAZARD. Any thing or act which increases or could cause an increase of the
+hazard or menace of fire to a greater degree than that is customarily recognized as normal
+by persons in the public service regularly engaged in preventing, suppressing or
+extinguishing fire or any thing or act which could obstruct, delay, hinder or interfere with
+the operations of the fire department or the egress of occupants in the event of fire. Fire
+hazards as defined herein are hereby declared to be public nuisances subject to
+abatement by the City of Berkeley.
+202 FIRE NUISANCE. Any thing or act, which is annoying, unpleasant, offensive or
+obnoxious because of fire.
+202 JURISDICTION. The City of Berkeley. The governmental unit that has adopted this
+code.
+202 WASTE OIL. A Class III-B liquid waste resulting from the use of Class III-B
+combustible liquids such as waste motor oil, hydraulic oil, lubricating oil, brake fluids and
+transmission fluids.
+Article 3. Fire Service Features
+19.48.040 Amendments to Chapter 5 Fire Service Features
+Chapter 5 of the California Fire Code is adopted in its entirety subject to the modifications
+thereto which are set forth below.
+CHAPTER 5 – FIRE SERVICE FEATURES
+SECTION 504 – ACCESS TO BUILDING OPENINGS AND ROOFS
+Ordinance No. 7,990-N.S. Page 12 of 32
+
+=== page 15 ===
+Page 15 of 35
+504.1.1 Marking of Exterior Building Openings. Where exterior doorways are not
+otherwise marked with identification such as building addresses, room/suite numbers or
+business names which identify the area(s) they provide access to, or a functional
+description for the space, such openings shall be provided with signs or labels indicating
+the areas they serve. Doorways to be marked shall include, but are not limited to, doors
+serving building circulation (such as stairwells/exit passageways), potential hazards (such
+as trash rooms), and building service and utility spaces (such as electrical, gas, HVAC
+and elevator machine rooms). Signs/labels shall be permanent, weather and sunlight
+resistant with lettering not less than ¾” high with a 1/16” width stroke on a contrasting
+background. Such signs or labels shall be affixed to the door frame or wall above the
+door. Such signs and labels shall be maintained.
+Exception: Doors associated with private dwellings, the main entrance to normally
+occupied spaces or when determined to be unnecessary by the fire code official.
+Article 4. Fire and Smoke Protection Features
+19.48.050 Amendments to Chapter 7 Fire and Smoke Protection Features
+Chapter 7 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+CHAPTER 7 – FIRE AND SMOKE PROTECTION FEATURES
+SECTION 705 – DOOR AND WINDOW OPENINGS
+705.2.5 Smoke- and heat-activated doors. Smoke-activated doors shall be maintained to
+self-close or automatically close upon detection of smoke. Existing fusible-link-type
+automatic-door closing devices are permitted if the fusible link rating does not exceed
+135°F (57°C). Doors required for fire and smoke separation for interior exit stairways and
+floor separation in R-1 or R-2 occupancies shall not be maintained in an open position
+with fusible links.
+Article 5. Fire Protection and Life Safety Systems
+19.48.060 Amendments to Chapter 9 Fire Protection and Life Safety Systems
+Chapter 9 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+CHAPTER 9 – FIRE PROTECTION AND LIFE SAFETY SYSTEMS
+SECTION 903 – AUTOMATIC SPRINKLER SYSTEMS
+Ordinance No. 7,990-N.S. Page 13 of 32
+
+=== page 16 ===
+Page 16 of 35
+2. 903.2.10.1 Commercial parking garages. An automatic sprinkler system shall be provided
+throughout buildings used for storage of commercial motor vehicles where the fire area
+exceeds 5,000 square feet (464 m2).
+903.2.11.1 Stories without openings. An automatic sprinkler system shall be installed
+throughout all buildings having stories, including basements, of all buildings where the
+floor area exceeds 1,500 square feet (139.4 m 2) and where the story does not comply
+with the following criteria for exterior wall openings:
+1. Openings below grade that lead directly to ground level by an exterior stairway
+complying with Section 1011 or an outside ramp complying with Section 1012.
+Openings shall be located in each 50 linear feet (15 240 mm), or fraction thereof,
+of exterior wall in the story on not fewer than one side. The required openings shall
+be distributed such that the lineal distance between adjacent openings does not
+exceed 50 feet (15 240 mm).
+Openings entirely above the adjoining ground level totaling not less than 20 square
+feet (1.86 m2) in each 50 linear feet (15 240 mm), or fraction thereof, of exterior wall
+in the story on not fewer than one side. The required openings shall be distributed
+such that the lineal distance between adjacent openings does not exceed 50 feet
+(15 240 mm) The height of the bottom of the clear opening shall not exceed 44
+inches (1118 mm) measured from the floor.
+903.2.11.2. Rubbish, recycling and linen chutes. An automatic sprinkler system shall be
+installed at the top of rubbish, recycling and linen chutes and in their terminal rooms.
+Chutes shall have additional sprinkler heads installed at alternate floors and at the lowest
+intake. Where a rubbish chute extends through a building more than one floor below the
+lowest intake, the extension shall have sprinklers installed that are recessed from the drop
+area of the chute and protected from freezing in accordance with Section 903.3.1.1. Such
+sprinklers shall be installed at alternate floors, beginning with the second level below the
+last intake and ending with the floor above the discharge. Access to sprinklers in chutes
+shall be provided for servicing. Activation of any fire sprinkler in a chute shall activate a
+separate water flow switch to indicate waterflow in the chute. All fire sprinklers in the chute
+shall be controlled by a separate, electrically supervised control valve with a tamper
+switch.
+903.2.22 Structures in the Berkeley Marina Area. An automatic sprinkler system shall be
+installed in all structures located in the Berkeley Marina Area in accordance with NFPA
+13 standards.
+Exceptions: Gear lockers not designed to permit human entry, municipal restrooms
+unattached to other structures, the existing City of Berkeley Harbor Master's office, and
+any temporary construction site structures.
+903.2.23 Public Self-Storage Buildings. An automatic sprinkler system shall be installed
+in any building erected or existing that was converted and/or subdivided for public self-
+storage use on or after August 19, 1982, in accordance with NFPA 13 standards.
+903.2.24 Environmental Safety - Residential District. Reserved
+Ordinance No. 7,990-N.S. Page 14 of 32
+
+=== page 17 ===
+Page 17 of 35
+903.3.1.2 NFPA 13R sprinkler systems. Automatic sprinkler systems in Group R
+occupancies shall be permitted to be installed throughout in accordance with NFPA 13R
+as amended in Chapter 80 where the Group R occupancy meets all of the following
+conditions:
+1. 2. Four stories or less above grade plane.
+For other than Group R-2 occupancies, the floor level of the highest story is 30
+feet (9144mm) or less above the lowest level of fire department vehicle access.
+For Group R-2 occupancies, the roof assembly is less than 45 feet (13 716 mm)
+above the lowest level of fire department vehicle access. The height of the roof
+assembly shall be determined by measuring the distance from the lowest
+required fire vehicle access road surface adjacent to the building to the eave of
+the highest pitched roof, the intersection of the highest roof to the exterior wall,
+or the top of the highest parapet, whichever yields the greatest distance.
+3. The floor level of the lowest story is 30 feet (9144mm) or less below the lowest
+level of fire department access.
+The number or stores of Group R occupancies constructed in accordance with
+Sections 510.2 and 510.4 of the California Building Code shall be measured from
+grade plane.
+Exception: Sprinkler systems in residential / commercial mix-use buildings are to be
+in accordance with NFPA 13.
+903.3.10 Floor control valves. Floor control valves and waterflow detection assemblies
+shall be installed at each floor where any of the following occur:
+1. Buildings where the floor level of the highest story is located more than 30 feet
+or more above the lowest level of fire department vehicle access.
+2. 3. Buildings that are four three or more stories in height.
+Buildings that are two or more stories below the highest level of fire department
+vehicle access.
+Exception: In Group R-3 and R-3.1 occupancies, floor control valves and waterflow
+detection assemblies shall not be required.
+903.4.3 Alarms. An approved audible and visual sprinkler waterflow alarm device, located
+on the exterior of the building in an approved location, shall be connected to each
+automatic sprinkler system. Such sprinkler waterflow alarm devices shall be activated by
+water flow equivalent to the flow of a single sprinkler of the smallest orifice size installed
+in the system. Where a waterflow switch is required by Section 903.4.1 to be electrically
+supervised, such sprinkler waterflow alarm devices shall be powered by a fire alarm
+control unit or, where provided, a fire alarm system. Where a fire alarm system is
+provided, actuation of the automatic sprinkler system shall actuate the building fire alarm
+system.
+Exception: Automatic sprinkler systems protecting one- and two-family dwellings.
+Ordinance No. 7,990-N.S. Page 15 of 32
+
+=== page 18 ===
+Page 18 of 35
+SECTION 907 – FIRE ALARM AND DETECTION SYSTEMS
+907.1.6 Certification. New fire alarm systems shall be Nationally Recognized Testing
+Laboratory (NRTL) certificated or placarded for Central Station Service Alarm Systems in
+accordance with NFPA 72, Chapter 26, Section 26.3. The NRTL shall be acceptable to
+the fire code official and capable of issuing serially numbered certificates or placards. A
+certificate of completion and other documentation as listed in NFPA 72 shall be provided
+for all new fire alarm system installations and stored in the document box onsite. It is the
+responsibility of the building owner or owner’s representative to obtain and maintain a
+current and valid NRTL issued certificate or placard for the life of the installed system(s).
+Exceptions:
+1. Fire warning and fire alarm systems in one- and two-family dwellings.
+2. Fire alarm control units in which the primary function is to monitor an automatic
+sprinkler system or other dedicated function fire alarm system.
+907.1.7 Fire Alarm System Monitoring. Fire alarm systems shall transmit distinctly
+different alarm, supervisory and trouble signals and shall be monitored in accordance with
+NFPA 72, Chapter 26, Section 26.3, Central Station Service Alarm Systems.
+Ordinance No. 7,990-N.S. Page 16 of 32
+
+=== page 19 ===
+Page 19 of 35
+907.2 Where required—new buildings and structures. An approved fire alarm system
+installed in accordance with the provisions of this code and NFPA 72 shall be provided in
+new buildings and structures in accordance with Sections 907.2.1 through 907.2.29 and
+provide occupant notification in accordance with Section 907.5, unless other
+requirements are provided by another section of this code.
+Not fewer than one manual fire alarm box shall be provided in an approved location to
+initiate a fire alarm signal for fire alarm systems employing automatic fire detectors or
+water-flow detection devices. Where an automatic and manual, or a manual fire alarm
+system is required by this code or Berkeley local ordinance, other sections of this code
+allow elimination of fire alarm boxes is prohibited. due to sprinklers or automatic fire alarm
+systems, a single fire alarm box shall be installed at a location approved by the enforcing
+agency.
+Exceptions:
+1. The manual fire alarm box is not required for fire alarm systems dedicated to elevator
+recall control and supervisory service and fire sprinkler monitoring.
+2. The manual fire alarm box is not required for Group R-2 occupancies unless required
+by the fire code official to provide a means for fire watch personnel to initiate an alarm
+during a sprinkler system impairment event. Where provided, the manual fire alarm box
+shall not be located in an area that is open to the public.
+3. The manual fire alarm box is not required to be installed when approved by the fire
+code official.
+907.2.1 Group A. A manual fire alarm system that activates the occupant notification
+system in accordance with Section 907.5 shall be installed in Group A occupancies where
+the occupant load due to the assembly occupancy is 300 or more, or where the Group A
+occupant load is more than 100 persons above or below the lowest level of exit discharge.
+Group A occupancies not separated from one another in accordance with Section
+707.3.10 of the California Building Code shall be considered as a single occupancy for
+the purposes of applying this section. Portions of Group E occupancies occupied for
+assembly purposes with an occupant load of less than 1000 shall be provided with a fire
+alarm system as required for the Group E occupancy.
+Exceptions:
+1. Manual fire alarm boxes are not required where the building is equipped throughout
+with an automatic sprinkler system installed in accordance with Section 903.3.1.1 and
+the occupant notification appliances will activate throughout the notification zones upon
+sprinkler water flow.
+2. Manual fire alarm boxes and the associated occupant notification system or emergency
+voice/alarm communication system are not required for Group A-5 outdoor bleacher-
+type seating having an occupant load of greater than or equal to 300 and less than
+15,000 occupants, provided that all of the following are met:
+2.1. A public address system with standby power is provided.
+2.2. Enclosed spaces attached to or within 5 feet (1524 mm) of the outdoor bleacher
+type seating compose, in the aggregate, a maximum of 10 percent of the overall
+Ordinance No. 7,990-N.S. Page 17 of 32
+
+=== page 20 ===
+Page 20 of 35
+area of the outdoor bleacher-type seating or 1,000 square feet (92.9 m2),
+whichever is less.
+2.3. Enclosed accessory spaces under or attached to the outdoor bleacher-type
+seating shall be separated from the bleacher-type seating in accordance with
+Section 1030.1.1.1.
+2.4. All means of egress from the bleacher-type seating are open to the outside.
+3. Manual fire alarm boxes and the associated occupant notification system or emergency
+voice/alarm communication system are not required for temporary Group A-5 outdoor
+bleacher-type seating, provided that all of the following are met:
+3.1. There are no enclosed spaces under or attached to the outdoor bleacher-type
+seating.
+3.2. The bleacher-type seating is erected for a period of less than 180 days.
+3.3. Evacuation of the bleacher-type seating is included in an approved fire safety
+plan.
+Every Group A building used for educational purposes shall be provided with a manual
+or automatic fire alarm system. This provision shall apply to, but shall not necessarily be
+limited to, every community college and university.
+Exception: Privately owned trade or vocational schools or any firm or company which
+provides educational facilities and instruction for its employees.
+907.2.2 Group B. A manual fire alarm system, which activates the occupant notification
+system in accordance with Section 907.5, shall be installed in Group B occupancies
+where one of the following conditions exists:
+1. The combined Group B occupant load of all floors is 500 or more.
+2. The Group B occupant load is more than 100 persons above or below the lowest
+level of exit discharge.
+3. The fire area contains an ambulatory care facility.
+4. For Group B occupancies containing educational facilities, see Section
+907.2.2.2.
+Exception: Manual fire alarm boxes are not required where the building is
+equipped throughout with an automatic sprinkler system installed in accordance
+with Section 903.3.1.1 and the occupant notification appliances will activate
+throughout the notification zones upon sprinkler water flow.
+Ordinance No. 7,990-N.S. Page 18 of 32
+
+=== page 21 ===
+Page 21 of 35
+907.2.4 Group F. A manual fire alarm system that activates the occupant notification
+system in accordance with Section 907.5 shall be installed in Group F occupancies where
+both of the following conditions exist:
+1. 2. The Group F occupancy is two or more stories in height.
+The Group F occupancy has a combined occupant load of 500 or more above or
+below the lowest level of exit discharge.
+Exception: Manual fire alarm boxes are not required where the building is
+equipped throughout with an automatic sprinkler system installed in accordance
+with Section 903.3.1.1 and the occupant notification appliances will activate
+throughout the notification zones upon sprinkler water flow.
+907.2.7 Group M. Fire alarm system shall be required in Group M occupancies in
+accordance with Sections 907.2.7.1 and 907.2.7.2.
+907.2.7.1 Occupant Load. A manual fire alarm system that activates the occupant
+notification system in accordance with Section 907.5 shall be installed in Group M
+occupancies where one of the following conditions exists:
+1. 2. The combined Group M occupant load of all floors is 500 or more persons.
+The Group M occupant load is more than 100 persons above or below the lowest
+level of exit discharge.
+Exceptions:
+1. A manual fire alarm system is not required in covered or open mall buildings
+complying with Section 402 of the California Building Code.
+2. Manual fire alarm boxes are not required where the building is equipped
+throughout with an automatic sprinkler system installed in accordance with
+Section 903.3.1.1 and the occupant notification appliances will automatically
+activate throughout the notification zones upon sprinkler water flow.
+Ordinance No. 7,990-N.S. Page 19 of 32
+
+=== page 22 ===
+Page 22 of 35
+907.2.8.1 Manual fFire alarm system. A manual and automatic fire alarm system that
+activates the occupant notification system in accordance with Section 907.5 shall be
+installed in Group R-1 occupancies.Exceptions:
+1. A manual fire alarm system is not required in buildings not more than two
+stories in height where all individual sleeping units and contiguous attic and
+crawl spaces to those units are separated from each other and public or
+common areas by not less than 1-hour fire partitions and each individual
+sleeping unit has an exit directly to a public way, egress court or yard.
+2. Manual fire alarm boxes are not required throughout the building where all the
+following conditions are met:
+2.1.The building is equipped throughout with an automatic sprinkler system
+installed in accordance with Section 903.3.1.1 or 903.3.1.2.
+2.2.The notification appliances will activate upon sprinkler water flow.
+2.3.Not fewer than one manual fire alarm box is installed at an approved
+location.
+907.2.8.2 Manual and Aautomatic fire alarm systemsmoke detection system. An A
+manual and automatic smoke detectionfire alarm system that activates the occupant
+notification system in accordance with Section 907.5 shall be installed throughout all
+interior corridors and common areas of Group R-1 occupancies. The detection device for
+this purpose shall be a smoke detector (or heat detector as approved), which is system
+connected and electronically supervisedserving sleeping units.
+Exception: An automatic smoke detection system is not required in buildings that do not
+have interior corridors serving sleeping units and where each sleeping unit has a means
+of egress door opening directly to an exit or to an exterior exit access that leads directly
+to an exit.
+907.2.9.1 Automatic and Mmanual fire alarm system. An automatic and manual fire alarm
+system that activates the occupant notification system in accordance with Section 907.5
+shall be installed in Group R-2 occupancies where any of the following conditions apply:
+1. The building is three or more stories in height and Any any dwelling unit or
+sleeping unit is located three or more stories above the lowest level of exit
+discharge.
+2. Any dwelling unit or sleeping unit is located more than one story below the
+highest level of exit discharge of exits serving the dwelling unit or sleeping
+unit.
+The building contains more than 16 dwelling units or sleeping units.
+Congregate residences with more than 16 occupants.
+3. 4. Ordinance No. 7,990-N.S. Page 20 of 32
+
+=== page 23 ===
+Page 23 of 35
+Exceptions:
+1. A fire alarm system is not required in buildings not more than two stories in
+height where all dwelling units or sleeping units and contiguous attic and crawl
+spaces are separated from each other and public or common areas by not less
+than 1-hour fire partitions and each dwelling unit or sleeping unit has an exit
+directly to a public way, egress court or yard.
+2. Manual fire alarm boxes are not required where the building is equipped
+throughout with an automatic sprinkler system installed in accordance with
+Section 903.3.1.1 or 903.3.1.2 and the occupant notification appliances will
+automatically activate throughout the notification zones upon a sprinkler water
+flow.
+3. 2. A fire alarm system is not required in buildings that do not have interior
+corridors serving dwelling units and are protected by an approved automatic
+sprinkler system installed in accordance with Section 903.3.1.1 or 903.3.1.2,
+provided that dwelling units either have a means of egress door opening
+directly to an exterior exit access that leads directly to the exits or are served
+by open-ended corridors designed in accordance with Section 1027.6,
+Exception 3.
+907.6.6 Monitoring. All Ffire alarm, detection, and communication systems required by
+this codechapter or by the California Building Code shall be monitored by an approved
+supervising station in accordance with NFPA 72, Chapter 26, Section 26.3, Central
+Station Service Alarm Systems, and this section.
+907.7 Acceptance tests and completion. Upon completion of the installation, the fire alarm
+system and all fire alarm components shall be tested in accordance with NFPA 72. Fire
+alarm systems shall obtain a UL certificate for the system prior to final inspection.
+Exceptions:
+1. Fire warning and fire alarm systems in one- and two-family dwellings.
+2. Fire alarm control units in which the primary function is to monitor an automatic
+sprinkler system or other dedicated function fire alarm system.
+907.9 Where required in existing buildings and structures. An approved fire alarm system
+shall be provided in existing buildings and structures where required in Chapter 11.
+907.9.1 Certification and monitoring. Certification per 907.1.6 and monitoring per 907.1.7
+is required for an existing fire alarm system when one of the following is met:
+1. When a fire alarm control unit is replaced, for any reason.
+2. When there are multiple unwanted alarms and/or nuisance alarms that are repetitive
+and not corrected, as determined by the fire code official.
+3. When the fire code official determines that the severity of life safety hazards or systems
+on the premises require certification of the fire alarm system.
+Ordinance No. 7,990-N.S. Page 21 of 32
+
+=== page 24 ===
+Page 24 of 35
+Article 6. Means of Egress
+19.48.070 Amendments to Chapter 10 Means of Egress
+Chapter 10 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+CHAPTER 10 – MEANS OF EGRESS
+SECTION 1031 – EMERGENCY ESCAPE AND RESCUE
+1031.2 Where required. In addition to the means of egress required by this chapter,
+emergency escape and rescue openings shall be provided in Group R occupancies.:
+1. Group R-2 occupancies located in stories with only one exit or access to only one
+exit as permitted by Tables 1006.3.4(1) and 1006.3.4(2).
+2. Group R-3 and R-4 occupancies.
+Basements and sleeping rooms below the fourth story above grade plane shall have not
+fewer than one emergency escape and rescue opening in accordance with this section.
+Where basements contain one or more sleeping rooms, an emergency escape and
+rescue opening shall be required in each sleeping room, but shall not be required in
+adjoining areas of the basement. Such openings shall open directly into a public way or
+to a yard or court that opens to a public way, or to an egress balcony that leads to a public
+way.
+Exceptions:
+1. In Groups R-1 and R-2 occupancies constructed of Type I, Type IIA, Type IIIA
+or Type IV construction equipped throughout with an approved automatic
+sprinkler system in accordance with Section 903.3.1.1.
+2. Group R-2.1 occupancies meeting the requirements for delayed egress in
+accordance with Section 1010.2.13 may have operable windows that are
+breakable in sleeping rooms permanently restricted to a maximum of 4-inch
+open position.
+3. Basements with a ceiling height of less than 80 inches (2032 mm) shall not be
+required to have emergency escape and rescue openings.
+4. Emergency escape and rescue openings are not required from basements or
+sleeping rooms that have an exit door or exit access door that opens directly
+into a public way or to a yard, court or exterior egress balcony that leads to a
+public way.
+5. Basements without habitable spaces and having not more than 200 square feet
+(18.6 m2) in floor area shall not be required to have emergency escape and
+rescue openings.
+6. Storm shelters are not required to comply with this section where the shelter is
+constructed in accordance with ICC 500.
+Ordinance No. 7,990-N.S. Page 22 of 32
+
+=== page 25 ===
+Page 25 of 35
+7. Within individual dwelling and sleeping units in Groups R-2 and R-3, where the
+building is equipped throughout with an automatic sprinkler system installed in
+accordance with Section 903.3.1.1, 903.3.1.2 or 903.3.1.3, sleeping rooms in
+basements shall not be required to have emergency escape and rescue
+openings provided that the basement has one of the following:
+7.1. One means of egress and one emergency escape and rescue opening.
+7.2. Two means of egress.
+8. In Group R-2.2 occupancies a certified fire escape is acceptable as a secondary
+means of egress of existing buildings for this section of the code.
+Article 7. Construction Requirements for Existing Buildings
+19.48.080 Amendments to Chapter 11 Construction Requirements for Existing Buildings
+Chapter 11 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+CHAPTER 11 – CONSTRUCTION REQUIREMENTS FOR EXISTING BUILDINGS
+SECTION 1103 – FIRE SAFETY REQUIREMENTS FOR EXISTING BUILDINGS
+1103.5 Sprinkler systems. An automatic sprinkler system shall be provided in existing
+buildings in accordance with Section 1103.5.1 through 1103.5.5.6.3
+SECTION 1103.5.6 AUTOMATIC SPRINKLER REQUIREMENTS FOR EXISTING
+HOTELS
+1103.5.6.1 Definitions. For the purposes of this Section, the following terms shall be
+defined as follows:
+1. “Hotel" shall mean any building, including motels, dormitories, rooming houses,
+Greek houses and congregate residences, which contain six or more rooms which
+were intended or designed to be used, or which are used, for the purposes of
+renting, hiring or letting (with monetary or non-monetary means of payment or
+permission) to residential occupants for sleeping purposes but shall not include
+apartment buildings as defined in this code.
+2. 3. 4. 5. "Story" is as defined in the Berkeley Building Code.
+"First Story" is as defined in the Berkeley Building Code.
+"Basement" is as defined in the Berkeley Building Code.
+“Balcony, Exterior Exit" shall mean a landing or porch projecting from the wall of a
+building which serves as a required exit. The long side shall be at least 50 percent
+directly open to the exterior, and the open area above the guardrail shall be so
+configured as to prevent the accumulation of smoke or toxic gases.
+Application: This section shall apply to every hotel in which the rooms used for
+sleeping are located above the ground floor, if the hotel was built prior to 1992,
+and also meets one of the following two conditions:
+Ordinance No. 7,990-N.S. Page 23 of 32
+
+=== page 26 ===
+Page 26 of 35
+The height of the hotel is three or more stories or two stories plus an inhabited
+basement, which is used for purposes other than exclusively servicing the
+maintenance and other needs of the building; or the hotel contains 20 or more
+rooms, or regularly accommodates 20 or more residential occupants.
+Exception: No hotel in which the exits from sleeping rooms lead either to the
+outside of the building either directly or via approved exit balconies with approved
+exterior stairways(s) in accordance with the requirements of the Berkeley Building
+Code is required to comply with this section.
+1103.5.6.2 Types of Fire Sprinklers. In the sleeping units of the building, only residential
+or quick response sprinkler heads shall be used.
+1103.5.6.3 Supervision of fire sprinkler systems. All automatic sprinkler systems installed
+under this subsection shall be monitored for supervision and alarms in accordance with
+Section 903.4.
+1103.7 Fire Alarm Systems. An approved fire alarm system shall be installed in existing
+buildings and structures in accordance with Sections 1103.7.1 through 1103.7.6 and
+provide occupant notification in accordance with Section 907.5 unless other requirements
+are provided by other sections of this code. Existing high-rise buildings shall comply with
+Section 1103.7.9. Where an automatic and manual or a manual fire alarm system is
+required by this code or Berkeley local ordinance, elimination of fire alarm boxes in
+buildings equipped with an approved sprinkler system is prohibited.
+Exception: Occupancies with an existing, previously approved fire alarm system.
+1103.7.5.1 Group R-1 hotels, and motels, and congregate residences manual and
+automatic fire alarm system. A manual and automatic fire alarm system that activates the
+occupant notification system in accordance with Section 907.5 shall be installed in
+existing Group R-1 hotels, and motels, and congregate residences more than one story
+in heightwith three or more stories or with more than 20 or more dwelling units or sleeping
+units in aggregate.
+Exceptions:
+1. A manual fire alarm system is not required in buildings less than two stories in
+height where all dwelling units, sleeping units, attics and crawl spaces are
+separated by 1-hour fire-resistance-rated construction and each sleeping unit has
+direct access to a public way, egress court or yard.
+2. A manual fire alarm system is not required in buildings not more than three stories
+in height with not more than 20 dwelling units or sleeping units in aggregate and
+equipped throughout with an automatic sprinkler system installed in accordance
+with Sections 903.3.1.1 or 903.3.1.2.
+3. Manual fire alarm boxes are not required throughout the building where the
+following conditions are met:
+3.1. The building is equipped throughout with an automatic sprinkler system
+installed in accordance with Section 903.3.1.1 or 903.3.1.2.
+3.2. The notification appliances will activate upon sprinkler water flow.
+Ordinance No. 7,990-N.S. Page 24 of 32
+
+=== page 27 ===
+Page 27 of 35
+3.3. Not less than one manual fire alarm box is installed at an approved
+location.
+1103.7.6 Group R-2. A manual and automatic fire alarm system that activates the
+occupant notification system in accordance with Section 907.5 shall be installed in
+existing Group R-2 occupancies three or more than three stories in height or with 16 or
+more dwelling or sleeping units. Congregate residences shall retrofit existing manual-only
+fire alarm systems with manual and automatic fire detection. Other types of R-2
+occupancies (such as apartment buildings) shall retrofit existing manual-only fire alarm
+systems with manual and automatic fire detection when the existing fire alarm control unit
+is replaced for any reason. Automatic detection shall be accomplished by use of a smoke
+detector (or heat detector as approved), which is system connected and electronically
+supervised. Detectors shall be installed in all interior corridors and common areas.
+Exceptions:
+1. Where each living unit is separated from other contiguous living units by fire
+barriers having a fire-resistance rating of not less than 3/4 hour, and where each
+living unit has either its own independent exit or its own independent stairway or
+ramp discharging at grade.
+2. A separate fire alarm system is not required in buildings that are equipped
+throughout with an approved supervised automatic sprinkler system installed in
+accordance with Section 903.3.1.1 or 903.3.1.2 and having a local alarm to notify
+all occupants.
+2.3. A fire alarm system is not required in buildings that do not have interior corridors
+serving dwelling units and are protected by an approved automatic sprinkler
+system installed in accordance with Section 903.3.1.1 or 903.3.1.2, provided that
+dwelling units either have a means of egress door opening directly to an exterior
+exit access that leads directly to the exits or are served by open ended corridors
+designed in accordance with Section 1027.6, Exception 3.
+3.4. A fire alarm system is not required in buildings that do not have interior corridors
+serving dwelling units, do not exceed three stories in height and comply with both
+of the following:
+3.14.1. Each dwelling unit is separated from other contiguous dwelling units
+by fire barriers having a fire-resistance rating of not less than ¾ hour.
+3.24.2. Each dwelling unit is provided with smoke alarms complying with the
+requirements of Section 907.2.11.
+1103.7.10 Monitoring of Group R Occupancies. All existing R occupancies that are
+required to provide both a fire alarm and fire suppression system shall have the system
+monitored by a supervising station in accordance with NFPA 72, Chapter 26, Section
+26.3, Central Station Service Alarm Systems, and this section.
+SECTION 1104 – MEANS OF EGRESS FOR EXISTING BUILDINGS
+1104.24 Stairway floor number signs. Existing stairways shall be marked in accordance
+with Section 1023.9.
+Ordinance No. 7,990-N.S. Page 25 of 32
+
+=== page 28 ===
+Page 28 of 35
+SECTION 1114 – EXISTING HIGH-RISE BUILDINGS [SFM]
+1114.27 Automatic sprinkler system–Existing high-rise buildings. Regardless of any other
+provisions of these regulations, every existing high-rise building of Type II-B, Type III-B
+or Type V-B construction shall be provided with an approved automatic sprinkler system
+conforming to NFPA 13.
+Building owners shall file a compliance schedule with the fire code official not later than
+365 days after receipt of a written notice. The compliance schedule shall not exceed 12
+years for completion of the automatic sprinkler system retrofit.
+Article 8. Hazardous Materials – General Provisions
+19.48.090 Amendments to Chapter 50 Hazardous Materials – General Provisions
+Chapter 50 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+Ordinance No. 7,990-N.S. Page 26 of 32
+
+=== page 29 ===
+Page 29 of 35
+CHAPTER 50 – HAZARDOUS MATERIALS – GENERAL PROVISIONS
+SECTION 5001 – GENERAL
+5001.7 Hazardous materials transportation restrictions. No vehicle containing hazardous
+materials, including a hazardous materials transportation tank truck, trailer, semi-trailer or
+tank wagon containing flammable or combustible liquids, hazardous chemicals, liquefied
+petroleum gases, poisonous gases, or cryogenic fluids, shall be operated on any city
+street without a permit from the fire code official. A map showing the proposed route of
+the vehicle shall accompany applications for such permits. If a permit is granted, the map
+shall be carried at all times in the vehicle and the vehicle shall not deviate from the
+approved route as shown on the map. Such a permit may contain conditions, including
+restrictions on the hours within which certain routes may be used and limitations on the
+size of the vehicle allowed to travel the approved route. No route shall be approved that
+includes passage over or adjacent to subway entry or vent structures, through the
+Northbrae Tunnel, in any area designated an environmental safety residential district by
+the City of Berkeley's Zoning Ordinance, or in an area which may be designated as a
+hazardous fire area. Departure from the approved route, travel outside the permitted
+hours, violation of any vehicle size limitation imposed, or failure to carry a map showing
+route approval shall constitute a violation of this Code. The transportation of extremely
+hazardous materials may, in the discretion of the fire code official, require both a permit
+and accompaniment by a Fire Department or Police Department convoy. The following
+streets contain purge chamber openings which lead directly into the subway section of
+the Bay Area Rapid Transit (BART) System in Berkeley and their use by tank vehicles or
+trailers for transportation or delivery of flammable or combustible liquids, hazardous
+chemicals, liquefied petroleum gases, poisonous gases, or cryogenic fluids is prohibited
+and a violation of this Code:
+a. b. c. d. e. f. g. On Addison Street between Martin Luther King Jr. Way and Oxford Street;
+On Shattuck Avenue between University Avenue and Dwight Way;
+On Virginia Street between Franklin and Sacramento Streets;
+On Sacramento Street between Virginia Street and Hearst Avenue;
+On Hearst Avenue between McGee Avenue and Milvia Street;
+On Adeline Street between Ward and Stuart Streets; and
+On Adeline Street between Ashby Avenue and Woolsey Street
+Article 9. Explosives and Fireworks
+19.48.100 Amendments to Chapter 56 Explosives and Fireworks
+Chapter 56 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+Ordinance No. 7,990-N.S. Page 27 of 32
+
+=== page 30 ===
+Page 30 of 35
+CHAPTER 56 – EXPLOSIVES AND FIREWORKS
+SECTION 5601 – GENERAL
+5601.1.3 Fireworks. The possession, manufacture, storage, sale, handling and use of
+fireworks, including fireworks which are classified as Safe and Sane fireworks by the
+California State Fire Marshal’s Office, are prohibited within the City of Berkeley.
+Exceptions:
+1. Storage and handling of fireworks as allowed in Section 5604.
+2. Manufacture, assembly and testing of fireworks as allowed in Section 5605 and
+Health and Safety Code Division 11.
+31. The use of fireworks for fireworks displays, pyrotechnics before a proximate
+audience and pyrotechnic special effects in motion pictures, television, theatrical
+or group entertainment productions as allowed in Title 19, Division 1, Chapter 6
+Fireworks reprinted in Section 5608 and Health and Safety Code Division 11
+when stored, transported, handled and used under the required fire department
+permit(s) and in accordance will all applicable requirements of Chapter 56.
+42. The possession, storage, sale, handling and use of specific types of Division
+1.4G fireworks where allowed by applicable laws, ordinances and regulations,
+provided that such fireworks and facilities comply with the 2006 edition of NFPA
+1124, CPSC 16 CFR Parts 1500 and 1507, and DOTn 49 CFR Parts 100–185,
+as applicable for consumer fireworks and Health and Safety Code Division 11.
+SECTION 5604 – EXPLOSIVE MATERIALS STORAGE AND HANDLING
+5604.1 General. The storage and handling of explosives within City of Berkeley limits is
+prohibited. Storage of explosives and explosive materials, small arms ammunition, small
+arms primers, propellant- actuated cartridges and smokeless propellants in magazines
+shall comply with the provisions of this section
+Exception: Where expressly permitted by applicable laws, ordinances or regulations
+provided such storage and handling of explosives and explosive materials, small arms
+ammunition, small arms primers, propellant-actuated cartridges and smokeless
+propellants in magazines is conducted in accordance with Section 5604 and all applicable
+provisions of Chapter 56.
+Article 10. Flammable and Combustible Liquids
+19.48.110 Amendments to Chapter 57 Flammable and Combustible Liquids
+Chapter 57 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.).
+CHAPTER 57 – FLAMMABLE AND COMBUSTIBLE LIQUIDS
+Ordinance No. 7,990-N.S. Page 28 of 32
+
+=== page 31 ===
+Page 31 of 35
+SECTION 5701 – GENERAL
+5701.4.1 Transfer of flammable and combustible liquids. Transfer of flammable and
+combustible liquids, to or from containers or mobile tanks into above ground or
+underground tanks shall not be made from or on the street or public way except by written
+approval by the fire code official.
+Exceptions:
+1. Transfer of not more than 5 gallons flammable or combustible liquids using a listed
+or approved portable fuel container of not more than 5 gallons capacity.
+2. The transfer of combustible liquids to or from approved, fixed mechanical or
+electrical system equipment such as a Standby or Emergency electric power
+generator when the transfer is completed by a commercial fuel vendor using
+approved dispensing equipment via a previously approved, fixed tank filling port
+which met code requirements at the time of installation.
+SECTION 5704 – STORAGE
+5704.2.11.1.1 Restrictions on underground storage tanks. The storage of flammable and
+combustible liquids in underground tanks is prohibited in all areas zoned solely for
+residential occupancies, closely built commercial properties, and any other area deemed
+unsafe by the fire code official.
+5704.2.13.1.4 Tanks abandoned in place. Tanks may be abandoned only under permit
+and following City of Berkeley Fire Department procedures. The owner shall demonstrate
+to the satisfaction of the City of Berkeley Toxics Management Division (TMD) that no
+unauthorized release has occurred. If the soil is contaminated, mitigation must be
+completed to the satisfaction of the Toxics Management Division (TMD). A notice shall
+be placed in the deed to the property. This notice shall describe the precise location of
+the closed underground storage tank, the hazardous substances that it contained, and
+the closure method. Tanks abandoned in place shall be as follows:
+1. Flammable and combustible liquids shall be removed from the tank and
+connected piping.
+The suction, inlet, gauge, vapor return and vapor lines shall be disconnected.
+The tank shall be filled completely with an approved inert solid material.
+Remaining underground piping shall be capped or plugged.
+A record of tank size, location and date of abandonment shall be retained.
+6. All exterior above-grade fill piping shall be permanently removed when tanks
+are abandoned or removed.
+2. 3. 4. 5. Ordinance No. 7,990-N.S. Page 29 of 32
+
+=== page 32 ===
+Page 32 of 35
+5704.2.14 Removal and disposal of tanks. Removal and disposal of tanks shall comply
+with Sections 5704.2.14.1 and 5704.2.14.2. Removal of all tanks shall be authorized
+under a fire permit, abiding by City of Berkeley Fire Department procedures. The applicant
+shall submit the following:
+1. A site plan showing the location of the tanks.
+2. A detailed description of the scope of work.
+3. A site safety plan.
+4. A vicinity map to the closest hospital, in an event of an emergency.
+5. Proof of workers compensation insurance.
+The owner shall demonstrate to the satisfaction of the City of Berkeley Toxics Division
+that no unauthorized release has occurred. If the soil is contaminated, mitigation must be
+completed to the satisfaction of the Toxics Division or the California Water Board.
+Article 11. Liquefied Petroleum Gas
+19.48.120 Amendments to Chapter 61 Liquefied Petroleum Gas
+Chapter 61 of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+CHAPTER 61 – LIQUIFIED PETROLEUM GASES
+SECTION 6104 – LOCATION OF LP-GAS CONTAINERS
+6104.1.1 Restrictions on storage of LP-gas containers. It shall be unlawful to store any
+liquefied petroleum gas cylinder with a capacity greater than 2-1/2 lbs. water capacity or
+a portable tank within any structure or building with an occupancy classification of A, R-
+1, R-2 or R-4, unless specifically authorized by this Code.
+Ordinance No. 7,990-N.S. Page 30 of 32
+
+=== page 33 ===
+Page 33 of 35
+Article 12. Fire Flow Requirements for Buildings
+19.48.130 Amendments to Appendix B Fire Flow Requirements for Buildings
+Appendix B of the California Fire Code is partially adopted with adopted sections below.
+(Sections adopted by the State Fire Marshal remain unless modified below.)
+APPENDIX B – FIRE FLOW REQUIREMENTS FOR BUILDINGS
+Section B105.2 (Appendix B), Table B105.2, “Required Fire-Flow for Buildings Other
+Than One- And Two-Family Dwellings, Group R-3 And R-4 Buildings And Townhouses”
+TABLE B105.2 - REQUIRED FIRE·FLOW FOR BUILDINGS OTHER THAN ONE- &
+TWO-FAMILY DWELLINGS, GROUP R·3 & R·4 BUILDINGS AND TOWNHOUSES
+AUTOMATIC SPRINKLER
+SYSTEM
+(Design Standard)
+MINIMUM FIRE-FLOW
+(gallons per minute)
+FLOW DURATION
+(hours)
+No automatic sprinkler system Value in Table B105.1(2) Duration in Table B105.1(2)
+Section 903.3.1.1 of the
+California Fire Code
+2550% of the value in Table
+B105.1(2)a
+Duration in Table Bl 05.1(2)
+at the reduced flow rate
+Section 903.3.1.2 of the
+California Fire Code
+2550% of the value in Table
+B105.1(2)b
+Duration in Table Bl05.1(2) at
+the reduced flow rate
+For SI: 1 gallon per minute= 3.785 Lim.
+a. The reduced fire-flow shall be not less than 1,000 gallons per minute.
+b. The reduced fire-flow shall be not less than 1,500 gallons per minute.
+Section 19.48.140 Validity. Should any section, paragraph, sentence or word of this
+Chapter or of the Code or Standards be declared invalid, all other portions of this Chapter
+shall remain in effect.
+Section 2. Copies of this Ordinance shall be posted for two days prior to adoption in the
+display case located near the walkway in front of the Old City Hall, 2134 Martin Luther
+King Jr. Way. Within 15 days of adoption, copies of this Ordinance shall be filed at each
+branch of the Berkeley Public Library and the title shall be published in a newspaper of
+general circulation.
+Ordinance No. 7,990-N.S. Page 31 of 32
+
+=== page 34 ===
+Page 34 of 35
+At a regular meeting of the Council of the City of Berkeley held on November 10,
+2025, this Ordinance was passed to print and ordered published by posting by the
+following vote:
+Ayes: Bartlett, Blackaby, Humbert, Kesarwani, Lunaparra, O’Keefe, Taplin,
+Tregub, and Ishii.
+Noes: None.
+Absent: None.
+Ordinance No. 7,990-N.S. Page 32 of 32
+
+=== page 35 ===
+Page 35 of 35
+NOTICE OF PUBLIC HEARING
+BERKELEY CITY COUNCIL
+ADOPTION OF THE 2025 CALIFORNIA FIRE CODE WITH LOCAL
+AMENDMENTS
+The public may participate in this hearing by remote video or in-person.
+The Department of Fire and Emergency Services is proposing the adoption of the 2025
+California Fire Code with Local Amendments as proposed by the Berkeley Fire
+Department. The adoption will include the non-structural provisions as provided in the
+2024 International Fire Code
+The hearing will be held on, December 2, 2025, at 6:00 P.M. in the School District Board
+Room, located at 1231 Addison Street, Berkeley CA 94702.
+A copy of the agenda material for this hearing will be available on the City’s website at
+https://berkeleyca.gov/ as of November 20, 2025. Once posted, the agenda for this
+meeting will include a link for public participation using Zoom video technology, as
+well as any health and safety requirements for in-person attendance.
+For further information, please contact Fire Marshal Drew Whyte at 510-981-5584.
+Written comments should be mailed or delivered directly to the City Clerk, 2180 Milvia
+Street, Berkeley, CA 94704, or e-mailed to council@berkeleyca.gov in order to ensure
+delivery to all Councilmembers and inclusion in the agenda packet.
+Communications to the Berkeley City Council are public record and will become part of
+the City’s electronic records, which are accessible through the City’s website. Please
+note: e-mail addresses, names, addresses, and other contact information are not
+required, but if included in any communication to the City Council, will become
+part of the public record. If you do not want your e-mail address or any other contact
+information to be made public, you may deliver communications via U.S. Postal Service
+or in person to the City Clerk. If you do not want your contact information included in
+the public record, please do not include that information in your communication. Please
+contact the City Clerk at (510) 981-6900 or clerk@berkeleyca.gov for further
+information.
+Published: November 14 and November 21, 2025 – The Berkeley Voice
+Published pursuant to Government Code 50022.3 and 6066
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+I hereby certify that the Notice for this Public Hearing of the Berkeley City Council was
+posted at the display case located near the walkway in front of the Maudelle Shirek
+Building, 2134 Martin Luther King Jr. Way, as well as on the City’s website, on
+November 20, 2025.
+__________________________________
+Mark Numainville, City Clerk
+
+=== page 36 ===

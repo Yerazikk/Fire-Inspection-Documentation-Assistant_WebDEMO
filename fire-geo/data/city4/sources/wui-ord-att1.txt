@@ -1,0 +1,1457 @@
+
+=== page 1 ===
+ORDINANCE NO. –N.S.
+ADOPTION OF THE 2025 CALIFORNIA WILDLAND-URBAN INTERFACE CODE AND
+CONSOLIDATING BERKELEY’S WILDLAND URBAN INTERFACE (WUI) FIRE CODES
+INTO A NEW BERKELEY MUNICIPAL CODE CHAPTER 19.49, AND REMOVING
+PREVIOUS WUI CODE REFERENCES FROM BERKELEY BUILDING CODE (BMC
+CHAPTER 19.28), BERKELEY RESIDENTIAL CODE (BMC CHAPTER 19.29) AND THE
+BERKELEY FIRE CODE (BMC CHAPTER 19.48)
+BE IT ORDAINED by the Council of the City of Berkeley as follows:
+Section 1. That Berkeley Municipal Code Chapter 19.49 is hereby introduced:
+Chapter 19.49
+BERKELEY WILDLAND-URBAN INTERFACE CODE
+Sections:
+19.49.010 Adoption of the California Wildland-Urban Interface Code
+Article 1. Scope and Administrative Provisions
+19.49.020 Adoption of Chapter 1 Scope and Administration
+Article 2. Definitions
+19.49.030 Amendments to Chapter 2 Definitions
+Article 3. Wildland-Urban Interface Areas
+19.49.040 Amendments to Chapter 3 Wildland-Urban Interface Areas
+Article 4. Wildland-Urban Interface Area Requirements
+19.49.050 Amendments to Chapter 4 Wildland-Urban Interface Area
+Requirements
+Article 5. Special Building Construction Regulations
+19.49.060 Technical Amendments to Chapter 5 Special Building
+Construction Regulations
+Article 6. Fire Protection Requirements
+19.49.070 Amendments to Chapter 6 Fire Protection Requirements
+Including Defensible Space regulations
+Article 7. Referenced Standards
+19.49.080 Amendments to Chapter 7 Referenced Standards
+Article 8. General Requirements
+19.49.090 Adoption of Appendix A with amendments
+
+=== page 2 ===
+19.49.010 Adoption of the California Wildland-Urban Interface Code.
+The California Wildland-Urban Interface Code, 2025 edition, as adopted in Title 24 Part
+7 of the California Code of Regulations, including Appendix A is hereby adopted and
+made a part of this Chapter as though fully set forth herein, subject to the modifications
+thereto which are set forth in this Chapter. One copy of this Code is on file in the office of
+the City Clerk of the City of Berkeley (“City”).
+Article 1. Scope and Administrative Provisions
+19.28.020 Adoption of Chapter 1 Scope and Administration
+Chapter 1 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+CHAPTER 1 SCOPE AND ADMINISTRATION
+SECTION 101 – SCOPE AND GENERAL REQUIREMENTS
+101.1 Title. These regulations shall be known as the California Berkeley Wildland-Urban
+Interface Code of [NAME OF JURISDICTION], hereinafter referred to as “this code”.
+101.3.1 Application. New buildings and structures, additions, alterations, repairs and re-
+roofs located in any Fire Hazard Severity Zone or Wildland-Urban Interface (WUI) Fire
+Area designated by the enforcing agency constructed after the application date shall
+comply with the provisions of this code. This shall include all new buildings and structures,
+additions, alterations, repairs and re-roofs with residential, commercial, educational,
+institutional or similar occupancy type uses, which shall be referred to in this code as
+“applicable buildings,” as well as new buildings and structures, additions, alterations,
+repairs and re-roofs accessory to those applicable buildings.
+Exceptions:
+1. Group U occupancy accessory buildings or structures of any size located at least
+50 feet (15 240 mm) from an applicable building on the same lot.
+2. Group U occupancy agricultural buildings or structures, as defined in Section 202
+of the California Building Code of any size located at least 50 feet (15 240 mm)
+from an applicable building.
+3. Group C occupancy special buildings or structures conforming to the limitations
+specified in Section 450.4.1 of the California Building Code.
+4. New accessory buildings and miscellaneous structures specified in Section 504.11
+shall comply only with the requirements of that section.
+5. Additions to and remodels of buildings originally constructed prior to July 1, 2008.
+Page 2 of 37
+
+=== page 3 ===
+101.3.1.1 Application date and where required. New buildings or structures for which
+an application for a building permit is submitted on or after July 1, 2008, or buildings and
+structures, additions, alterations, repairs and re-roofs for which an application for a
+building permit is submitted on or after July 1, 2008 located in any Fire Hazard Severity
+Zone or Wildland-Urban Interface Area shall comply with this code, including all land
+designated as a wildland-urban interface area by the City of Berkeley. of the following
+areas:
+All unincorporated lands designated by the State Board of Forestry and Fire Protection
+as State Responsibility Area (SRA) including:
+Moderate Fire Hazard Severity Zones.
+High Fire Hazard Severity Zones.
+Very High Fire Hazard Severity Zones.
+Land designated as a Very High Fire Hazard Severity Zone by cities and other local
+agencies.
+Land designated as a wildland-urban interface area by cities and other local agencies.
+Exceptions:
+1. New buildings located in any Fire Hazard Severity Zone within a State Responsibility
+Area, for which an application for a building permit is submitted on or after January 1,
+2008, shall comply with this code.
+2. New buildings located in any Fire Hazard Severity Zone within a State Responsibility
+Area or any wildland-urban interface area designated by cities and other local agencies
+for which an application for a building permit is submitted on or after December 1, 2005,
+but prior to July 1, 2008, shall only comply with the following sections of this chapter:
+2.1. Section 507 – Replacement or Repair of Roof Coverings.
+2.2. Section 504.10 – Vents.
+101.5 Additions, or alterations or re-roofs. Additions, or alterations or re-roofs shall be
+permitted to be made to any building or structure without requiring the existing building or
+structure to comply with all of the requirements of this code, provided that the additions,
+or alterations or re-roofs conforms to that required for a new building or structure.
+Exception: Provisions of this code that specifically apply to existing conditions are
+retroactive.
+Additions, or alterations or re-roofs shall not be made to an existing building or structure
+that will cause the existing building or structure to be in violation of any of the provisions
+of this code nor shall such additions or alterations cause the existing building or structure
+to become unsafe. An unsafe condition shall be deemed to have been created if an
+addition, or alteration or re-roof will cause the existing building or structure to become
+structurally unsafe or overloaded; will not provide adequate access in compliance with
+the provisions of this code or will obstruct existing exits or access; will create a fire hazard;
+Page 3 of 37
+
+=== page 4 ===
+will reduce required fire resistance or will otherwise create conditions dangerous to
+human life.
+102.4.1 Conflicts. Where conflicts occur between provisions of this code and the
+referenced standards, the provisions of the most restrictive referenced standards this
+code shall govern.
+102.4.2 Provisions in referenced codes and standards. Where the extent of the
+reference to a referenced code or standard includes subject matter that is within the scope
+of this code, the provisions of the referenced code or standard this code, as applicable,
+shall take precedence over the provisions in this code the referenced standard.
+SECTION 103 – CODE COMPLIANCE AGENCY
+103.1 Creation of enforcement agency. The Berkeley Fire Department [INSERT NAME
+OF DEPARTMENT] is hereby created and the official in charge thereof shall be known
+as the Fire Chief. The function of the agency shall be the implementation, administration
+and enforcement of the provisions of this code.
+103.2 Appointment. The Fire Chief shall be appointed by the chief appointing authority
+of the jurisdiction City Manager.
+103.3 Deputies. In accordance with the prescribed procedures of this jurisdiction the
+City of Berkeley, and with the concurrence of the appointing authority the Fire Chief,
+hereinafter referred to as the code official, shall have the authority to appoint a dDeputy
+Fire Chief, Fire Marshal, Fire Plans Examiners and other related technical officers,
+inspectors and other employees. Such employees shall have powers as delegated by
+the code official. For purposes of this code, the term “code official” shall also include
+their designees.
+SECTION 104 – DUTIES AND POWERS OF CODE OFFICIAL
+104.7 Official records. The code official shall keep official records as required by
+Sections 104.7.1 through 104.7.5. Such official records shall be retained for not less
+than 5 years or for as long as the building, structure or activity to which such records
+relate remains in existence, unless otherwise provided by other regulations required for
+a longer period by the retention of public record policy of the city.
+104.7.2 Inspections. The code official shall keep a record of each inspection made,
+including notices of violations issued, notices and orders issued, administrative citation
+warning letters issued, citations issued and appeals received showing the findings and
+disposition of each.
+104.7.5 Fees. The code official shall keep a record of invoices issued, fees collected and
+fees refunded in accordance with Section 108.
+104.9.1 Materials and equipment reuse. Materials, equipment and devices shall not
+be reused unless such elements are in good working order with proper reports and
+Page 4 of 37
+
+=== page 5 ===
+tests justifying the condition, labeled and graded as required and expressly approved by
+the code official.
+104.14 Liability for Damage. The expenses of fighting fires and securing emergencies,
+which result from a violation of this code, Chapter 6.15.030 of the Berkeley Municipal
+Code (“Unauthorized barbecues and fire on public property”), Sections 13000-13011 of
+the California Health and Safety Code, Sections 4421-4446 of the California Public
+Resources Code, or Sections 451,451.5, 452 or 455 of the California Penal Code is a
+charge against the person(s) whose violation of the code section(s) caused the fire.
+Damages caused by such fires shall constitute a debt of such person(s) and shall be
+collectable by the code official in accordance with Section 104.14.1 (“Expense of
+securing emergencies”) of this code.
+Section 104.14.1 Expense of securing emergencies. The expense of securing any
+emergency that is within the responsibility for enforcement of the code official as given
+in Sections 104.1 is a charge against the person who caused the emergency. Damages
+and expenses incurred by any public agency having jurisdiction or any public agency
+assisting the agency having jurisdiction shall constitute a debt of such person and shall
+be collectible by the code official for proper distribution in the same manner as in the
+case of an obligation under contract expressed or implied. Expenses as stated above
+shall include, but not be limited to, eguipment and personnel committed and any
+payments reguired by the public agency to outside business firms requested by the
+public agency to secure the emergency, monitor remediation, and clean up.
+SECTION 105 – PERMITS
+105.3 Work exempt from permit. Exemption from the permit requirements of this code
+or in other Parts of Title 24 shall not be deemed to grant authorization for any work to be
+done in any manner in violation of the provisions of this code or any other laws or
+ordinances of this jurisdiction.
+The code official is authorized to stipulate conditions for permits. Permits shall not be
+issued where public safety would be at risk, as determined by the code official.
+105.4 Permit Application. To obtain a permit, the applicant shall first file an application
+therefor in writing on a form furnished by the code enforcement agency City for that
+purpose. Such application shall not become valid until accepted by the City as complete
+and appropriate fees paid. Every such application shall:
+1. Identify and describe the work, activity, operation, practice or function to be covered
+by the permit for which application is made.
+2. Describe the land on which the proposed work, activity, operation, practice or function
+is to be done by legal description, street address or similar description that will readily
+identify and definitely locate the proposed building, work, activity, operation, practice or
+function.
+3. Indicate the use or occupancy for which the proposed work, activity, operation,
+practice or function is intended.
+Page 5 of 37
+
+=== page 6 ===
+4. Be accompanied by plans, diagrams, computation and specifications and other data
+as required in Section 106 of this code or in other Parts of Title 24.
+5. State the valuation of any new building or structure or any addition, remodeling, or
+alteration or re-roof to an existing building.
+6. Be signed by the applicant or the applicant’s authorized agent.
+7. 6. Give such other data and information as required by the code official.
+105.4.2 Time limitation of application. An application for a permit for any proposed
+work shall be deemed to have been abandoned 180 365 days after the date of filing,
+unless it can be demonstrated by the applicant that such application has been pursued
+in good faith or a permit has been issued; except that the code official is authorized to
+grant one or more extensions of time for additional periods not exceeding 180 days
+each per extension. The extension shall be requested in writing and justifiable cause
+demonstrated on a form furnished by the Building and Safety Division for that purpose.
+Requests for time extensions shall be accompanied by the payment of a fee set by
+resolution of the City Council. An application, once abandoned, shall be deemed
+expired and a new application will be required to be submitted.
+Exception. If an application is associated with a code enforcement case, the dates
+specified in the code enforcement notices take precedence over the timelines specified
+in this section.
+105.6.1 Refusal to issue a permit. Where the application or construction documents
+do not conform to the requirements of pertinent laws or when public safety would be at
+risk, the code official shall reject such application in writing, stating the reasons therefor.
+105.8 Expiration of Permit. On or after January 1, 2019, every permit issued shall
+become invalid unless the work on the site authorized by such permit is commenced
+within 12 months after its issuance or if the work authorized on the site by such permit is
+suspended or abandoned for a period of 12 months after the time the work is
+commenced. The building official is authorized to grant, in writing, one or more
+extensions of time for periods not more than 180 days each. The extension shall be
+requested in writing and justifiable cause demonstrated. (See Health and Safety Code
+Section 18938.5 and 18938.6.)
+The extension shall be requested in writing and justifiable cause demonstrated on a
+form furnished by the Building and Safety Division for that purpose. Requests for time
+extensions shall be accompanied by the payment of a fee set by resolution of the City
+Council.
+The issuance of a building permit shall not excuse the permittee or any other person
+from compliance with deadlines imposed in any notice and/or order to correct a code
+violation issued by the City. If a permit is for a project associated with a code
+enforcement case, the dates specified in the code enforcement notices take precedence
+over the timelines specified in this section.
+When a permit is deemed expired and a new permit is required to complete the work, a
+new permit application and plans shall be filed describing the remaining work to be done.
+Page 6 of 37
+
+=== page 7 ===
+Fees shall be assessed based on the valuation of the work remaining to be completed or
+itemized as allowed by adopted fee schedule. If a site visit or other review is required to
+determine the extent of the remaining work, a fee may be charged to make such
+determination.
+For the purposes of this section “suspended or abandoned for a period of 12 months
+after the time the work is commenced” shall mean that no activity or progress has been
+made on site for the work approved under the issued permit in the time period the
+permit is active and a completed and approved city inspection, per Section 109.1 of this
+code and/or California Building Code Section 110.3, has not been acquired.
+106.2 Information on plans and specifications. Plans and specifications shall be
+drawn to scale on substantial paper or cloth and shall be of sufficient clarity to indicate
+the location, nature and extent of the work proposed, and show in detail that it will
+conform to the provisions of this code and relevant laws, ordinances, rules and
+regulations.
+106.4 Vegetation management compliance. Prior to the building permit final approval,
+the property shall be in compliance with the vegetation management requirements
+prescribed in Section 603, including California Public Resources Code 4291 or
+California Government Code Section 51182, and Section 302.3. Acceptable methods of
+compliance inspection and documentation shall be determined by the enforcing agency
+and shall be permitted to include any of the following:
+1. Local, state or federal fire authority or designee authorized to enforce vegetation
+management requirements.
+2. Enforcing agency Berkeley Fire Department inspection and/or vegetation
+management plan submittal, review, and approval.
+3. Third-party inspection and certification authorized to enforce vegetation management
+requirements.
+4. Property owner certification authorized by the enforcing agency Berkeley Fire
+Department.
+5. Compliance with hazardous vegetation and fuel mitigation and home hardening
+requirements in Section 604.3.1 and Section 604.3.2.
+106.5 Fire protection plan. Where required by the code official pursuant to Section
+602, a fire protection plan shall be prepared and shall be submitted to the code official
+for review and approved as a part of the plans required for a permit. The Fire Protection
+Plan shall be enforced and maintained by the responsible party or their designated
+agent. The Berkeley Fire Department may charge an appropriate fee for the review,
+approval and processing of the Fire Protection Plan as established by City Council
+resolution.
+106.8 Retention of plans. One set of approved plans, specifications and computations
+shall be retained by the code official for a period of not less than 180 days 5 years from
+date of completion of the permitted work or as required by state or local laws or per the
+public records retention policy of the city, whichever is longer; and one set of approved
+plans and specifications shall be returned to the applicant, and said set shall be kept on
+Page 7 of 37
+
+=== page 8 ===
+the site of the building, use or work at all times during which the work authorized
+thereby is in progress. Refer to Building Standards Law, Health and Safety Code
+Sections 19850 and 19851 for permanent retention of plans.
+106.11 Previous approvals. This code shall not require changes in the construction
+documents, construction or designated occupancy of a structure for which a lawful
+permit has been heretofore issued or otherwise lawfully authorized, and the construction
+of which has been pursued in good faith within 180 365 days after the effective date of
+this code and has not been abandoned.
+SECTION 108 – FEES
+108.1 Payment of fees. Except when fees are deferred, a permit application shall not be
+deemed valid until the fees set forth by resolution of City Council have been paid. A permit
+shall not be valid until the fees prescribed by law as set forth by resolution of City Council
+have been paid. An amendment to a permit shall not be released until the additional fee,
+if any, has been paid.
+108.2 Schedule of permit fees. On buildings, structures, electrical, gas, mechanical, and
+plumbing systems, or alterations Wwhere a permit is required, a fee for each permit shall
+be paid as required, in accordance with the fee schedule as established by the applicable
+governing authority set forth by resolution of the City Council. Fees for permits and
+inspections and other related services under this code shall be assessed and paid as set
+forth by resolution of the City Council. Unless waived or deferred, as provided by local
+regulations, a plan review fee and other fees as specified in the resolution shall be paid
+at the time of submitting any documents for review and additional fees as specified in the
+resolution shall be paid at issuance of the permit.
+108.4 Work commencing before permit issuance. Any person who commences any
+work on a building, structure, electrical, gas, mechanical or plumbing system before
+obtaining the necessary permits shall be subject to a fee established by the applicable
+governing authority, which shall be in addition to the required permit fees as set forth by
+resolution of the City Council to be twice the amount of the required fees to obtain a permit
+for that work, activity or operation regulated by this code. This is in addition to the permit
+fees for the portion of the scope of work performed without the permit.
+SECTION 109—INSPECTION AND ENFORCEMENT
+109.1.3.1 Re-inspection fees. A re-inspection fee, as set forth by resolution of the City
+Council, may be assessed for each re-inspection when such portion of work for which an
+inspection is scheduled is not complete, is required to be reinspected after receiving a
+previously approved inspection for the same work or when corrections previously called
+for are not made.
+Re-inspection fees shall not be required each time a job is disapproved for failure to
+comply with the requirements of this Code. This section applies for the following reasons:
+Page 8 of 37
+
+=== page 9 ===
+1. When the work is not ready for inspection when the inspector arrives at the site.
+2. When excessive scheduling of inspections for work not yet completed at the site.
+3. When the approved plans, permit and inspection card are not readily available to
+the inspector at the work site.
+4. For failure to provide access on the date for which the inspection is requested.
+5. When work deviates from the approved plans and no approved revision to
+approved plans has been obtained by the permittee.
+6. When other reasons, as determined by the code official, requires a re-inspection
+fee to be assessed.
+The applicant shall pay the re-inspection fee as set forth by resolution of the City Council.
+In instances where re-inspection fees have been assessed, no additional inspection of
+the work will be performed until the required fees have been paid.
+109.2.3 Corrective Actions. The code official is authorized to take enforcement actions
+as necessary to achieve compliance with this code, including but not limited those actions
+specified in Sections 109.3.7 (“Violation penalties”) and 109.3.5.5 (“Summary
+abatement”) of this code, and as authorized by Berkeley Municipal Code, Chapter 1.24,
+“Abatement of Nuisances”, and in accordance with all other applicable portions of the
+Berkeley Municipal Code. Corrective actions may also include the use of abatement
+warrants and the imposition of property liens as appropriate and in accordance with law.
+109.3.2 Compliance with tags. A building or premises shall not be used when in violation
+of this code as noted on a tag affixed in accordance with Section 109.3.1 109.3.5.3.
+109.3.5 Unsafe conditions. Structures or existing equipment that are or hereafter
+become structurally or otherwise unsafe, insanitary or deficient because of inadequate
+means of egress facilities, inadequate light and ventilation, or which constitute a structural
+or fire hazard, or are otherwise dangerous to human life or the public welfare, or that
+involve illegal or improper occupancy or inadequate maintenance, shall be deemed an
+unsafe condition. Unsafe structures shall be taken down and removed or made safe, as
+the building official deems necessary and as provided for in this section. A vacant
+structure that is not secured against unauthorized entry shall be deemed unsafe.
+All such unsafe buildings, equipment, structures or appendages are hereby declared to
+be public nuisances and shall be abated by repair, rehabilitation, demolition or removal in
+accordance with the procedures set forth in Chapters 1.24, 19.28, 19.40 and/or 19.44 of
+the BMC as applicable. As an alternative, the building official, or other employee or official
+of this jurisdiction as designated by the City Council, may institute any other appropriate
+action to prevent, restrain, correct or abate the violation.
+109.3.5.3 Safety Assessment Placards. Placarding. Upon failure of the owner, the
+owner’s authorized agent or the person responsible to comply with the notice provisions
+within the time given, the code official shall post on the premises or on defective
+equipment a placard bearing the word “UNSAFE” and a statement of the penalties
+provided for occupying the premises, operating the equipment or removing the placard.
+Page 9 of 37
+
+=== page 10 ===
+109.3.5.3.1 Posting. The code official or designee shall post the appropriate placard at
+each entry point to a building or structure upon completion of a safety assessment.
+109.3.5.3.2 Application of provisions. The provisions of this section are applicable to
+all buildings and structures of all occupancies regulated by the City of Berkeley. The City
+Council may extend the provisions as necessary.
+109.3.5.3.3 Safety Assessment. Safety Assessment is a visual, non-destructive
+examination of a building or structure for the purpose of determining the condition for
+continued occupancy.
+109.3.5.3.4 Placards. This section establishes standard placards to be used to indicate
+the condition of a building or structure for occupancy after a natural or human-caused
+disaster and a rapid evaluation by authorized personnel.
+Following are titles and descriptions of the official jurisdiction placards to be used to
+designate the condition of a building or structure for continued occupancy, partial or
+conditional occupancy, or unsafe to enter. Copies of placards are on file in the Building
+and Safety Division of the Planning and Development Department.
+INSPECTED – Lawful Occupancy Permitted is to be posted on any building or structure
+wherein no apparent hazard has been found. This placard is not intended to mean there
+is no damage to the building or structure, but that any damage that occurred does not
+present a hazard to occupants.
+RESTRICTED USE is to be posted on each building or structure that has been damaged
+wherein the damage has resulted in some form of restriction to the continued occupancy.
+The individual who posts this placard will note in general terms the type of damage
+encountered and will clearly and concisely note the restrictions on continued occupancy.
+UNSAFE – “Do Not Enter or Occupy” is to be posted on each building or structure that
+has been damaged such that continued occupancy poses a threat to life safety. Building
+or structures posted with this placard shall not be entered under any circumstances
+except as authorized in writing by the building official, or the building official’s authorized
+representative. Safety assessment teams shall be authorized to enter these building at
+any time. This placard is not to be used or considered as a demolition order. The individual
+who posts this placard will note in general terms the type of damage encountered.
+109.3.5.3.5 Content of placard. The BMC Section number and the words "City of
+Berkeley" shall be permanently affixed to each placard.
+109.3.5.3.6 Unlawful to remove. Once a placard has been attached to a building or
+structure, it is not to be removed, altered or covered until done so by an authorized
+representative of the code official. It shall be unlawful for any person, firm or corporation
+to alter, remove, cover or deface a placard unless authorized pursuant to this section.
+109.3.5.3.17 Placard removal. The code official shall remove the unsafe condition
+placard whenever the defect or defects on which the unsafe condition and placarding
+action were based have been eliminated. Any person who defaces or removes a safety
+Page 10 of 37
+
+=== page 11 ===
+assessment an unsafe condition placard without the approval of the code official shall be
+subject to the penalties provided by this code.
+109.3.5.5 Summary abatement. Where conditions exist that are deemed hazardous to
+life and property, the code official is authorized to abate or correct summarily such
+hazardous conditions that are in violation of this code, including fire nuisances. Where
+the owner does not comply with an abatement order under Section 109.3.5.2 within the
+period specified, the City of Berkeley may perform or cause to be performed the
+necessary work. The costs incurred shall be recoverable under the procedures in
+Section 109.3.5.4.1.
+109.3.5.4.1 Abatement process. The abatement process shall be conducted in
+accordance with the notice and hearing requirements of the nuisance abatement
+provisions of Berkeley Municipal Code Chapter 1.24, including summary abatements of
+structures or premises determined by the City of Berkeley to constitute an imminent
+hazard or emergency condition.
+109.3.7 Violation penalties. Persons who shall violate a provision of this code or fail to
+comply with any of the requirements thereof or who shall erect, install, construct, alter,
+repair or do work for a building or structure in violation of the approved construction
+documents or directive of the code official, or of a permit or certificate issued under the
+provisions of this code, shall be guilty of a [SPECIFY OFFENSE], punishable by a fine of
+not more than [AMOUNT] dollars or by imprisonment not exceeding [NUMBER OF
+DAYS], or both such fine and imprison-ment. subject to penalties as prescribed by law.
+Each day that a violation continues after due notice has been served shall be deemed a
+separate offense. In addition to all other legal remedies, civil or criminal (as set forth
+above), any violation of this code constitutes a public nuisance in accordance with B.M.C
+Chapter 1.26, and is subject to all provisions of B.M.C. Chapter 1.26, as well as
+abatement under B.M.C. Chapter 1.24, “Abatement of Nuisances,” with the exception of
+section 112 (Means of Appeal) which supersedes these provisions. All such violations are
+also subject to the issuance of an administrative citation in accordance with B.M.C
+Chapter 1.28 at the discretion of the enforcing officer or the City Attorney.
+109.3.7.1 Unlawful acts. It shall be unlawful for any person, firm or corporation to erect,
+construct, alter, extend, repair, move, remove, demolish, or occupy, or utilitze any
+building, structure or equipment regulated by this code, or cause same to be done, in
+conflict with or in violation of any of the provisions of this code or create, maintain or allow
+to continue any fire hazard.
+109.4 Restricted Entry of Wildland-Urban Interface Areas. The code official shall
+determine and publicly announce when Wildland-Urban Interface areas shall be closed
+to entry and when such areas shall again be opened to entry. Entry on and occupation
+of Wildland-Urban Interface areas, except public roadways, inhabited areas or
+established trails and camp sites which have not been closed during such time when
+the Wildland-Urban Interface areas are closed to entry, is prohibited.
+Exceptions:
+1. Residents and owners of private property within Wildland-Urban Interface areas and
+their invitees and quests going to or being upon their lands;
+Page 11 of 37
+
+=== page 12 ===
+2. Entry, in the course of duty, by peace officers, and other duly authorized public
+officers, members of a fire department and members of the United States Forest
+Service.
+109.5 Trespassing on Posted Property
+109.5.1 General. When the code official determines that a specific area within a
+Wildland-Urban Interface Areas, as listed in Section 302.3, presents an exceptional and
+continuing fire danger because of the density of natural growth, difficulty of terrain,
+proximity to structures or accessibility to the public, such areas shall be closed until
+changed conditions warrant termination of closure. Such areas shall be posted as
+hereinafter provided.
+109.5.2 Signs. Approved signs prohibiting entry by unauthorized persons and referring
+to this section shall be placed on every closed area.
+109.5.3 Trespassing. Entering and remaining within areas closed and posted is
+prohibited.
+Exception: Owners and occupiers of private or public property within closed and posted
+areas, their guests or invitees, and local, state and federal public officers and their
+authorized agents acting in the course of duty.
+SECTION 110—CERTIFICATE OF COMPLETION OCCUPANCY
+110.1 General. A building, structure or premises shall not be used or occupied, and a
+change in the existing use or occupancy classification of a building, structure, premise or
+portion thereof shall not be made until the code official has issued a certificate of
+completion occupancy therefor as provided herein. The certificate of occupancy shall not
+be issued until the code official has determined that the project is in compliance with this
+code. The code official shall, upon completion of construction, provide the owner or
+applicant with a copy of the final inspection report that demonstrates the building was
+constructed in compliance with all applicable state and local building standards, including
+those for materials and construction methods for wildfire exposure as described in this
+code. Issuance of a certificate of occupancy by the local building official for the proposed
+building shall be considered to indicate compliance with this code.
+110.2 Certificate of occupancy. Issuance of a certificate of occupancy is the
+responsibility of the local building official. The issuance of a certificate of occupancy shall
+not be construed as an approval of a violation of the provisions of this code or of other
+pertinent laws and ordinances of the jurisdiction. Certificates presuming to give authority
+to violate or cancel the provisions of this code or other laws or ordinances of the
+jurisdiction shall not be valid.
+Exceptions:
+105.3.
+1. Certificates of occupancy are not required for work exempt from permits under Section
+2. Accessory structures.
+Page 12 of 37
+
+=== page 13 ===
+110.3 Temporary occupancy. The code official, in agreement with the local building
+official, is authorized to issue a temporary certificate of occupancy before the completion
+of the entire work covered by the permit, provided that such portion or portions shall be
+occupied safely. The code official shall set a time period during which the temporary
+certificate of occupancy is valid.
+110.4 Revocation. The code official, in agreement with the local building official, is
+authorized to, in writing, suspend or revoke a certificate of occupancy or completion
+issued under the provisions of this code wherever the certificate is issued in error, on the
+basis of incorrect information supplied, or where it is determined that the building or
+structure, premise or portion thereof is in violation of any ordinance or regulation or any
+of the provisions of this code.
+SECTION 111 – SERVICE UTILITIES
+111.1 Authority for cConnection of service utilities. A person shall not make
+connections from a utility, a source of energy, fuel, power, water system or sewer
+system to any building, structure or system that is regulated by this code for which a
+permit is required until authorized authorization to connect by the code official has been
+obtained.
+111.1.2 Authority to connect utilities. Clearance for connection of one utility, either gas
+or electrical, will be withheld until final building, electrical, plumbing, and/or mechanical
+inspections are made and approval has been given for any new building or change in
+occupancy classification to an existing building for which connection to such utilities is
+sought, unless approval has been first obtained from the code official, as provided by a
+Temporary Certificate of Occupancy or Final Certificate of Occupancy.
+111.3 Authority to disconnect service utilities in emergencies. The code official shall
+have the authority to authorize disconnection of utility service to disconnect electrical
+power or other energy service supplied to the a building, structure, or system or building
+service equipment therein regulated by this code and the referenced codes and standards
+in case of emergency where necessary to eliminate an immediate hazard to life or
+property or where such utility connection has been made without the approval required
+by Section 111.1 or 111.2. The code official shall notify the serving utility and, where
+possible, the owner or the owner’s authorized agent and the occupant of the building,
+structure, or service system or equipment of the decision to disconnect prior to taking
+such action. If not notified prior to disconnection, the owner, the owner’s authorized agent
+or the occupant of the building, structure, or service system or equipment shall be notified
+in writing as soon as practical thereafter.
+111.4 Unsafe service utilities. Unsafe service utilities are hereby declared to be public
+nuisances and shall be abated, repaired, rehabilitated, demolished or removed in
+accordance with the procedures set forth in this code and/or per Chapter 19.40 of the
+Berkeley Municipal Code (BMC) for residential buildings and Berkeley Building Code for
+all other buildings, or any alternate procedure that may be adopted by the City of Berkeley.
+In addition, the City Attorney may pursue other appropriate action to prevent, restrain,
+correct or abate the violation as provided for in the BMC. Remedies under this section
+are cumulative. When service utilities are maintained in violation of this Code and in
+Page 13 of 37
+
+=== page 14 ===
+violation of a notice issued pursuant to the provisions of this section, the code official shall
+institute appropriate action to prevent, restrain, correct or abate the violation.
+111.5 Authority to condemn electrical, plumbing and/or mechanical systems and
+equipment. Whenever the code official determines that an electrical, plumbing, or
+mechanical system or equipment regulated by this code is hazardous to life, health or
+property, the building official may order in writing that such systems or equipment either
+be removed or restored to a safe working condition. The written notice shall fix a
+reasonable time limit for compliance with such order. Persons shall not use or maintain
+defective systems or equipment after receiving such notice except as may be provided
+therein.
+When equipment or an installation is to be disconnected, a written notice of such
+disconnection and the reasons therefore shall be given within 24-hours of the order to
+disconnect to the serving utility, the owner and occupants of the building, structure or
+premises.
+When equipment or an installation is maintained in violation of this Code and in violation
+of a notice issued pursuant to the provisions of this section, the building official shall
+institute appropriate action to prevent, restrain, correct or abate the violation.
+Unsafe electrical, plumbing, and/or mechanical systems or equipment are hereby
+declared to be public nuisances and shall be abated by repair, rehabilitation, demolition
+or removal in accordance with the procedures set forth in Chapter 19.40 of the BMC for
+residential buildings and Berkeley Building Code for all other buildings, or any alternate
+procedure adopted by the City of Berkeley. In addition, the City Attorney may pursue other
+appropriate action to prevent, restrain, correct or abate the violation as provided for in the
+BMC. Remedies under this section are cumulative.
+111.6 Connection after order to disconnect. Persons shall not make connections to a
+service utility, a source of energy, fuel, or power, or a water system or sewer system or
+equipment that has been disconnected or ordered to be disconnected by the building
+official, or the use of which has been ordered to be discontinued by the code official, until
+the building official authorizes the reconnection and use of the disconnected service
+systems or equipment.
+Page 14 of 37
+
+=== page 15 ===
+SECTION 112 – MEANS OF APPEALS
+112.1 General Appeals Procedure. In order to hear and decide appeals of orders,
+decisions or determinations made by the fire code official relative to the application and
+interpretation of this code, there shall be and is hereby created a board of appeals. The
+board of appeals shall be appointed by the applicable governing authority and shall hold
+office at its pleasure. The board shall adopt rules of procedure for conducting its
+business and shall render all decisions and findings in writing to the appellant with a
+duplicate copy to the fire code official. The City Council shall hear and decide on
+appeals of orders, decisions, or determinations made by the Fire Code Official relative
+to the application and interpretation of this code. A property owner may appeal an order,
+decision, or determination of the Fire Code Official within 10 calendar days of the date
+of mailing of the appealable action. The notice of appeal shall contain a statement of the
+reasons for the appeal and be filed with the City Clerk of the City of Berkeley. The City
+Clerk shall forward one copy thereof to the Fire Code Official, who shall transmit to the
+City Council all their records pertaining to the decision being appealed.
+Section 112.1.1 Payment of Fees and Fines. Prior to the deadline to appeal, the
+property owner must pay the appeal fee, per the adopted fee schedule, in addition to an
+advance deposit of the fine or file an application for an advanced deposit hardship
+waiver. If the hardship waiver is not granted, the fine must be deposited to the City
+within 14 days of mailed notice of that decision. No hearing shall be scheduled prior to
+receipt of payment or approval of the hardship waiver.
+112.1.2 Stay of Proceedings. The filing of the notice of appeal shall stay all
+proceedings by all parties in connection with the matter upon which the appeal is taken
+until determination of the appeal as hereinafter provided, unless the fire code official
+determines that such a stay could result in an imminent threat to public safety.
+112.2 Limitations on authority. An application for appeal shall be based on a claim
+that the true intent of this code or the rules legally adopted thereunder have been
+incorrectly interpreted, the provisions of this code do not fully apply or an equivalent or
+better form of construction is proposed. The board City Council shall not have authority
+to waive requirements of this code.
+112.3 Qualifications. The board of appeals shall consist of members who are qualified
+by experience and training on matters pertaining to the provisions of this code and are
+not employees of the jurisdiction. Decisions. The City Council shall review the action of
+the fire code official and shall do any one of the following:
+Refer the matter back to the fire code official.
+If the facts stated in, or ascertainable from the, Notice of Appeal, the written
+statement of the fire code official setting forth the reason for their decision, and
+the other papers, if any, constituting the record do not, in the opinion of the City
+Council, warrant further hearing, the City Council may affirm the decision of the
+fire code official. Such decision shall be final.
+Page 15 of 37
+
+=== page 16 ===
+If, in the opinion of the City Council, said facts warrant further hearing, the City
+Council shall set the matter for hearing and shall give notice of the time and
+place of said hearing by mailing a copy of such notice by certified mail to the
+address of the appellant as stated in the Notice of Appeal, at least ten (10) days
+before the time fixed for the hearing. The City Council may continue the hearing
+from time to time.
+Following such hearing, the City Council shall reverse, affirm wholly or partly modify
+any decision of the fire code official, or make any other decisions or
+determinations or impose such conditions as the facts warrant. Such decision or
+determination shall be final.
+If none of the above actions have been taken by the City Council within thirty (30)
+days from the date the appeal first appears on the City Council agenda, then the
+decision of the fire code official shall be deemed affirmed and the appeal shall be
+deemed dismissed.
+If the appeal is set for hearing but the disposition of the appeal has not been
+determined within ninety (90) days from the date the appeal first appears on the
+City Council agenda, then the decision of the fire code official shall be deemed
+affirmed and the appeal deemed dismissed.
+112.4 Administration. The fire code official shall take action without delay in
+accordance with the decision of the board City Council.
+Article 2. Definitions
+19.49.030 Adoption of Chapter 2 Definitions
+Chapter 2 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+ACCESSORY STRUCTURE. A structure that is accessory to and incidental to that of
+the primary structure and that is located on the same lot. A building or structure used to
+shelter or support any material, equipment, chattel or occupancy other than a habitable
+building.
+APPLICABLE BUILDING. A building or structure that has residential, commercial,
+educational, institutional or similar occupancy type use.
+BERKELEY BUILDING STANDARDS CODE. The Berkeley Building Standards Code
+includes the most recently adopted Berkeley Building Code, Berkeley Residential Code,
+Berkeley Existing Building Code, Berkeley Historical Building Code, Berkeley Electrical
+Code, Berkeley Mechanical Code, Berkeley Plumbing Code, Berkeley Green Code, and
+Berkeley Energy Code.
+BOLE OF A TREE. A bole of a tree is its main trunk, specifically the part extending from
+the roots up to the first branches and canopy.
+Page 16 of 37
+
+=== page 17 ===
+FIRE HAZARD. Anything or act which increases or could cause an increase of the
+hazard or menace of fire to a greater degree than that customarily recognized as normal
+by persons in the public service regularly engaged in preventing, suppressing or
+extinguishing fire or anything or act which could obstruct, delay, hinder or interfere with
+the operations of the fire department or the egress of occupants in the event of fire. Fire
+hazards as defined herein are hereby declared to be public nuisances subject to
+abatement by the City of Berkeley.
+FIRE HAZARD SEVERITY ZONES. Geographical areas designated pursuant to
+California Public Resources Codes, Sections 4201 through 4204 and classified as Very
+High, High, or Moderate in State Responsibility Area or as Local Agency Very High Fire
+Hazard Severity Zones designated pursuant to California Government Code, Sections
+51175 through 51189, and locally amended and adopted under ordinance 7958 N.S.
+The California Code of Regulations, Title 14, Section 1280 entitles the maps of these
+geographical areas as "Maps of the Fire Hazard Severity Zones in the State
+Responsibility Area of California.” The map, approved by the Office of the State Fire
+Marshal, is hereby incorporated by reference and entitled “State Responsibility Area
+Fire Hazard Severity Zones,” dated September 29, 2023 April 1, 2024. The map is
+available at https://osfm.fire.ca.gov/fire-hazard-severity-zones.
+In the City of Berkeley, the wildland-urban interface areas that include high and very
+high fire hazard severity zones are described in Section 302.3 of this code.
+FIRE NUISANCE. Anything or act, which is annoying, unpleasant, offensive or
+obnoxious because of fire.
+FIRE PROTECTION PLAN. A document prepared for a specific premises, project or
+development, either existing or proposed for the wildland-urban interface area. It
+describes ways to minimize and mitigate potential for loss from wildfire exposure.
+FORBS. Forbs are herbaceous (non-woody) flowering plants that are not grasses,
+sedges, or rushes.
+FUEL BREAK. (applicable to CCR, Title 14 provisions only). A strategically located
+area where the volume and arrangement of vegetation has been managed to limit fire
+intensity, fire severity, rate of spread, crown fire potential and/or ember production.
+[CCR Title 14§1270.01(n)].
+IGNITION-RESISTANT BUILDING MATERIAL. A type of building material that resists
+ignition or sustained flaming combustion sufficiently so as to reduce losses from wildfire
+exposure of burning embers and small flames, and complies with the requirements of
+this code.
+JURISDICTION. The City of Berkeley.
+OUTBUILDING(S). (applicable to CCR, Title 14 provisions only). Any Bbuildings or
+structures that are less than 120 square feet (11.15 m2) in size and not used for human
+habitation. An “Outbuilding” is not a “Building” or “Structure” as defined herein. [CCR
+Title 14 §1299.02(c)]
+Page 17 of 37
+
+=== page 18 ===
+WILDLAND-URBAN INTERFACE AREA (WUI). A geographical area identified by the
+state as a “Fire Hazard Severity Zone” in accordance with the Public Resources Code
+Sections 4201 through 4204 and Government Code Sections 51175 through 51189, and
+other areas designated by the City enforcing agency to be at a significant risk from
+wildfires. For the City of Berkeley’s WUI areas see section 302.3.
+Article 3. Wildland-Urban Interface Areas
+19.49.040 Chapter 3 Wildland-Urban Interface Areas
+Chapter 3 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+302.3 WUI Areas in Berkeley. The High Fire Hazard Severity Zone, Very High Fire
+Hazard Severity Zone, Panoramic Mitigation Area, and Grizzly Peak Mitigation Area are
+designated as Wildland-Urban Interface Area (WUI) and are described as follows:
+302.3.1 FLATLANDS AREA. The Flatlands Area encompasses the entire City of
+Berkeley except for areas in the High and Very High Fire Hazard Severity Zones, which
+includes the Panoramic Mitigation Area and Grizzly Peak Mitigation Area.
+302.3.2 HIGH FIRE HAZARD SEVERITY ZONE. Encompasses those areas identified
+as High Fire Hazard Severity Zones, locally amended and designated by ordinance
+pursuant to California Government Code Sections 51176 through 51189. These areas
+are available on the City of Berkeley publicly accessible GIS map.
+This area includes areas of the City east / northeast of the line formed by these roads.
+Homes addressed on, or with a structural frontage on either side of these road
+segments are included in the zone:
+a. The Arlington Avenue from the Kensington Border to Marin Avenue
+b. Fountain Walk from Marin Avenue to Sutter Street
+c. Sutter Street from the southern portal of the Northbrae Tunnel to Eunice Street
+d. Eunice Street from Sutter Street to Spruce Street
+e. Spruce Street from Eunice Street to Hearst Avenue
+f. Hearst Avenue from Spruce Street to Gayley Road
+g. Gayley Road from Hearst Avenue to Piedmont Avenue
+h. Piedmont Avenue from Gayley Road to Bancroft Way
+i. Piedmont Crescent from Piedmont Avenue to Warring Street
+j. Warring Street from Dwight Way to Derby Street
+k. Derby Street from Warring Street to Belrose Avenue
+l. Belrose Avenue from Derby Street to Garber Street
+Page 18 of 37
+
+=== page 19 ===
+m. Claremont Boulevard from Garber Street to Claremont Avenue
+n. Claremont Avenue from Claremont Boulevard to the Oakland Border
+302.3.5 VERY HIGH FIRE HAZARD SEVERITY ZONE. The Very High Fire Hazard
+Severity Zone encompasses those areas identified by CalFIRE as Very High Fire
+Hazard Severity Zones pursuant to California Government Code 51175-51189, locally
+amended and designated by ordinance. These areas are available on the City of
+Berkeley publicly accessible GIS map.
+PANORAMIC MITIGATION AREA. The Panoramic Mitigation Area encompasses
+those areas of the city bounded by the line formed by these roads and by the City Limit
+to the east. The entirety of the Panoramic Mitigation Area is designated, by ordinance,
+as a Very High Fire Hazard Severity Zone. Homes addressed on, or with a structural
+frontage on either side of these road segments are included in the zone:
+a. Centennial Drive from the Oakland border to Stadium Rim Way
+b. Stadium Rim Way from Centennial Drive to Canyon Road
+c. Canyon Road from Stadium Rim Way to Bancroft Way
+d. Bancroft Way from Canyon Road to Bancroft Steps
+e. Bancroft Steps from Bancroft Way to Bancroft Way
+f. Bancroft Way from Bancroft Steps to Piedmont Avenue
+g. Piedmont Avenue from Bancroft Way to Dwight Way
+h. Dwight Way East from Piedmont Avenue to the eastern terminus of
+Dwight Way.
+i. A straight line extending East from the terminus of Dwight Way to the
+Oakland border.
+GRIZZLY PEAK MITIGATION AREA. The Grizzly Peak Mitigation Area
+encompasses those areas of the city east of Grizzly Peak Boulevard to the city
+boundary. Homes addressed on, or with a structural frontage on either side of Grizzly
+Peak Boulevard are included in the area. The Grizzly Peak Mitigation Area is
+designated, by ordinance, as a Very-High Fire Hazard Severity Zone.
+302.4 Restrictions in Wildland-Urban Interface Areas. Code requirements in this
+code apply to the High Fire Hazard Severity Zone, Very High Fire Hazard Severity
+Zone, Panoramic Mitigation Area, and Grizzly Peak Mitigation Area.
+Page 19 of 37
+
+=== page 20 ===
+Article 4. Wildland-Urban Interface Area Requirements
+19.49.050 Chapter 4 Wildland-Urban Interface Area Requirements
+Chapter 4 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+402.3 Existing conditions. Existing buildings shall be provided with address markers in
+accordance with Sections 403.2.4 and 403.2.5. Existing roads and fire protection
+equipment shall be provided with markings in accordance with Sections 403.4 403.2.2
+and 403.2.3 404.8, respectively.
+SECTION 403—ACCESS
+USER NOTE: The standards in Section 403 applicable to roads shall not apply to roads
+used solely for agriculture; mining; or the management of timberland or harvesting of
+forest products. [CCR, Title 14 §1270.03(d)]
+403.1 General. Roads and driveways, whether public or private, unless exempted
+under 14 CCR § 1270.03(d), shall provide for safe access for emergency wildfire
+equipment and civilian evacuation concurrently, and shall provide unobstructed traffic
+circulation during a wildfire emergency consistent 403.1.1 to 403.1.9. [CCR, Title 14
+§1273.00]
+Where conflicts occur between Section 403 – Access and the Berkeley Fire Code
+Appendix D – Fire Apparatus Access Roads, the provisions of the most restrictive code
+shall govern.
+403.2.4 Addresses for Buildings.
+(a) All Buildings shall be issued an address by the Local Jurisdiction City of Berkeley
+which conforms to that jurisdiction's the City’s overall address system. Utility and
+miscellaneous Group U Buildings are not required to have a separate address;
+however, each Residential Unit within a Building shall be separately identified.
+(b) The size of letters, numbers and symbols for addresses shall conform to the
+standards in the California Fire Building Code Section 502.1, California Code of
+Regulations Title 24, Part 9.
+(c) Addresses for residential Buildings shall be reflectorized.
+404.5 Adequate water supply. Fire-flow requirements shall be determined in
+accordance with Appendix B or BB of the California Berkeley Fire Code, as applicable.
+Page 20 of 37
+
+=== page 21 ===
+Article 5. Special Building Construction Regulations
+19.49.060 Chapter 5 Special Building Construction Regulations
+Chapter 5 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+501.1 Scope. New Buildings and structures, additions, alterations, repairs and re-roofs
+constructed in a wildland-urban interface area shall be constructed in accordance with
+the California Building Code, California Fire Code and this code.
+Exceptions:
+1. Group U accessory buildings or structures not exceeding 120 square feet (11
+m2) in floor area where located not less than 50 feet (15240 mm) from
+applicable buildings on the same lot.
+2. Group U agricultural buildings or structures not less than 50 feet (15 240 mm)
+from applicable buildings.
+501.1.1 Purpose. The purpose of this chapter is to establish minimum standards for the
+protection of life and property by increasing the ability of a building located in any Fire
+Hazard Severity Zone within a State Responsibility Area (SRA) or Local Responsibility
+Areas (LRA) or any building or structure in the wildland-urban interface (WUI) areas as
+specified in Section 302.3 to resist the intrusion of flames or burning embers projected by
+a vegetation fire and contributes to a systematic reduction in conflagration losses.
+501.1.2 Application. Construction of new buildings and structures, additions, alterations,
+repairs, and re-roofs located in any Fire Hazard Severity Zone or new buildings and
+structures, additions, alterations, repairs and re-roofs located in any wildland-urban
+interface (WUI) area designated by the enforcing agency constructed after the application
+date shall comply with the provisions of this chapter. This shall include all new buildings
+and structures, additions, alterations, repairs and re-roofs with residential, commercial,
+educational, institutional or similar occupancy type uses, which shall be referred to in this
+chapter as “applicable building(s)” (see definition in Chapter 2), as well as new buildings
+and structures, additions, alterations, repairs and re­roofs accessory to those applicable
+buildings.
+501.2.1 Construction methods and requirements within established limits.
+Within the limits established by law, construction methods intended to mitigate wildfire
+exposure shall comply with the wildfire protection building construction requirements
+contained in this code, the Berkeley Fire Code, and the Berkeley Building Standards
+whichever is most restrictive.
+503.1 General. Buildings and structures hereafter constructed, added to, modified,
+repaired, re-roofed or relocated into or within wildland-urban interface areas shall meet
+the construction requirements in accordance with Chapter 5. Materials required to be
+ignition-resistant building materials shall comply with the requirements of Section 503.2.
+Page 21 of 37
+
+=== page 22 ===
+Exceptions:
+504.11.
+1. New accessory buildings and miscellaneous structures complying with Section
+2. Additions to and remodels of buildings originally constructed prior to July 1,
+2008.
+2. Group C occupancy special buildings conforming to the limitations specified in
+Section 450.4.1 of the California Building Code.
+504.2 Roof assembly. Roofs shall have a roof assembly that complies with a Class A
+fire classification when tested in accordance with ASTM E108 or UL 790. For additional
+compliance see California Building Code Chapter 15, Section 1505.2 for Class A roof
+assemblies. The roof assembly shall be installed in accordance with its listing and the
+manufacturer’s installation instructions.
+Wooden shakes and shingles are prohibited roof coverings regardless of the assembly
+rating of the roof system
+Exceptions: The following assemblies are exempt from testing and shall be considered
+as equivalent to the Class A fire classification:
+1. Roof assemblies with coverings of brick, masonry or an exposed concrete roof
+deck.
+2. Roof assemblies with ferrous or copper shingles or sheets, metal sheets and
+shingles, clay or concrete roof tile or slate installed on noncombustible decks
+or ferrous, copper or metal sheets installed without a roof deck on
+noncombustible framing.
+3. Roof assemblies with minimum 16 oz/sq ft (0.0416 kg/m2) copper sheets
+installed over combustible roof decks.
+4. Roof assemblies of slate roof covering installed over ASTM D226, Type II
+underlayment over combustible decks.
+505 – RESERVED REPLACEMENT OF EXTERIOR WALL COVERING
+505.1 Replacement of Exterior Wall Covering. Materials for replacement of existing
+exterior wall covering shall meet or exceed the standards set forth in Section 504.5 of this
+code.
+Exception: Where less than 50% of any wall surface is being replaced or repaired, and
+the matching of the new plane to the existing plane on that wall is not possible.
+506 – RESERVED UNDERGROUND UTILITY CONNECTIONS
+506.1 Underground utility connections. For new construction, provisions shall be made
+for the undergrounding of all utilities serving the property, including but not limited to
+Page 22 of 37
+
+=== page 23 ===
+electrical, telephone and cable television, by the installation of appropriately sized
+underground conduits extending from the parcel.
+SECTION 507—REPLACEMENT OR REPAIR OF ROOF COVERINGS
+507.1 General. The roof covering on buildings or structures in existence prior to the
+adoption of this code that are entirely replaced or have 50 percent or more replaced in a
+12-month period shall be replaced with a roof covering as required for new construction
+in accordance with Sections 504.2 and 504.2.1. All portions of a roof covering applied
+during an addition, alteration or repair to an existing structure shall meet at least a Class
+A fire classification in accordance with Sections 504.2 and 504.2.1.
+The entire roof covering of every existing building or structure where more than 50 percent
+of the total roof area is replaced within any 5-year period shall be replaced with a fire-
+retardant roof covering in accordance with Sections 504.2 and 504.2.1.
+SECTION 508—ADDITIONAL REQUIREMENTS IN THE PANORAMIC MITIGATION
+AREA.
+508.1 General. In addition to meeting the other requirements of this code, buildings or
+structures hereinafter erected, constructed, moved, altered, added, or repaired within the
+Panoramic Mitigation Area shall comply with the following requirements for buildings and
+structures.
+508.1.2 Fire warning system. All residential units shall be equipped with a Fire Warning
+System as specified by the residential smoke alarm requirements in the most recently
+adopted California Building Code and/or California Residential Code and with an audible
+exterior alarm. The exterior alarm must meet the requirements of NFPA 72 or equivalent
+and generate 45 decibels ten feet from the alarm, or more.
+508.1.3 Automatic fire sprinkler systems. Automatic fire sprinkler system requirements
+shall be as set forth in Berkeley Fire Code Section 903.2.24.
+508.1.4 Utilities. Utilities, pipes, furnaces, water heaters or other mechanical devices
+located in an exposed underfloor area of a building or structure shall be enclosed with
+material as required for exterior one hour fire resistive construction. Adequate covered
+access openings for servicing and ventilation of such facilities shall be provided as
+required by the applicable code.
+508.1.5 Water Service. The water service to the site shall be installed with a 3/4” hose
+bib connection prior to beginning any construction involving any wood forming or framing.
+The person responsible for the construction shall have at the site a 75 ft 3/4” hose
+available at all times.
+Page 23 of 37
+
+=== page 24 ===
+Article 6. Fire Protection Requirements
+19.49.070 Chapter 6 Fire Protection Requirements
+Chapter 6 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+SECTION 604—MAINTENANCE OF DEFENSIBLE SPACE
+604.3 Requirements. Hazardous vegetation and fuels around all buildings and
+structures shall be maintained in accordance with the following laws and regulations:
+1. Public Resources Code, Section 4291.
+2. California Code of Regulations, Title 14, Division 1.5, Chapter 7, Subchapter 3,
+Article 3, Section 1299.03.
+3. California Government Code, Section 51182.
+4. California Code of Regulations, Title 19, Division 1, Chapter 7, Subchapter 1,
+Section 3.07.
+5. H106azardous vegetation and fuel mitigation and home hardening
+requirements in Section 604.3.1 and Section 604.3.2.
+604.3 Defensible Space Requirements.
+604.3 Requirements. The code official may require a property owner to perform
+hazardous vegetation and fuel management on their land to maintain defensible space
+up to 100 feet from structures located on adjacent properties.
+Property owners are not required or authorized by this code to enter the properties of
+another person to implement the requirements of this Section.
+604.3.1 Mitigations Required. Within the locally designated Very High Fire Hazard
+Severity Zone a person who owns, leases, controls, operates, or maintains lands shall at
+all times:
+Page 24 of 37
+
+=== page 25 ===
+1. Remove all branches within 10 feet of any chimney or stovepipe outlet.
+2. Maintain the roof and roof gutters of any structure, and the surface of any
+attached deck, porch, landing, or stairs free of leaves, needles, or other
+deposited vegetative materials.
+3. Maintain 6 feet of vertical clearance between branches and all other parts
+of trees or other vegetation overhanging the roof or other portion of any
+Structure or attached deck.
+4. Zone 0: 0-5 feet from any structure: The requirements of 604.3.1.5 (Zone 1)
+below apply to this zone.
+5. Zone 1: 5 to 30 feet from any structure:
+a. Remove contiguous vegetation without adequate fuel separation to prevent
+spread to the structure.
+b. Maintain any tree, shrub, or other plant adjacent to or overhanging
+any Structure or attached deck free of dead or dying wood.
+c. Maintain trees to remove Ladder Fuels so that foliage, twigs, or
+branches are greater than 6’ feet above the ground or surface fuels.
+d. Where shrubs or small trees are located below or within a tree's drip
+line, the lowest tree branch shall be a minimum of three times the
+height of the understory shrubs or 6 feet, whichever is greater.
+e. For structures on the same property, such as a shed, hot tub, and
+playset, ensure these structures are spaced at least 10 feet apart.
+Have at most three (3) of these structures within 30 feet of a building
+or structure.
+i. Existing moveable structures shall comply with the above.
+f. Relocate exposed firewood piles or lumber further than zone 1,
+unless they are completely covered in a fire-resistant covering
+approved by the State Fire Marshal’s Building Material Listing
+Service.
+6. Zone 2: 30 to 100 feet from any structure:
+a. All exposed wood piles or lumber must have a perimeter of a minimum of ten
+feet (10 ft.) of non-combustible material, such as bare mineral soil, in all
+directions.
+7. For both Zones 1 and 2:
+a. Remove vegetative and combustible material capable of transmitting fire to a
+structure as determined by the Fire Code Official.
+b. Dead and dying woody surface fuels and aerial fuels shall be removed.
+Loose surface litter, normally consisting of fallen leaves or needles, twigs,
+bark, cones, and small branches, shall be permitted to a maximum depth of
+three inches (3 in.).
+Page 25 of 37
+
+=== page 26 ===
+c. Cut annual grasses and annual forbs to a maximum height of four inches (4
+in.) prior to, or upon reaching the senescent or ripening phase when the
+preponderance of vegetative material is cured or dead.
+d. Vertical Spacing: Limb trees by removing hanging bark, debris and branches
+that are within six feet (6 ft.) of the ground.
+e. Create horizontal and vertical spacing among shrubs and trees using the
+“Fuel Separation” method, the “Continuous Tree Canopy” method or a
+combination of both to achieve defensible space clearance requirements.
+Further guidance regarding these methods is contained in the State Board of
+Forestry and Fire Protection's, “General Guidelines for Creating Defensible
+Space, February 8, 2006,” incorporated herein by reference.
+f. Maintain horizontal spacing between shrubs.
+i. Flat or mild slope (less than 20%): Two times the height of the shrub.
+ii. Mild to moderate slope (20-40%): Four times the height of the shrub
+iii. Moderate to steep slope (greater than 40%): Six times the height of
+the shrub
+iv. Shrubs maintained as trees, such as limited stems and limbed up 6
+feet or one third the height, whichever is greater, shall comply with
+requirements for trees, and not this section.
+v. Consistent with fuel management objectives, steps should be taken
+to minimize erosion, soil disturbance, and the spread of flammable,
+non-native grasses and weeds.
+g. New trees shall be planted and maintained so that the tree’s drip line at
+maturity is a minimum of 10 feet from any structure or the canopy of other
+trees.
+604.3.2 Specific requirements for Panoramic Mitigation Area and Grizzly Peak
+Mitigation Area. Effective January 1, 2026 the Grizzly Peak Mitigation Area and
+Panoramic Mitigation Area shall be subject to 604.3.2 in addition to 604.3.1
+Page 26 of 37
+
+=== page 27 ===
+A person who owns, leases, controls, operates, or maintains lands shall at all times:
+1. Zone 0: 0 to 5 feet from any structure:
+a. Maintain all areas within five (5) horizonal feet of any structure,
+outbuildings, attached deck or stairs, and the area under attached decks
+and stairs free of vegetative and non-vegetative combustible material.
+i. This includes but is not limited to shrubs, vegetative ground cover,
+climbing vines, combustible boards, timbers, firewood, debris,
+synthetic lawn, wood mulch products, playsets, plastic trash and
+recycle cans, trellises, pergolas, shade coverings, planters,
+attached window boxes, privacy walls, boats, RVs, and other
+material that could be ignited by embers, radiant heat, or direct
+flame.
+ii. Hardscape materials, such as gravel, pavers, concrete, and other
+noncombustible materials, including bare mineral soil, are
+permitted.
+iii. Exception: Plants in pots are allowable if they are in areas that are
+not directly beneath, above, or adjacent to a window or eave; are
+kept in an unaffixed, non-combustible pot or container that is no
+larger than 5-gallon capacity; and set apart by 1.5 times the height
+of the plant or 12 inches, whichever is greater, from the structure
+and each other. These plants shall be no greater than 18 inches in
+height. Dead or dying material on, around and under the plants
+shall be removed.
+iv. Exception: Hot tubs may be installed within five (5) horizontal feet
+of a structure, provided they comply with all Zone 0 clearance
+requirements applicable to structures.
+b. Trees: Existing trees and shrubs are permitted in Zone Zero if:
+i. Maintained free of dead material.
+ii. The crown (canopy) is maintained to create:
+1. Six feet (6’) above the adjacent building or structure’s roof
+2. Ten feet (10’) away from chimneys and stovepipe outlets;
+and
+3. Five feet (5’) of horizontal clearance from the sides of any
+Building, Structure, attached deck, porch, landing or stairs,
+and hot tubs within five (5) feet of a structure.
+a. Exception: trees integrated into a deck must maintain
+5 feet horizontal separation from the adjacent
+structure and branches must be 6 feet above the
+deck.
+4. 6’ of vertical clearance above attached decks, attached,
+landing or stairs, and hot tubs within 5’ of a structure.
+Page 27 of 37
+
+=== page 28 ===
+c. The roof and rain gutters of a Building or Structure shall be kept clear of
+leaves, needles, and vegetative material.
+d. Existing fences that are directly attached to a Building or Structure shall
+have a five foot (5 ft) non-combustible span at the point of attachment.
+i. Existing fences that are not parallel to the adjacent structure wall,
+and are within 5 feet of that wall, shall have a non-combustible
+span within the first 5 feet of the structure perpendicular to the
+exterior structure wall.
+ii. Existing parallel fences that do not touch the structure are allowed.
+e. After the effective date of this regulation, no new or replacement sections
+of combustible fence are permitted within 5 feet of a building or structure
+including an attached deck.
+f. Outbuildings are not permitted in Zone 0, unless constructed according to
+the standards in Chapter 7A (commencing with Section 701A.1) of Part 2
+of Title 24 of the California Code of Regulations. Outbuildings that meet
+these standards shall be considered part of the Building or Structure for
+the purpose of measuring Zone 0.
+SECTION 605—SPARK ARRESTORS
+605.1 General. Chimneys serving fireplaces, barbecues, incinerators or decorative
+heating appliances in which solid or liquid fuel is used shall be provided with a spark
+arrestor. Spark arrestors shall be constructed of woven or welded wire screening of 12
+USA standard gage wire (0.1046 inch) (2.66 mm) having openings not exceeding 1/2 inch
+(12.7 mm). The arrestor shall be securely attached to the chimney or stovepipe and shall
+be adequately supported. The use of bands, mollies, masonry anchors or mortar ties are
+recommended depending upon the individual need. See California Building Code Section
+2113A.9.2 (“Spark arrestors”) for specifications.
+SECTION 606—LIQUEFIED PETROLEUM GAS INSTALLATIONS
+606.1 General. The storage of liquefied petroleum gas (LP-gas) and the installation and
+maintenance of pertinent equipment shall be in accordance with the California Berkeley
+Fire Code.
+606.2 Location of containers or tanks. LP-gas containers or tanks shall be located
+within the defensible space in accordance with the California Berkeley Fire Code.
+Article 7. Referenced Standards
+19.49.080 Chapter 7 Referenced Standards
+Chapter 7 of the 2025 California Wildland-Urban Interface Code is partially adopted with
+adopted sections below. (Sections adopted by the State Fire Marshal remain unless
+modified below.)
+BOF State Board of Forestry and Fire Protection
+RPC 2 (c) - General Guidelines for Creating Defensible Space, February 8, 2006
+Page 28 of 37
+
+=== page 29 ===
+CEC
+CEnC – 2025: California Energy Code
+1.1.8.2,
+IAPMO
+CPC – 2025: California Plumbing Code
+201.3
+CMC – 2025: California Mechanical Code
+201.3
+NEC
+CEC – 2025: California Electrical Code
+201.3
+Article 8. General Requirements
+19.49.090 APPENDIX A – GENERAL REQUIREMENTS
+Appendix A of the 2025 Wildland-Urban Interface Code is adopted and reproduced in its
+entirety subject to the modifications thereto which are set forth below.
+SECTION A101—GENERAL
+A101.1 Scope. The provisions of this appendix establish general requirements applicable
+to new and existing properties located within wildland-urban interface areas.
+A101.2 Objective. The objective of this appendix is to provide necessary fire protection
+measures to reduce the threat of wildfire in a wildland-urban interface area and improve
+the capability of controlling such fires.
+SECTION A102—VEGETATION CONTROL
+A102.1 General. Vegetation control shall comply with Sections A102.2 through A102.4.
+A102.2 Clearance of brush or vegetative growth from roadways. The code official is
+authorized to require areas within 10 feet (3048 mm) on each side of portions of fire
+apparatus access roads and driveways to be cleared of nonfire-smart vegetation growth.
+Exception: Single specimens of trees, ornamental vegetative fuels or cultivated ground
+cover, such as green grass, ivy, succulents or similar plants used as ground cover,
+provided they do not form a means of readily transmitting fire.
+A102.3 Clearance of brush and vegetative growth from electrical transmission and
+distribution lines. Clearance of brush and vegetative growth from electrical transmission
+and distribution lines shall be in accordance with Sections A102.3.1 through A102.3.2.3.
+Page 29 of 37
+
+=== page 30 ===
+Exception: Sections A102.3.1 through A102.3.2.3 do not authorize persons not having
+legal right of entry to enter on or damage the property of others without consent of the
+owner.
+A102.3.1 Support clearance. Persons owning, controlling, operating or maintaining
+electrical transmission or distribution lines shall have an approved program in place that
+identifies poles or towers with equipment and hardware types that have a history of
+becoming an ignition source, and provides a combustible free space consisting of a
+clearing of not less than 10 feet (3048 mm) in each direction from the outer circumference
+of such pole or tower during such periods of time as designated by the code official.
+Exception: Lines used exclusively as telephone, telegraph, messenger call, alarm
+transmission or other lines classed as communication circuits by a public utility.
+A102.3.2 Electrical distribution and transmission line clearances. Clearances
+between vegetation and electrical lines shall be in accordance with Sections A102.3.2.1
+through A102.3.2.3.
+A102.3.2.1 Trimming clearance. At the time of trimming, clearances not less than those
+established by Table A102.3.2.1 shall be provided. The radial clearances shown are
+minimum clearances that shall be established, at time of trimming, between the
+vegetation and the energized conductors and associated live parts.
+Exception: The code official is authorized to establish minimum clearances different than
+those specified by Table A102.3.2.1 when evidence substantiating such other clearances
+is submitted to and approved by the code official.
+TABLE A102.3.2.1—MINIMUM CLEARANCES BETWEEN
+VEGETATION AND ELECTRICAL LINES AT TIME OF TRIMMING
+LINE VOLTAGE MINIMUM RADIAL CLEARANCE FROM
+CONDUCTOR (feet)
+2,400–72,000 4
+72,001–110,000 6
+110,001–300,000 10
+300,001 or more 15
+For SI: 1 foot = 304.8 mm.
+102.3.2.2 Minimum clearance to be maintained. Clearances not less than those
+established by Table A102.3.2.2 shall be maintained during such periods of time as
+designated by the code official. The site specific clearance achieved, at time of pruning,
+shall vary based on species growth rates, the utility company-specific trim cycle, the
+potential line sway due to wind, line sag due to electrical loading and ambient temperature
+and the tree’s location in proximity to the high voltage lines.
+Page 30 of 37
+
+=== page 31 ===
+Exception: The code official is authorized to establish minimum clearances different than
+those specified by Table A102.3.2.2 when evidence substantiating such other clearances
+is submitted to and approved by the code official.
+TABLE A102.3.2.2—MINIMUM CLEARANCES BETWEEN VEGETATION AND
+ELECTRICAL LINES TO BE MAINTAINED
+LINE VOLTAGE MINIMUM CLEARANCE (inches)
+750–35,000 6
+35,001–60,000 12
+60,001–115,000 19
+115,001–230,000 30.5
+230,001–500,000 115
+For SI: 1 inch = 25.4 mm.
+102.3.2.3 Electrical power line emergencies. During emergencies, the utility shall
+perform the required work to the extent necessary to clear the hazard. An emergency can
+include situations such as trees falling into power lines or trees in violation of Table
+A102.3.2.2.
+A102.4 Correction of condition. The code official is authorized to give notice to the
+owner of the property on which conditions regulated by Section A102 exist to correct such
+conditions. If the owner fails to correct such conditions, the legislative body of the
+jurisdiction is authorized to cause the same to be done and make the expense of such
+correction a lien on the property where such condition exists.
+SECTION A103—ACCESS RESTRICTIONS
+A103.1 Restricted entry to public lands. The code official is authorized to determine
+and publicly announce when wildland-urban interface areas shall be closed to entry and
+when such areas shall again be opened to entry. Entry on and occupation of wildland-
+urban interface areas, except public roadways, inhabited areas or established trails and
+campsites that have not been closed during such time when the wildland-urban interface
+area is closed to entry, is prohibited.
+Exceptions:
+1. Residents and owners of private property within wildland-urban interface areas and
+their invitees and guests going to or being on their lands.
+2. Entry, in the course of duty, by peace or police officers, and other duly authorized public
+officers, members of a fire department and members of the Wildland Firefighting Service.
+A103.2 Trespassing on posted private property. Where the code official determines
+that a specific area within a wildland-urban interface area presents an exceptional and
+continuing fire danger because of the density of natural growth, difficulty of terrain,
+proximity to structures or accessibility to the public, such areas shall be restricted or
+closed until changed conditions warrant termination of such restriction or closure. Such
+areas shall be posted in accordance with Section A103.2.1.
+A103.2.1 Signs. Approved signs prohibiting entry by unauthorized persons and referring
+to this code shall be placed on every closed area.
+Page 31 of 37
+
+=== page 32 ===
+A103.2.2 Trespassing. Entering and remaining within areas closed and posted is
+prohibited.
+Exception: Owners and occupiers of private or public property within closed and posted
+areas; their guests or invitees; authorized persons engaged in the operation and
+maintenance of necessary utilities such as electrical power, gas, telephone, water and
+sewer; and local, state and federal public officers and their authorized agents acting in
+the course of duty.
+A103.3 Use of fire roads, fire breaks, fire trails and defensible space. Motorcycles,
+motor scooters and motor vehicles shall not be driven or parked on, and trespassing is
+prohibited on, fire roads, fire breaks, fire trails or defensible space beyond the point where
+travel is restricted by a cable, gate or sign, without the permission of the property owners.
+Vehicles shall not be parked in a manner that obstructs the entrance to a fire road or
+defensible space.
+Exception: Public officers acting within their scope of duty.
+A103.3.1 Obstructions. Radio and television aerials, guy wires thereto, and other
+obstructions shall not be installed or maintained on fire roads, fire breaks, fire trails or
+defensible spaces, unless located 16 feet (4877 mm) or more above such fire road or
+defensible space.
+A103.3.2 Public access roads, fire roads, firebreaks and fire trails. No person(s)
+shall use any public access road, fire road, firebreak or fire trail for the storage of any
+construction material, stationary construction equipment, construction office, portable
+refuse container, earth from any grading or excavating, or any other construction related
+activity.
+A103.4 Use of motorcycles, motor scooters, ultralight aircraft and motor vehicles.
+Motorcycles, motor scooters, ultralight aircraft and motor vehicles shall not be operated
+within wildland-urban interface areas, without a permit by the code official, except on
+clearly established public or private roads designated for use by motorcycles, motor
+scooters, ultralight aircraft and motor vehicles. Permission from the property owner shall
+be presented when requesting a permit.
+A103.5 Tampering with locks, barricades, signs and address markers. Locks,
+barricades, seals, cables, signs and address markers installed within wildland-urban
+interface areas, by or under the control of the code official, shall not be tampered with,
+mutilated, destroyed or removed.
+A103.5.1 Gates, doors, barriers and locks. Gates, doors, barriers and locks installed
+by or under the control of the code official shall not be unlocked.
+SECTION A104—IGNITION SOURCE CONTROL
+A104.1 General. Ignition sources shall be controlled in accordance with Sections A104.2
+through A104.10.
+Page 32 of 37
+
+=== page 33 ===
+A104.2 Objective. Regulations in this section are intended to provide the minimum
+requirements to prevent the occurrence of wildfires.
+A104.3 Clearance from ignition sources. Clearance between ignition sources and
+grass, brush or other combustible materials shall be maintained at not less than 30 feet
+(9144 mm).
+A104.4 Smoking. Where required by the code official, signs shall be posted stating NO
+SMOKING. Persons shall not smoke within 15 feet (4572 mm) of combustible materials
+or nonfire-smart vegetation. Lighting, igniting or otherwise setting fire to or smoking
+tobacco, cigarettes, pipes, cigars, joints, or other device used to burn or heat a substance
+for inhalation in Wildland-Urban Interface areas are prohibited.
+Exception: Places of habitation or in the boundaries of established smoking areas or
+campsites as designated by the code official.
+A104.5 Equipment and devices generating heat, sparks or open flames. Equipment
+and devices generating heat, sparks or open flames capable of igniting nearby
+combustibles shall not be used in wildland-urban interface areas without a permit from
+the code official. See Berkeley Fire Code Sections 308.1.5 Open Flame Devices in
+Wildfire Risk Areas and 308.1.5.1 Signals and Markers.
+Exception: Use of approved equipment within inhabited premises or designated
+campsites that are not less than 30 feet (9144 mm) from grass-, grain-, brush- or forest-
+covered areas.
+A104.6 Fireworks. Fireworks shall not be used or possessed in wildland-urban interface
+areas.
+Exception: Fireworks allowed by the code official under permit in accordance with the
+California Fire Code where not prohibited by applicable local or state laws, ordinances
+and regulations.
+A104.6.1 Authority to seize. The code official is authorized to seize, take, remove or
+cause to be removed fireworks in violation of this section.
+A104.7 Outdoor fires. Outdoor fires in wildland-urban interface areas shall comply with
+Sections A104.7.1 through A104.7.3.
+A104.7.1 General. Persons shall not build, ignite or maintain any outdoor fire of any kind
+for any purpose in or on any wildland-urban interface area, except by the authority of a
+written permit from the code official.
+Exception: Outdoor fires within inhabited premises or designated campsites where such
+fires are in a permanent barbecue, portable barbecue, outdoor fireplace, incinerator, fire
+pits or grill and are not less than 30 feet (9144 mm) from any combustible material or
+nonfire-smart vegetation.
+A104.7.2 Permits. Permits shall incorporate such terms and conditions that will
+reasonably safeguard public safety and property. Outdoor fires shall not be built, ignited
+or maintained in or on hazardous fire areas under any of the following conditions:
+Page 33 of 37
+
+=== page 34 ===
+1. When red flag conditions exist as defined by the National Oceanic and Atmospheric
+Administration.
+2.1. When high winds are blowing.
+3.2. When a person 17 years old or over is not present at all times to watch and tend
+such fire.
+4.3. When a public announcement is made that open burning is prohibited.
+Permanent barbecues, portable barbecues, outdoor fireplaces, fire pits or grills shall
+not be used if solid or liquid fueled.
+A104.7.3 Restrictions. Persons shall not use a permanent barbecue, portable barbecue,
+outdoor fireplace, incinerator, fire pit or grill for the disposal of rubbish, trash or
+combustible waste material.
+A104.8 Incinerators, outdoor fireplaces, permanent barbecues, fire pits and grills.
+Incinerators, outdoor fireplaces, permanent barbecues, fire pits and grills shall not be
+built, installed or maintained in wildland-urban interface areas without prior approval of
+the code official. Existing incinerators, outdoor fireplaces, fire pits, permanent barbecues
+and grills shall be maintained in good repair and in a safe condition at all times. Openings
+in such appliances shall be provided with an approved spark arrester, screen or door.
+Exception: When approved, unprotected openings in barbecues and grills necessary
+for proper functioning shall be allowed.
+A104.8.1 Maintenance. Incinerators, outdoor fireplaces, permanent barbecues and grills
+shall be maintained in good repair and in a safe condition at all times. Openings in such
+appliances shall be provided with an approved spark arrestor, screen or door.
+Exception: Where approved by the code official, unprotected openings in barbecues and
+grills necessary for proper functioning.
+A104.9 Reckless behavior. The code official is authorized to stop any actions of a person
+or persons if the official determines that the action is reckless and could result in an
+ignition of fire or spread of fire.
+A104.10 Planting vegetation under or adjacent to energized electrical lines.
+Vegetation that, at maturity, would grow to within 10 feet (3048 mm) of the energized
+conductors shall not be planted under or adjacent to energized power lines.
+A104.11 Tracer Bullets, Tracer Charges, Rockets and Model Aircraft. Tracer bullets
+and tracer charges shall not be possessed, fired or caused to be fired into or across
+Wildland-Urban Interface areas. Rockets, model planes, gliders and balloons powered
+with an engine, propellant or other feature liable to start or cause fire shall not be fired
+or projected into or across Wildland-Urban Interface Areas.
+A104.12 Explosives and Blasting. Explosives shall not be possessed, kept, stored,
+sold, offered for sale, given away, used, discharged, transported or disposed of within
+Wildland-Urban Interface areas except by permit from the code official.
+Page 34 of 37
+
+=== page 35 ===
+A104.13 Apiaries. Lighted and smoldering material shall not be used in connection with
+smoking bees in or upon Wildland-Urban Interface areas except by permit from the
+code official.
+SECTION A105—CONTROL OF STORAGE
+A105.1 General. In addition to the requirements of the California Fire Code, storage and
+use of the materials shall be in accordance with Sections A105.2 through A105.4.2.
+A105.2 Hazardous materials. Hazardous materials in excess of 10 gallons (37.8 L) of
+liquid, 200 cubic feet (5.66 m3) of gas, or 10 pounds (4.54 kg) of solids require a permit
+and shall comply with nationally recognized standards for storage and use.
+A105.3 Explosives. Explosives shall not be possessed, kept, stored, sold, offered for
+sale, given away, used, discharged, transported or disposed of within wildland-urban
+interface areas, except by permit from the code official.
+A105.4 Combustible materials. Outside storage of combustible materials such as, but
+not limited to, wood, rubber tires, building materials or paper products shall comply with
+the other applicable sections of this code and this section.
+A105.4.1 Individual piles. Individual piles shall not exceed 5,000 square feet (465 m2)
+of contiguous area. Piles shall not exceed 50,000 cubic feet (1416 m3) in volume or 10
+feet (3048 mm) in height.
+A105.4.2 Separation. A clear space of not less than 40 feet (12 192 mm) shall be
+provided between piles. The clear space shall not contain combustible material or nonfire-
+smart vegetation.
+SECTION A106—DUMPING
+A106.1 Waste material. Waste material shall not be placed, deposited or dumped in
+wildland-urban interface areas or in, on or along trails, roadways or highways or against
+structures in wildland-urban interface areas.
+Exception: Approved public and approved private dumping areas.
+A106.2 Ashes and coals. Ashes and coals shall not be placed, deposited or dumped in
+or on wildland-urban interface areas.
+Exceptions:
+1. In the hearth of an established fire pit, camp stove or fireplace.
+2. In a noncombustible container with a tightfitting lid, which is kept or maintained in
+a safe location not less than 10 feet (3048 mm) from nonfire-smart vegetation or
+structures.
+3. Where such ashes or coals are buried and covered with 1 foot (305 mm) of
+mineral earth not less than 25 feet (7620 mm) from nonfire-smart vegetation or
+structures.
+Page 35 of 37
+
+=== page 36 ===
+SECTION A107—PROTECTION OF PUMPS AND WATER STORAGE FACILITIES
+A107.1 General. The reliability of the water supply shall be in accordance with Sections
+A107.2 through A107.5.
+A107.2 Objective. The intent of this section is to increase the reliability of water storage
+and pumping facilities and to protect such systems against loss from intrusion by fire.
+A107.3 Fuel modification area. Water storage and pumping facilities shall be provided
+with a defensible space of not less than 30 feet (9144 mm) clear of nonfire-resistive
+vegetation or growth around and adjacent to such facilities.
+Persons owning, controlling, operating or maintaining water storage and pumping
+systems requiring this defensible space are responsible for clearing and removing
+nonfire-smart vegetation and maintaining the defensible space on the property owned,
+leased or controlled by said person.
+A107.4 Trees. Portions of trees that extend to within 30 feet (9144 mm) of combustible
+portions of water storage and pumping facilities shall be removed.
+A107.5 Protection of electrical power supplies. Where electrical pumps are used to
+provide the required water supply, such pumps shall be connected to a standby power
+source to automatically maintain electrical power in the event of power loss. The standby
+power source shall be capable of providing power for not less than 2 hours in accordance
+with Chapter 27 of the California Building Code, Section 1203 of the California Fire Code
+and the California Electrical Code.
+Exception: A standby power source is not required where the primary power service to
+pumps is underground as approved by the code official.
+SECTION A108—LAND USE LIMITATIONS
+A108.1 General. Temporary fairs, carnivals, public exhibitions and similar uses must
+comply with all other provisions of this code in addition to enhanced ingress and egress
+requirements.
+A108.2 Objective. The increased public use of land or structures in wildland-urban
+interface areas increases the potential threat to life safety. The provisions of this section
+are intended to reduce that threat.
+A108.3 Permits. Temporary fairs, carnivals, public exhibitions or similar uses shall not
+be allowed in a designated wildland-urban interface area, except by permit from the code
+official.
+Permits shall incorporate such terms and conditions that will reasonably safeguard
+public safety and property.
+Page 36 of 37
+
+=== page 37 ===
+A108.4 Access roadways. In addition to the requirements in Section 403, access
+roadways shall be not less than 24 feet (7315 mm) wide and posted NO PARKING. Two
+access roadways shall be provided to serve the permitted use area.
+Where required by the code official to facilitate emergency operations, approved
+emergency vehicle operating areas shall be provided.
+SECTION A109—REFERENCED STANDARDS
+A109.1 General. See Table A109.1 for standards that are referenced in various sections
+of this appendix. Standards are listed by the standard identification with the effective date,
+standard title and the section or sections of this appendix that reference the standard.
+TABLE A109.1—REFERENCED STANDARDS
+STANDARD ACRONYM STANDARD NAME SECTIONS HEREIN
+REFERENCED
+CBC—25 California Building Code A107.5
+CFC—25 California Fire Code A104.6, A105.1, A107.5
+CEC—25 California Electrical Code A107.5
+Section 2. Copies of this Ordinance shall be posted for two days prior to adoption in the
+display case located near the walkway in front of Council Chambers, 2134 Martin Luther
+King Jr. Way. Within 15 days of adoption, copies of this Ordinance shall be filed at each
+branch of the Berkeley Public Library and the title shall be published in a newspaper of
+general circulation.
+* * * * * *
+Page 37 of 37

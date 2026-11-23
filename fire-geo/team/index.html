@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inspectors · Fire code by location</title>
+<meta name="description" content="Two fire inspectors, linked live: a field inspector on a phone and a senior inspector on a laptop.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../shared/shell.css">
+<link rel="stylesheet" href="../lib/beforeafter.css">
+<link rel="stylesheet" href="team.css">
+<link rel="stylesheet" href="phone.css">
+<link rel="stylesheet" href="desk.css">
+<link rel="stylesheet" href="../shared/gleb/gleb.css">
+<script src="../shared/gleb/gleb.js"></script>
+</head>
+<body data-dev="phone">
+
+<header class="shell-bar" data-shell="inspectors"><button class="shell-pill" id="tmReset" type="button">Start over</button></header>
+
+<main class="tm-main">
+  <div class="tm-switch" id="tmSwitch" aria-label="Which device to show"></div>
+  <div class="tm-stage" id="tmStage">
+    <div class="tm-cap tm-cap-phone"><b>Field inspector</b><span>on site</span></div>
+    <div class="tm-phone-fit" role="region" aria-label="Field inspector, on a phone"><div class="tm-phone"><div class="ph-screen" id="phone"></div></div></div>
+    <div class="tm-cap tm-cap-laptop"><b>Senior inspector</b><span>at the office</span></div>
+    <div class="tm-laptop" role="region" aria-label="Senior inspector, at a laptop">
+      <div class="tm-lid"><i class="tm-cam" aria-hidden="true"></i><div class="dk-app" id="desk"></div></div>
+      <div class="tm-base" aria-hidden="true"><i></i></div>
+    </div>
+  </div>
+</main>
+
+<!-- the Technology tab's data and logic (see /API.md): the same codes, verdicts, places and corrections -->
+<script src="../data/jurisdictions.js"></script>
+<script src="../data/content.js"></script>
+<script src="../data/hazard.js"></script>
+<script src="../data/law.js"></script>
+<script src="../data/outlines.js"></script>
+<script src="../lib/geo.js"></script>
+<script src="../lib/codes.js"></script>
+<script src="../lib/emphasis.js"></script>
+<script src="../lib/solutions.js"></script>
+<script src="../lib/beforeafter.js"></script>
+<script src="../shared/shell.js"></script>
+<!-- this tab -->
+<script src="adapter.js"></script>
+<script src="flow.js"></script>
+<script src="drafts.js"></script>
+<script src="ui.js"></script>
+<script src="photo.js"></script>
+<script src="phone.js"></script>
+<script src="desk-draft.js"></script>
+<script src="desk.js"></script>
+<script src="main.js"></script>
+<script src="../feedback-mode.js"></script>
+<script src="/progress/pill.js" defer></script>
+</body>
+</html>

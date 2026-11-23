@@ -1,0 +1,2612 @@
+
+=== page 1 ===
+ORDINANCE NO. XXXX
+AN ORDINANCE OF THE MARIN COUNTY BOARD OF SUPERVISORS:
+(1) AMENDING TITLE ONLY OF SECTION 16.08.065, ISSUANCE OF
+CITATIONS BY DESIGNATED OFFICERS AND EMPLOYEES FOR
+VIOLATIONS OF THE INTERNATIONAL FIRE CODE AND CALIFORNIA FIRE
+CODE, AND PUBLIC RESOURCES CODE. (2) REPEALING CHAPTER 16.16
+AND 16.17 OF THE MARIN COUNTY CODE; AND (3) ESTABLISHING NEW
+CHAPTER 16.16 RELATING TO: (A) MARIN COUNTY ADOPTION OF AND
+AMENDMENTS TO SPECIFIC PROVISIONS OF THE 2024 INTERNATIONAL
+FIRE CODE, THE 2025 CALIFORNIA FIRE CODE AND 2024 INTERNATIONAL
+WILDLAND-URBAN INTERFACE CODE, THE 2025 CALIFORNIA WILDLAND-
+URBAN INTERFACE CODE; (B) PRESCRIBING REGULATIONS GOVERNING
+CONDITIONS HAZARDOUS TO LIFE AND PROPERTY FROM FIRE OR
+EXPLOSION; (C) PROVIDING FOR THE ISSUANCE OF PERMITS FOR
+HAZARDOUS USES OR OPERATIONS; AND (D) ESTABLISHING A FIRE
+PREVENTION BUREAU AND PROVIDING OFFICERS THEREFOR AND
+DEFINING THEIR POWERS AND DUTIES.
+THE BOARD OF SUPERVISORS OF THE COUNTY OF MARIN HEREBY ORDAINS
+AS FOLLOWS:
+SECTION I. CHANGES TO SECTION 16.08.065
+Section 16.08.065 of the Marin County Code is hereby amended in its title only.
+The language of existing Section 16.08.065 shall remain the same. The change in
+the title is as follows:
+Section 16.08.065 Issuance of Citations by Designated Officers and Employees for
+Violations of the International Fire Code, California Fire Code, and
+Public Resources Code.
+SECTION II. REPEAL OF CHAPTER 16.16 AND 16.17
+Chapter 16.16 and 16.17 of the Marin County Code is repealed.
+SECTION III ESTABLISHMENT OF NEW CHAPTER 16.16
+A. FINDINGS
+1
+
+=== page 2 ===
+1. The California Fire Code and the International Fire Code, and International
+Wildland-Urban Interface Code and the California Wildland-Urban Interface
+Code have been updated. The updates to these Codes necessitate that the
+County of Marin adopt updated portions of these codes and make
+amendments to them.
+B. New Chapter 16.16 is hereby established with the title:
+MARIN COUNTY AMENDMENTS TO THE 2024 INTERNATIONAL FIRE CODE
+AND THE 2025 CALIFORNIA FIRE CODE, AND THE 2024 INTERNATIONAL
+WILDLAND-URBAN INTERFACE CODE AND THE 2025 CALIFORNIA
+WILDLAND-URBAN INTERFACE CODE
+FINDINGS OF FACT AND NEED FOR CHANGES OR MODIFICATIONS TO THE
+STATE BUILDING STANDARDS CODE BECAUSE OF LOCAL CONDITIONS
+CHANGES OR MODIFICATIONS: Pursuant to Section 17958.5, 17958.7 and
+18941.5 of the State of California Health and Safety Code, the Marin County Board of
+Supervisors in its ordinance adopting and amending the 2018 Edition of the International
+Fire Code, the 2021 Edition of the International Wildland-Urban Interface Code, and the
+2022 California Fire Code, changes or modifies certain provisions of the 2022 California
+Building Standards Code (Title 24, Part 9) as it pertains to the regulation of buildings used
+for human habitation.
+Findings: Pursuant to Sections 17958.5, 17958.7, and 18941.5 of the State of
+California Health and Safety Code, the Marin County Board of Supervisors has
+determined and finds that the attached changes or modifications to the 2025 California
+Building Standards Code are needed and are reasonably necessary because of local
+climatic, geographic and topographic conditions.
+Local Conditions: Local conditions have an adverse effect on the prevention of (1)
+major loss fires, (2) major earthquake damage, and (3) the potential for life and property
+loss, making necessary changes or modifications to the 2024 International Fire Code, the
+2024 International Wildland-Urban Interface Code, the 2025 California Wildalnd-Urban
+Interface Code, the 2025 California Fire Code and the 2025 California Building Standards
+Code in order to provide a reasonable degree of property security and fire and life safety
+in this jurisdiction.
+Below are listed adverse local climatic (see No. 1), geographic and topographic (see No.
+2) conditions.
+1. Climatic
+a. Precipitation. Precipitation ranges from 15 to 50 inches per year with
+an average of approximately 25 inches per year. Approximately ninety
+2
+
+=== page 3 ===
+b. percent (90%) falls during the months of November through April, and 10%
+from May through October.
+Relative Humidity. Humidity generally ranges from 50% during daytime
+to 86% at night. It drops to 20% during the summer months and
+occasionally drops lower.
+c. Temperatures. Temperatures have been recorded as high as
+104 degrees F. Average summer highs are in the 78-degree to 85-degree
+range.
+d. Winds. Prevailing winds are from the northwest. However, winds are
+experienced from virtually every direction at one time or another. Velocities
+are generally in the 5 – 15 mph range, gusting to 7.4 – 30 mph, particularly
+during the summer months. Extreme winds, up to 50 mph, have been
+known to occur.
+e. Summary. These local climatic conditions affect the acceleration,
+intensity, and size of fire in our service area. Times of little or no rainfall, of
+low humidity and high temperatures create extremely hazardous conditions,
+particularly as they relate to the wildland-urban interface. The winds
+experienced in this area can have a tremendous impact upon structure fires
+in buildings in close proximity to one another, and to wildlands commonly
+found in Marin County, and in particular to our service area.
+2. Geographic and Topographic
+a. The fire environment of a community is primarily a combination of two factors:
+the area’s physical geographic characteristics and the historic pattern of urban-
+suburban development. These two factors, alone and combined, create a
+mixture of environments which ultimately determines the area’s fire protection
+needs.
+The basic geographical boundaries of our service area include National and
+State Park lands to the west and south, several suburban communities
+surrounding the Highway 101 corridor to the east, and rural Sonoma County to
+the north.
+Because of the size of our service area (approximately 445 square miles), the
+characteristics of the fire environment change from one location to the next. As
+such, our service area has not one, but a number of fire environments, each of
+which has its individual fire protection needs.
+Our service area has varied topography and vegetative cover. A
+conglomeration of hills and ridges, with vegetative cover ranging from open
+grass lands studded with oak to dense forests of Douglas fir, pine and redwood
+3
+
+=== page 4 ===
+make up the terrain. Development has occurred as the communities along the
+eastern border of our service area have extended west. In addition, over the
+last ten years, development has spread into the hills and the smaller valleys
+and canyons of the San Geronimo Valley, Nicasio and Point Reyes Station.
+b. Seismic Location. The relatively young geological processes that have
+created the San Francisco Bay Area are still active today. Our service area
+incorporates a portion of the San Andreas earthquake fault and is adjacent to
+the Hayward-Calaveras and numerous potentially active faults. Almost our
+entire land surface is in the high-to-moderate seismic hazard zones.
+c. Size and Population. Our service area covers 445 square miles with a
+population estimated at 45,000. The Marin County Fire Department is the
+largest fire department (in terms of area served) in Marin County. Within our
+service area are six (6) fire stations and a total of 83 Fire Department personnel.
+The Fire Department handles diverse responsibilities including fire, hazardous
+material discharge first-responder, paramedic/rescue, and urban search and
+water rescue response to wildland, urban, freeway areas within the county.
+d. Roads and Streets. Lengthy cul-de-sacs generally service new
+developments. Cul-de-sacs and dead-end roads serve most of the smaller
+canyons and valleys, and hillsides, as well. Some planned unit developments
+are served by private roads, which create access problems (i.e., narrow paved
+widths and on-street parking). Roadways with less than 20 feet of unobstructed
+paved surface, with a dead-end longer than 150 feet, with a cull-de-sac longer
+than 800 feet, or with a cul-de-sac diameter less than 68 feet are considered
+hazardous in terms of fire access and protection. A large number of roadways
+within our service area fall into one or more of the above four categories.
+e.Topography. Our service area is a conglomeration of rolling hills, valleys and
+ridges. The flatter lands are found in the central and northern portions of the
+service area. Most of the existing urban and suburbanized areas are on
+relatively flat lands (0 – 5% slope).
+Future residential development is trending to the hill areas of the San Geronimo
+Valley, Lucas Valley/Nicasio and Point Reyes Station. In addition, as the value
+of parcels increase, more marginal lots along Throckmorton Ridge/Panoramic
+Highway are being developed. The majority of the hillsides and ridges in these
+areas have slopes ranging from 15 – 30% and 30+%.
+Elevations are varied in the service area with Mt. Tamalpais listed at 2,671 feet
+above sea level. Marin City and Point Reyes Station are approximately 20 feet
+above sea level, the San Geronimo Valley is 485 feet, and the Throckmorton
+Fire Station is at 1,160 feet above sea level, respectively.
+4
+
+=== page 5 ===
+Correspondingly, there is much diversity in slope percentages. San Geronimo
+Valley slopes run from level (in the valley, itself) to near 70%. Mt. Barnabee
+has slopes that run from 20 to 70%. Throckmorton ridge has slopes from 40 –
+80%. Slope is an important factor in fire spread. As a basic rule of thumb, the
+rate of spread will double as the slope percentage doubles, all other factors
+remaining the same.
+f. Vegetation. Marin County’s semi-arid Mediterranean-type climate produces
+vegetation with specific growth a result of local topography, proximity to the
+coast and prevailing wind. In the central and eastern portions of our service
+area, the south facing exposure is primarily rye grass with occasional clumps
+of bay and oak trees in the more sheltered pockets. The north facing slopes
+are heavily wooded from lower elevations to ridge with oak and bay trees and
+minor shrubs of the general chaparral class. Many areas in the western portion
+of our district are heavily forested with pine, Douglas fir and redwood.
+Expansion of the residential community into areas of heavier vegetation has
+resulted in homes existing in close proximity to dense natural foliage. Often
+such dwellings are completely surrounded by highly combustible vegetation
+compounding the fire problem from a conflagration potential point of view.
+There are approximately 9,200 parcels in our jurisdiction’s wildland urban
+interface area. Proliferation of sudden oak death syndrome has increased the
+dead fuel loads in the oak woodlands and bay forests, which has significantly
+increased fire brand production and crown fire potential within the wildland-
+urban interface area.
+g. Summary. The above local geographic and topographic conditions increase
+the magnitude, exposure, accessibility problems and fire hazards presented to
+the Marin County Fire Department. In addition, fire following an earthquake
+has the potential of causing greater loss of life and damage than the earthquake
+itself.
+1) 2) Other variables may tend to intensify the post-earthquake situation:
+3) 4) The extent of damage sustained by the water system infrastructure;
+The extent of isolation due to bridge and/or freeway overpass
+collapse;
+The extent of roadway damage and/or amount of debris blocking the
+roadways;
+Climatic conditions (hot, dry weather with high winds);
+5
+
+=== page 6 ===
+5) Time of day will influence the amount of traffic on roadways and
+could intensify the risk to life during normal business hours;
+6) The availability of timely mutual aid or military assistance;
+7) The large portion of dwellings with wood shingle roof coverings and
+siding could result in conflagrations due to brand broadcast.
+Conclusion: Local climatic, geographic and topographic conditions impact fire
+prevention efforts, and the frequency, spread, acceleration, intensity and size of fire
+involving buildings in this community. Further, they impact potential damage to all
+structures from earthquake and subsequent fire. Therefore, it is found to be reasonably
+necessary that the International and California Fire Code, the International Wildland-
+Urban Interface Code, as well as the State Building Standards Code be changed or
+modified to mitigate the effects of the above conditions.
+Furthermore, California Health and Safety Code Section 17958.7 requires that the
+modification or change be expressly marked and identified as to which each finding refers.
+Therefore, the Marin County Fire Department finds that the following table provides code
+sections that have been modified pursuant to this Ordinance, which are building
+standards as defined in Health and Safety Code Section 18909, and the associated
+referenced conditions for modification due to local climatic, geological and topographical
+reasons.
+Section Number: Local Climatic, Geographical and Topographical Conditions:
+2025 California Fire Code
+Chapter 2 DEFINITION
+202 1e, 2a, 2b, 2d, 2e, 2f
+Chapter 3 GENERAL REQUIRMENTS
+302.1 2b, 2d, 2e, 2g
+307.4.4 2b, 2d, 2e, 2g
+317.4.4 2b, 2d, 2e, 2g
+319 2b, 2d, 2e, 2g
+324 2b, 2d, 2e, 2g
+Chapter 4 EMERGENCY PLANNING AND PREPARDNESS
+401.1.1 2c, 2d, 2e, 2g
+401.3.2.1-401.3.2.2 2a, 2c, 2d, 2e, 2g
+402.1 -403.1.1 2a, 2b, 2c, 2d, 2e, 2g
+6
+
+=== page 7 ===
+403.9.1.4 2a, 2b, 2c, 2d, 2e, 2g
+Chapter 5 FIRE SERVICE FEATURES
+502.1 2a,2c,2d,2e,2f,2g
+503.1 2a,2c,2d,2e,2f,2g
+503.1.4-503.1.5 2a,2c,2d,2e,2f,2g
+503.2.1 2a,2c,2d,2e,2f,2g
+503.2.6.1 2a,2c,2d,2e,2f,2g
+503.4-503.4.2 2a,2c,2d,2e,2f,2g
+503.6.1-503.6.3 2a,2c,2d,2e,2f,2g
+507.5.1-507.5.1.1 2a,2c,2d,2e,2f,2g
+507.5.7 2a,2c,2d,2e,2f,2g
+510.1 2a,2c,2d,2e,2f,2g
+Chapter 9 FIRE PROTECTION AND LIFE SAFETY SYSTEMS
+901.7 902.1 903.2-903.2.1 903.3.9 903.6.1 906.11 907.2.13.1.2 907.6.6 907.8.5 918 2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+2a, 2b, 2c, 2d, 2e, 2g
+Chapter 11 FIRE PROTECTION AND LIFE SAFETY SYSTEMS
+1103.1 2a, 2b, 2c, 2d, 2g
+1103.2 2a, 2b, 2c, 2d, 2g
+1103.3 -1103.6.2 2a, 2b, 2c, 2d, 2g
+1103.9 2a, 2b, 2c, 2d, 2g
+1104 -1105 2a, 2b, 2c, 2d, 2g
+Chapter 12 FIRE PROTECTION AND LIFE SAFETY SYSTEMS
+1201.4-1201.7 2a, 2b, 2c, 2e, 2g
+1202.1 2a, 2b, 2c, 2e, 2g
+1208 -1208.6 2a, 2b, 2c, 2e, 2g
+Chapter 33 FIRE SAFETY UNDER CONSTRUCTION
+3313.3- 3315.5 Chapter 36 MARINAS
+2a, 2b, 2c, 2d, 2g
+7
+
+=== page 8 ===
+3603.6.1-3603.6.2 3603.8 - 3603.9 2a, 2b, 2c, 2e, 2g
+2a, 2b, 2c, 2e, 2g
+Chapter 56 EXPLOSIVES AND FIREWORKS
+5601.1.3 2a,2c,2d,2e,2g
+5608.1.2-5608.2 2a, 2c, 2d, 2e, 2g
+Appendix B 2a,2b,2c,2d,2e,2f,2g
+2025 California Wildland-Urban Interface Code
+Chapter 1 SCOPE AND ADMINISTRATION
+101.3.1 2a,2c,2d,2e,2f,2g
+101.3.1.1 2a,2c,2d,2e,2f,2g
+101.5 2a,2c,2d,2e,2f,2g
+Chapter 5 SPECIAL BUILDING CONSTRUCTION REGULATIONS
+501.1 2a,2c,2d,2e,2f,2g
+501.5 2a,2c,2d,2e,2f,2g
+503.1 2a,2c,2d,2e,2f,2g
+503.2.2 2a,2c,2d,2e,2f,2g
+503.2.3 2a,2c,2d,2e,2f,2g
+503.3.1 2a,2c,2d,2e,2f,2g
+503.3.4 2a,2c,2d,2e,2f,2g
+504.3 2a,2c,2d,2e,2f,2g
+504.3.1 2a,2c,2d,2e,2f,2g
+504.5 2a,2c,2d,2e,2f,2g
+504.5.2 2a,2c,2d,2e,2f,2g
+504.6 2a,2c,2d,2e,2f,2g
+504.7 2a,2c,2d,2e,2f,2g
+504.7.1 2a,2c,2d,2e,2f,2g
+504.7.3.2 2a,2c,2d,2e,2f,2g
+504.7.3.5 2a,2c,2d,2e,2f,2g
+504.8 2a,2c,2d,2e,2f,2g
+8
+
+=== page 9 ===
+504.9 2a,2c,2d,2e,2f,2g
+508 2a,2c,2d,2e,2f,2g
+The following Sections to new Chapter 16.16 are established:
+16.16.010 Adoption of the California Fire Code and International
+Fire Code
+16.16.020 Establishment and Duties of the Fire Prevention
+Division
+16.16.030 Definitions
+16.16.031 Establishment of Geographic Limits of Districts in
+which Storage of Class I, Class II, and Class III
+Liquids in Outside Aboveground Tanks is Prohibited
+16.16.032 Establishment of Geographic Limits of Districts in
+which Storage of Class I, Class II, and Class III
+Liquids in Aboveground Tanks is Prohibited
+16.16.033 Establishment of the Geographic Limits of Districts in
+which the Storage of Stationary Tanks of Flammable
+Cryogenic Fluids is Prohibited
+16.16.034 Establishment of Geographic limits in which storage
+of Liquified Petroleum Gasses is restricted.
+16.16.035 Establishment of Geographic Limits of Districts in
+which Storage of Explosives and Blasting Agents is
+Prohibited
+16.16.036 Establishment of Geographic Limits of Districts in
+which the Storage of Compressed Natural Gas is
+Prohibited
+16.16.037 Establishment of Geographic Limits of Districts in
+which the Storage of Hazardous Materials is
+Prohibited or Limited
+16.16.040 Amendments Made to the 2025 California Fire Code
+and the 2024 International Fire Code
+16.16.050 Adoption of the California Wildland-Urban Interface
+Code and International Wildland-Urban Interface
+Code
+16.16.060 Amemdments Made to the 2024 International
+Wildland-Urban Interface Code and the 2025
+California Wildland-Urban Interface Code
+16.16.070 Authority to Arrest and Issue Citations
+16.16.075 Hearings and Appeals
+16.16.080 Penalties
+16.16.090 Former Ordinances
+16.16.010 Validity
+16.16.011 Ordinance Publication and Effective Date
+9
+
+=== page 10 ===
+16.16.012 California Environmental Quality Act
+16.16.010 ADOPTION OF CALIFORNIA FIRE CODE AND INTERNATIONAL FIRE
+CODE.
+The Marin County Board of Supervisors hereby adopts, for the purpose of prescribing
+regulations governing conditions hazardous to life and property from fire or explosion, the
+following:
+1. The 2025 California Fire Code, which consists of certain portions of the 2024 Edition
+of the International Fire Code as amended by the California Building Standards
+Commission, including:
+a. Appendix 4 SPECIAL DETAILED REQUIREMENTS BASED ON USE AND
+OCCUPANY
+b. Appendix B FIRE FLOW REQUIREMENTS FOR BUILDINGS, the whole
+thereof, save and except such portions as are hereafter amended by section
+16.16.040 of this Ordinance.
+c. d. e. f. Appendix BB FIRE FLOW REQUIREMENTS FOR BUILDINGS
+Appendix C FIRE HYDRANTS LOCATIONS AND DISTRIBUTION
+Appendix CC FIRE HYDRANT LOCATIONS AND DISTRIBUTION
+Appendix D FIRE APPARATUS ACCESS ROADS, the whole thereof, save
+and except sections D103.1, D103.2, D103.6, D103.6.1, D103.6.2, the
+Exception to D106.1, and Exception 1 of D107.1.
+g. Appendix E HAZARD CATEGORIES
+h. Appendix F HAZARD RANKING
+i. Appendix G CRYOGENIC FLUIDS – WEIGHT AND VOLUME
+EQUIVALENTS
+j. Appendix H HAZARDOUS MATERIALS MANAGEMENT PLAN AND
+HAZARDOUS MATERIAL INVENTORY STATEMENTS
+k. Appendix I FIRE PROTECTION SYSTEMS-
+NONCOMPLIANT CONDITIONS
+l.
+m. Appendix O VALET TRASH AND RECYCLING COLLECTION IN
+GROUP R-2 OCCUPANCIESAppendix P TEMPORARY
+HAUNTED HOUSES, GHOST WALKS AND SIMILAR
+AMUSEMENT USES.
+2. The International Fire Code published by the International Fire Code Council, Inc.,
+2024 Edition hereof and the whole thereof, save and except such portions as are
+hereinafter deleted, modified or amended by Section 16.16.040 of this Ordinance.
+.
+10
+
+=== page 11 ===
+Not less than one (1) copy of the Codes and Standards hereby adopted is filed in the
+office of the Fire Marshal of the Marin County Fire Department and the same are hereby
+adopted and incorporated fully as if set out at length herein, and from the date on which
+this Ordinance shall take effect, and the provisions thereof shall be controlling within the
+limits of the Marin County Fire Department.
+16.16.020 ESTABLISHMENT AND DUTIES OF THE FIRE PREVENTION DIVISION
+The 2025 California Fire Code, which consists of certain portions of the 2024 edition of
+the International Fire Code as amended by the California Building Standards
+Commission, and the 2024 edition of the International Fire Code, and the 2024 edition of
+the International Wildland-Urban Interface Code as amended by the California Building
+Standards Commission and the 2025 California Wildland-Urban Interface Code as
+adopted and amended herein, shall be enforced by the Fire Prevention Bureau of the
+Marin County Fire Department and shall be operated under the supervision of the Chief
+of the Fire Prevention Bureau of the Marin County Fire Department.
+16.16.030 DEFINITIONS
+Wherever they appear in the California and International Fire Codes, unless otherwise
+provided, the following words shall have the meanings ascribed to them in this section:
+(a) Whenever the words “Fire Code” are used they shall mean those Codes and
+Standards adopted in Section 16.16.040 and 16.16.060 of this Ordinance.
+(b) Wherever the word "jurisdiction" is used in the Fire Code, it shall be held to mean the
+Marin County Fire Department.
+(c) Wherever the term "counsel" is used in the Fire Code, it shall be held to mean the
+attorney for the Marin County Fire Department.
+(d) Wherever the words “Fire Code Official” are used in the Fire Code, they shall be held
+to mean the Fire Chief or Fire Marshal of the Fire Prevention Bureau of the Marin County
+Fire Department.
+16.16.031 ESTABLISHMENT OF GEOGRAPHIC LIMITS OF DISTRICTS IN WHICH
+STORAGE OF CLASS I, CLASS II AND CLASS III LIQUIDS IN OUTSIDE
+ABOVEGROUND TANKS IS PROHIBITED
+The geographic limits referred to in Section 5704.2.9.6.1 of the International Fire Code in
+which storage of Class I, Class II and Class III liquids in outside aboveground tanks is
+prohibited are amended as follows: In all residential and commercial areas as established
+by the County of Marin, and agricultural land of less than two (2) acres.
+11
+
+=== page 12 ===
+16.16.032 ESTABLISHMENT OF GEOGRAPHIC LIMITS OF DISTRICTS IN WHICH
+STORAGE OF CLASS I, CLASS II AND CLASS III LIQUIDS IN ABOVEGROUND
+TANKS IS PROHIBITED
+The geographic limits referred to in Section 5706.2.4.4 of the International Fire Code in
+which storage of Class I, Class II and Class III liquids in aboveground tanks is prohibited
+are amended as follows: In all residential and commercial areas as established by the
+County of Marin, and agricultural land of less than two (2) acres.
+16.16.033 ESTABLISHMENT OF THE GEOGRAPHIC LIMITS OF DISTRICTS IN
+WHICH THE STORAGE OF STATIONARY TANKS OF FLAMMABLE CRYOGENIC
+FLUIDS IS TO BE PROHIBITED
+The geographic limits, referred to in Section 5806.2 of the International Fire Code in which
+the storage of flammable cryogenic fluids in stationary containers are prohibited, are
+hereby established as follows: In all residential areas and in heavily populated or
+congested commercial areas, as established by the County of Marin, and agricultural land
+of less than two (2) acres.
+16.16.034 ESTABLISHMENTS OF GEOGRAPHIC LIMITS IN WHICH STORAGE OF
+LIQUEFIED PETROLEUM GASES IS TO BE RESTRICTED
+The geographic limits referred to in Section 6104.2 of the International Fire Code, in which
+storage of liquefied petroleum gas is restricted, are amended as follows: In all residential
+and commercial areas as established by the County of Marin, whichever is applicable.
+16.16.035 ESTABLISHMENT OF GEOGRAPHIC LIMITS OF DISTRICTS IN WHICH
+STORAGE OF EXPLOSIVES AND BLASTING AGENTS IS TO BE PROHIBITED
+The geographic limits in which storage of explosives and blasting agents is prohibited,
+are as follows: In all residential and commercial areas as established by the County of
+Marin, whichever is applicable.
+16.16.036 ESTABLISHMENT OF GEOGRAPHIC LIMITS OF DISTRICTS IN WHICH
+THE STORAGE OF COMPRESSED NATURAL GAS IS TO BE PROHIBITED
+The geographic limits in which the storage of compressed natural gas is prohibited, are
+hereby established as follows: In all residential and commercial areas, as established by
+the County of Marin, whichever is applicable.
+16.16.037 ESTABLISHMENT OF GEOGRAPHIC LIMITS OF DISTRICTS IN WHICH
+THE STORAGE OF HAZARDOUS MATERIALS IS TO BE PROHIBITED OR LIMITED
+The geographic limits in which the storage of hazardous materials is prohibited or limited,
+are hereby established as follows: In all residential and commercial areas, as established
+by the County of Marin, whichever is applicable.
+12
+
+=== page 13 ===
+16.16.040 AMENDMENTS MADE TO THE 2025 CALIFORNIA FIRE CODE AND
+THE2024 INTERNATIONAL FIRE CODE
+The 2025 California Fire Code and the 2024 International Fire Code is amended and
+changed in the following respects:
+Section 102.5 of Chapter 1 is hereby amended to read as follows:
+Section 102.5 Application of residential code. Where structures are designed
+and constructed in accordance with the California Residential Code, the provisions
+of this code shall apply as follows:
+1. Construction and designed provisions: Provisions of this code pertaining to
+the exterior of the structure shall apply including, but not limited to, premises
+identification, fire apparatus access and water supplies. Provisions of this code
+pertaining to the interior of the structure when specifically required by this code
+including, but not limited to, Section 903.2 and Chapter 12 shall apply. Where
+interior or exterior systems or devices are installed, construction permits
+required by Section 105.7 of this code shall also apply.
+2. Administrative, operational and maintenance provisions: All such
+provisions of this code shall apply.
+Section 102.7.3 is hereby added to Chapter 1 and shall read as follows:
+Section 102.7.3 Nationally Recognized Listed Products. Any installation of
+products and equipment due to permits required by this Code shall be Labeled and
+Listed, as defined in Section 202.
+Section 104.1.1 is hereby added to Chapter 1 and shall read as follows:
+Section 104.1.1 Supplemental Rules, Regulations and Standards. The Fire
+Code Official is authorized to render interpretations of this code and to make and
+enforce rules and supplemental regulations and to develop Fire Protection
+Standards to carry out the application and intent of this code.
+Section 104.12 is hereby added to Chapter 1 and shall read as follows:
+Section 104.12. Fire prevention resource sharing. Other enforcement agencies
+shall have authority to render necessary assistance in plan review, inspection,
+code interpretation, enforcement and other fire prevention services when
+requested to do so.
+13
+
+=== page 14 ===
+Section 105.5 of Chapter 1 is hereby amended by adding the following additional
+operational permits:
+105.5 Required Operational Permits. The fire code official is authorized to issue
+operational permits for operations set forth in Sections
+105.56.1 through 105.5.5560
+105.5.60 Local Operational Permits. In addition to the permits required by section
+105.5, the following permits shall be obtained from the Fire Department prior to engaging
+in the following activities, operations, practices or functions:
+1. Fire Protection Plan. protection plan.
+An operational permit is required to implement a fire
+2. Radioactive material. An operational permit is required to store or handle at any
+installation more than 1 micro curie (37,000 Becquerel) of radioactive material not
+contained in a sealed source or more that 1 millicurie (37,000,000 Becquerel) of
+radioactive material in a sealed source or sources, or any amount of radioactive
+material for which specific license from the Nuclear Regulatory Commission is
+required.
+3. Cellulose nitrate storage. An operational permit is required to store or handle
+more than 25 pounds of cellulose nitrate plastic (pyroxylin) for the manufacturing
+or assembly of articles or parts of articles containing cellulose nitrate plastics
+(pyroxylin).
+4. Fireworks. An operational permit is required to store and use fireworks for public
+display.
+Section 105.6 of Chapter 1 is hereby amended by adding the following additional
+operational permits:
+105.6 Required Construction Permits. The fire code official is authorized to issue
+construction permits for work as set forth in Sections 105.6.1 through 105.6.26
+Section 105.6.26 of Chapter 1 is hereby added to read as follows:
+105.6.26 Local Construction Permits. In addition to the permits required by section
+105.6, the following permits shall be obtained from the Fire Prevention Bureau prior to
+installation of the following:
+1. Exterior Wildfire Protection Systems. A construction permit is required for
+the installation of or design modification to an Exterior Wildfire Protection
+System as regulated by section 918.
+14
+
+=== page 15 ===
+2. Home Backup Generator. A construction permit is required for the
+installation of a home backup generator as regulated by section 1208.
+3. Vegetation Management Plan. A construction permit is required to
+implement a vegetation management plan.
+Section 113.4 of Chapter 1 is hereby amended to read as follows:
+Section 113.4 Violation Penalties. Persons who shall violate a provision of this
+code or shall fail to comply with any of the requirements thereof or who shall erect,
+install, alter repair or do work in violation of the approved construction documents
+or directive of the Fire Code Official, or of a permit or certificate used under
+provisions of this code, shall be guilty of a misdemeanor, punishable by a fine of
+not more than $500 dollars or by imprisonment not exceeding 180 days, or both
+such fine and imprisonment. Each day that a violation continues after due notice
+has been served shall be deemed a separate offense.
+The imposition of one penalty of any violation shall not excuse the violation or
+permit it to continue; and all such persons shall be required to correct or remedy
+such violations or defects within a reasonable time; and when not otherwise
+specified, each day that a violation continues after due notice has been served
+shall be deemed a separate offense.
+Section 113.4.1.1 of Chapter 1 is added to read as follows:
+Section 113.4.1.1 Abatement of clearance of brush or vegetative growth from
+structures. The Chief or their authorized representative is authorized to give
+notice to the owner of the property upon which conditions regulated by section
+304.1.3 and Section 325 of Chapter 3 exists to correct such conditions. If the owner
+fails to correct such conditions, the executive body is authorized to cause the same
+to be done and make the expense of such correction a lien upon the property
+where such condition exists.
+Section 114.4 of Chapter 1 is hereby amended to read as follows:
+Section 114.4 Failure to Comply. Any person who shall continue any work after
+having been served with a stop work order, except such work as that person is directed
+to perform to remove a violation or unsafe condition, shall be liable to a fine not less than
+$500 dollars or more than $1500 dollars.
+Section 116 is hereby added Chapter 1 and shall read as follows:
+Section 116 DAMAGES AND EXPENSE RECOVERY
+15
+
+=== page 16 ===
+Section 116.1 Damages and Expense Recovery. The expense of securing any
+emergency that is within the responsibility for enforcement of the Fire Chief as
+given in Section 104 is a charge against the person who caused the emergency.
+Damages and expenses incurred by any public agency having jurisdiction or any
+public agency assisting the agency having jurisdiction shall constitute a debt of
+such person and shall be collectible by the Fire Chief for proper distribution in the
+same manner as in the case of an obligation under contract expressed or implied.
+Expenses as stated above shall include, but not be limited to, equipment and
+personnel committed and any payments required by the public agency to outside
+business firms requested by the public agency to secure the emergency, monitor
+remediation, and clean up.
+Section 202 of Chapter 2 is hereby amended by adding the following general definitions
+as follows:
+Administrator. The Fire Chief or his/her designee.
+All Weather Surface shall mean A/C paving, or concrete capable of supporting
+75,000 gross vehicle weight. Grades up to and including 15% may be of A/C
+paving. Grades 15% or more shall be of concrete kurf-cut so as to allow for water
+run-off and traction.
+Exception: Materials approved by the Fire Code Official.
+Code Official. The official designated by the County of Marin to interpret and
+enforce building standards of this code, shall be the Building Official. The official
+designated by the County of Marin to interpret and enforce fire and life safety
+provisions of this code shall be the Fire Chief.
+Cost of abatement. All expenses incurred by the jurisdiction in its work of
+abatement undertaken and administrative costs pursuant to Sections 304, and 325
+of this Ordinance.
+Coverings shall mean materials including, but not limited to gypsum board,
+paneling, floor boards, lathe and plaster, wood paneling, brick and mortar, or
+other materials attached to rough framing of the building elements. ‘Coverings’
+do not include carpet, linoleum, tile, wallpaper, or other decorative finishes.
+Driveway is a vehicular ingress/egress access route that serves no more than five
+(5) dwelling units, not including accessory structures. Driveways serving one
+dwelling unit shall provide a minimum unobstructed width 16 feet and a minimum
+unobstructed height of 15 feet. Driveways serving two-five dwelling units shall
+provide a minimum unobstructed width of 20 feet. Driveways in excess of 300 feet
+in length (150 feet in the WUI or SRA) shall be provided with turnarounds.
+16
+
+=== page 17 ===
+Driveways in excess of 300 feet in length and less than 20 feet in width shall be
+provided with turnouts in addition to turnarounds.
+Easement Access An access that allows one or more persons to access or use
+or travel across another’s land to reach a nearby location, such as a road.
+Exterior Wildfire Protection System: An approved system of devices and
+equipment which is automatically or manually activated to discharge water and or
+an approved fire-extinguishing agent onto the structure and or the exterior of the
+structure to hydrate the Immediate Zone 0 (0-5 feet from the home, including the
+home) and the Intermediate Zone 1 (5-30 feet from the home).
+Fire Road. See section 502.1.
+Home Backup Generator. A permanent, fixed installation, internal combustion
+engine-driven device that provides temporary electrical power to a Group R-3 and
+R-4 Occupancies.
+Parcel. A portion of land of any size, the area which is determined in the records of the
+County Assessor (Reference Health and Safety Code 14883).
+Person. Includes individuals, firms, partnerships, and corporations
+Pre-Plans shall mean detailed plans of target hazard buildings. These pre-plans
+include information on the building's location, occupancy, hazards, fire department
+connections and hydrants, building layout, and other pertinent data that would
+assist the fire department in case of an emergency.
+Private Roadways A road owned and maintained by a private individual,
+organization, or company rather than a government agency.
+Public Nuisance. A declaration by the fire code official that the presence of
+combustible materials on a parcel creates a fire hazard (Health and Safety Code
+14875 and 14876).
+Public Storage Facility shall mean any business that sells, leases or rents space
+to the public that is enclosed, whether it is a building, storage container or similar
+configuration.
+Rubbish. Waste matter, litter, trash, refuse, debris and dirt on streets, or private
+property in the jurisdiction which is, or when dry, is combustible and may become
+a fire hazard.
+17
+
+=== page 18 ===
+Second Unit shall mean an attached or detached additional dwelling unit greater
+than 1200 square-feet which provides complete independent living facilities, and
+which includes permanent provisions for living, sleeping, eating, cooking and
+sanitation and is located on the same lot as the primary unit.
+Spark Arrestor shall mean a chimney device constructed in a skillful-like manner.
+The net free area of a spark arrestor shall not be less than four times the net free
+area of the outlet of the chimney. The spark arrestor screen shall have heat and
+corrosion resistance equivalent to 12-gauge wire, 19-gauge galvanized wire or 24-
+gauge stainless steel. Opening shall not permit the passage of spheres having a
+diameter larger than 1/2 inch and shall not block the passage of spheres having a
+diameter of less than 3/8 inch.
+Substantial Remodel shall mean the renovation of any structure, which combined
+with any additions to the structure, affects a floor area which exceeds fifty percent
+of the existing floor area of the structure within any 36 month period. When any
+changes are made in the building, such as walls, columns, beams or girders, floor
+or ceiling joists, and coverings (see Section 202[C]), roof rafters, roof diaphragms,
+foundations, piles or retaining walls or similar components, the floor area of all
+rooms affected by such changes shall be included in computing floor areas for the
+purposes of applying this definition. This definition does not apply to the
+replacement and upgrading of residential roof coverings.
+Target Hazard is defined as a location or plausible scenario in which a fire
+department or fire district could quickly become overwhelmed and for which
+additional resources, now scarce, would be needed.
+Temporary shall mean any use for a period of less than 90 days where not
+otherwise referenced.
+Tent. A structure, enclosure, umbrella structure or shelter with or without sidewalls
+or drops, constructed of fabric or pliable material supported by any manner except
+by air or the contents that it protects.
+Tree litter. Any limbs, bark, branches and/or leaves in contact with other
+vegetation or left to gather on the ground.
+Umbrella Structure A structure, enclosure or shelter with or without sidewalls or
+drops, constructed of fabric or pliable material supported by a central pole. (See
+“Membrane Structure” and “Tent”)
+Unwarranted Alarm shall mean the giving, signaling or transition of an alarm
+notification to a public fire station or emergency communication center when such
+alarm is the result of a defective condition of an alarm system, system servicing
+18
+
+=== page 19 ===
+testing, construction activities, ordinary household activities, false alarm or other
+cause when no such danger exists.
+Weeds. All weeds growing upon streets or private property in this jurisdiction and
+includes any of the following:
+1. Weeds, which bear seeds of a fluffy nature or are subject to flight.
+2. Combustible vegetation including juniper, cypress, sagebrush, chaparral, and
+any other brush or weeds which attains growth as to become, when dry, a fire
+menace to adjacent improved property.
+3. Weeds which are otherwise noxious or dangerous.
+4. Poison oak when the conditions of growth are such as to constitute a menace
+to public health.
+5. Dry grass, stubble, brush, litter, or other flammable materials that endanger the
+public safety by creating a fire hazard.
+Wildland-Urban interface area. A geographical area where structures and other
+human development meet or intermingle with wildland or vegetative fuels.
+Section 203.5.1 of Chapter 1 is hereby amended to read as follows:
+Section 203.5.1 OCCUPANCY CLASSIFICATION is modified to include:
+[BG] Factory Industrial F-1 Moderate-hazard occupancy is amended to
+add to the list of moderate-hazard factory industrial groups the following:
+Agricultural crop production including cultivation, drying, processing and
+/or storage.
+Section 302.1 in Chapter 3 is hereby amended to add the following:
+PUBLIC STORAGE FACILITY
+UNWARRANTED ALARM
+California Fire Code, Section 304.1.23 is amended to read as follows:
+304.1.23 Vegetation. Weeds, grass, vines or other growth that is capable of being
+ignited and endangering property, shall be cut down and removed by the owner or
+occupant of the premises. Vegetation clearance requirements in all areas shall be
+in accordance with Chapter 3.
+Section 307.4.4 is hereby added to Chapter 3 and shall read as follows:
+Section 307.4.4 Exterior Fire Features. Exterior fire features, commonly used in
+landscape modifications or enhancements, shall be surrounded by hardscape one
+19
+
+=== page 20 ===
+and a half times the height of the flame and located ten (10) feet from the structure.
+All exterior fire features shall be sourced by natural gas.
+Section 317.4.1 of Chapter 3 is hereby amended to read as follows:
+Section 317.4.1 Maintenance Agreement. Upon the approval of a rooftop garden
+or landscaped roof, the fire official shall require a signed memorandum, constructed
+by the District, as a Maintenance Agreement for the proposed roof. The agreement
+shall require that the vegetation selected does not display any fire-prone
+characteristics, including, but not limited to, oil secretion and debris retainment. The
+agreement shall require that in any instance the vegetation is deemed by the Fire
+Official as unmaintained, dead, or hazardous to life and safety standards, all
+vegetation shall be removed from the roof surface and a Class A roof covering shall
+be installed post-removal. The Maintenance Agreement is required to be returned
+to the Fire Official and shall be on record for the duration of the existence of the
+rooftop garden or landscaped roof.
+Section 324 is hereby added to Chapter 3 and shall read as follows:
+Section 324 PUBLIC STORAGE FACILITIES
+Section 324.1 General. Public Storage Facilities shall comply with the
+provisions of this section.
+Section 324.2. Location on Property and Fire Resistance of Exterior. All public
+storage facilities shall meet the minimum requirements for setback from property
+lines or fire resistive construction as set forth in Table 602 of the Building Code for
+Group S, Division 1 occupancies.
+Section 324.3. Fire apparatus access. All public storage facilities shall have fire
+apparatus access roads provided in accordance with Section 503..
+Section 324.4. Storage of Flammable and Combustible Liquids and
+Hazardous Materials. The storage of hazardous materials or flammable or
+combustible liquids in public storage facilities is prohibited. Such facilities shall
+post legible and durable sign(s) to indicate same in a manner and location(s) as
+specified by the Fire Code Official. This section shall apply to new and existing
+public storage facilities.
+Exception: Only those quantities of flammable and combustible liquids necessary
+for maintenance of the facility may be stored by the facility management per
+Chapter 57 of this code.
+Section 325 is hereby added to Chapter 3 and shall read as follows:
+20
+
+=== page 21 ===
+Section 325 Exterior Fire Hazard Control.
+Section 325.1 Scope This section provides provisions intended to identify hazard
+areas and mitigate the risk of life and structures from intrusion of fire from wildland
+fire exposures and fire exposures from adjacent structures and to mitigate fires
+from spreading to wildland fuels that may threaten to destroy life, overwhelm fire
+suppression capabilities, or result in large property loss.
+Section 325.1.2 Purpose. The purpose of this section is to establish minimum
+requirements in the County of Marin that will increase the ability of a building to
+resist the intrusion of flame or burning embers by a vegetation fire, including the
+identification of hazardous fire areas that require applicable defensible space
+provisions as set forth within and enforced by the Fire Code Official and applicable
+state and local fire resistive building standards that are enforced by the local
+building official.
+Section 325.1.3 Jurisdictional authority. The Board of Supervisors as the
+supervising, legislative and executive authority of this jurisdiction has the authority
+to act pursuant to Part 5 (commencing with Section §14875), Division 12, of the
+State of California Health and Safety Code, to clear or order the clearing of rubbish,
+litter or other flammable material where such flammable material endangers the
+public the safety by creating a fire hazard. Such fire hazard abatement shall be
+conducted in accordance with the provisions of said Part 5 and/or this Ordinance.
+In the application of the provisions of said Part 5 to fire hazard abatement
+proceeding under this Ordinance and the Fire Protection District Law of 1961, the
+terms “Board of Supervisors” or “Board” when used in Part 5, shall mean the Board
+of Supervisors of the County of Marin under this article; and the officer designated
+in Section §14890 of Part 5 shall mean the Fire Chief or his/her designee.
+Section 325.1.4 Contract for services. This Board of Supervisors, through the
+Marin County Fire Department reserves and retains the power to award a contract
+for such fire hazard abatement work where the employees of this jurisdiction are
+not used to performing such abatement work.
+Section 325.2 Definitions:
+The following definitions are defined in Chapter 2
+All weather driving surface
+Cost of abatement
+Parcel
+Person
+Public nuisance
+Rubbish
+Streets
+Tree litter
+21
+
+=== page 22 ===
+Weeds
+Wildland-Urban Interface Area
+Section 325.3 Public nuisance. The Board of Supervisors, Fire Chief or his/her
+designee may declare that all hazardous fire areas, including any combustible
+materials and dead trees, upon private property or streets in this jurisdiction and
+all rubbish on private property or streets in this jurisdiction are public nuisances.
+Such weed nuisance is seasonal and recurrent.
+Section 325.3.1 Weeds and rubbish. The Board hereby declares that all dead
+trees or weeds growing upon private property or streets in this jurisdiction and all
+rubbish on private property or streets in this jurisdiction are public nuisances. Such
+weed nuisance is seasonal and recurrent.
+Section 325.3.2 Seasonal and recurrent nuisance. If the nuisance is seasonal
+and recurrent, the Board of Supervisors shall so declare. Thereafter, such
+seasonable and recurring weeds shall be abated every year without any further
+hearing.
+Section 325.4 Unlawful Disposal. Every person who places, deposits or dumps
+combustible material on a parcel whether or not he/she owns such parcel, is
+subject to the criminal sanctions set forth in Health and Safety Code Section
+13871.
+Section 325.5 Abatement of hazard.
+Section 325.5.1 Weeds, dead trees and rubbish to be destroyed or removed.
+Parcels are to be maintained free of hazardous vegetation and rubbish.
+Section 325.5.2 Prohibition. No person who has any ownership or possessory
+interest in or control of a parcel of land shall allow to exist thereon any hazardous
+rubbish or weeds, trees, or other vegetation, which constitutes a fire hazard.
+Section 325.6 General abatement requirements. The provisions of this section
+shall govern the abatement of combustible material creating a fire hazard upon
+premises (reference Government Code 51175-51189 and Public Resources Code
+4291). County Fire shall develop minimum abatement standards for land in
+residential, business, industrial areas, or land which is unused or vacant, in rural
+or rural residential areas, or regardless of the area in which the property is located.
+Such standards shall be approved by the Board of Supervisors and may be
+modified periodically as circumstances dictate.
+Section 325.6.1 Clearance of brush or vegetative growth from street. The fire
+code official is authorized to require, within 10 feet on each side and 15 feet in
+height of fire apparatus roads and driveways, to be abated of flammable vegetation
+and other combustible growth.
+22
+
+=== page 23 ===
+Exception: Single specimens of trees, ornamental vegetative fuels or
+cultivated ground cover, such as green grass, ivy succulents or similar
+plants used a ground cover, provided that they do not form a means of
+readily transmitting fire and not lower than 15 feet vertical clearance in
+height from the roadway surface.
+Section 325.6.2 Clearance of brush, vegetative growth and combustible
+material from parcels. All parcels declared a public nuisance by the Board of
+Supervisors shall be cleared entirely of combustible material. If the fire code official
+determines this impractical, the provisions of Section 325.6.2 may be used.
+Section 325.6.2.1 Remove from parcel all dead trees vegetative growth and
+rubbish that are deemed a fire hazard.
+Section 325.6.2.2 Parcels one acre or less (43,530 square feet) shall require
+abatement of the entire parcel.
+Section 325.6.2.3 Parcels over one acre (43,560 square feet) may be required to
+comply with the following requirements:
+1. Parcels shall provide 30-foot fuel breaks along the perimeter of the property line,
+and/or 100-feet from adjacent structures.
+2. In addition to the above provisions (Item 1) parcels 10 acres or more shall
+provide a 30-foot cross break to divide the parcel into approximately 5-acre
+sections.
+Section 325.6.3 Clearance of brush or vegetative growth from structures. Any
+person owning, leasing, controlling, operating or maintaining any building and/or
+lands in, upon, or adjoining any hazardous fire area shall at all times maintain
+defensible space around and adjacent to such building by removing and clearing
+away all combustible material for a distance not less than 100 feet from all portions
+of the structure. Distances may be increased or decreased by the fire code official
+based on site specific analysis of local conditions.
+Exception: Single specimens of trees ornamental vegetative fuels or
+cultivated ground cover, such as green grass, ivy succulents or similar
+plants used a ground cover, provided that they do not form a means of
+readily transmitting fire.
+Section 325.6.3.1 Remove that portion of any tree that extends within 10 feet of
+the outlet of any chimney or stovepipe.
+23
+
+=== page 24 ===
+Section 325.6.3.2 Maintain any tree, shrub, or other plant adjacent to or
+overhanging any building free of dead limbs, branches or other combustible
+material.
+Section 325.6.3.3 Maintain the roof of any structure and roof gutters free of leaves,
+needle, or other combustible materials.
+Section 325.6.3.4 Maintain trees within 100 feet of any building or structure or
+within 10 feet of any portion of any highway, street, ally, or driveway which is
+improved or used for vehicle travel or other vehicular purposes, so that leafy
+foliage, twigs or branches are above 5 feet of the ground.
+Section 325.6.3.5 Maintain 5 feet of vertical clearance between roof surfaces and
+portions of trees overhanging any building or structure.
+Section 325.7 Vegetation Management Plan. A Vegetation Management Plan
+shall be prepared by the applicant/property owner when required by the fire code
+official.
+Section 325.8 Cost The cost of the Vegetation Management Plan preparation and
+review shall be the responsibility of the applicant/property owner.
+Section 325.9 Abatement procedures.
+Section 325.9.1 Abatement order. The County fire code official may order the
+abatement of weeds, trees, and rubbish as described in Sections 304.1 and 325.2.
+On making the order, the fire code official shall mail a copy of a notice to the owner
+of the affected property as he/she and his/her address appear upon the current
+and last county equalized assessment roll as of July 1 of each calendar year, or
+as his/her address is known to this jurisdiction. As an alternative to mailing, the
+notice may be posted upon the affected property and published in this jurisdiction,
+not less than ten (10) days prior to the date of the abatement hearing. Copies of
+the notice shall be headed with the words “Notice to Abate Hazardous
+Vegetation/Combustible Material” in letters at least one inch high. The notice shall
+be in substantially the following form:
+NOTICE TO ABATE WEEDS, DEAD TREES, BRUSH AND RUBBISH
+You are hereby notified that weeds, dead trees, brush and rubbish
+constitute a fire hazard on the following described property owned by you:
+(Describe property by common street designation, by metes and bounds,
+Assessor’s code area and parcel number, or by reference to attached map).
+You are hereby notified to remove the weeds, dead trees, brush and rubbish
+within ten (10) days from the date of this notice. If you fail to do so, the Marin
+County Fire Department will remove it and the cost of the abatement,
+including administrative costs, will be collected as property taxes and will
+24
+
+=== page 25 ===
+be a lien on your property until paid. The lien may prevent the sale of the
+property and it shall be the responsibility of the property owner upon
+payment of the property taxes to have the lien removed. Contact the Fire
+Department for a release of lien that must be filed by the property owner at
+the County Recorder’s Office. You are hereby further notified that the Board
+of Supervisors has declared that such weeds, brush, dead trees and rubbish
+constitute a public nuisance and that such weeds also constitute a seasonal
+and recurring nuisance. You may appear before the Fire Chief or his/her
+designee of the Marin County Fire Department on (time and date) at
+(place/room, street, address, and city) to show cause why this order should
+not be enforced. (Signed):
+(Name of Fire Code Official, County of Marin)
+Section 325.9.2 Notice for seasonal and recurring nuisance. In the case of
+weeds, dead vegetation or rubbish, which have previously been declared to
+constitute a seasonable and recurring nuisance, a fire code official will mail a post
+card notice to the owner(s) of the property at the address as it appears on the
+current assessment roll. The notice will state that dangerous vegetation or rubbish
+of a seasonal and recurrent nature are growing on, collecting on, or in front of the
+property and that they constitute a public nuisance that must be abated by removal.
+If the nuisance is not removed, it will be abated by the Marin County Fire
+Department, in which case the costs of removal, plus an administrative fee will be
+assessed from the land upon which or in front of which the weeds were removed.
+The cost will constitute a lien upon the property until paid. No hearing will take
+place.
+325.9.3 Immediate hazard. When, in the opinion of the fire code official, the Fire
+Chief, or the Board of Supervisors, an extreme fire hazard exists which constitutes
+an immediate threat to public health, safety, and welfare, and it is deemed
+necessary to abate such hazard as promptly as possible, said fire hazard shall be
+removed or abated within five (5) days of the posting of the Notice to Abate on the
+affected parcel or within five (5) days of receiving by mail the Notice to Abate.
+Nothing herein shall authorize the entry upon private property not otherwise open
+to the public, without the owner’s consent or possession of an abatement or
+inspection warrant unless it is determined that there is an immediate and eminent
+threat of injury or death to any person if immediate action is not taken.
+Section 325.9.3.1 EXIGENT CIRCUMSTANCES When, in the opinion of the fire
+code official, the Fire Chief, or the Board of Supervisors, an extreme fire hazard
+exists which constitutes an URGENT AND EMINENT threat to public health,
+safety, and welfare, and it is deemed necessary to abate such hazard
+IMMEDIATELY, said fire hazard shall be removed or abated IMMEDIATELY.
+Section 325.9.4 Hearing date. A date for hearing on the notice shall be set at
+least ten (10) days after the date of this notice. The date of the notice is the date
+on which the notice is placed in the United States mail or the date on which it is
+25
+
+=== page 26 ===
+posted on the property. The hearing will occur before the Fire Chief or his/her
+designee. At the hearing, the property owner or his agent may appear to show
+cause why the order shall not be enforced. For good cause shown, the Hearing
+Officer may extend the time for compliance with the order or may rescind the order.
+Section 325.9.5 Contract award. If the owner fails to comply with the order, the
+fire code official of this jurisdiction may have the weeds and rubbish abated either
+by employees of this jurisdiction or by contract. If a contract is awarded, it shall be
+by public bid, awarded to the lowest responsible bidder. A contract may include
+work on more than one parcel. An administrative fee will be attached to the cost
+of the contracted work to the violator.
+Section 325.9.6 Abatement report of costs. The fire code official or his or her
+designee abating the nuisance shall keep an account of the cost of abatement in
+front of or on each separate parcel of land and shall render an itemized report in
+writing the Board of Supervisors showing the cost of removing the weeds, dead
+trees and rubbish on or in front of each separate lot or parcel of land, or both.
+Before the report is submitted to the Board of Supervisors, a copy of it shall be
+posted for at least three days on or near the chamber door of the Board with a
+notice of the time and when the report will be submitted to the Board for
+confirmation. Said report and notice shall also be posted for the said three days in
+two other public places in the County. At the time fixed for receiving and
+considering the report, the Board of Supervisors shall hear it and any objections of
+any of the property owners liable to be assessed for the work of abatement.
+Thereupon, the Board of Supervisors may make such modifications in the report,
+as it deems necessary, after which by order of resolution, the report shall be
+confirmed. The amounts of the cost, including administrative costs, for abating the
+nuisance in front of or upon the various parcels of the land mentioned in the report
+as confirmed shall constitute special assessment against the respective parcels of
+land, and are a lien on the property for the amount of the respective assessments.
+Such lien attaches upon recordation in the office of the County Recorder of the
+County in which the property is situated of a certified copy of the Resolution of
+Confirmation.
+Section 325.9.7 Cost assessments. Upon confirmation of the report of cost by
+the Board of Supervisors and the recordation of the Resolution of Confirmation by
+the administrator, a copy of the report of cost shall be sent to the Director of
+Finance, who shall enter the amount of the assessments against the parcels.
+Thereafter the amount of the assessments shall be collected at the same time and
+in the same way as County taxes are collected. The owners are subject to the
+same penalties and the same procedure and sale in case of delinquency as
+provided for ordinary county taxes. All laws applicable to the levy, collection, and
+enforcement of county taxes are applicable to these assessment taxes.
+Section 325.9.8 Alternate mitigation.
+26
+
+=== page 27 ===
+Section 325.9.8.1 Firebreaks/fuel-breaks. In lieu of ordering abatement as
+provided in Section 321.9.1, the fire code official of this jurisdiction may order the
+preparation of firebreaks/fuel-breaks around parcels of property where
+combustible weeds, crops, or brush are present. In determining the proper width
+for firebreaks/fuel breaks, the fire code official shall consider the height of the
+growth, weather condition, topography, and the accessibility to the property of fire
+protection equipment. The procedure set forth in Section 325.9 for the abatement
+of weeds and rubbish shall apply to the preparation of firebreaks/fuel-breaks.
+Section 325.9.8.2 Vegetation Management Plans. In lieu of vegetation
+abatement the fire code official may allow the property owner to submit a
+Vegetation Management Plan for the property. The plan shall be specific to the
+property and shall describe ways to minimize, mitigate and/or eliminate potential
+for loss from wildfire exposure. The plan shall be developed by the property owner
+and approved by the Fire Department, and the property shall be verified as
+compliant with the plan throughout the year. Verification of compliance shall be
+completed by a third-party individual or firm knowledgeable in such matters and
+approved by the Fire Department each year.
+Section 325.10 Appeals. In order to hear and decide appeals of orders, decisions
+or determinations made by the fire code official, the Fire Chief or his/her designee,
+relative to the application and interpretation of this code, there is hereby created
+an Appeal Officer. The Appeal Officer shall be appointed by the County
+Administrator. The Appeal Officer shall render all decisions and findings in writing
+to the appellant with a duplicate copy to the fire code official who issued the order,
+decision or determination under appeal. The Appeal Officer process is contained
+in Section 16.16.055 of this Ordinance.
+Section 325.11 Violation penalties. Persons who shall violate a provision of this
+code or shall fail to comply with any of the requirements thereof or who shall erect,
+install, alter, repair or do work in violation of the approved construction documents
+or directive of the fire code official, or of a permit or certificate used under
+provisions of this code, shall be subject to the criminal sanctions set forth in Health
+and Safety Code section 13871. Each day that a violation continues after such due
+notice has been served shall be deemed a separate offense.
+Section 325.12. Failure to comply. Any person who shall continue any work after
+having been served with a stop work order, except such work as that person is
+directed to perform to remove a violation or unsafe condition, shall be liable to a
+fine of not less than 500 dollars or not more than 5,000 dollars.
+Section 401.1.1 is hereby added to Chapter 4 and shall read as follows:
+Section 401.1.1 Hazardous Occupancies. In occupancies of a hazardous nature,
+where access for fire apparatus is unduly difficult, or where special life and fire
+safety hazards exist as determined by standards of the Marin County Fire
+Department, that facility or business management shall be required to develop and
+27
+
+=== page 28 ===
+implement an Emergency Response Plan, provide for an onsite Emergency
+Response Team, Emergency Liaison Officer, staff training and fire drills in
+accordance with Sections 405 and 406 and standards developed by the Marin
+County Fire Department
+Section 401.3.2.1 is hereby added to Chapter 4 and shall read as follows:
+Section 401.3.2.1 Unwarranted Alarm Notification. Notification of emergency
+responders based on an unwarranted alarm may be punishable by a fine in accordance
+with the adopted fee schedule. In addition, the responsible party may be liable for the
+operational and administrative costs, incurred from the emergency response or mitigation
+procedures resulting from an unwarranted alarm notification.
+Section 401.3.2.2 is added to read as follows:
+Section 401.3.2.2 Multiple Unwarranted or Nuisance Alarm Activations. Any
+occupancy that has more than 3 unwarranted or nuisance alarms causing
+emergency response within a 12-month period may be required to modify, repair,
+upgrade or replace their system and or monitoring station as determined by the
+Fire Code Official.
+Section 401.3.2.2 is added to read as follows:
+Section 401.3.2.2 Multiple Unwarranted or Nuisance Alarm Activations. Any
+occupancy that has more than 3 unwarranted or nuisance alarms causing
+emergency response within a 12 month period may be required to modify, repair,
+upgrade or replace their system and or monitoring station as determined by the
+Fire Code Official.
+Section 402.1 of Chapter 4 is hereby amended to add the following:
+PRE-PLANS
+UNWARRANTED ALARMS
+TARGET HAZARDS
+Section 403.1.1 is hereby added to Chapter 4 and shall read as follows:
+Section 403.1.1 Pre-plans: When required by the fire code official, pre-plans shall
+be developed for target hazard buildings according to the written standards
+developed by the authority having jurisdiction.
+Section 403.9.1.4 is hereby added to Chapter 4 and shall read as follows:
+Section 403.9.1.4. Emergency Preparedness for Hotels, Lodging and
+Congregate Houses. Hotels, lodging and congregate houses shall provide
+guests with immediate access to a telephone to report emergencies. The exit
+28
+
+=== page 29 ===
+diagram shall indicate the location of the nearest telephone and instructions to dial
+911.
+Section 502.1 of Chapter 5 is hereby amended by adding a term defined in Chapter 2,
+and the definition of ‘Fire Road’ as follows:
+Driveway
+Fire Road shall mean those improved or unimproved roads, public or
+private, that provide access for firefighting equipment and personnel to
+undeveloped areas.
+Section 503.1. of Chapter 5 is hereby amended as follows:
+Section 503.1 Where Required. Fire Apparatus access roads shall be provided
+and maintained in accordance with Sections 503.1.1 through 503.1.5.
+Section 503.1.4 of Chapter 5 is hereby addeded to read as follows:
+Section 503.1.4 Undeveloped Areas. Fire Apparatus Access Roads shall be
+provided for firefighting equipment, apparatus and personnel to undeveloped
+service areas of the Marin County Fire Department so as to gain access to
+improved, unimproved, and undeveloped service areas of the Marin County Fire
+Department, in a manner approved by the Fire Code Official. Any vehicle or other
+obstructions may be towed away at the owner's expense.
+Section 503.1.5 of Chapter 5 is amended by adding a sentence thereto as follows:
+Section 503.1.5 Aerial fire apparatus access. Buildings or facilities exceeding 30
+feet or three stories in height, approved aerial apparatus access roads shall be
+provided. For the purposes of this section, the highest rood surface shall be
+determined by the measurement to the eave of the pitched roof, the intersection of
+the roof to the exterior wall, or the top of parapet walls, whichever is greater.
+Section 503.1.5.1 Width. Aerial fire apparatus access roads shall have a minimum
+unobstructed width of 26 feet, exclusive of shoulders, in the immediate vicinity of
+the building or portion thereof.
+Section 503.1.5.2 Proximity to building. One or more of the required access
+routes meeting this condition shall be located not less than 15 feet and not more
+than 30 feet from the building, and shall be positioned parallel to one entire side of
+the building. The side of the building on which the aerial fire apparatus access
+road is positioned shall be approved by the fire code official.
+29
+
+=== page 30 ===
+Section 503.1.5.3 Obstructions. Overhead utility and power lines shall not be
+located over the aerial fire apparatus access road or between the aerial fire
+apparatus access road and the building. Other obstructions shall be permitted to
+be placed with the approval of the fire code official.
+Section 503.2.1. of Chapter 5 is hereby amended as follows:
+Section 503.2.1 Dimensions. Fire apparatus access roads shall have an
+unobstructed width of not less than 20 feet (6096 mm), exclusive of shoulders,
+except for approved security gates in accordance with Section 503.6, and an
+unobstructed vertical clearance of not less than 15 feet (4572 mm).
+Section 503.2.6.1. is hereby added to Chapter 5 and shall read as follows:
+Section 503.2.6.1 Evaluation and maintenance. All existing private bridges and
+elevated surfaces that are a part of the fire department access roadway shall be
+evaluated by a California licensed civil engineer experienced in structural
+engineering or a California licensed structural engineer, for safety and weight
+rating, in accordance with American Association of State Highway and
+Transportation Officials (AASHTO) Manual: ``The Manual for Bridge Evaluation,''
+Second Edition, or other approved standard. Vehicle load limits shall be posted at
+both entrances to bridges. All bridges and elevated structures providing fire
+department access shall be routinely maintained in accordance with Section
+503.2.6 or when directed by the fire code official or authorized designee.
+Section 503.4 of Chapter 5 is amended to read as follows:
+Section 503.4 obstruction of fire apparatus access roads. Fire apparatus
+access roads shall not be obstructed in any manner, including the parking of
+vehicles. The minimum widths and clearances established in sections 503.2.1
+and 503.2.2 shall be maintained at all times. Any vehicle or other obstruction
+may be towed away at the owner’s expense.
+Section 503.4.2 is hereby added to read as follows:
+503.4.2 Prohibition on Vehicular Parking on Private Access ways. If, in the
+judgment of the Chief, it is necessary to prohibit vehicular parking along private
+access ways serving existing facilities, buildings, or portions of buildings in order
+to keep them clear and unobstructed for fire apparatus access, the Chief may issue
+an Order to the owner, lessee or other person in charge of the premises to paint
+the curbs red or install signs or other appropriate notices to the effect that parking
+is prohibited by Order of the Fire Department. It shall thereafter be unlawful for
+such owner, lessee or other person in charge of the premises to fail to install,
+maintain in good condition, the form of notice so prescribed. When such areas are
+marked or signed as provided herein, no person shall park a vehicle adjacent to
+30
+
+=== page 31 ===
+any such curb or in the private access way contrary to such markings or signs. Any
+vehicle so parked in the private access way may be towed away at the expense of
+the owner of the vehicle.
+Section 503.6.1 is hereby added to Chapter 5 and shall read as follows:
+503.6.1 Width and Height. All gates shall open fully to provide an unobstructed
+passage width of not less than 16 feet or a minimum of two feet wider than the
+approved net clear opening of the required all weather roadway or driveway and a
+minimum net vertical clearance of 15-feet.
+Section 503.6.2 is hereby added to Chapter 5 and shall read as follows:
+Section 503.6.2 Electronic gates. All electronically operated gates shall have
+installed an approved key switch override system mounted on a stanchion or wall
+as approved by the Chief in accordance with Standards/Policies adopted by the
+Fire Code Official. All electronic or motorized gates shall incorporate in their design
+the means for fast, effective manual operation of the gates in the event of power
+or mechanical failure (i.e., easily removable hinge pins for separating power
+linkage from gates; undercut, weakened or frangible members requiring 40 pounds
+or less pressure against the gates to cause their failure and the gates to open. All
+electrical wiring and components of motorized gates shall be UL listed and installed
+in accordance with the National Electric Code.
+Section 503.6.3 is hereby added to Chapter 5 and shall read as follows:
+Section 503.6.3 Gate Setback Required. Gates shall be set back from roadways
+a minimum of 30 feet or more so as not to cause cross traffic to stop or create a
+hazardous traffic condition on the roadway approach to the driveway.
+Exception: The fire code official is authorized to modify the setback if fire apparatus
+access onto the property is not required to achieve 150 foot access to the most
+remote portion of the building per 503.1.1.
+Section 506.1 of Chapter 5 is hereby amended to read as follows:
+Section 506.1 Key Entry Systems. When access to or within a structure or an
+area is unduly difficult because of secured openings or where immediate access
+is necessary for life-saving or firefighting purposes or in commercial structures that
+have a Hazardous Materials Business Plan, an automatic fire sprinkler or fire alarm
+system installed, the Fire Code Official is authorized to require a key entry system
+to be installed in an approved location. The key entry system shall be of an
+approved type listed in accordance with UL1037 and if it is a box shall contain keys
+necessary to gain access as required by the Fire Code Official.
+31
+
+=== page 32 ===
+Exception: The distance shall be permitted to exceed 100 feet (30 m) where
+approved by the fire code official.
+Section 507.5.1 of Chapter 5 is hereby amended by deleting the exception and shall read
+as follows:
+Section 507.5.1 Where Required. Where a portion of the facility or building
+hereafter constructed or moved into or within the jurisdiction is more than 350 feet
+from a hydrant on a fire apparatus access road, as measured by an approved route
+around the exterior of the facility or building, on-site fire hydrants and mains shall
+be provided where required by the Fire Code Official.
+.
+Section 507.5.1.1 of Chapter 5 is amended to read as follows:
+Section 507.5.1.1 Hydrant for fire department connections. Buildings equipped
+with a water-based fire protection system installed in accordance with Section 903
+through 905 shall have a fire hydrant within 100 feet of the fire department
+connections, or as approved by the fire code official.
+Section 507.5.7 is hereby added to Chapter 5 and shall read as follows:
+Section 507.5.7 Fire Hydrant Upgrades. When additions or modifications to
+structures are made, the nearest fire hydrant (if a new one is not required) located
+by the Fire Code Official, shall be upgraded to the minimum standard of one 4 1/2”
+outlet and one 2 1/2” outlet for single family dwellings and the minimum standard
+of one 4 1/2” outlet and two 2 1/2” outlets for commercial structures.
+Exception:
+1. If the cost of upgrading the fire hydrant exceeds 2% of the cost of the
+project based on the building permit valuation.
+2. One and Two family dwellings equipped throughout with an
+approved automatic sprinkler system that includes protection of all
+closets and bathrooms.
+Section 510.1 of Chapter 5 is hereby amended by deleting Exception 1 and Exception 4.
+Section 710 of Chapter 7 is hereby added to read as follows:
+Section 710 ROOFING MATERIALS
+Section 710.1 Materials. All roofing materials shall be in accordance with section
+710.
+Section 710.2 New Roofs. All newly installed roofs and additions to existing roofs
+32
+
+=== page 33 ===
+are to be of non-combustible or minimum “Class A” listed construction.
+Section 710.3 Existing Roofs. When alterations or repairs to existing roofs exceed
+50% of the total roof area in any thirty-six (36) month period, the entire roof shall
+be replaced with non-combustible or minimum “Class A” listed construction.
+Section 901.7 of Chapter 9 is hereby amended by adding the following sentence:
+Section 901.7 Systems out of Service. Where a required fire protection system
+is out of service, the fire department and the fire code official shall be notified
+immediately and, where required by the fire code official, the building shall be
+either evacuated or an approved fire watch shall be provided for all occupants left
+unprotected by the shutdown until the fire protection system has been returned to
+service. This section shall also apply to residential fire sprinkler systems.
+Section 902.1 in Chapter 9 is hereby amended to add the following:
+EXTERIOR WILDFIRE PROTECTION SYSTEMS
+Section 903.2 of Chapter 9 is repealed in its entirety (with the exception of sub-sections
+903.2.5, 903.2.6, 903.2.8, 903.2.11, 903.2.12, 903.2.14, 903.2.15, 903.2.16, 903.2.17,
+903.2.18, 903.2.19, 903.2.20, which shall remain in effect).
+Section 903.2 of Chapter 9 is hereby added to read as follows:
+Section 903.2 Where required. Approved automatic sprinkler systems in new
+and existing buildings shall be provided in the locations described in this section.
+Section 903.2.1 through 903.2.4 of Chapter 9 are hereby added to read as follows:
+Section 903.2.1 Required installations. An automatic sprinkler system shall be
+installed and maintained in all newly constructed buildings or structures.
+Exceptions:
+1. Detached pool houses, workshops, Group U private garages, barns
+and similar structures, built in conjunction with existing non-sprinklered
+single family residences and provided the new structure is less than 1,000
+square feet and is not intended for use as a dwelling unit.
+2. Detached non-combustible, limited combustible, or fire retardant treated
+wood canopies.
+3. Group B or M occupancies less than 1000 square feet.
+33
+
+=== page 34 ===
+4. Detached restroom facilities associated with golf courses, ball fields,
+parks and similar uses as approved by the Fire Code Official.
+5. Agricultural buildings as defined in Appendix C of the Building Code and
+not exceeding 2000 square feet, having clear unobstructed side yards free
+of combustible materials, exceeding 60 feet in all directions and not
+exceeding 25 feet in height, located within an agricultural zoned district as
+defined in the Marin County Planning Code.
+Section 903.2.2 Additions and Alterations. In other than R-3 occupancies, an
+automatic sprinkler system shall be installed in all buildings in excess of 3,000 sq.
+ft. which have ten per cent (10%) or more floor area added within any 36- month
+period. Exceptions may be granted by the Fire Code Official when alternate means
+of protection are installed as approved by the Fire Code Official.
+Section 903.2.2.1 Substantial Remodel. An automatic sprinkler system shall be
+installed in all buildings which have fifty per cent (50%) or more floor area added,
+or any “substantial remodel” as defined in this code, within any 36 month period.
+Section 903.2.3 Group R-3. An automatic sprinkler system installed in
+accordance with Section 903.3.1.3 shall be permitted in Group R-3 occupancies
+and shall be provided throughout all one- and two-family dwellings regardless of
+square footage in accordance with the California Residential Code. An automatic
+sprinkler system shall be installed in all mobile homes, manufactured homes and
+multi-family manufactured homes with two or more dwelling units in accordance
+with Title 25 of the California Code of Regulations.
+Section 903.2.4 Change of Occupancy or Use. For any change of occupancy
+or use, when the proposed new occupancy classification is more hazardous
+based on a fire and life safety evaluation by the Fire Code Official, including but
+not limited to conversion of buildings to single family residences, accessory
+dwelling units, bed and breakfast, inns, lodging houses or congregate residences
+or other similar uses, an automatic sprinkler system shall be installed throughout.
+Section 903.3 0f Chapter 9 is hereby amended by adding the following thereto:
+The requirements for fire sprinklers in this code section are not meant to disallow
+the provisions for area increase, height increase, or Fire-Resistive substitution if
+otherwise allowed by sections 504 and 506 of the 2024 California Building Code.
+All automatic fire sprinkler systems shall be installed in accordance with the written
+standards of the Fire Code Official and the following:
+a. In all residential buildings required to be sprinkled, any attached garages
+shall also be sprinkled, and except for single family dwellings, in all
+residential occupancies the attics shall be sprinkled.
+34
+
+=== page 35 ===
+b. In all existing buildings, where fire sprinklers are required by provisions
+of this code, they shall be extended into all unprotected areas of the
+building.
+c. All single family dwellings in excess of 5,000 square feet shall have
+automatic fire sprinkler systems designed in accordance with NFPA
+Standard 13 or 13R.
+d. All public storage facilities shall have installed an approved automatic
+fire sprinkler system. An approved wire mesh or other approved physical
+barrier shall be installed 18 inches below the sprinkler head deflector to
+prevent storage from being placed to within 18 inches from the bottom of
+the deflector measured at a horizontal plane.
+Section 903.3.10 of Chapter 9 is hereby amended by replacing item 2 with the following:
+Section 903.3.10 Floor control valves. Floor control valves and waterflow
+detection assemblies shall be installed at each floor where any of the following
+occur:
+1. 2. 3. Buildings where the floor level of the highest story is located more than 30
+feet above the lowest level of fire department vehicle access.
+Buildings that are two or more stories in height.
+Buildings that are two or more stories below the highest level of fire
+department vehicle access.
+Exception: Group R-3 and R-3.1 occupancies floor control valves and
+waterflow detection assemblies shall not be required.
+Section 903.6.1 of Chapter 9 is hereby added and shall read as follows:
+Section 903.6.1 Application. In all existing buildings, when the addition of
+automatic fire sprinklers are required by the provisions of this code, automatic
+fire sprinklers shall be extended into all unprotected areas of the building.
+Section 906.11 is hereby added to Chapter 9 and shall read as follows:
+Section 906.11 Fire Extinguisher Documentation. The owner and/or operator
+of every Group R Division 1 and R Division 2 occupancies shall annually provide
+the Chief written documentation that fire extinguishers are installed and have been
+serviced as required by Title 19 California Code of Regulations when such
+extinguishers are installed in residential units in lieu of common areas.
+Section 907.2.12.1.2 of Chapter 9 is hereby amended by adding new subsection 3 to read
+as follows:
+35
+
+=== page 36 ===
+3. Duct smoke detectors shall be capable of being reset by a readily accessible,
+remote push button or key activated switch as approved by the Fire Code
+Official.
+Section 907.6.6 is hereby amended to read as follows:
+Section 907.6.6 Monitoring. New and upgraded fire alarm systems required by
+this chapter or by the California Building Code shall be monitored by an approved
+Central Station in accordance with NFPA 72 and this section.
+Exception: Monitoring by central station is not required for:
+1. Single- and multiple-station smoke alarms required by Section
+2. 3. 4. 907.2.11.
+Group I-3 occupancies shall be monitored in accordance with
+Section 907.2.6.3.
+Automatic sprinkler systems in one- and two-family dwellings.
+Fire Stations equipped with an automatic fire sprinkler system.
+Section 907.8.5 of Chapter 9 is hereby amended by adding Section 907.8.5 and shall
+read as follows:
+Section 907.8.5 Smoke Alarm Documentation. The owner and/or
+operator of every Group R Division 1, Division 2, Division 3.1, and Division 4 Occupancies
+shall annually provide the Fire Code Official with written documentation that the smoke
+alarms installed pursuant to the Building Code have been tested and are operational. If
+alarms are found to be inoperable or are missing, such alarms shall be repaired or
+replaced immediately.
+Section 918 of Chapter 9 is hereby added to read as follows:
+918 GAS SHUT-OFF DEVICES
+918.1 General.
+918.1.1 Definition. For the purposes of this section certain terms shall be defined
+as follows:
+"Downstream of gas utility meter" refers to all customer-owned gas piping, or in
+liquid petroleum gas installations said term shall refer to the gas piping on the
+structure side of the gas regulator.
+"Excess flow gas shut-off device" means those valves or devices that are not
+actuated by motion but are activated by significant gas leaks or over- pressure
+surges, which can occur when pipes rupture inside the structure. The design of the
+device provides a proven method to automatically provide for expedient and safe
+gas shut-off in an emergency. The design of the device shall provide a capability
+36
+
+=== page 37 ===
+for ease of consumer or owner resetting in a safe manner.
+"Seismic gas shut-off device" means a system consisting of a seismic sensing
+device and actuating device designed to actuate automatically a companion gas
+shut off means installed in a gas piping system in order to shut off the gas
+downstream of the location of the gas shut-off device in the event of a severe
+seismic disturbance. The system may consist of separable components or may
+incorporate all functions in a single body.
+"Upstream of gas utility meter" refers to all gas piping installed by the utility up to
+and including the meter and the utility’ s bypass tee at the connection to the
+customer-owned piping.
+"Gas shut-off device" as used in this section, refers to either a seismic gas shut-
+off device or excess flow gas shut-off device.
+“Substantial Remodel” shall mean the renovation of any structure that, combined
+with any additions to the structure, affects a floor area that exceeds fifty percent of
+the existing floor area of the structure. When any structural changes are made in
+the building, such as walls, columns, beams or girders, floor or ceiling joists and
+coverings, roof rafters, roof diaphragms, foundations, piles or retaining walls or
+similar components, the floor area of all rooms affected by such changes shall be
+included in computing floor areas for purposes of applying this definition. This
+definition does not apply to the replacement and upgrading of residential roof
+coverings.
+Section 918.2 General.
+Section 918.2.1 Devices: When Required. Approved gas shut-off devices shall
+be installed:
+1. In every newly constructed building and facility.
+2. In newly created second units.
+3. In all buildings that have more than fifty percent (50%) floor area added or
+any “substantial remodel,” as defined in this ordinance, within any thirty-six
+(36) month period.
+4. In all buildings, except R-3 occupancies, in excess of 3,000 sq. ft., that have
+more than ten percent (10%) floor area added within any thirty-six (36)
+month period.
+5. Whenever any new gas piping is installed.
+Exceptions:
+A. Gas shut-off devices installed on a building prior to the effective date
+37
+
+=== page 38 ===
+of this ordinance are exempt from the requirements of this section,
+provided they remain installed on the building or structure and are
+maintained for the life of the building or structure.
+B. Gas shut-off devices installed on a gas distribution system owned or
+operated by a public utility shall not be subject to the requirements
+of this chapter (Health & Safety Code Section 19201(b).
+Section 918.2.2 Devices: Location Required.
+1. Seismic gas shut-off devices shall be installed downstream of the gas utility
+meter on each fuel gas line where the gas line serves a building; and/or
+2. Excess flow gas shut-off devices shall be installed downstream of the gas
+utility meter on each fuel gas line where the gas line serves a building and
+at each gas appliance within a building.
+Section 918.3 General Requirements.
+Gas shut-off devices installed either in compliance with this ordinance or
+voluntarily, with a permit issued on or after the effective date of this ordinance,
+shall comply with all of the following requirements:
+1. Be installed in accordance with the manufacturer’s instructions
+2. In the case of seismic gas shut-off devices (motion sensitive) only, such
+devices must be mounted rigidly to the exterior of the building or structure
+containing the fuel gas piping. This requirement need not apply if the
+device (motion sensitive) has been tested and listed for an alternate
+method of installation
+3. Seismic gas shut-off devices shall be certified by the State Architect and
+be listed by an approved listing and testing agency such as IAS, IAPMO,
+UL, or the Office of the State Architect
+4. Have a thirty (30) year warranty that warrants that the valve or device is
+free from defects and will continue to properly operate for thirty (30) years
+from the date of installation
+5. Where gas shut-off devices are installed voluntarily, or as required by this
+section, they shall be maintained for the life of the building or structure or
+be replaced with a valve or device complying with the requirements of this
+section.
+Section 918.4 List of Approved Valves and Devices.
+The Town’s Fire Department shall maintain a list of all gas shut-off devices that
+38
+
+=== page 39 ===
+meet or exceed the requirements of devices certified by the Office of the State
+Architect for installation in the State of California and that comply with the
+standards and criteria set forth in Health and Safety Code Section 19180 et seq.,
+including quality and design regulation for earthquake actuated automatic gas
+shut-off systems (See 24 Cal. Code Regs. Ch. 12-16-1).
+Section 919 of Chapter 9 is hereby added and shall read as follows:
+SECTION 919
+EXTERIOR WILDFIRE PROTECTION SYSTEMS
+Section 919.1 of Chapter 9 is hereby added and shall read as follows:
+Section 919.1 General. Exterior Wildfire Protection Systems shall comply with this
+section.
+Section 919.2 of Chapter 9 is hereby added and shall read as follows:
+Section 919.2 Construction documents. Documentation of the system shall be
+submitted per 901.2.
+Section 919.3 of Chapter 9 is hereby added and shall read as follows:
+Section 919.3 Permits. Permits shall be required as set forth in section 901.3
+Section 1103.1 of Chapter 11 is hereby amended to read as follows:
+Section1103.1 Required Construction. Existing buildings shall comply with not
+less than the minimum provisions specified in Table 1103.1 and as further
+enumerated in Sections 1103.2, 1103.7 through 1103.8.5.3, 1103.9.1, and
+1103.10.
+The provisions of this chapter shall not be constructed to allow the elimination of
+fire protection systems or a reduction in the level of fire safety provided in buildings
+constructed in accordance with previously adopted codes.
+Exceptions:
+1. Where a change in fire-resistance rating has been approved in
+accordance with Section 501.2 or 802.6 of the California Existing
+Building Code.
+2. Group U occupancies.
+Sections 1103.2 Item #1 is deleted.
+Sections 1103.3 through 1103.6.2 are deleted.
+Section 1103.9 is deleted.
+39
+
+=== page 40 ===
+Sections 1104 and 1105 are deleted.
+Section 1201.4 of Chapter 12 is hereby added and shall read as follows:
+Section 1201.4 Construction Documents. A scaled and dimensioned site plan
+showing the location of all energy systems, property lines, buildings, service and
+electrical panels, transfer switches, disconnects, underground wiring and piping,
+fuel type and piping, map placard and signage. Site Plan shall clearly designate
+property frontage for viewer orientation.
+Section 1201.5 of Chapter 12 is hereby added and shall read as follows:
+Section 1201.5 Signs and Labels. Caution signs or labels are required to identify
+the quantity and type of additional power source(s) located on site. Signs shall be
+required at the main service panel, and on disconnect equipment. Additional
+locations may be required by the fire code official.
+Section 1201.6 of Chapter 12 is hereby added and shall read as follows:
+Section 1201.6 Disconnect. An approved and readily accessible independent and
+clearly labeled single exterior disconnect shall be located prior to any load/service
+panel and installed as close as possible to the main service panel or as approved
+by the fire code official. Integrated equipment toggle, rocker, or electronic switches
+shall not be utilized as an independent disconnects.
+Section 1201.7 of Chapter 12 is hereby added and shall read as follows:
+Section 1201.7 Operational Testing. New installations shall be tested for complete
+power and energy system shutdown. A normal power failure shall be simulated by
+closing the main service breaker supplying normal power to the building. Upon transfer
+from main power to alternate power source(s), the single disconnect(s) shall be used to
+disconnect alternate power from all alternate energy sources. A successful result of the
+shutdown test shall include termination of all alternate energy power sources serving
+the building (i.e. main service, photovoltaic system, energy storage systems, and
+generators, when installed).
+Section 1202.1 in Chapter 12 is hereby amended to add the following:
+HOME BACKUP GENERATOR
+Section 1208 of Chapter 12 is hereby added and shall read as follows:
+40
+
+=== page 41 ===
+SECTION 1208 HOME BACKUP GENERATOR
+Section 1208.1 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.1 General. The use, operation and maintenance of home backup
+generators in Group R-3 and R-4 occupancies shall comply with this section.
+Section 1208.2 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.2 Use. Home backup generators shall be installed in accordance
+with the California Building Code, the California Electrical Code, NFPA 110.
+Section 1208.3 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.3 Permits. Permits shall be obtained for Home Backup Generators
+as set forth in Section 105.
+Section 1208.4 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.4 Installation. Home backup generators shall be installed in
+accordance with the California Building Code, the California Electrical Code, NFPA
+110.
+Section 1208.5 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.5 Listing. Home backup generators shall be listed and labeled in
+accordance with UL 2200.
+Section 1208.6 of Chapter 12 is hereby added and shall read as follows:
+Section 1208.6. Maintenance. Home backup generators shall be operated and
+maintained in accordance with the manufacturer’s instructions.
+Chapter 26 is deleted in its entirety.
+Section 3306.5.215.3 in Chapter 33 is added to read as follows:
+Section 3306.5.215.3 Where required. In buildings of combustible construction
+required to have automatic sprinkler system by Section 903, automatic sprinkler
+system shall be installed prior to construction exceeding two stories in height
+above the lowest level of fire department vehicle access. Such automatic
+sprinkler system shall be extended as construction progresses to within one floor
+of the highest point of construction having secured decking or flooring.
+Section 3306.5.315.4 of Chapter 33 is added to read as follows:
+41
+
+=== page 42 ===
+Section 3306.5.315.4 Buildings being demolished. Where a building is being
+demolished and an automatic sprinkler system is existing within such a building,
+such automatic sprinkler system shall be maintained in an operable condition so
+as to be available for use by the fire department. Such automatic sprinkler
+system shall be demolished with the building but shall not be demolished more
+than one floor below the floor being demolished.
+Section 3306.5.415.5 of Chapter 33 is added to read as follows:
+Section 3306.5.415.5 Detailed requirements. Automatic sprinkler systems shall
+be installed in accordance with the provisions of Section 903.
+Section 3307.5.214.3 of Chapter 33 is amended by adding the following to the end of
+the exception:
+Exception: Standpipes shall be either temporary or permanent in nature, and
+with or without a water supply, provided that such standpipes comply with the
+requirements of Section 905 as to capacity, outlets and materials, as approved
+by the Fire Code Official.
+Section 3603.6.1 of Chapter 36 is added to read as follows:
+Section 3603.6.1 Width. A minimum width of 36" shall remain
+unobstructed on all docs serving more than two vessels.
+Section 3603.6.2 of Chapter 36 is added to read as follows:
+Section 3603.6.2 Storage. Storage on docks shall be approved by the fire
+code official.
+Section 3603.8 of Chapter 36 is added to read as follows:
+Section 3603.8 Lighting. Electrical lighting shall be provided to ensure
+adequate illumination of all exterior areas, piers, and floats.
+Section 3603.9 of Chapter 36 is added to read as follows:
+Section 3603.9 When Required. The requirements in 3603.6.1 and 3603.6.2 and
+3603.8 shall be applied retroactively to all marinas within six months of the
+adoption of this code.
+Section 3901.1.1 OF Chapter 39 is added to read as follows:
+Section 5601.1.3 is amended to read as follows:
+42
+
+=== page 43 ===
+Section 5601.1.3 Fireworks
+Exception: 1, 2, and 4 are hereby deleted.
+Section 5608.1.2 of Chapter is added to read as follows:
+Section 5608.1.2 Permit required. A permit shall be obtained from the fire
+code official in accordance with Section 105.6 prior to the performance of
+any firework display. Application for such approval shall be made in writing
+no less than twenty (20) days prior to the proposed display. The application
+shall be considered and acted upon by the fire code official or authorized
+designee pursuant to this Chapter and Title 19, Chapter 6, Article 3 -
+Licenses of the California Code of Regulations. Any permit for a fireworks
+display may be suspended or revoked at any time by the Fire code official
+or authorized designee.
+Section 5608.2 of Chapter 56 is added to read as follows:
+Section 5608.2 Limitations. Possession, storage, offer or expose for sale,
+sell at retail, gift or give away, use, explode, discharge, or in any manner
+dispose of fireworks is prohibited within the limits established by law as the
+limits of the districts in which such possession, storage, offer or exposure
+for sale, retail sale, gifting, use, explosion, discharge, or disposal of
+fireworks is prohibited in any area as established by applicable land-use
+and zoning standards.
+Exception: Firework displays authorized pursuant to section 5608.1 for
+which a permit has been issued.
+California Fire Code, Chapter 80 is amended as follows:
+NFPA 1: Fire Code
+Add Chapter 38: Cannabis Growing, Processing, or Extraction Facilities.
+NFPA.13-22
+Revise Section 29.4.1 as follows:
+29.4.1 The installing contractor shall identify a hydraulically designed sprinkler
+system with permanently raised, stamped or etched marked weatherproof metal
+or ridged plastic sign secured with corrosion resistant wire, chain, or other
+approved means. Such signs shall be placed at the alarm valve, dry pipe valve,
+preaction valve, or deluge valve supplying the corresponding hydraulically
+designed area. Pipe schedule systems shall be provided with a sign indicating
+that the system was designed and installed as a pipe schedule system and the
+hazard classification(s) included in the design.
+43
+
+=== page 44 ===
+303-21: Fire Protection Standard for Marinas and Boatyards
+FIRE-FLOW
+CALCULATION
+AREA
+(square feet)
+AUTOMATIC SPRINKLER
+SYSTEM
+(Design Standard)
+FLOW DURATION
+(hours)
+California Fire Code, Appendix B Table B105.1(1) is amended to read as follows:
+TABLE B105.1(1)
+REQUIRED FIRE-FLOW FOR ONE- AND TWO-FAMILY DWELLINGS, GROUP R-3
+AND R-4 BUILDINGS AND TOWNHOUSES
+MINIMUM FIRE-
+FLOW
+(gallons per
+minute)
+0-3,600 No automatic sprinkler system 1,500 2
+3,601 and
+No automatic sprinkler system Value in
+greater
+Table B105.1(2)
+Duration in Table
+B105.1(2) at
+The required fire-
+flow rate
+1,000 1
+0-3,600 Section 903.3.1.3 of the
+California Fire Code
+or Section 313.3 of the California
+Residential Code
+3,601 and
+greater
+Section 903.3.1.3 of the
+California Fire Code
+or Section 313.3 of the California
+Residential Code
+½ value in
+Table B105.1(2)a
+For SI: 1 square foot = 0.0929 m2, 1 gallon per minute = 3.785 L/m.
+a. The reduced fire-flow shall be not less than 1,000 gallons per minute.
+California Fire Code, Appendix B Table B105.2 is amended to read as follows:
+Duration in Table
+B105.1(2) at
+The required fire-
+flow rate
+TABLE B105.2
+REQUIRED FIRE-FLOW FOR BUILDINGS OTHER THAN ONE- AND
+TWO-FAMILY DWELLINGS, GROUP R-3 AND R-4 BUILDINGS AND TOWNHOUSES
+AUTOMATIC SPRINKLER
+SYSTEM
+(Design Standard)
+No automatic sprinkler
+system
+Section 903.3.1.1 of the
+California Fire Code
+Section 903.3.1.2 of the
+California Fire Code
+MINIMUM FIRE-
+FLOW
+(gallons per
+minute)
+Value in Table
+B105.1(2)
+50% of the value in
+Table B105.1(2)a
+50% of the value in
+Table B105.1(2)a
+FLOW DURATION
+(hours)
+Duration in Table B105.1(2)
+Duration in Table B105.1(2) at
+the reduced flow rate
+Duration in Table B105.1(2) at
+the reduced flow rate
+44
+
+=== page 45 ===
+For SI: 1 gallon per minute = 3.785 L/m.
+a. The reduced fire-flow shall be not less than 1,500 gallons per minute.
+Section C103.1 of Appendix C is amended to read as follows:
+Section C103.1 Hydrant spacing. Fire apparatus access roads and public
+streets providing required access to buildings in accordance with Section
+503 of the California Fire Code shall be provided with one or more fire
+hydrants, as determined by Section C102.1. Where more than one fire
+hydrant is required, the distance between required fire hydrants shall be
+approved by the fire code official.
+Section C103.2 of Appendix C is deleted.
+Section C103.3 of Appendix C is deleted.
+16.16.050 ADOPTION OF THE CALIFORNIA WILDLAND-URBAN INTERFACE
+CODE AND THE INTERNATIONAL WILDLAND-URBAN INTERFACE CODE
+The Marin County Board of Supervisors hereby adopts, for the purpose of prescribing
+regulations governing conditions hazardous to life and property from fire or explosion, the
+following:
+The 2025 California Wildland-urban Interface Code, which consists of certain portions of
+the 2024 Edition of the International Wildland-Urban Interface Code as amended by the
+California Building Standards Commission, including:
+a. Appendix A GENERAL REQUIREMENTS
+b. c. Appendix B VEGETATION MANAGEMENT PLAN
+Appendix F CHARACTERISTICS OF FIRE-SMART VEGETATION
+d. Appendix G VOLUNTARY HOME HARDENING RECOMMENDATIONS
+Not less than one (1) copy of the Codes and Standards hereby adopted is filed in the
+office of the Fire Marshal of the Marin County Fire Department and the same are hereby
+adopted and incorporated fully as if set out at length herein, and from the date on which
+this Ordinance shall take effect, and the provisions thereof shall be controlling within the
+limits of the Marin County Fire Department.
+16.16.060 AMENDMENTS MADE TO THE 2024 INTERNATIONAL WILDLAND-
+URBAN INTERFACE CODE AND THE 2025 CALIFORNIA WILDLAND-
+URBAN INTERFACE CODE
+45
+
+=== page 46 ===
+Section 101.3.1 of the 2025 Wildland-Urban Interface Code
+is amended to read as follows:
+101.3.1 Application.
+New and substantially remodeled buildings located in any Fire Hazard Severity Zone or
+Wildland-Urban Interface (WUI) Fire Area designated by the enforcing agency
+constructed after the application date shall comply with the provisions of this code. This
+shall include all new and substantially remodeled buildings with residential, commercial,
+educational, institutional or similar occupancy type use, which shall be referred to in this
+code as “applicable buildings,” as well as new buildings and structures accessory to those
+applicable buildings.
+Exceptions:
+1. Group U occupancy accessory buildings of any size located at least 50 feet (15
+240 mm) from an applicable building on the same lot.
+2. Group U occupancy agricultural buildings, as defined in Section 202 of the
+California Building Code of any size located at least 50 feet (15 240 mm) from an
+applicable building.
+3. Group C occupancy special buildings conforming to the limitations specified
+in Section 450.4.1 of the California Building Code.
+4. New accessory buildings and miscellaneous structures specified in Section
+504.11 shall comply only with the requirements of that section.
+(Exception 5 deleted)
+Section 101.3.1.1 of the 2025 Wildland-Urban Interface
+Code is amended to read as follows and with the
+exceptions deleted:
+101.3.1.1 Where required.
+New buildings and substantial remodels located in any Fire Hazard Severity Zone or
+Wildland-Urban Interface Area shall comply with this code, including all of the following
+areas:
+All unincorporated lands designated by the State Board of Forestry and Fire Protection
+as State Responsibility Area (SRA) and Local Responsibility Areas (LRA) including:
+Moderate Fire Hazard Severity Zones.
+High Fire Hazard Severity Zones.
+Very High Fire Hazard Severity Zones.
+Land designated as a wildland-urban interface area by the County of Marin.
+Section 101.5 of Chapter 1 is hereby deleted and the following language substituted in its
+place:
+101.5 Additions or alterations. Additions or alterations may be made to any building
+or structure without requiring the existing building or structure to comply with all of
+the requirements of this code provided the additions or alterations do not constitute
+46
+
+=== page 47 ===
+a substantial remodel and, provided the addition or alteration conforms to that
+required for a new building or structure.
+Exception: Provisions of this code that specifically apply to existing conditions are
+retroactive. See Sections 402.3, and 601.1.
+Additions or alterations shall not be made to an existing building or structure that
+will cause the existing building or structure to be in violation of any of the provisions
+of this code nor shall such additions or alterations cause the existing building or
+structure to become unsafe. An unsafe condition shall be deemed to have been
+created if an addition or alteration will cause the existing building or structure to
+become structurally unsafe or overloaded; will not provide adequate access in
+compliance with the provisions of this code or will obstruct existing exits or access;
+will create a fire hazard; will reduce required fire resistance or will otherwise create
+conditions dangerous to human life.
+•Section 101.6 of Chapter 1 is hereby deleted and the following language substituted in
+its place:
+101.6 Maintenance. All buildings, structures, access, water supply, landscape materials,
+vegetation, defensible space or other devices or safeguards required by this code shall
+be maintained in conformance with the code edition under which the same were installed.
+The Owner or the owner’s designated agent shall be responsible for the maintenance of
+buildings, structures, access roads, water supplies, landscape materials and vegetation.
+Section 102.9 of Chapter 1 is hereby added with the following language:
+Section 104.2 of Chapter 1 is hereby deleted and the following language substituted in its
+place:
+Section 104.2 Determination of compliance. The Fire Chief is authorized to
+determine compliance, render interpretations of this code and to make and
+enforce rules and supplemental regulations and to develop Fire Protection
+Standards to carry out the application and intent of its provisions. Such
+interpretations, rules, and regulations, and standards shall be in conformance with
+the intent and purpose of this code. A copy of such rules and regulations shall be
+filed with the Fire Chief of the Marin County Fire Department and shall be in effect
+immediately thereafter. Additional copies shall be available for distribution to the
+public.
+Section 104.7 of Chapter 1 is hereby deleted.
+Section 105.2 of the 2025 Wildland-Urban Interface Code is
+amended to read as follows:
+47
+
+=== page 48 ===
+Section 105.2.1 of Chapter 1 is hereby added to read as follows:
+105.2.1 Local permits required.In addition to the permits required by section 105.2,
+the following permits shall be obtained from the Fire Prevention Division prior to
+installation of the following:
+a. Implementation of a Fire Protection Plan.
+b. Implementation of a Vegetation Plan.
+Section 110 of Chapter 1 is hereby deleted and the following language substituted in its
+place:
+SECTION 110 CERTIFICATE OF COMPLETION
+No building, structure or premises shall be used or occupied, and no change in the
+existing occupancy classification of a building, structure, premise or portion thereof
+shall be made until the code official has issued a “Final Approval” for occupancy
+thereof. The “Final Approval” for occupancy shall not be issued until the “Final
+Approval” for occupancy indicating that the project is in compliance with this code
+has been issued by the code official.
+Issuance of a “Certificate of completion” shall not be construed as an approval of
+a violation of the provisions of this code or of other pertinent laws and ordinances
+of the County of Marin. Certificates presuming to give authority to violate or cancel
+the provisions of this code or other laws or ordinances of the County of Marin shall
+not be valid.
+Section 202 of Chapter 2 of the 2025 Wildland-Urban Interface Code is amended by
+adding the following definitions:
+Code Official. The official designated by the County of Marin to interpret and enforce
+building standards of this code, shall be the Building Official. The official designated by
+the County of Marin to interpret and enforce fire and life safety provisions of this code
+shall be the Fire Chief.
+Substantial Remodel shall mean the renovation of any structure, which combined with
+any additions to the structure, affects a floor area which exceeds fifty percent of the
+existing floor area of the structure within any 36 month period. When any changes are
+made in the building, such as walls, columns, beams or girders, floor or ceiling joists, and
+coverings, roof rafters, roof diaphragms, foundations, piles or retaining walls or similar
+components, the floor area of all rooms affected by such changes shall be included in
+computing floor areas for the purposes of applying this definition. This definition does not
+apply to the replacement and upgrading of residential roof coverings.
+VMP. Shall mean Vegetation Management Plan or Vegetation Plan.
+48
+
+=== page 49 ===
+Section 402.1.1 of Chapter 4 is hereby deleted and the following language substituted in
+its place:
+402.1.1 Access. New subdivisions, as determined by the County of Marin, shall be
+provided with fire apparatus access roads in accordance with the California Fire
+Code as amended.
+Section 402.2.1 is hereby deleted and the following language substituted in its place:
+402.2.1 Access. Individual structures hereafter constructed, substantial remodels,
+or relocated into or within wildland-urban interface areas shall be provided with fire
+apparatus access in accordance with the California Fire Code and driveways in
+accordance with Section 403.
+Section 402.2.2 is hereby deleted and the following language substituted in its place:
+402.2.2 Water supply. Individual structures hereafter constructed, substantial
+remodels, or relocated into or within wildland urban interface areas shall be
+provided with a conforming water supply in accordance with Section 404.
+Exception: Buildings containing only private garages, carports, and sheds with a
+floor area of not more than 120 square feet.
+Section 403.1.2 of Chapter 4 is hereby deleted and the following language substituted in
+its place:
+403.1.2 Width.
+(a)All Roads shall be constructed to provide a minimum of two ten-foot traffic lanes, not
+including shoulder and striping. These traffic lanes shall provide for two-way traffic flow
+to support emergency vehicle and civilian egress, unless other standards are provided in
+this article or additional requirements are mandated by local jurisdictions or local
+subdivision requirements. Vertical clearances shall conform to the requirements in
+California Vehicle Code Section 35250.
+(b)All one-way roads shall be constructed to provide a minimum of one sixteen-foot traffic
+lane, not including shoulders. The County of Marin may approve one-way Roads.
+a. All one-way roads shall, at both ends, connect to a road with two traffic lanes
+providing for travel in different directions, and shall provide access to an area
+currently zoned for not more than ten (10) Residential Units.
+b. In no case shall a One-way Road exceed 2,640 feet in length. A turnout shall be
+placed and constructed at approximately the midpoint of each one-way Road.
+49
+
+=== page 50 ===
+©All Driveways serving a residential unit shall be constructed to provide a minimum of
+one sixteen-foot traffic lane; driveways serving 2-5 residential units shall be constructed
+to provide a minimum of one twenty-foot traffic lane, twenty (24) feet unobstructed
+horizontal clearance, and unobstructed vertical clearance of fifteen-foot (15-ft.) vertical
+clearance. A driveway shall not serve in excess of five dwelling units.
+Exception: When such driveways meet the requirements for an access road in
+accordance with the California Fire Code.
+Section 403.1.3 of the 2025 Wildland-Urban Interface Code
+is amended to read as follows:
+403.1.3 Road surfaces.
+(a)Roads and driveways shall be designed and maintained to support the
+imposed load of fire apparatus weighing at least 75,000 pounds and provide an
+aggregate base.
+(b)Project proponent shall provide engineering specifications to support design,
+if requested by the local jurisdiction.
+©Surface materials shall be all weather surface that is either A/C paving, concrete, or
+other materials as approved by the AHJ.
+Section 403.1.4 of Chapter 4 is hereby amended to add the following:
+403.1.4 © Any driveway with a grade of 15% or more shall be of concrete and Kerf-cut
+so as to allow for water run-off and traction. The design for grooved concrete shall be
+1/2-in. wide, 1/2-in. deep and 1-1/2-in. on center with a 10 deg.- 45-deg. angle to the
+center line of the driveway. Other surfaces may be used if the skid resistance is
+equivalent to or superior to grooved concrete as certified by a registered Civil Engineer.
+The surface of the driveway shall be approved prior to installation.
+Section 403.1.6 of the 2025 Wildland-Urban Interface Code
+is amended to read as follows:
+403.1.6 Turnarounds.
+(a)Turnarounds are required on driveways and dead-end roads.
+(b)driveway turnarounds shall have a minimum inside radius of 27 feet and outside turning
+radii of not less than 45 feet. If a hammerhead/T is used instead, the top of the “T” shall
+be a minimum of sixty (60) feet in length.
+(c)Driveways exceeding 150 feet in length, but less than 800 feet in length, shall provide
+a turnout near the midpoint of the driveway in addition to a turnaround at the end of the
+driveway. Where the driveway exceeds 800 feet, turnouts shall be provided not more than
+300 feet apart.
+50
+
+=== page 51 ===
+(d)A turnaround shall be provided on driveways over 150 feet in length and shall be within
+fifty (50) feet of the building.
+(e)Each dead-end road shall have a turnaround constructed at its terminus. Where
+parcels are zoned five (5) acres or larger, turnarounds shall be provided at a maximum
+of 800-foot intervals.
+Section 403.1.10 of the 2025 Wildland-Urban Interface
+Code is amended to read as follows:
+Section 403.1.10 of Chapter 4 is hereby deleted and the following language substituted
+in its place:
+403.1.10 Gate entrances.
+a. b. c. d. All gates shall open fully to provide an unobstructed passage width of not
+less than 16 feet or a minimum of two feet wider than the approved net
+clear opening of the required all weather roadway or driveway and a
+minimum net vertical clearance of 15 feet.
+All gates providing access from a road to a driveway shall be located at
+least thirty (30) feet from the roadway and shall open to allow a vehicle to
+stop without obstructing traffic on that Road.
+Where a one-way road with a single traffic lane provides access to a
+gated entrance, a forty-foot turning radius shall be used.
+Security gates shall not be installed without approval. Where security
+gates are installed, they shall have an approved means of emergency
+operation. Approval shall be by the local authority having jurisdiction. The
+security gates and the emergency operation shall be maintained
+operational at all times.
+Section 403.1.11 is hereby added as follows:
+403.1.11 Where emergency vehicle access is restricted because of secured access
+roads or driveways or where immediate access is necessary for life saving or firefighting
+purposes, the code official is authorized to require key access to be installed in an
+accessible location. The key access shall be of a type approved by the code official and
+shall contain keys or an approved key switch to gain necessary access as required by
+the code official.
+51
+
+=== page 52 ===
+Section 404.2 of the 2025 Wildland-Urban Interface Code is
+amended to read as follows:
+404.2 Required water supply.
+An approved water supply capable of supplying the required fire flow for structural ➡ fire
+protection and wildland fire exposure shall be provided to the premises on which facilities,
+buildings or portions of buildings are hereafter constructed, substantially remodeled or
+moved into or within the jurisdiction in accordance with Section 507 of the California Fire
+Code.
+Section 404.5 of Chapter 4 is hereby deleted and the following language substituted in
+its place:
+404.5 Adequate water supply. Adequate water supply shall be determined for
+purposes of initial attack and flame front control as follows:
+1. One- and two-family dwellings. The required water supply for one- and two-family
+dwellings shall be from a municipal supply. Required flow rates and duration shall be
+determined by the code official.
+Exception: If the cost of providing a municipal supply exceeds 10% of the total
+construction costs (based on the building permit valuation and required site
+improvements), an on-site private fire protection water supply per NFPA 1142:
+Standard on Water Supplies for Suburban and Rural Firefighting, 2022 Edition
+(minimum storage requirement not less than 3,000 gallons plus 2,000 gallons
+dedicated to automatic fire sprinklers and domestic water) may be permitted.
+2. Buildings other than one- and two-family dwellings.
+The water supply required for buildings other than one-and two-family dwellings shall be
+as determined by the code official.
+Exception: If the cost of providing a municipal supply exceeds 10% of the total
+construction costs (based on the building permit valuation and required site
+improvements), an on-site private fire protection water supply an on-site private fire
+protection water supply per NFPA 1142:Standard on Water Supplies for Suburban and
+Rural Firefighting, 2022 Edition (minimum storage requirement to be not less than
+3,000 gallons plus 2,000 gallons dedicated to automatic fire sprinklers and domestic
+water) may be permitted.
+Section 404.9 of Chapter 4 is hereby deleted and the following language substituted in its
+place:
+404.9 Testing and maintenance. Water sources, draft sites, hydrants and other fire
+protection equipment required by this code shall be subject to periodic tests as
+52
+
+=== page 53 ===
+determined and required by the code official. All such equipment installed under the
+provisions of this code shall be maintained in an operative condition at all times and
+shall be repaired or replaced where defective. Additions, repairs, alterations and
+servicing of such fire protection equipment and resources shall be in accordance with
+approved standards and shall not be made without approval of the Code Official.
+• Section 501.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+501.1 Scope. New and substantially remodeled buildings and structures located in
+any Fire Hazard Severity Zone or Wildland-Urban Interface (WUI) Fire Area designated
+by the enforcing agency shall be constructed in accordance with the California Building
+Code and this code. This chapter applies to building materials, system and/or
+assemblies used in the exterior design and construction of new buildings, substantial
+remodels, additions, modifications, and/or relocation within a Fire Hazard Severity Zone
+or Wildland Urban Interface (WUI) Fire Area as defined in Section 202.
+Exceptions:
+1. Group U accessory structures not exceeding 120 square feet (11m2) in floor
+area where located not less than 50 feet (15 240 mm) from applicable
+buildings.
+2. Group U agricultural buildings not less than 50 feet (15 240 mm) from
+applicable buildings.
+• Section 501.5 of the 2025 Wildland-Urban Interface Code is hereby added:
+Section 501.5 Definitions.
+MODIFIED. Any replacement either same in size or different in size or an addition
+of any building component.
+• Section 503.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.1 General. Buildings and structures hereafter constructed, modified or
+relocated into or within any Fire Hazard Severity Zone or Wildland-Urban Interface
+(WUI) Fire Area shall meet the construction requirements in accordance with Chapter 5.
+Materials required to be ignition-resistant building materials shall comply with the
+requirements of Section 503.2.
+Exceptions:
+1. New accessory buildings and miscellaneous structures complying with
+Section 504.11.
+2. Additions to and remodels of buildings originally constructed prior to July 1,
+2008.
+53
+
+=== page 54 ===
+2. Group C occupancy special buildings conforming to the limitations specified in
+Section 450.4.1 of the California Building Code.
+• Section 503.2.2 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.2.2 Fire-retardant-treated wood. Fire-retardant-treated wood is
+prohibited for use in exterior siding, decking, or roofing.
+Exception:
+1. For any building or structure listed or determined eligible for the following
+registries: California Points of Historical Interest, California State Historical
+Landmarks, California Register of Historical Resources, and the National
+Register of Historic Places.
+• Section 503.2.3 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.2.3 Fire-retardant-treated wood roof coverings. Fire-retardant-
+treated wood shingles and shakes are prohibited in roof assemblies.
+Exception:
+1. For any building or structure listed or determined eligible for the following
+registries: California Points of Historical Interest, California State Historical
+Landmarks, California Register of Historical Resources, and the National
+Register of Historic Places.
+• Section 503.3.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.3.1 Qualification by Testing. Material and material assemblies
+tested in accordance with the requirements of Section 503 shall be accepted for
+use when the results and conditions of those tests are met. Product evaluation
+testing of material and material assemblies shall be approved or listed by the
+State Fire Marshal or identified in a current report issued by an agency approved
+by the building official and/or the fire official.
+• Section 503.3.4 of the 2025 Wildland-Urban Interface Code is hereby deleted:
+Section 503.3.4 Fire-retardant-treated wood shingles and shakes. Fire-retardant-
+treated wood shingles and shakes shall be approved and listed by the State Fire
+Marshall in accordance with Section 208 ( c ), Title 19 California Code of
+Regulations
+• Section 504.3 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+54
+
+=== page 55 ===
+4. 5. Section 504.3 Protection of enclosed eaves. The exposed underside of enclosed
+roof eaves and soffits shall be protected on the exposed underside by one or more of
+the following:
+1. Noncombustible materials.
+2. Ignition-resistant building materials.
+3. Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as tested in accordance with ASTM
+E119 or UL 263.
+2-inch (51 mm) nominal dimension lumber.
+1-inch (25 mm) nominal fire-retardant-treated lumber or 3/4 -inch (19.1
+mm) nominal fire-retardant-treated plywood, identified for exterior use
+and complying with Section 2303.2 of the California Building Code.
+Boxed-in roof eave soffit assemblies with an underside that meets the
+performance criteria in Section 504.7.2 when tested in accordance with
+the test procedures set forth in ASTM E2957.
+Boxed-in roof eave soffit assemblies with an underside that meets the
+performance criteria in accordance with the test producers set forth in
+SFM Standard 12-7A-3.
+Facias are required and shall be ignition-resistant building materials, fire-retardant-
+treated wood labeled for exterior use and complying with Section 2303.2 of the
+California Building Code, materials approved for not less than 1-hour fire-resistance-
+rated construction or 2-inch (51 mm) nominal dimension lumber.
+5. 6. • Section 504.3.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.3.1 Protection of open eaves. The exposed roof deck on the
+underside of unenclosed roof eaves shall consist of one or more of the following:
+1. Noncombustible material.
+2. Ignition-resistant building material.
+3. Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+3. Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as tested in accordance with ASTM
+E119 or UL 263.
+2-inch (51 mm) nominal dimension lumber.
+One layer of 5/8-inch (16 mm) Type X gypsum sheathing applied
+behind an exterior covering on the underside of the roof deck.
+The exterior portion of a 1-hour fire-resistance-rated exterior assembly,
+as tested in accordance with ASTM E119 or UL 263, applied to the
+4. 5. 6. 55
+
+=== page 56 ===
+underside of the roof deck designed for exterior fire exposure,
+including assemblies using the gypsum panel and sheathing products
+listed in the Gypsum Association Fire Resistance Design Manual.
+Facias, if provided, shall be of fire-retardant-treated wood labeled for exterior use
+and complying with Section 2303.2 of the California Building Code, ignition-resistance
+building materials, materials approved for not less than 1-hour fire-resistance-rated
+construction or 2-inch (51 mm) nominal dimension lumber.
+5. • Section 504.5 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.5 Exterior walls. Exterior walls of buildings or structures shall be
+constructed with one or more of the following methods, unless they are covered with an
+exterior wall covering complying with Sections 504.5.2 and 504.5.2.1:
+1. 1-hour fire-resistance-rated construction on the exterior side.
+2. Noncombustible materials.
+3. Heavy timber. Assembly of sawn lumber or glue-laminated wood with
+the smallest minimum nominal dimension of 4 inches (102 mm). Sawn
+or glue-laminated planks splined, tongue-and-groove or set close
+together and well spiked.
+4. Log wall construction.
+Wall assemblies that have been tested in accordance with the test
+procedures for a 10-minute direct flame contact exposure test set forth
+in ASTM E2707 with the conditions of acceptance shown in Section
+504.9.3.
+Wall assemblies that meet the performance criteria in accordance with
+the test procedures for a 10-minute direct flame contact exposure test
+set forth in SFM Standard 12-7A-1.
+Wall assemblies suitable for exterior fire exposure containing one layer
+of 5/8-inch (15.9 mm) Type X gypsum sheathing applied behind the
+exterior wall covering or cladding on the exterior side of the framing.
+Wall assemblies suitable for exterior fire exposure with a 1-hour fire-
+resistance rating, rated from the exterior side, as tested in accordance
+with ASTM E119 or UL 263.
+9. Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+6. 7. 8. • Section 504.5.2 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+56
+
+=== page 57 ===
+Section 504.5.2 Exterior wall coverings. Exterior wall coverings shall comply with
+one or more of the following requirements:
+1. Noncombustible material.
+2. 3. Ignition-resistance building material labeled for exterior use.
+Fire-retardant-treated wood labeled for exterior use and complying with
+the requirements of Section 2303.2 of the California Building Code.
+4. Fire-retardant-treated wood shingles and shakes which have been
+qualified in accordance with Section 1505.6 of the California Building
+Code for use as “Class B” roof covering shall be an acceptable
+alternative wall covering material where installed over solid sheathing.
+Exception: Exterior wall coverings which are a component of an approved wall
+assembly complying with Section 504.5.
+• Section 504.6 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.6 Underfloor enclosure. Buildings or structures shall have underfloor
+areas enclosed to the ground with exterior walls in accordance with Section 504.5.
+Exception: Complete enclosure shall not be required where the under side of
+exposed floors and exposed structural columns, beams and supporting walls are
+protected as required for exterior 1-hour fire-resistance-rated construction or heavy
+timber construction or fire-retardant-treated wood. The fire-retardant-treated wood shall
+be labeled for exterior use and meet the requirements of Section 2303.2 of the
+California Building Code.
+• Section 504.7 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7 Projections. Unenclosed accessory structures attached to
+buildings with habitable spaces and projections, other than decks, shall be heavy timber
+construction or constructed of one of the following:
+1. Noncombustible materials.
+2. 2. 3. Fire-retardant-treated wood identified for exterior use and meeting the
+requirements of Section 2303.2 of the California Building Code.
+Ignition-resistant building materials in accordance with Section 503.2.
+Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as tested in accordance with ASTM
+E119 or UL 263.
+One layer of 5/8-inch (15.9 mm) Type X gypsum sheathing applied
+behind the exterior covering on the underside of the ceiling.
+4. 57
+
+=== page 58 ===
+5. 6. 7. The exterior portion of a 1-hour fire-resistance-rated exterior assembly,
+as tested in accordance with ASTM E119 or UL 263, applied to the
+underside of the ceiling assembly, including assemblies using the
+gypsum panel and sheathing products listed in the Gypsum
+Association Fire Resistance Design Manual.
+The underside of a floor projection assembly that meets the
+performance criteria in Section 504.7.2 when tested in accordance with
+the test procedures set forth in ASTM E2957.
+The underside of a floor projection assembly that meets the
+performance criteria in accordance with the test procedures set forth in
+SFM Standard 12-7A-3.
+3. • Section 504.7.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7.1 Underside of projections. The underside of projections shall be
+enclosed to grade in accordance with the requirements of this chapter or the underside
+of the exposed underfloor shall be protected by one or more of the following:
+1. Noncombustible material.
+2. 3. Ignition-resistant building material shall be labeled for exterior use and
+shall meet the requirements of Section 503.2.
+Fire-retardant-treated wood shall be labeled for exterior use and shall
+meet the requirements of Section 2303.2.
+Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as treated in accordance with ASTM
+E119 or UL 263.
+One layer of 5/8-inch (15.9 mm) Type X gypsum sheathing applied
+behind an exterior covering on the underside of the floor projection.
+The exterior portion of a 1-hour fire-resistance-rated exterior assembly,
+as tested in accordance with ASTM E119 or UL 263, applied to the
+underside of the floor, including assemblies using the gypsum panel
+and sheathing products listed in the Gypsum Association Fire
+Resistance Design Manual.
+The underside of a floor assembly that meets the performance criteria
+in Section 504.7.2 when tested in accordance with the test procedures
+set forth in ASTM E2957.
+The underside of a floor assembly that meets the performance criteria
+in accordance with the test procedures set forth in SFM Standard 12-
+7A-3.
+Exception: Structural columns and beams are not required to be protected in
+accordance with Section 504.7.1 when constructed with sawn lumber or glue-laminated
+4. 5. 6. 7. 58
+
+=== page 59 ===
+wood with the smallest minimum nominal dimension of 4 inches (102 mm). Sawn or
+glue-laminated planks shall be splined, tongue-and-groove, or set close together and
+well spiked.
+2. 3. 4. 5. • Section 504.7.3.2 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7.3.2 Decking surfaces. The walking surface material of decks,
+porches, balconies and stairs shall be constructed with any of the following materials:
+1. Material that complies with the performance requirements of Section
+504.7.3.3 when tested in accordance with ASTM E2632 and ASTM
+E2726.
+Ignition-resistance building material that complies with the performance
+requirements of Section 503.2.4.
+Material that complies with the performance requirements of both SFM
+Standard 12-7A-4 and Section 503.2.4.
+Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+4. Noncombustible material.
+Any material that complies with the performance requirements of SFM
+Standard 12-7A-4A and any attached exterior wall covering that is
+noncombustible or ignition-resistant building materials.
+Exception: Wall material shall be permitted to be of any material that
+otherwise complies with this chapter when the decking surface material
+complies with the performance requirements of ASTM E84 or UL 723
+with a Class B flame spread index.
+Any material that complies with the performance requirements of
+Section 504.7.3.4 when tested in accordance with ASTM E2632 and
+any attached exterior wall covering that is noncombustible or ignition-
+resistant building materials.
+Exception: Wall material shall be permitted to be of any material that
+otherwise complies with this chapter when the decking surface material
+complies with the performance requirements of ASTM E84 or UL 723
+with a Class B flame spread index.
+6. • Section 504.7.3.5 of the 2025 Wildland-Urban Interface Code is hereby added to
+read as follows:
+Section 504.7.3.5 Deck Repairs. Repairs to decks that require replacement or
+removal of less than 50% of the existing square footage of deck surfaces do not have to
+meet the requirements of Section 504.7.3.2.
+59
+
+=== page 60 ===
+Repairs to decks that require replacement or removal of more than 50% of the
+existing square footage of deck surfaces shall have deck surface materials that meet
+the requirements of Section 504.7.3.2.
+Repairs to decks that require replacement or removal of less than 50% of the
+supporting structure of deck surfaces do not have to meet the requirements of Section
+504.7.3.2.
+Repairs to decks that require replacement or removal of more than 50% of the
+supporting structure of deck surfaces, shall have deck surface and supporting structure
+materials that meet the requirements of Section 504.7.3.2.
+• Section 504.8 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.8 Exterior glazing. New or replacement: Exterior windows, window
+walls and glazed doors, windows within exterior doors, and skylights shall be
+constructed of any of the following:
+1. Multilayered glazed panels with at least one pane of tempered glass
+complying with Section 2406 of the California Building Code.
+2. Glass block.
+3. Glazing with a fire-protection rating of not less than 20 minutes when
+tested according to NFPA 257 or UL 9, and shall be exempt from the
+hose stream test.
+4. Glazing meeting the performance requirements of SFM Standard 12-
+7A-2.
+• Section 504.9 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.9 Exterior doors. New or modified: Exterior doors shall be
+constructed in accordance with any of the following:
+1. Noncombustible construction.
+2. 3. Solid-core wood not less than 1-3/4 inches thick (44 mm).
+The exterior door shall be constructed of solid core wood that complies
+with the following requirements:
+3.1. Stiles and rails shall not be less than 1-3/8 inches (35
+mm) thick.
+3.2. Raised panels shall not be less than 1-1/4 inches (32
+mm) thick, except for the exterior perimeter of the raised
+panel that shall be permitted to taper to a tongue not less
+than 3/8 inch (10 mm) thick.
+60
+
+=== page 61 ===
+4. 5. Have a fire protection rating of not less than 20 minutes when tested
+according to NFPA 252, UL 10B or UL 10C.
+The exterior surface or cladding meeting the performance
+requirements of Section 504.9.3 when tested in accordance with ASTM
+E2707.
+6. The exterior surface or cladding shall be tested to meet the
+performance requirements of SFM Standard 12-7A-1.
+Windows within doors and glazed doors shall be in accordance with
+Section 504.8.
+• Section 508 of the 2025 Wildland-Urban Interface Code is hereby added to read as
+follows:
+Section 508 – Replacement or Repair of Exterior Wall Coverings
+Section 508.A General. The exterior wall covering on buildings or structures in
+existence prior to the adoption of this code, when more than fifty percent (50%) of
+exterior wall covering on one face or elevation of a structure is repaired or replaced
+within a twelve (12) month period, the entire face or elevation of exterior wall covering
+shall comply with Section 504.5.2 of this code.
+Section 602.3.1 of Chapter 6 is amended to include the following:
+Section 602.3.1 Preliminary fire protection plan. When a preliminary fire
+protection plan is submitted, it shall include, at a minimum, the following:
+4) The map shall include all existing emergency water supplies.
+Section 602.3.2 is amended by adding the following:
+Section 602.3.2
+7. Identify the location of fire protection systems or
+equipment.
+8. Identify any power sources, meters, and shut downs.
+Section 603.3, is amended to read as follows:
+Vegetation Management Plan: A Vegetation Management Plan (VMP) shall
+be provided for all substantial remodels and new construction, or when
+required by the code official. The Vegetation Management Plan shall include
+development and maintenance requirements for the Vegetation
+Management zone adjacent to structures and roadways and provide
+significant fire hazard reduction benefits for public and firefighting safety.
+61
+
+=== page 62 ===
+Section 603.3.1, is amended to read as follows:
+Delineation of the Zone 0 (0’-5’), Zone 1 (5’-30’), Zone 2 (30’-100’) fuel
+management zones from all structures and Zone 3 (10’on either side of the
+road or driveway).
+Section 604.6 of Chapter 6 is hereby added as follows:
+Section 604.6 Fire Hazard Reduction. Any person who owns, leases,
+controls or maintains any building or structure, vacant lands, open space, and/or
+lands within specific Wildland Urban Interface areas of the jurisdiction of the Marin
+County Fire Department, shall comply with the following:
+1. Cut and remove all hazardous vegetation and ground coverings within 100 feet
+of structures, up to 200 feet when topographic or combustible vegetative types
+necessitate removal as determined by the Fire Code Official.
+2. Remove accumulated dead vegetation on the property.
+3. Cut and remove tree limbs that overhang wood decks and roofs.
+4. Remove that portion of any tree which extends within 10 feet of any chimney or
+stovepipe, roof surfaces and roof gutters
+5. Clean any leaves and needles from roof and gutters.
+6. Cut and remove growth less than 3-inches in diameter, from the ground up to a
+height of 10 feet, provided that no crown shall be raised to a point so as to remove
+branches from more than the lower one-third of the tree’s total height.
+7. Ladder fuels shall be removed within 30 feet of the structure.
+8. When required by the Fire Code Official, cut and remove trees that are 6" of
+diameter or less at breast height, or four feet, six inches above ground, to achieve
+canopy separation within 30 feet of the structure.
+9. Vegetation clearance requirements for new construction and substantial
+remodels in Wildland-Urban Interface Areas shall be in accordance with the 2021
+International Wildland-Urban Interface Code, as amended by the County of Marin.
+EXCEPTION 1: When approved by the Fire Code Official, single specimens of
+trees, ornamental shrubbery or similar plants, or plants used as ground covers,
+62
+
+=== page 63 ===
+provided that they do not form a means of rapidly transmitting fire from the native
+growth to any structure.
+EXCEPTION 2: When approved by the Fire Code Official, grass and other
+vegetation located more than 30 feet (9144 mm) from buildings or structures less
+than 18 inches (457 mm) in height above the ground need not be removed where
+necessary to stabilize soil, and prevent erosion.
+Section 604.7 of Chapter 6 is hereby added and shall read as follows:
+Section 604.7 Fire Hazard Reduction from Roadways. The Fire Code Official is
+authorized to cause areas within 10 feet (3048 cm) on each side of portions of
+highways, fire apparatus access roads (improved or unimproved), and driveways
+(improved or unimproved), which are improved, designed, or ordinarily used for
+vehicular traffic to be cleared of flammable vegetation and other combustible
+growth. Corrective action, if necessary, shall be the same as the actions required
+in section 604.6. The Fire Code Official is authorized to enter upon private property
+to carry out this work.
+EXCEPTION 1: When approved by the Fire Code Official, single specimens
+of trees, ornamental shrubbery or similar plants, or plants used as ground
+covers, provided that they do not form a means of rapidly transmitting fire
+from the native growth to any structure.
+Section 613 of Chapter 6 is hereby added with the following language:
+Section 613 Fire Protection Systems
+Section 613.1 of Chapter 6 is hereby added with the following language:
+Section 613.1 General. The installation of fire protection systems shall
+be in accordance with nationally recognized standards and Fire Protection
+Standards.
+Section 613.2 of Chapter 6 is hereby added with the following language:
+Section 613.2 Automatic Fire Sprinkler System
+An approved automatic fire sprinkler system shall be installed in all occupancies,
+in new buildings, and substantial remodels. The installation of the automatic fire
+sprinkler systems shall be in accordance with nationally recognized standards and
+Fire Protection Standards.
+63
+
+=== page 64 ===
+Exceptions:
+1. Detached pool houses, workshops, Group U private garages, barns and similar
+structures, built in conjunction with existing non-sprinklered single family
+residences and provided the new structure is less than 1,000 square feet and is
+not intended for use as a dwelling unit.
+2. Detached non-combustible, limited combustible, or fire retardant treated wood
+canopies.
+3. Group B or M occupancies less than 1000 square feet.
+4. Detached restroom facilities associated with golf courses, ball fields, parks and
+similar uses as approved by the Fire Code Official.
+5. Agricultural buildings as defined in Appendix C of the Building Code and not
+exceeding 2000 square feet, having clear unobstructed side yards free of
+combustible materials, exceeding 60 feet in all directions and not exceeding 25
+feet in height, located within an agricultural zoned district as defined in the Marin
+County Planning Code.
+Section 613.3 of Chapter 6 is hereby added with the following language:
+Section 613.3 Exterior Wildfire Protection System.
+An approved system of devices and equipment which is automatically or manually
+activated to discharge water and or an approved fire-extinguishing agent onto the
+structure and or the exterior of the structure to hydrate the Immediate Zone 0 (0-5
+feet from the home, including the home) and the Intermediate Zone 1 (5-30 feet
+from the home).
+Section 613.3.1 of Chapter 6 is hereby added with the following language:
+Section 613.3.1 General. Exterior Wildfire Protection Systems shall comply
+with this section.
+Section 613.3.1 of Chapter 6 is hereby added with the following language:
+Section 613.3.2 Construction documents. Documentation of the system shall
+be submitted per 901.2 of the California Fire Code.
+Section 613.3.2 of Chapter 6 is hereby added with the following language:
+64
+
+=== page 65 ===
+Section 613.3.3 Permits. Permits shall be required as set forth in section
+901.3 of the California Fire Code.
+Section 701.1 of the California Building Code and Section R327.1.1 of the California
+Residential Code is hereby amended by adding the following sentence:
+Buildings constructed in designated Wildland Urban Interface areas shall comply
+with this code and the 2025 Wildland Urban Interface Code as amended by this
+Sleepy Hollow Fire Protection District.
+Chapter 7 is hereby amended to add the following language:
+Chapter 7 Referenced Standards - ICC
+CFC - 2025: California Fire Code
+1.11.3.4, 1.11.9, 1.11.10, 102.8, 105.1, 201.3, 202, 402.1.1, 402.1.2,
+402.2.1, 402.2.2, 403.2.4, 404.4, 404.5, 404.10.3, 606.1, 606.2, 613.3.2, 613.3.2
+Section A104.7.2 of Appendix A of the California Wildland-Urban Interface Code is
+amended to read as follows:
+Section A104.7.2 Permits. The Fire Code Official is authorized to stipulate conditions
+for permits. Permits shall not be issued when public safety would be at risk, as
+determined by the Fire Code Official. Permits shall incorporate such terms and
+conditions that will reasonably safeguard public safety and property. Outdoor fires shall
+not be built, ignited or maintained in or on hazardous fire areas under any of the
+following conditions:
+2. 1. When high winds are blowing.
+When a person 17 years old or over is not present at all times to watch and tend
+such fire.
+3. When a public announcement is made that open burning is prohibited.
+Section A104.11 is hereby added to Appendix A of the International Wildland-Urban
+Interface Code and shall read as follows:
+Section A104.11 – TRACER BULLETS, TRACER CHARGES, ROCKETS AND MODEL
+AIRCRAFT. Tracer bullets and tracer charges shall not be possessed, fired or caused to
+be fired into or across hazardous fire areas. Rockets, model planes, gliders and balloons
+powered with an engine, propellant or other feature liable to start or cause a fire shall not
+be fired or projected into or across hazardous fire areas.
+65
+
+=== page 66 ===
+Section A104.12 is hereby added to Appendix A of the International Wildland-Urban
+Interface Code and shall read as follows:
+Section A104.12 Explosives and Blasting. Explosives shall not be possessed, kept,
+stored, sold, offered for sale, given away, used, discharged, transported or disposed of
+within hazardous fire areas except by permit from the Fire Code Official.
+Section A104.13 is hereby added to Appendix A of the International Wildland-Urban
+Interface Code and shall read as follows:
+Section 104.13 APAIRIES. Lighted or smoldering material shall not be used in connection
+with smoking bees in or upon hazardous fire areas except by permit from the Fire Code
+Official.
+16.16.060 AUTHORITY TO ARREST AND ISSUE CITATIONS
+(a) The Fire Chief, Chief Officers, and law enforcement officers shall have authority to
+arrest or to cite any person who violates any provision of this Chapter involving the Fire
+Code or the California Building Standards Code regulations relating to fire and panic
+safety as adopted by the State Fire Marshal, in the manner provided for the arrest or
+release on citation and notice to appear with respect to misdemeanors or infractions, as
+prescribed by Chapters 5, 5c and 5d of Title 3, Part 2 of the California Penal Code,
+including Section 853.6, or as the same hereafter may be amended.
+(b) It is the intent of the Board of Supervisors of the County of Marin that the immunities
+provided in Penal Code Section 836.5 be applicable to aforementioned officers and
+employees exercising their arrest or citation authority within the course and scope of their
+employment pursuant to this Chapter.
+SECTION 16.16.065 HEARINGS AND APPEALS
+The following hearing procedure is established for persons who want to challenge an
+order or directive by the Fire Code official including orders or directives under Sections
+104.12, 113.4, 113.4.1.1, 114.4, 116.1, 325.6 and subsections, 325.9, 325.10, and 325.12
+of this Ordinance. The initial hearing shall be before the Fire Chief or his/her
+designee. This hearing shall be informal and the person aggrieved may present his/her
+case to the Fire Chief or his/her designee. The Fire Chief or his/her designee shall render
+a decision within 10 days of the hearing and the decision shall be presented to the person
+aggrieved and the Fire Code official.
+The following appeal procedure is established for persons who want to challenge the
+decision of the Hearing Officer (Fire Chief or his/her designee). Within 15 days of the
+decision of the Hearing Officer, the person may file an appeal. Such appeal shall be
+heard within 30 days of the filing of the Appeal. The Appeal Officer will be appointed by
+the County Administrator and he/she shall schedule a hearing whereby the person
+66
+
+=== page 67 ===
+aggrieved and the Fire Code Official shall present their respective sides of the issue under
+appeal. Each side shall have a maximum of 45 minutes to present their case unless the
+Appeal Officer, for good cause, extends the right of each side to have more time. Each
+side shall also have 10 minutes each to make a Closing Argument and each side shall
+have the right to present documents in support of their respective case. The presentation
+of documents must be made within 5 days of the hearing and the Appeal Officer may
+provide each party the ability to present documents following the hearing for good
+cause. Such documents shall be presented within 10 days of the appeal hearing. The
+Appeal Officer shall render a final decision within 10 days following the close of the
+hearing or the submission of documents following a hearing, whichever occurs later.
+For any appeal under Section 325.9.3, the procedure shall be the same as above
+EXCEPT the appeal must be made within 72 hours of the decision of the Fire Chief or
+his/her designee. The appeal hearing shall occur within 5 days of the Appeal unless there
+is good cause found by the Appeal Officer for a later date.”
+16.16.070 PENALTIES
+(a) The violations of the Fire Code as adopted herein are
+misdemeanors/infractions and are subject to the penalties set forth herein.
+(b) If a criminal citation is issued, penalties shall be per Section 108,
+109, or 111 of Section 16.16.040. If an administrative citation is issued, the penalties are
+as follows, except as otherwise stated in this Ordinance:
+(c) The first citation, within a 12-month period, for violations of the Fire
+Code and any amendments adopted herein shall be treated as a Civil Penalty payable
+directly to the Marin County Fire Department and is set at $150 plus the actual costs of
+all inspections required to gain compliance at the rate set from time to time by the Marin
+County Fire Department. Said civil penalties shall be a debt owed to the Marin County
+Fire Department by the person responsible for the violation within thirty (30) days after
+the date of mailing of the citation unless an appeal is filed as provided in Section
+16.16.055. Upon failure to pay the civil penalty when due, the responsible person shall
+be liable in a civil action brought by the Marin County Fire Department for such civil
+penalty and costs of the litigation, including reasonable attorney’s fees.
+(d) Any subsequent citations within a twelve (12) month period for any
+violations of the Fire Code and any amendments adopted herein shall be
+misdemeanors/infractions, and shall be subject to the penalties set forth herein.
+(e) The imposition of one penalty for any violation shall not excuse the
+violation or permit it to continue and all such persons shall be required to correct or
+remedy such violations or defects within a reasonable time and, when not otherwise
+specified, each day that a violation occurs or continues after a final notice has been
+delivered shall constitute a separate offense. The application of both penalties shall not
+be held to prevent the enforced correction of prohibited conditions.
+67
+
+=== page 68 ===
+(f) Nothing contained in Subsections (a) through (f) of this Section shall
+be construed or interpreted to prevent the Marin County Fire Department from recovering
+all costs associated with a Marin County Fire Department response as described in
+Section 104.12 of the 2024 International Fire Code as amended.
+16.16.080 FORMER ORDINANCES
+All former ordinances or parts thereof conflicting or inconsistent with the
+provisions of this Ordinance or the Code hereby adopted are hereby repealed. This action
+shall not relieve any party from the requirements of compliance with provisions of the
+previous Ordinance implemented while it was in force.
+16.16.090 VALIDITY
+If any section, subsection, sentence, clause or phrase of this ordinance is
+for any reason held to be invalid, such decision shall not affect the validity of the remaining
+portion of this Ordinance. The Board of Supervisors of the County of Marin hereby
+declares that it would have adopted the Ordinance and each section, subsection,
+sentence, clause or phrase thereof, irrespective of the fact that any one or more sections,
+subsections, sentences, clauses or phrase thereof shall be declared invalid.
+16.16.0100 ORDINANCE PUBLICATION AND EFFECTIVE DATE
+A summary of this Ordinance shall be published and a certified copy of the
+full text of this Ordinance shall be posted in the office of the Marin County Board of
+Supervisors at least five (5) days prior to the Board of Supervisors meeting at which it is
+adopted.
+This Ordinance shall be in full force and effective January 1, 2026 , and the
+summary of this Ordinance shall be published within fifteen (15) days after the adoption,
+together with the names of the Board of Supervisors voting for or against same, in the
+Independent Journal, a newspaper of general circulation in the County of Marin, State of
+California.
+16.16.110 CALIFORNIA ENVIRONMENTAL QUALITY ACT
+The Board of Supervisors of the County of Marin finds that adoption of this
+ordinance is exempt from the California Environmental Quality Act (“CEQA”) under
+California Code of Regulations, Title 14, § 15061(b)(3).
+Within fifteen (15) days after adoption, the Clerk of the Marin County Board
+of Supervisors shall also post in the office of the Marin County Board of Supervisors, a
+certified copy of the full text of this Ordinance along with the names of those Board of
+Supervisors members voting for and against the Ordinance.
+68
+
+=== page 69 ===
+//
+//
+//
+PASSED AND ADOPTED at a regular meeting of the Board of Supervisors of the County
+of Marin held on this __th day of ____, 2025, by the following vote:
+AYES: SUPERVISORS
+NOES: NONE
+ABSENT: NONE
+PRESIDENT, BOARD OF SUPERVISORS
+ATTEST:
+____________________________
+CLERK
+69

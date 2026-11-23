@@ -1,0 +1,21 @@
+{
+ "photo": "assets/sprinkler.png",
+ "size": [
+  428,
+  710
+ ],
+ "aspect": 0.6028,
+ "replaces": "assets/sprinkler.old.png (343 x 263), a crop of the same photograph",
+ "oldInNew": {
+  "x": -22,
+  "y": 184,
+  "w": 485,
+  "h": 373,
+  "scale": 1.414,
+  "correlation": 0.9118,
+  "residualGrey": 11.86
+ },
+ "after": "assets/after/sprinkler-a-replacement.jpg: this photograph with only the replaced head taken from the earlier after picture (soft mask, exposure matched). Illustrative.",
+ "boxesMoved": 3,
+ "tool": "tools/sprinkler-swap.js"
+}

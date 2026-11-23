@@ -1,0 +1,24 @@
+{
+  "src": "data/city4/basemap.jpg",
+  "w": 1640,
+  "h": 1642,
+  "west": -122.33,
+  "south": 37.8305,
+  "east": -122.2275,
+  "north": 37.9115,
+  "pxPerDegLon": 16000,
+  "scaleNote": "Same ground scale as assets/rossvalley.jpg (1640 px across 0.1025 degrees of longitude, about 5.5 m per pixel here). Equal to OpenStreetMap zoom 15 shrunk to 68.7%.",
+  "zoom": 15,
+  "zoomNote": "Equivalent zoom. The picture was drawn from OpenStreetMap vector data, not stitched from tiles: see HANDOFF.md.",
+  "tileSource": "none. tile.openstreetmap.org answered every request with its Access blocked tile (HTTP body: 403, tile usage policy), so no tiles were used.",
+  "dataSource": "OpenStreetMap data through the Overpass API (https://overpass-api.de/api/interpreter), three queries for the bounds below, OSM base timestamp 2026-11-23T04:15Z",
+  "attribution": "© OpenStreetMap contributors",
+  "credit": "Basemap © OpenStreetMap contributors. City limit from OpenStreetMap, simplified.",
+  "projection": "Web Mercator cropped to exact bounds: x is linear in longitude, y is linear in ln(tan(pi/4 + lat/2)). lib/geo.js toXY works unchanged with these numbers.",
+  "style": "Palette measured from assets/rossvalley.jpg: paper ground #f9f9f7, built-up #efefec, buildings #d6d5d1, white streets, cream main roads, mauve freeway, grey-green parks and woods, water #cfd9db, grey labels.",
+  "rendered": "2026-11-22",
+  "tools": [
+    "tools/prep-vector.js",
+    "tools/draw-basemap.js"
+  ]
+}

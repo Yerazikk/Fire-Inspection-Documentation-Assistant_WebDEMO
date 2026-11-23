@@ -1,0 +1,613 @@
+/* fire-geo · the Gleb kit (Natural OS 3.0 design system) as a SKIN over the real pages.
+   Everything is scoped under html.gleb, so nothing changes until that class is set (gleb.js sets it; ?gleb=0 turns it off).
+
+   LOOK is his: five colours + leaf, Inter Light / Medium, corners 60 / 48 / 36 / 24 (never 12), capsules and circles for
+   anything you touch, Glass / Sheet / Ink on the Air, no outlines on controls.
+   FEEL is Andrew's (~/taste-lab/STYLE.md): nothing here adds, removes or re-times an interaction. Pills slide with a plain
+   ease-out, content updates in place, nothing spins, presses do not bounce.
+
+   Source: ~/.figma-session/spec/ (01 foundations, 02 materials, 03 ask input, 04 controls and sheets, 08 cards).
+   Each component names the section and the tile it was built from. Crops of those tiles are in ref/.
+
+   Layout:  1 tokens   2 ground and type   3 components (.gl-* and the page classes that map onto them)
+            4 page fixes: shell, Technology, Inspectors   5 kept as they are (tokens only)   6 reduced motion */
+
+@font-face { font-family: "Inter"; src: url(InterVariable.woff2) format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+/* ============================================================== 1 · TOKENS (spec 01 §3, §5.1; tiles 23-color, 25-type, 26-shape-layout) */
+html.gleb {
+  /* palette: printed */
+  --gl-ink: #192233; --gl-mist: #8595AC; --gl-light: #FFFFFF; --gl-sky: #6892F8; --gl-ember: #FF765A;
+  --gl-leaf: #52D98C;                                  /* sampled; lights the working status only */
+  /* six roles, Day: printed */
+  --gl-text: var(--gl-ink);
+  --gl-text-soft: rgba(25, 34, 51, .80);
+  --gl-inverse: #fff;
+  --gl-veil: rgba(255, 255, 255, .14);                 /* trays */
+  --gl-well: rgba(255, 255, 255, .58);                 /* tiles, cards, controls: "Veil" on the Buttons page */
+  --gl-line: rgba(255, 255, 255, .22);                 /* rims on glass */
+  --gl-hair: rgba(25, 34, 51, .09);                    /* hairline between rows inside a card (spec 08 §4.4) */
+  --gl-text-quiet: rgba(25, 34, 51, .72);              /* captions; kept dark enough for 4.5:1 on the Air */
+  /* radius ladder: printed. Never 12. */
+  --gl-r-tray: 60px; --gl-r-sheet: 48px; --gl-r-tile: 36px; --gl-r-card: 24px; --gl-r-chip: 16px; --gl-r-capsule: 999px;
+  /* space, size, blur: printed */
+  --gl-s4: 4px; --gl-s8: 8px; --gl-s12: 12px; --gl-s16: 16px; --gl-s20: 20px; --gl-s32: 32px;
+  --gl-icon-s: 16px; --gl-icon: 24px; --gl-control-s: 32px; --gl-control: 52px; --gl-circle: 42px; --gl-touch: 48px;
+  --gl-blur-control: 12px; --gl-blur-veil: 24px; --gl-blur-field: 120px;
+  /* type: printed. Two weights only. */
+  --gl-font: "Inter", "Noto Sans JP", system-ui, sans-serif;
+  --gl-title: 300 32px/36px var(--gl-font);            /* one per screen; Light only at 32 and above */
+  --gl-heading: 500 24px/28px var(--gl-font);
+  --gl-body: 500 14px/20px var(--gl-font);
+  --gl-caption: 500 12px/16px var(--gl-font);
+
+  /* materials (spec 02 §4.3, 04 §5.9, 08 §4.4): fitted to the tiles */
+  --gl-air:
+    radial-gradient(55% 60% at 100% 100%, rgba(236, 215, 213, .95) 0%, rgba(236, 215, 213, 0) 100%),
+    radial-gradient(45% 45% at 0% 62%, rgba(186, 201, 224, .9) 0%, rgba(186, 201, 224, 0) 70%),
+    linear-gradient(180deg, #C9D2DE 0%, #BDC8D7 48%, #B5C0D2 100%);
+  --gl-air-cool: linear-gradient(200deg, #C8D1DC 0%, #BCC7D6 50%, #B4BFD0 100%);
+  --gl-glass: rgba(255, 255, 255, .58);
+  --gl-sheet:
+    radial-gradient(70% 84px at 50% 100%, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .5) 42%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, .20) 0%, rgba(255, 255, 255, .34) 30%, rgba(255, 255, 255, .52) 62%, rgba(255, 255, 255, .66) 100%);
+  --gl-sheet-solid:
+    radial-gradient(70% 84px at 50% 100%, #fff 0%, rgba(255, 255, 255, .6) 42%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(180deg, rgba(205, 211, 221, .90) 0%, rgba(222, 227, 234, .93) 45%, rgba(244, 245, 248, .97) 100%);
+  --gl-sheet-edge: inset 0 0 0 1px rgba(255, 255, 255, .42), inset 0 0 14px 2px rgba(255, 255, 255, .20), 0 10px 24px -6px rgba(25, 34, 51, .14);
+  --gl-lit: linear-gradient(115deg, #fff 0%, #fefefe 34%, #e3efff 58%, #c9d8fb 80%, #a5aecb 100%);
+  --gl-lit-edge: 0 10px 24px -8px rgba(25, 34, 51, .26);
+  --gl-lift: 0 2px 10px rgba(25, 34, 51, .06);
+  --gl-recede: rgba(212, 216, 223, .62);
+
+  /* line icons (spec 02 §4.15; tile 27-icons/t-01-01): 24 grid, 1.75 stroke, round caps */
+  --gl-i-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --gl-i-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+  --gl-i-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
+  --gl-i-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+  --gl-i-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 5.5L16 12l-6.5 6.5'/%3E%3C/svg%3E");
+  --gl-i-chevron-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 5.5L8 12l6.5 6.5'/%3E%3C/svg%3E");
+  --gl-i-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 9.5L12 16l6.5-6.5'/%3E%3C/svg%3E");
+  --gl-i-arrow-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M6 11l6-6 6 6'/%3E%3C/svg%3E");
+  --gl-i-sparkle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c.7 4.6 3.4 7.3 8.5 8.5-5.1 1.2-7.8 3.9-8.5 8.5-.7-4.6-3.4-7.3-8.5-8.5 5.1-1.2 7.8-3.9 8.5-8.5z'/%3E%3C/svg%3E");
+  --gl-i-pin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.800 12 21 12 21z'/%3E%3Ccircle cx='12' cy='9.500' r='2.500'/%3E%3C/svg%3E");
+  --gl-i-camera: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8h2.500L9 5.500h6L16.500 8H19a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z'/%3E%3Ccircle cx='12' cy='13' r='3.500'/%3E%3C/svg%3E");
+  --gl-i-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5.500' y='10.500' width='13' height='9.500' rx='2.500'/%3E%3Cpath d='M8.500 10.500V8a3.500 3.500 0 0 1 7 0v2.500'/%3E%3C/svg%3E");
+  --gl-i-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='6.500'/%3E%3Cpath d='M16 16l4.500 4.500'/%3E%3C/svg%3E");
+  --gl-i-pencil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1-4.500L16.500 4a2.100 2.100 0 0 1 3 3L8 18.500 4 20z'/%3E%3C/svg%3E");
+  --gl-i-picture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.500' y='5' width='17' height='14' rx='2.500'/%3E%3Ccircle cx='9' cy='10' r='1.500'/%3E%3Cpath d='M4 17l4.500-4.500 3.500 3.500 3-3 5 5'/%3E%3C/svg%3E");
+  --gl-i-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='5.500' width='16' height='14.500' rx='2.500'/%3E%3Cpath d='M4 10.500h16M8.500 3.500v4M15.500 3.500v4'/%3E%3C/svg%3E");
+  --gl-i-mic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5.500 11.500a6.500 6.500 0 0 0 13 0M12 18v3'/%3E%3C/svg%3E");
+  --gl-i-sun: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3.500'/%3E%3Cpath d='M12 3.500v2M12 18.500v2M3.500 12h2M18.500 12h2M6 6l1.400 1.400M16.600 16.600L18 18M18 6l-1.400 1.400M7.400 16.600L6 18'/%3E%3C/svg%3E");
+  --gl-i-send: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.500 3.500L3.500 10l7 3.500 3.500 7 6.500-17zM10.500 13.500l10-10'/%3E%3C/svg%3E");
+  --gl-i-working: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='6' cy='7' r='1.600'/%3E%3Ccircle cx='15' cy='5.500' r='2.300'/%3E%3Ccircle cx='11' cy='12.500' r='2'/%3E%3Ccircle cx='18' cy='16' r='2.800'/%3E%3Ccircle cx='7' cy='18' r='1.800'/%3E%3C/svg%3E");
+
+  /* ---- the shell's own variables (shared/shell.css :root), re-pointed at his tokens. Much of both pages re-skins by these alone. */
+  --bg: #C3CDDA;
+  --ink: var(--gl-ink); --ink2: var(--gl-text-soft); --ink3: var(--gl-text-quiet);
+  --line: var(--gl-hair); --line2: rgba(25, 34, 51, .16);
+  --hi: var(--gl-sky); --hi-soft: rgba(255, 255, 255, .7);
+  --v-red: #E2513D; --v-yellow: #E3A91F; --v-green: #2EAA72;       /* still red, yellow, green; nudged toward ember, mist and leaf */
+  --shade: 25, 34, 51; --ink-rgb: 25, 34, 51; --hi-rgb: 104, 146, 248;
+  --r-card: var(--gl-r-card); --r-media: var(--gl-r-card); --r-row: var(--gl-r-card); --r-pill: var(--gl-r-capsule);     /* the smallest corner is 24 */
+  --font: var(--gl-font);
+  /* the Inspectors tab's own skin variables (team/team.css) */
+  --tm-surface: rgba(255, 255, 255, .62); --tm-solid: #fff; --tm-wash: rgba(25, 34, 51, .07); --tm-border: transparent;
+  --tm-radius-ctl: var(--gl-r-card); --tm-radius-card: var(--gl-r-card); --tm-radius-pill: var(--gl-r-capsule);
+  --tm-shadow-photo: 0 10px 24px -14px rgba(25, 34, 51, .45);
+  /* --flat, --spring, --soft are NOT touched: motion stays Andrew's */
+}
+
+/* ============================================================== 2 · GROUND AND TYPE */
+html.gleb:not(.shell-embedded) body { background: var(--gl-air); background-attachment: fixed; }
+html.gleb body.kit { background-attachment: scroll; }
+html.gleb [hidden].shell-pill, html.gleb [hidden].gl-chip, html.gleb [hidden].gl-button { display: none; }
+html.gleb body { font-family: var(--gl-font); color: var(--gl-ink); letter-spacing: -.01em; font-feature-settings: "tnum" 0; }
+/* Two weights only (Type page): Medium for everything read, Light for the big numbers and the one title. Never bold. */
+html.gleb :is(.shell-bar, .shell-views, .board, .board-foot, .notes-sheet, .tm-main, .gl-scope) *,
+html.gleb [class^="gl-"], html.gleb [class*=" gl-"] { font-weight: 500 !important; }
+html.gleb :is(.gl-title, .gl-readout, .gl-display, .ph-pad-display) { font-weight: 300 !important; letter-spacing: -.02em; }
+/* running text under a title reads a step softer: Regular, as his frames draw it (the page prints Medium; see ADOPT.md) */
+html.gleb :is(.gl-soft, .gl-row-detail, .gl-card-caption, .gl-state-sub, .gl-why, .gl-then,
+  .detail-quote, .detail-cite, .row-cite, .row-phrase, .place-line, .verdict-line, .notes-block p, .notes-kv dd,
+  .ph-plain, .ph-small, .ph-q-say, .ph-seen-label, .mp-zone, .tm-cap span,
+  .dk-rule, .dk-cite-full, .dk-row-cite, .dk-gap, .dk-row-hint, .dk-was, .dk-town, .dk-fieldline, .dk-rec-list dt, .dk-empty p, .dk-item-state) { font-weight: 400 !important; }
+html.gleb :is(.row-phrase .row-num, .ph-where b, .dk-town b) { font-weight: 500 !important; }
+html.gleb :focus-visible { outline-color: var(--gl-sky); }
+html.gleb ::selection { background: rgba(104, 146, 248, .28); }
+
+/* type styles for new markup */
+html.gleb .gl-display { font: 300 104px/84px var(--gl-font); letter-spacing: -.04em; }
+html.gleb .gl-title { font: var(--gl-title); letter-spacing: -.02em; }
+html.gleb .gl-heading { font: var(--gl-heading); letter-spacing: -.03em; }
+html.gleb .gl-body { font: var(--gl-body); letter-spacing: -.01em; }
+html.gleb .gl-caption { font: var(--gl-caption); letter-spacing: 0; }
+html.gleb .gl-soft { color: var(--gl-text-soft); }
+html.gleb .gl-num { font-variant-numeric: tabular-nums; }
+html.gleb .gl-air { background: var(--gl-air); }
+
+/* ============================================================== 3 · COMPONENTS for new markup (.gl-*) */
+
+/* ---- line icons. <i class="gl-icon" data-i="check"></i>; colour follows the text. (spec 02 §4.15; tile 27-icons/t-01-01) */
+html.gleb .gl-icon { display: inline-block; flex: none; width: 24px; height: 24px; background: currentColor; vertical-align: middle;
+  -webkit-mask: var(--i, var(--gl-i-check)) center / contain no-repeat; mask: var(--i, var(--gl-i-check)) center / contain no-repeat; }
+html.gleb .gl-icon.is-small { width: 16px; height: 16px; }
+html.gleb .gl-icon[data-i="check"] { --i: var(--gl-i-check); } html.gleb .gl-icon[data-i="x"] { --i: var(--gl-i-x); }
+html.gleb .gl-icon[data-i="plus"] { --i: var(--gl-i-plus); } html.gleb .gl-icon[data-i="minus"] { --i: var(--gl-i-minus); }
+html.gleb .gl-icon[data-i="chevron-right"] { --i: var(--gl-i-chevron-right); } html.gleb .gl-icon[data-i="chevron-left"] { --i: var(--gl-i-chevron-left); }
+html.gleb .gl-icon[data-i="chevron-down"] { --i: var(--gl-i-chevron-down); } html.gleb .gl-icon[data-i="arrow-up"] { --i: var(--gl-i-arrow-up); }
+html.gleb .gl-icon[data-i="sparkle"] { --i: var(--gl-i-sparkle); } html.gleb .gl-icon[data-i="pin"] { --i: var(--gl-i-pin); }
+html.gleb .gl-icon[data-i="camera"] { --i: var(--gl-i-camera); } html.gleb .gl-icon[data-i="lock"] { --i: var(--gl-i-lock); }
+html.gleb .gl-icon[data-i="search"] { --i: var(--gl-i-search); } html.gleb .gl-icon[data-i="pencil"] { --i: var(--gl-i-pencil); }
+html.gleb .gl-icon[data-i="picture"] { --i: var(--gl-i-picture); } html.gleb .gl-icon[data-i="calendar"] { --i: var(--gl-i-calendar); }
+html.gleb .gl-icon[data-i="mic"] { --i: var(--gl-i-mic); } html.gleb .gl-icon[data-i="sun"] { --i: var(--gl-i-sun); }
+html.gleb .gl-icon[data-i="send"] { --i: var(--gl-i-send); } html.gleb .gl-icon[data-i="working"] { --i: var(--gl-i-working); }
+
+/* ---- Button: Ink asks for a decision, Light sends, Veil is everything else. (spec 04 §4.1, §4.5; tiles 30-buttons/t-01-01, t-02-01)
+   52 high, full capsule, no outline. Pressed = 86% opacity. Disabled = 40%. Loading = the loader takes the label's place, width stays. */
+html.gleb .gl-button {
+  all: unset; box-sizing: border-box; position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--gl-control); padding: 0 24px; border-radius: var(--gl-r-capsule); cursor: pointer;
+  background: var(--gl-ink); color: #fff; font: 500 15px/20px var(--gl-font); letter-spacing: -.01em; white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(25, 34, 51, .04); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+  transition: transform 70ms var(--flat), opacity 110ms var(--flat), background-color 200ms var(--flat), color 200ms var(--flat); }
+html.gleb .gl-button:active { opacity: .86; transform: scale(.97); }
+html.gleb .gl-button:disabled, html.gleb .gl-button.is-disabled { opacity: .4; cursor: default; transform: none; }
+html.gleb .gl-button:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .gl-button.is-light { background: #fff; color: var(--gl-ink); }
+html.gleb .gl-button.is-veil { background: var(--gl-well); color: var(--gl-ink); }
+html.gleb .gl-button.is-small { height: var(--gl-control-s); padding: 0 14px; font-size: 13px; }
+html.gleb .gl-button.is-wide { display: flex; width: 100%; }
+html.gleb .gl-button > * { position: relative; }
+html.gleb .gl-button.is-loading > :not(.gl-loader):not(.gl-hold-fill) { visibility: hidden; }
+html.gleb .gl-button.is-loading > .gl-loader { position: absolute; left: 50%; top: 50%; margin: -12px 0 0 -12px; }
+/* two buttons at most: secondary left, Ink right (spec 04 §4.3) */
+html.gleb .gl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+html.gleb .gl-pair > .gl-button { padding: 0 12px; }
+/* hold to act: a fill grows from the left while you hold, hard edge, label on top. (tile 30-buttons/t-01-01, 2nd / 4th / 6th button)
+   Timing is Andrew's: 900 ms, and letting go early runs it back. Gleb.hold() in gleb.js drives it. */
+html.gleb .gl-button > .gl-hold-fill { position: absolute; inset: 0; transform: scaleX(0); transform-origin: left; pointer-events: none; background: rgba(255, 255, 255, .26); }
+html.gleb .gl-button.is-light > .gl-hold-fill { background: #D2DEFD; }
+html.gleb .gl-button.is-veil > .gl-hold-fill { background: rgba(255, 255, 255, .5); }
+
+/* ---- Icon button: veil circle, 42 or 32, line icon; the target is always 48. (spec 04 §4.2; tile 30-buttons/t-01-01 second row) */
+html.gleb .gl-icon-button {
+  all: unset; box-sizing: border-box; position: relative; flex: none; display: grid; place-items: center; width: var(--gl-circle); height: var(--gl-circle); border-radius: 50%;
+  background: var(--gl-well); color: var(--gl-ink); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 70ms var(--flat), opacity 110ms var(--flat), background-color 110ms var(--flat), color 110ms var(--flat); }
+html.gleb .gl-icon-button::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+html.gleb .gl-icon-button:active { opacity: .86; transform: scale(.95); }
+html.gleb .gl-icon-button:disabled { opacity: .4; cursor: default; }
+html.gleb .gl-icon-button:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .gl-icon-button > .gl-icon { width: 20px; height: 20px; }
+html.gleb .gl-icon-button.is-small { width: var(--gl-control-s); height: var(--gl-control-s); }
+html.gleb .gl-icon-button.is-small > .gl-icon { width: 16px; height: 16px; }
+html.gleb .gl-icon-button.is-ink, html.gleb .gl-icon-button[aria-pressed="true"] { background: var(--gl-ink); color: #fff; }
+html.gleb .gl-icon-button.is-bare { background: none; }
+
+/* ---- Loader. His: a light travels round a ring with a fading tail, one turn in 1.2 s; 16 / 24 / 40. (spec 04 §4.6; tile 30-buttons/t-02-01 bottom)
+   Andrew's rule is "nothing spins", so the ring keeps his drawing (three-quarter arc, tail fading, a dot at the head) and holds still;
+   the arc breathes on his 1.2 s beat so the wait still shows motion. */
+html.gleb .gl-loader { position: relative; display: inline-block; flex: none; width: 24px; height: 24px; color: var(--gl-ink); --gl-stroke: 2px; animation: gl-breathe 1.2s ease-in-out infinite alternate; }
+html.gleb .gl-loader::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 90deg, transparent 0 25%, currentColor 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke) - .6px), #000 calc(100% - var(--gl-stroke))); mask: radial-gradient(farthest-side, transparent calc(100% - var(--gl-stroke) - .6px), #000 calc(100% - var(--gl-stroke))); }
+html.gleb .gl-loader::after { content: ""; position: absolute; right: calc(var(--gl-stroke) / -4); top: 50%; width: calc(var(--gl-stroke) * 1.7); height: calc(var(--gl-stroke) * 1.7); margin-top: calc(var(--gl-stroke) * -.85); border-radius: 50%; background: currentColor; }
+html.gleb .gl-loader.is-16 { width: 16px; height: 16px; --gl-stroke: 1.5px; }
+html.gleb .gl-loader.is-40 { width: 40px; height: 40px; --gl-stroke: 2.5px; }
+html.gleb .gl-loader.is-light, html.gleb .gl-button:not(.is-light):not(.is-veil) > .gl-loader { color: #fff; }
+@keyframes gl-breathe { from { opacity: .38; } to { opacity: 1; } }
+/* the Light: the one loader of a card ("One loader, the Light"). 48 x 32 pearl capsule; leaf tint while it works. (spec 08 §4.8; tile 37-generative-ui/t-11-01) */
+html.gleb .gl-light { position: relative; display: inline-block; flex: none; width: 48px; height: 32px; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(180deg, #fff 0%, #F0F2F6 100%); box-shadow: 0 4px 10px -4px rgba(25, 34, 51, .28), inset 0 1px 0 #fff; }
+html.gleb .gl-light::before { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 90% at 30% 0%, rgba(82, 217, 140, .42), rgba(82, 217, 140, 0) 70%); animation: gl-breathe 1.2s ease-in-out infinite alternate; }
+html.gleb .gl-light::after { content: ""; position: absolute; left: 7px; right: 5px; top: 13px; height: 12px; border-radius: 50%; background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0)); transform: rotate(-9deg); box-shadow: 0 -1px 2px rgba(133, 149, 172, .35); }
+html.gleb .gl-light.is-calm::before { display: none; }
+
+/* ---- Chip: one capsule, five types. Quiet, Selected (ink + check), Suggested (sparkle), Needs you (ember dot), Working (leaf dot).
+   Regular 32 / Small 24, touch 48, no rim. (spec 04 §4.8; tiles 32-segmented-chips/t-01-01, t-01-02) */
+html.gleb .gl-chip {
+  all: unset; box-sizing: border-box; position: relative; display: inline-flex; align-items: center; gap: 6px; height: var(--gl-control-s); padding: 0 14px; border-radius: var(--gl-r-capsule);
+  background: var(--gl-well); color: var(--gl-ink); font: 500 13px/16px var(--gl-font); letter-spacing: -.01em; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms var(--flat), color 140ms var(--flat), opacity 110ms var(--flat), transform 70ms var(--flat); }
+html.gleb .gl-chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 48px; transform: translateY(-50%); }
+html.gleb .gl-chip:active { opacity: .86; transform: scale(.97); }
+html.gleb .gl-chip:disabled, html.gleb .gl-chip.is-disabled { opacity: .4; cursor: default; }
+html.gleb .gl-chip:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb span.gl-chip, html.gleb div.gl-chip { cursor: default; }
+html.gleb .gl-chip.is-small { height: 24px; padding: 0 10px; font-size: 12px; gap: 5px; }
+/* Selected: ink with a check. The check slides open (a size change is interpolated, plain ease-out). */
+html.gleb .gl-chip::before { content: ""; flex: none; width: 0; height: 14px; margin-right: -6px; background: currentColor; opacity: 0;
+  -webkit-mask: var(--gl-i-check) left center / 14px 14px no-repeat; mask: var(--gl-i-check) left center / 14px 14px no-repeat;
+  transition: width 250ms var(--flat), margin 250ms var(--flat), opacity 140ms var(--flat); }
+html.gleb .gl-chip.is-selected, html.gleb .gl-chip[aria-pressed="true"] { background: var(--gl-ink); color: #fff; }
+html.gleb .gl-chip.is-selected::before, html.gleb .gl-chip[aria-pressed="true"]::before { width: 14px; margin-right: 0; opacity: 1; }
+html.gleb .gl-chip.is-suggested::before { width: 14px; margin-right: 0; opacity: 1; -webkit-mask-image: var(--gl-i-sparkle); mask-image: var(--gl-i-sparkle); }
+html.gleb .gl-chip.is-needs { background: linear-gradient(rgba(255, 118, 90, .16), rgba(255, 118, 90, .16)), var(--gl-well); }
+html.gleb .gl-chip.is-needs::before, html.gleb .gl-chip.is-working::before { width: 6px; height: 6px; margin-right: 0; opacity: 1; border-radius: 50%; -webkit-mask: none; mask: none; background: var(--gl-ember); }
+html.gleb .gl-chip.is-working::before { background: var(--gl-leaf); }
+/* on a light card the quiet chips are whiter and carry a soft low shadow */
+html.gleb :is(.gl-card, .gl-sheet, .gl-on-light) .gl-chip:not(.is-selected):not([aria-pressed="true"]) { background-color: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift); }
+/* a row of chips: 8 apart; more than four scroll sideways with a fade */
+html.gleb .gl-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+html.gleb .gl-chips.is-scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+html.gleb .gl-chips.is-scroll::-webkit-scrollbar { display: none; }
+/* tag: a 20 high label, not a control (spec 01 §5.6) */
+html.gleb .gl-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 9px; border-radius: 10px; background: rgba(255, 255, 255, .8); color: var(--gl-ink); font: 500 12px/20px var(--gl-font); white-space: nowrap; }
+
+/* ---- Outline capsule: context only, never a button. 1 px ink at 15%, no fill, no shadow. (spec 04 §4.13; tile 32-segmented-chips/t-02-01) */
+html.gleb .gl-outline { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; height: 48px; padding: 0 20px; border: 1px solid rgba(25, 34, 51, .15); border-radius: var(--gl-r-capsule); color: var(--gl-ink); font: 400 14px/18px var(--gl-font); white-space: nowrap; }
+html.gleb .gl-outline.is-two-line { height: 62px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; }
+html.gleb .gl-outline.is-small { height: 24px; padding: 0 10px; font: 500 12px/16px var(--gl-font); }
+html.gleb .gl-outline small { font: 400 12px/16px var(--gl-font); color: var(--gl-text-quiet); }
+
+/* ---- Segmented: the same chips on a quiet track. Track 40, padding 4, segments 32, the chosen one an ink capsule, no check. (spec 04 §4.10; tile 32-segmented-chips/t-01-01)
+   The ink pill slides to the chosen tab with a plain ease-out and stops exactly on it (STYLE.md). Gleb.seg() in gleb.js drives it. */
+html.gleb .gl-seg { position: relative; display: inline-flex; padding: 4px; border-radius: var(--gl-r-capsule); background: var(--gl-well); box-shadow: 0 2px 8px rgba(25, 34, 51, .06); }
+html.gleb .gl-seg.is-wide { display: flex; } html.gleb .gl-seg.is-wide > button { flex: 1; }
+html.gleb .gl-seg > .gl-seg-ind { position: absolute; left: 0; top: 4px; width: 0; height: calc(100% - 8px); border-radius: var(--gl-r-capsule); background: var(--gl-ink); box-shadow: none; transition: transform 250ms var(--flat), width 250ms var(--flat); }
+html.gleb .gl-seg > button { all: unset; box-sizing: border-box; position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; min-width: 56px; padding: 0 16px; cursor: pointer;
+  font: 500 13px/16px var(--gl-font); letter-spacing: -.01em; color: rgba(25, 34, 51, .78); white-space: nowrap; transition: color 180ms var(--flat); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+html.gleb .gl-seg > button::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 48px; transform: translateY(-50%); }
+html.gleb .gl-seg > button.on, html.gleb .gl-seg > [aria-selected="true"] { color: #fff; }
+html.gleb .gl-seg > button:focus-visible { outline: 2px solid var(--gl-sky); outline-offset: -2px; border-radius: var(--gl-r-capsule); }
+html.gleb .gl-seg.is-small > button { height: 24px; min-width: 0; padding: 0 12px; font-size: 12px; }
+html.gleb :is(.gl-card, .gl-sheet, .gl-on-light) .gl-seg { background: rgba(255, 255, 255, .7); }
+
+/* ---- Page dots: dot 6, the current one an 18 x 6 ink pill, 8 apart. (spec 04 §4.11; tile 32-segmented-chips/t-01-01)
+   The width change is interpolated (250 ms, plain ease-out). */
+html.gleb .gl-dots { display: flex; align-items: center; }
+html.gleb .gl-dots > button { all: unset; box-sizing: border-box; position: relative; cursor: pointer; display: grid; place-items: center; min-width: 14px; height: 22px; padding: 0 4px; -webkit-tap-highlight-color: transparent; }
+html.gleb .gl-dots > button::after { content: ""; position: absolute; inset: -13px 0; }
+html.gleb .gl-dots > button::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: rgba(25, 34, 51, .35); transition: width 250ms var(--flat), background-color 180ms var(--flat); }
+html.gleb .gl-dots > button[aria-pressed="true"]::before, html.gleb .gl-dots > .on::before { width: 18px; background: var(--gl-ink); }
+html.gleb .gl-dots > button:focus-visible { outline: 2px solid var(--gl-sky); border-radius: 8px; }
+
+/* ---- List row: disc 42 (or 32 compact), title, detail, trailing value or a 7 px status dot. No card, border or divider. (spec 04 §4.15; tile 33-lists-controls/t-01-01) */
+html.gleb .gl-row { display: flex; align-items: center; gap: 12px; min-height: 56px; min-width: 0; }
+html.gleb .gl-row-disc { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--gl-well); color: var(--gl-ink); font: 500 12px/1 var(--gl-font); overflow: hidden; }
+html.gleb .gl-row.is-compact .gl-row-disc { width: 32px; height: 32px; background: rgba(25, 34, 51, .10); }
+html.gleb .gl-row-disc > .gl-icon { width: 18px; height: 18px; }
+html.gleb .gl-row-text { flex: 1; min-width: 0; display: grid; }
+html.gleb .gl-row-title { font: 500 15px/20px var(--gl-font); color: var(--gl-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.gleb .gl-row-detail { font: 400 12px/16px var(--gl-font); color: var(--gl-text-quiet); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.gleb .gl-row-value { flex: none; font: 400 13px/16px var(--gl-font); color: var(--gl-text-soft); font-variant-numeric: tabular-nums; }
+html.gleb .gl-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--gl-sky); }
+html.gleb .gl-dot.is-ember { background: var(--gl-ember); } html.gleb .gl-dot.is-leaf { background: var(--gl-leaf); box-shadow: 0 0 0 3px rgba(82, 217, 140, .22); }
+html.gleb .gl-list { display: grid; gap: 12px; }
+/* rows inside a card are separated by a hairline that stops at the card padding (spec 08 §4.4) */
+html.gleb .gl-card .gl-list { gap: 0; } html.gleb .gl-card .gl-list > .gl-row + .gl-row { border-top: 1px solid var(--gl-hair); }
+
+/* ---- Lit rows: one row is lit at a time, the others are quiet glass. (spec 08 §4.7; tile 37-generative-ui/t-10-01)
+   Quiet: flat white about 58%, no rim. Lit: white running to ice blue, soft drop shadow, the brightest thing on the screen. */
+html.gleb .gl-rowcard { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 14px 20px; border-radius: var(--gl-r-card); background: var(--gl-well); transition: background-color 180ms var(--flat), box-shadow 180ms var(--flat); }
+html.gleb .gl-rowcard.is-lit { background: var(--gl-lit); box-shadow: var(--gl-lit-edge); }
+
+/* ---- Switch: track 72 x 40, knob 32, inset 4; on is leaf. No rim. (spec 04 §4.16; tile 33-lists-controls/t-01-01)
+   <button class="gl-switch" role="switch" aria-checked="true"></button>. The knob glides with a plain ease-out, no stretch-bounce. */
+html.gleb .gl-switch { all: unset; box-sizing: border-box; position: relative; flex: none; display: block; width: 72px; height: 40px; border-radius: 20px; cursor: pointer;
+  background: rgba(255, 255, 255, .55); box-shadow: inset 0 1px 2px rgba(20, 30, 50, .10); transition: background-color 180ms var(--flat), opacity 110ms var(--flat); -webkit-tap-highlight-color: transparent; }
+html.gleb .gl-switch::after { content: ""; position: absolute; inset: -4px 0; }
+html.gleb .gl-switch::before { content: ""; position: absolute; left: 4px; top: 4px; width: 32px; height: 32px; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgba(20, 30, 50, .25), 2px 3px 6px rgba(20, 30, 50, .12); transition: transform 180ms var(--flat); }
+html.gleb .gl-switch[aria-checked="true"] { background: var(--gl-leaf); box-shadow: 0 2px 6px rgba(82, 217, 140, .25); }
+html.gleb .gl-switch[aria-checked="true"]::before { transform: translateX(32px); }
+html.gleb .gl-switch:disabled { opacity: .4; cursor: default; }
+html.gleb .gl-switch:focus-visible { outline: 2px solid var(--gl-sky); outline-offset: 2px; }
+html.gleb .gl-switch.is-small { width: 44px; height: 24px; border-radius: 12px; }                 /* the size he draws (0.6 of the printed one) */
+html.gleb .gl-switch.is-small::before { left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 10px; }
+html.gleb .gl-switch.is-small[aria-checked="true"]::before { transform: translateX(20px); }
+/* a tick well: his replacement for a checkbox ("checkboxes became the well with a tick") */
+html.gleb .gl-tick { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(25, 34, 51, .10); color: transparent; transition: background-color 140ms var(--flat), color 140ms var(--flat); }
+html.gleb .gl-tick.is-on { background: var(--gl-ink); color: #fff; }
+html.gleb .gl-tick > .gl-icon { width: 14px; height: 14px; }
+
+/* ---- Slider: a 50 high pill; the value is a white pill inside it from the left. No thumb, no rim. (spec 04 §4.17; tile 33-lists-controls/t-01-01)
+   Dragging is direct (no easing). Gleb.slider() wires it; the arrow keys step it. */
+html.gleb .gl-slider { position: relative; display: block; width: 100%; max-width: 296px; height: 50px; border-radius: 25px; background: rgba(255, 255, 255, .22); overflow: hidden; cursor: ew-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
+html.gleb .gl-slider-fill { position: absolute; inset: 0 auto 0 0; width: max(50px, calc(var(--gl-value, .5) * 100%)); border-radius: 25px; background: #fff; }
+html.gleb .gl-slider > .gl-icon { position: absolute; left: 17px; top: 50%; width: 16px; height: 16px; margin-top: -8px; color: #273040; }
+html.gleb .gl-slider:focus-visible { outline: 2px solid var(--gl-sky); outline-offset: 2px; }
+/* Stepper: Andrew's control stays (a number you drag, with arrows that step it). Two dresses:
+   the big Light readout from his decision sheet (tile 34-sheets/t-01-01, "19:30"), or one veil capsule holding arrows and number. */
+html.gleb .gl-stepper { display: inline-flex; align-items: center; gap: 8px; }
+html.gleb .gl-readout { font: 300 32px/36px var(--gl-font); letter-spacing: -.02em; color: var(--gl-ink); font-variant-numeric: tabular-nums; }
+html.gleb .gl-readout.is-scrub { border-bottom: 1.5px dashed rgba(25, 34, 51, .35); padding-bottom: 1px; cursor: ew-resize; }
+html.gleb .gl-readout small, html.gleb .gl-stepper-num small { font: 500 12px/16px var(--gl-font); color: var(--gl-text-soft); margin-left: 3px; }
+html.gleb .gl-stepper.is-capsule { height: 40px; padding: 0 4px; gap: 2px; border-radius: var(--gl-r-capsule); background: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift); }
+html.gleb .gl-stepper.is-capsule > .gl-icon-button { background: none; }
+html.gleb .gl-stepper-num { min-width: 4.2em; text-align: center; font: 500 17px/32px var(--gl-font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+/* ---- Field / ask input: a 52 high veil capsule, no rim. The caret is sky. An error is an ember dot and one plain line under it.
+   (spec 03 §4.13, 04 §4.5; tile 30-buttons/t-02-01 "Ask input" row) */
+html.gleb .gl-field { box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--gl-control); padding: 0 20px; border-radius: 26px;
+  background: var(--gl-well); color: var(--gl-ink); box-shadow: 0 2px 6px rgba(25, 34, 51, .06); font: 500 15px/20px var(--gl-font); letter-spacing: -.01em; transition: background-color 140ms var(--flat), box-shadow 140ms var(--flat); }
+html.gleb .gl-field > input, html.gleb .gl-field > textarea { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; caret-color: var(--gl-sky); }
+html.gleb .gl-field ::placeholder { color: var(--gl-text-quiet); font-weight: 400; opacity: 1; }
+html.gleb .gl-field:focus-within { background: rgba(255, 255, 255, .86); box-shadow: 0 2px 6px rgba(25, 34, 51, .06), 0 0 0 2px rgba(104, 146, 248, .55); }
+html.gleb .gl-field > .gl-icon { width: 18px; height: 18px; margin: 0 -4px; }
+html.gleb .gl-field > .gl-send { all: unset; box-sizing: border-box; flex: none; display: grid; place-items: center; width: 32px; height: 32px; margin-right: -10px; border-radius: 50%; background: var(--gl-ink); color: #fff; cursor: pointer; }
+html.gleb .gl-field > .gl-send > .gl-icon { width: 14px; height: 14px; }
+html.gleb .gl-field.is-disabled { opacity: .4; }
+html.gleb .gl-field.is-multiline { height: auto; min-height: 52px; padding: 16px 20px; align-items: flex-end; }
+html.gleb .gl-error { display: flex; align-items: center; gap: 8px; margin: 12px 0 0 20px; font: 400 12px/16px var(--gl-font); color: var(--gl-ink); }
+html.gleb .gl-error::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--gl-ember); }
+html.gleb :is(.gl-card, .gl-sheet, .gl-on-light) .gl-field { background: rgba(255, 255, 255, .78); }
+
+/* ---- Card shell: frosted glass, corner 48, padding 28 / 24, a Heading with a Caption under it, rows with hairlines, no inner panels, no outline.
+   Darker at the top, milky in the middle, a white bloom on the bottom edge. Two buttons at most. (spec 08 §4.4; tiles 37-generative-ui/t-09-01, t-07-01) */
+html.gleb .gl-card { position: relative; box-sizing: border-box; border-radius: var(--gl-r-sheet); padding: 28px 24px 24px; color: var(--gl-ink);
+  background: var(--gl-sheet); box-shadow: var(--gl-sheet-edge); -webkit-backdrop-filter: blur(var(--gl-blur-veil)) saturate(1.2); backdrop-filter: blur(var(--gl-blur-veil)) saturate(1.2); }
+html.gleb .gl-card-title { font: var(--gl-heading); letter-spacing: -.03em; margin: 0; }
+html.gleb .gl-card-caption { display: flex; align-items: center; gap: 6px; margin-top: 4px; font: 400 13px/18px var(--gl-font); color: var(--gl-text-soft); }
+html.gleb .gl-card-body { margin-top: 20px; }
+html.gleb .gl-card-media { display: block; width: 100%; border-radius: var(--gl-r-card); overflow: hidden; margin-top: 20px; }
+html.gleb .gl-card-actions { margin-top: 24px; }
+html.gleb .gl-glass { border-radius: var(--gl-r-card); background: var(--gl-glass); box-shadow: 0 6px 16px rgba(40, 55, 85, .08); -webkit-backdrop-filter: blur(var(--gl-blur-veil)); backdrop-filter: blur(var(--gl-blur-veil)); }
+/* card states: only the leading glyph, the words and the chips change; the shell never changes shape. (spec 08 §4.8; tiles t-11-01, t-12-01) */
+html.gleb .gl-state { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px; align-items: start; }
+html.gleb .gl-state.is-loading { grid-template-columns: 48px minmax(0, 1fr); }
+html.gleb .gl-state-glyph { display: grid; place-items: center; height: 20px; color: var(--gl-ink); }
+html.gleb .gl-state-glyph > .gl-icon { width: 16px; height: 16px; }
+html.gleb .gl-ring { flex: none; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #6F7681; box-sizing: border-box; }
+html.gleb .gl-ember { width: 8px; height: 8px; border-radius: 50%; background: var(--gl-ember); }
+html.gleb .gl-state-title { font: 500 15px/20px var(--gl-font); }
+html.gleb .gl-state-sub { font: 400 13px/18px var(--gl-font); color: var(--gl-text-soft); margin-top: 2px; }
+html.gleb .gl-state .gl-chips { grid-column: 2; margin-top: 20px; }
+html.gleb .gl-skeleton { border-radius: var(--gl-r-card); background: rgba(255, 255, 255, .55); }
+html.gleb .gl-skeleton.is-bar { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, .7); }
+
+/* ---- Sheet: the one rising surface. A floating card with four round corners, the same glass, a 30 x 4 grabber.
+   One sheet holds up to four blocks (facts, the question, the choice, what happens next) and at most two buttons:
+   one Ink action and a close disc. Anything that sends is a hold. (spec 04 §4.18; tiles 34-sheets/t-01-01, t-01-02)
+   How it moves is Andrew's: it rises from the bottom edge in about 300 ms, eased out, and closing is the exact reverse. */
+html.gleb .gl-sheet { position: relative; box-sizing: border-box; width: 328px; max-width: 100%; padding: 40px 28px 28px; display: grid; gap: 16px; border-radius: var(--gl-r-sheet); color: var(--gl-ink);
+  background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35); -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); }
+html.gleb .gl-sheet::before { content: ""; position: absolute; top: 10px; left: 50%; width: 30px; height: 4px; margin-left: -15px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 .5px rgba(25, 34, 51, .08); }
+html.gleb .gl-sheet-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; font: 400 13px/20px var(--gl-font); }
+html.gleb .gl-sheet-facts dt { color: var(--gl-text-soft); } html.gleb .gl-sheet-facts dd { margin: 0; color: var(--gl-ink); }
+html.gleb .gl-sheet-question { font: var(--gl-heading); letter-spacing: -.03em; margin: 8px 0 0; }
+html.gleb .gl-why { font: 400 14px/20px var(--gl-font); color: var(--gl-text-soft); margin: -10px 0 0; }
+html.gleb .gl-then { font: 400 12px/17px var(--gl-font); color: var(--gl-text-soft); margin: 0; }
+html.gleb .gl-sheet-actions { display: flex; align-items: center; gap: 12px; }
+html.gleb .gl-sheet-actions > .gl-button { flex: 1; }
+html.gleb .gl-recede { background: var(--gl-recede); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* a choice inside a sheet or a step: veil capsules; the chosen one is ink with a check */
+html.gleb .gl-option { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 14px 8px 18px; border-radius: var(--gl-r-card); background: rgba(255, 255, 255, .62); cursor: pointer; font: 500 15px/20px var(--gl-font); color: var(--gl-ink);
+  transition: background-color 140ms var(--flat), color 140ms var(--flat), opacity 110ms var(--flat); }
+html.gleb .gl-option > :first-child { flex: 1; min-width: 0; }
+html.gleb .gl-option:active { opacity: .86; }
+html.gleb .gl-option.is-on, html.gleb .gl-option[aria-checked="true"] { background: var(--gl-ink); color: #fff; }
+html.gleb .gl-option.is-on > .gl-tick, html.gleb .gl-option[aria-checked="true"] > .gl-tick { background: none; color: #fff; }
+html.gleb .gl-option:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+
+/* ---- Named steps (Andrew's waiting pattern) in his agent-sheet marks: a hollow ring to do, the leaf status light on the step in work,
+   a bare check when done. (spec 04 §4.19, 01 §4.11; tile 37-generative-ui/t-09-01 "Trip to Tokyo") Nothing spins. */
+html.gleb .gl-steps { display: grid; gap: 12px; }
+html.gleb .gl-step { display: flex; align-items: center; gap: 12px; font: 500 14px/20px var(--gl-font); color: var(--gl-text-quiet); }
+html.gleb .gl-step::before { content: ""; flex: none; box-sizing: border-box; width: 10px; height: 10px; margin: 0 3px; border: 1.5px solid #6F7681; border-radius: 50%; }
+html.gleb .gl-step.is-run { color: var(--gl-ink); }
+html.gleb .gl-step.is-run::before { border-color: var(--gl-leaf); background: var(--gl-leaf); animation: gl-status 1.1s ease-out infinite; }
+html.gleb .gl-step.is-done { color: var(--gl-text-soft); }
+html.gleb .gl-step.is-done::before { width: 16px; height: 16px; margin: 0; border: 0; border-radius: 0; background: var(--gl-ink); -webkit-mask: var(--gl-i-check) center / contain no-repeat; mask: var(--gl-i-check) center / contain no-repeat; }
+@keyframes gl-status { 0% { box-shadow: 0 0 0 0 rgba(82, 217, 140, .5); } 100% { box-shadow: 0 0 0 8px rgba(82, 217, 140, 0); } }
+
+/* ============================================================== 4 · THE PAGES' OWN CLASSES, mapped onto the components above */
+
+/* ---- 4.1 shell (shared/shell.css) */
+html.gleb .shell-brand { letter-spacing: -.02em; color: var(--gl-ink); }
+html.gleb .shell-brand span { color: var(--gl-text-soft); font-weight: 400 !important; }
+html.gleb .shell-label { letter-spacing: 0; color: var(--gl-text-soft); }
+html.gleb mark.code-key { color: var(--gl-ink); font-weight: 500 !important; }
+html.gleb .verdict-mark { border-color: rgba(25, 34, 51, .55); }
+html.gleb .verdict-mark[data-verdict="red"] { border-color: var(--v-red); }
+html.gleb .verdict-mark[data-verdict="yellow"], html.gleb .verdict-mark[data-verdict="green"] { border-color: transparent; }
+/* .shell-glass → Glass at corner 24; the three big panels of the Technology tab → the card shell at corner 48 */
+html.gleb .shell-glass { border: 0; border-radius: var(--gl-r-card); background: var(--gl-glass); box-shadow: 0 6px 16px rgba(40, 55, 85, .08); -webkit-backdrop-filter: blur(var(--gl-blur-veil)); backdrop-filter: blur(var(--gl-blur-veil)); }
+html.gleb .board > .card.shell-glass { border-radius: var(--gl-r-sheet); background: var(--gl-sheet); box-shadow: var(--gl-sheet-edge); -webkit-backdrop-filter: blur(var(--gl-blur-veil)) saturate(1.2); backdrop-filter: blur(var(--gl-blur-veil)) saturate(1.2); }
+/* .shell-seg → Segmented. The page's own indicator is the ink pill; it keeps its 250 ms plain ease-out. */
+html.gleb .shell-seg { background: var(--gl-well); box-shadow: 0 2px 8px rgba(25, 34, 51, .06); }
+html.gleb :is(.shell-glass, .gl-card, .gl-sheet) .shell-seg { background: rgba(255, 255, 255, .7); }
+html.gleb .shell-seg-ind { background: var(--gl-ink); box-shadow: none; }
+html.gleb .shell-seg > button, html.gleb .shell-seg > a { color: rgba(25, 34, 51, .78); letter-spacing: -.01em; transition: color 180ms var(--flat); }
+html.gleb .shell-seg > .on { color: #fff; }
+html.gleb .shell-seg:not(.tm-seg) > button, html.gleb .shell-seg:not(.tm-seg) > a { height: 32px; font-size: 13px; }          /* track 40, segment 32 */
+html.gleb .shell-seg > button::after, html.gleb .shell-seg > a::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+html.gleb .shell-seg > button:focus-visible, html.gleb .shell-seg > a:focus-visible { outline-color: var(--gl-sky); }
+html.gleb .shell-seg > .on .verdict-mark { filter: drop-shadow(0 0 1px rgba(255, 255, 255, .9)); }
+/* button.shell-pill → Chip. Pressed = Selected: ink with a check that slides open. Sizes of a page's own variants are left alone. */
+html.gleb button.shell-pill, html.gleb a.shell-pill { position: relative; border: 0; background: var(--gl-well); color: var(--gl-ink); letter-spacing: -.01em; gap: 6px;
+  transition: background-color 140ms var(--flat), color 140ms var(--flat), opacity 110ms var(--flat), transform 70ms var(--flat); }
+:where(html.gleb) .shell-pill { height: 32px; padding: 0 14px; font-size: 13px; }
+html.gleb :is(.shell-glass, .notes-sheet, .gl-card, .gl-sheet) button.shell-pill:not([aria-pressed="true"]):not(.on) { background: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift); }
+html.gleb button.shell-pill::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+html.gleb button.shell-pill:active { opacity: .86; transform: scale(.97); }
+html.gleb button.shell-pill:focus-visible, html.gleb a.shell-pill:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); border-radius: var(--gl-r-capsule); }
+html.gleb button.shell-pill[aria-pressed]::before { content: ""; flex: none; width: 0; height: 14px; margin-right: -6px; background: currentColor; opacity: 0;
+  -webkit-mask: var(--gl-i-check) left center / 14px 14px no-repeat; mask: var(--gl-i-check) left center / 14px 14px no-repeat; transition: width 250ms var(--flat), margin 250ms var(--flat), opacity 140ms var(--flat); }
+html.gleb button.shell-pill[aria-pressed="true"], html.gleb .shell-pill.on { background: var(--gl-ink); color: #fff; box-shadow: none; }
+html.gleb button.shell-pill[aria-pressed="true"]::before { width: 14px; margin-right: 0; opacity: 1; }
+/* a .shell-pill that is not a control → Outline capsule (context only) */
+html.gleb span.shell-pill, html.gleb p.shell-pill, html.gleb div.shell-pill { border: 1px solid rgba(25, 34, 51, .15); background: none; color: var(--gl-ink); }
+
+/* ---- 4.2 Technology tab (app.css, lib/beforeafter.css). Its four fluid type sizes stay; weights, corners and materials change. */
+html.gleb .card-title, html.gleb .layer-title, html.gleb .verdict-word { letter-spacing: -.03em; }
+html.gleb .map-box { box-shadow: none; background: #E9EDF2; }
+html.gleb .map-box:focus-visible { box-shadow: inset 0 0 0 2px var(--gl-sky); }
+/* .fix-dots → Page dots */
+html.gleb .fix-dot { width: auto; min-width: 14px; padding: 0 4px; position: relative; }
+html.gleb .fix-dot::after { content: ""; position: absolute; inset: -11px 0; }
+html.gleb .fix-dot::before { width: 6px; height: 6px; border-radius: 3px; background: rgba(25, 34, 51, .35); transform: none; transition: width 250ms var(--flat), background-color 180ms var(--flat); }
+html.gleb .fix-dot:hover::before { background: rgba(25, 34, 51, .55); }
+html.gleb .fix-dot[aria-pressed="true"]::before { width: 18px; background: var(--gl-ink); transform: none; }
+html.gleb .fix-dot:active { transform: none; }
+html.gleb .fix-dot:focus-visible { outline-color: var(--gl-sky); border-radius: 8px; }
+/* .stepper → Stepper in one veil capsule (the number is still dragged, the arrows still step it) */
+html.gleb .stepper { background: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift); }
+html.gleb .step-btn { color: var(--gl-ink); }
+html.gleb .step-btn:hover { background: rgba(25, 34, 51, .06); }
+html.gleb .step-btn::after { content: ""; position: absolute; inset: -6px; } html.gleb .step-btn { position: relative; }
+html.gleb .step-btn svg, html.gleb .ba-grip svg { stroke-width: 1.6; }
+html.gleb .scrub { border-radius: var(--gl-r-chip); letter-spacing: -.02em; }
+/* the chosen rule → the one lit row (spec 08 §4.7). The bar that glides under it is the page's own. */
+html.gleb .row-select { border-radius: var(--gl-r-capsule); background: linear-gradient(100deg, #fff 0%, #fff 46%, #EAF2FF 72%, #D6E1FB 100%); box-shadow: 0 8px 20px -10px rgba(25, 34, 51, .3); }
+html.gleb .code-row:focus-visible { outline-color: var(--gl-sky); border-radius: var(--gl-r-capsule); }
+/* pictures: media corner 24; labels on a photograph are his frosted chip with ink words (tile 37-generative-ui/t-09-01, "15 Oct") */
+html.gleb .ba-stage { box-shadow: 0 10px 24px -14px rgba(25, 34, 51, .4); }
+html.gleb .ba-tag, html.gleb .tm-ba-tag, html.gleb .tm-mark-label { background: rgba(240, 242, 246, .86); color: var(--gl-ink); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* "Show what changed" is an on / off pill: on, it is his Selected chip (ink with a check), so its own square box is not drawn */
+html.gleb .ba-toggle.shell-pill { height: 32px; padding: 0 14px; font-size: 13px; gap: 6px; }
+html.gleb .ba-toggle .ba-check { display: none; }
+/* Sources and notes → Sheet: floating, four round corners. It still rises from the bottom edge in 340 ms. */
+html.gleb .notes-veil { background: var(--gl-recede); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html.gleb .notes-sheet { bottom: 16px; border-radius: var(--gl-r-sheet); transform: translate(-50%, calc(100% + 40px)); background: var(--gl-sheet-solid);
+  box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35); -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); }
+html.gleb .notes-sheet.on { transform: translate(-50%, 0); }
+html.gleb .notes-grab { width: 30px; height: 4px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 .5px rgba(25, 34, 51, .08); margin: 10px auto 6px; }
+html.gleb .notes-head { padding: 12px 32px 12px; }
+html.gleb .notes-head h2 { font: var(--gl-heading); letter-spacing: -.03em; }
+html.gleb .notes-body { padding: 2px 32px 32px; }
+
+/* ---- 4.3 Inspectors tab, shared pieces (team/team.css) */
+/* .tm-btn → Chip (small veil capsule). is-solid = ink, is-on = Selected, is-quiet = a bare word. */
+html.gleb .tm-btn:not(.dk-enlarge):not(.dk-zoom-x) { position: relative; }
+html.gleb .tm-btn { border-color: transparent; background: rgba(255, 255, 255, .78); color: var(--gl-ink); box-shadow: var(--gl-lift); text-decoration: none;
+  transition: transform 70ms var(--flat), background-color 140ms var(--flat), color 140ms var(--flat), opacity 110ms var(--flat); }
+html.gleb .tm-btn::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+html.gleb .tm-btn:hover { border-color: transparent; }
+html.gleb .tm-btn:active { opacity: .86; }
+html.gleb .tm-btn:disabled { opacity: .4; }
+html.gleb .tm-btn:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .tm-btn.is-quiet { background: none; box-shadow: none; color: var(--gl-text-soft); text-decoration: none; }
+html.gleb .tm-btn.is-quiet:hover { color: var(--gl-ink); }
+html.gleb .tm-btn.is-solid, html.gleb .tm-btn.is-on { background: var(--gl-ink); border-color: transparent; color: #fff; box-shadow: none; }
+html.gleb .dk-enlarge.tm-btn, html.gleb .dk-zoom-x.tm-btn { background: rgba(255, 255, 255, .88); }
+/* words edited in place → Field */
+html.gleb .tm-words { border-radius: var(--gl-r-chip); caret-color: var(--gl-sky); }
+html.gleb .tm-words[contenteditable="true"], html.gleb .tm-words[contenteditable="plaintext-only"] { background: rgba(255, 255, 255, .86); box-shadow: 0 0 0 2px rgba(104, 146, 248, .55); padding: 8px 12px; }
+html.gleb .tm-words[contenteditable="true"]:focus-visible, html.gleb .tm-words[contenteditable="plaintext-only"]:focus-visible { box-shadow: 0 0 0 2px var(--gl-sky); border-radius: var(--gl-r-chip); }
+/* named steps → his agent-sheet marks */
+html.gleb .tm-step-dot { box-sizing: border-box; width: 10px; height: 10px; margin: 0 3px; border: 1.5px solid #6F7681; background: none; }
+html.gleb .tm-step[data-state="run"] .tm-step-dot { border-color: var(--gl-leaf); background: var(--gl-leaf); animation: gl-status 1.1s ease-out infinite; }
+html.gleb .tm-step[data-state="done"] .tm-step-dot { width: 16px; height: 16px; margin: 0; border: 0; border-radius: 0; background: var(--gl-ink); -webkit-mask: var(--gl-i-check) center / contain no-repeat; mask: var(--gl-i-check) center / contain no-repeat; }
+html.gleb .tm-step[data-state="stopped"] .tm-step-dot { border: 1.5px dashed var(--gl-text-soft); background: none; animation: none; }
+html.gleb .tm-step-line { background: var(--gl-leaf); }
+/* progress ring (Andrew's: progress the whole way). Ink on a light track. */
+html.gleb .tm-ring-bg { stroke: rgba(255, 255, 255, .6); }
+html.gleb .tm-ring-fg, html.gleb .tm-ring-tick { stroke: var(--gl-ink); }
+/* checklist box → tick well */
+html.gleb .tm-box { border: 0; border-radius: 50%; background: rgba(25, 34, 51, .10); }
+html.gleb .is-on > .tm-box, html.gleb [aria-checked="true"] > .tm-box { background: var(--gl-ink); color: #fff; }
+html.gleb .tm-icon { stroke-width: 1.75; }
+html.gleb .tm-badge { background: var(--gl-ember); }
+html.gleb .tm-ba, html.gleb .tm-markup, html.gleb .tm-crop { border-radius: var(--gl-r-card); box-shadow: 0 10px 24px -14px rgba(25, 34, 51, .4); }
+html.gleb .tm-crop .ba-stage, html.gleb .tm-crop-own .tm-ba { border-radius: 0; box-shadow: none; }
+/* the small map under the phone: Glass, and its chips stay at their own small size */
+html.gleb .tm-map { border-radius: var(--gl-r-card); }
+html.gleb .mp-box { background: #E9EDF2; }
+html.gleb .mp-box:focus-visible { border-radius: 23px 0 0 23px; }
+html.gleb .mp-chip.shell-pill { background: rgba(255, 255, 255, .78); }
+html.gleb .mp-chip.shell-pill[aria-pressed="true"], html.gleb .mp-chip.shell-pill.on { background: var(--gl-ink); }
+html.gleb .mp-chip.shell-pill[aria-pressed]::before { height: 12px; -webkit-mask-size: 12px 12px; mask-size: 12px 12px; }
+html.gleb .mp-chip.shell-pill[aria-pressed="true"]::before { width: 12px; }
+
+/* ---- 4.4 Inspectors tab, the phone (team/phone.css) */
+html.gleb .ph-screen { background: var(--gl-air); }
+html.gleb .ph-screen::before, html.gleb .ph-screen::after { display: none; }
+html.gleb .ph-head h1, html.gleb .ph-sheet h2 { font: var(--gl-heading); letter-spacing: -.03em; }
+html.gleb .ph-q-ask, html.gleb .ph-note-plain { letter-spacing: -.02em; }
+/* .ph-primary → Button, Ink. .ph-btn → Button, Veil (dark = Ink, quiet = a bare word). */
+html.gleb .ph-primary { height: var(--gl-control); font-size: 15px; letter-spacing: -.01em; box-shadow: 0 4px 10px rgba(25, 34, 51, .04); transition: transform 70ms var(--flat), opacity 110ms var(--flat); }
+html.gleb .ph-primary:active, html.gleb .ph-btn:active, html.gleb .dk-primary:active { opacity: .86; }
+html.gleb .ph-primary:disabled, html.gleb .dk-primary:disabled { opacity: .4; }
+html.gleb .ph-primary:focus-visible, html.gleb .ph-btn:focus-visible, html.gleb .dk-primary:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .ph-btn { min-height: 44px; position: relative; border-color: transparent; background: var(--gl-well); color: var(--gl-ink); letter-spacing: -.01em; }
+html.gleb .ph-btn::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 48px; transform: translateY(-50%); }
+html.gleb .ph-btn-dark { background: var(--gl-ink); color: #fff; }
+html.gleb .ph-btn-quiet, html.gleb .ph-sheet-close { background: none; color: var(--gl-text-soft); }
+html.gleb .ph-sheet .ph-btn:not(.ph-btn-dark):not(.ph-btn-quiet):not(.ph-sheet-close) { background: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift); }
+/* .ph-back, .ph-round → Icon button (veil circle) */
+html.gleb .ph-back { position: relative; width: var(--gl-circle); height: var(--gl-circle); background: var(--gl-well); }
+html.gleb .ph-back::after, html.gleb .ph-round::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+html.gleb .ph-round { position: relative; border-color: transparent; background: var(--gl-well); }
+html.gleb .ph-back:active, html.gleb .ph-round:active { opacity: .86; }
+html.gleb .ph-back:focus-visible, html.gleb .ph-round:focus-visible, html.gleb .ph-shutter:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+/* the scene switch in the viewfinder: Segmented at its own small size, frosted because it sits on a photograph */
+html.gleb .ph-lens.shell-seg { background: rgba(240, 242, 246, .78); box-shadow: none; }
+/* .ph-opt, .ph-pick → a choice: veil, and the chosen one is ink with a check */
+html.gleb .ph-opt, html.gleb .ph-pick { border-color: transparent; background: rgba(255, 255, 255, .62); color: var(--gl-ink); box-shadow: none; letter-spacing: -.01em;
+  transition: background-color 140ms var(--flat), color 140ms var(--flat), transform 70ms var(--flat), opacity 110ms var(--flat); }
+html.gleb .ph-opt { padding-left: 18px; min-height: 44px; }
+html.gleb .ph-opt.is-on, html.gleb .ph-pick.is-on { border-color: transparent; background: var(--gl-ink); color: #fff; box-shadow: none; }
+html.gleb .ph-opt.is-on .ph-tick, html.gleb .ph-tick { color: #fff; }
+html.gleb .ph-opt:active, html.gleb .ph-pick:active { opacity: .86; }
+html.gleb .ph-opt:focus-visible, html.gleb .ph-pick:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .ph-opt-text.editing { color: var(--gl-ink); background: #fff; box-shadow: none; border-radius: var(--gl-r-chip); padding: 6px 10px; }
+/* .ph-field → Field */
+html.gleb .ph-field { border-color: transparent; background: rgba(255, 255, 255, .78); box-shadow: 0 2px 6px rgba(25, 34, 51, .06); caret-color: var(--gl-sky); padding: 14px 18px; }
+html.gleb .ph-field:focus-visible { border-color: transparent; box-shadow: 0 2px 6px rgba(25, 34, 51, .06), 0 0 0 2px rgba(104, 146, 248, .55); }
+html.gleb .ph-field::placeholder { color: var(--gl-text-quiet); opacity: 1; }
+/* sent list and its status → rows with hairlines, Outline capsule for the status */
+html.gleb .ph-sent-thumb { border-radius: var(--gl-r-chip); }
+html.gleb .ph-state { border: 1px solid rgba(25, 34, 51, .15); color: var(--gl-ink); }
+html.gleb .ph-state[data-state="reviewed"] { border-color: rgba(25, 34, 51, .15); color: var(--gl-ink); }
+html.gleb .ph-state[data-state="reviewed"] .ph-state-mark { color: var(--gl-ink); }
+/* sheets → Sheet: floating inside the screen, four round corners, his glass and grabber. It still slides up from below in 280 ms. */
+html.gleb .ph-veil { background: var(--gl-recede); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html.gleb .ph-sheet { left: 8px; right: 8px; bottom: 8px; max-height: calc(100% - 34px); padding: 12px 20px 20px; border-radius: 40px; background: var(--gl-sheet-solid);
+  box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35); -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); transform: translateY(calc(100% + 24px)); }
+html.gleb .ph-sheet.is-on { transform: none; }
+html.gleb .ph-grab { width: 30px; height: 4px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 .5px rgba(25, 34, 51, .08); }
+/* the number pad → his keys: white, corner 14 (his letter key, spec 03 §4.16), and the number in the big Light readout */
+html.gleb .ph-key { background: rgba(255, 255, 255, .86); box-shadow: 0 1px 2px rgba(25, 34, 51, .08); }
+html.gleb .ph-key:active { background: #fff; opacity: .86; }
+html.gleb .ph-key:focus-visible { outline-color: var(--gl-sky); }
+html.gleb .ph-pad-display { font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+html.gleb .ph-shot-tile { border-color: transparent; border-radius: var(--gl-r-card); }
+
+/* ---- 4.5 Inspectors tab, the laptop (team/desk.css) */
+html.gleb .dk-app { background: var(--gl-air-cool); }
+html.gleb .dk-app::before { display: none; }
+html.gleb .dk-bar { background: rgba(255, 255, 255, .34); }
+html.gleb .dk-dots i { background: rgba(25, 34, 51, .16); }
+html.gleb .dk-empty h2 { font: var(--gl-heading); letter-spacing: -.03em; }
+html.gleb .dk-note { letter-spacing: -.02em; }
+/* the rail of received findings: the chosen one is ringed in ink */
+html.gleb .dk-item-btn { border-radius: var(--gl-r-card); }
+html.gleb .dk-item.is-on .dk-item-btn { border-color: var(--gl-ink); }
+html.gleb .dk-item-btn:focus-visible { outline-color: var(--gl-sky); border-radius: var(--gl-r-card); }
+html.gleb .dk-item-thumb { border-radius: 18px; }
+html.gleb .dk-item[data-state="published"] .dk-item-state { color: var(--gl-ink); }
+/* the breadcrumb: where you are is ink, with a sky line under it */
+html.gleb .dk-crumb { color: var(--gl-text-quiet); }
+html.gleb .dk-crumb[data-state="done"], html.gleb .dk-crumb[data-state="current"] { color: var(--gl-ink); }
+html.gleb .dk-crumb-sep { color: var(--gl-text-quiet); }
+html.gleb .dk-crumb-mark { background: var(--gl-sky); }
+html.gleb .dk-photo-img { border-radius: var(--gl-r-card); }
+html.gleb .dk-rec-shot { border-radius: var(--gl-r-chip); }
+html.gleb .dk-rec-list dd.is-none { color: var(--gl-text-quiet); }
+/* a rule's verdict button and its menu → a small Sheet with choices; the chosen one is ink */
+html.gleb .dk-verdict, html.gleb .dk-row-open { border-radius: var(--gl-r-capsule); }
+html.gleb .dk-verdict > .tm-icon { color: var(--gl-text-quiet); }
+html.gleb .dk-verdict:focus-visible, html.gleb .dk-row-open:focus-visible { outline-color: var(--gl-sky); border-radius: var(--gl-r-capsule); }
+html.gleb .dk-menu { padding: 8px; border-radius: var(--gl-r-card); background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 18px 40px -16px rgba(25, 34, 51, .45); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+html.gleb .dk-menu-item { border-color: transparent; border-radius: var(--gl-r-chip); }
+html.gleb .dk-menu-item.is-on { border-color: transparent; background: var(--gl-ink); color: #fff; }
+/* the three verdict choices of an open rule → Chips; the chosen one is ink. The mark keeps its colour and shape. */
+html.gleb .dk-choice { position: relative; border-color: transparent; background: rgba(255, 255, 255, .78); color: var(--gl-ink); box-shadow: var(--gl-lift); transition: background-color 140ms var(--flat), color 140ms var(--flat), transform 70ms var(--flat); }
+html.gleb .dk-choice::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+html.gleb .dk-choice[aria-pressed="true"] { border-color: transparent; background: var(--gl-ink); color: #fff; box-shadow: none; }
+html.gleb .dk-choice[aria-pressed="true"] .verdict-mark, html.gleb .dk-menu-item.is-on .verdict-mark { filter: drop-shadow(0 0 1px rgba(255, 255, 255, .9)); }
+html.gleb .dk-choice:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+/* the one button → Button, Ink, 52 high. Its hold fill is the page's own (.tm-hold-fill is already his white 26%). */
+html.gleb .dk-primary { height: var(--gl-control); letter-spacing: -.01em; box-shadow: 0 4px 10px rgba(25, 34, 51, .04); }
+html.gleb .dk-zoom-veil { background: var(--gl-recede); }
+html.gleb .dk-zoom-box { border-radius: var(--gl-r-card); }
+
+/* ============================================================== 5 · KEPT AS THEY ARE (tokens only; his system has no counterpart)
+   the map, its pin and the hazard stipple; the before / after divider and its grip; the red / yellow / green verdict marks;
+   the phone and laptop bodies; the camera shutter and the scan line; the line drawings; the owner's page and the file document. */
+
+/* ============================================================== 6 · REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  html.gleb .gl-loader, html.gleb .gl-light::before, html.gleb .gl-step.is-run::before, html.gleb .tm-step[data-state="run"] .tm-step-dot { animation: none; }
+  html.gleb .gl-seg-ind, html.gleb .gl-switch::before, html.gleb .gl-chip::before, html.gleb button.shell-pill[aria-pressed]::before, html.gleb .gl-dots > button::before, html.gleb .fix-dot::before { transition: none; }
+}

@@ -1,0 +1,139 @@
+{
+ "src": "assets/corridor.jpg",
+ "w": 3160,
+ "h": 1976,
+ "scale": 0.4,
+ "x": -700,
+ "y": -760,
+ "worldW": 7900,
+ "worldH": 4940,
+ "west": -122.67175,
+ "north": 38.05091,
+ "east": -122.178,
+ "south": 37.80738,
+ "attribution": "© OpenStreetMap contributors",
+ "credit": "Corridor map drawn for this page from OpenStreetMap data (Overpass API, five queries, saved under tools/work/corridor-osm). © OpenStreetMap contributors.",
+ "source": "OpenStreetMap through the Overpass API (https://overpass-api.de/api/interpreter), OSM base timestamp 2026-11-23T06:40:58Z",
+ "drawn": "2026-11-23",
+ "tools": [
+  "tools/corridor-fetch.js",
+  "tools/corridor-draw.js"
+ ],
+ "note": "x, y, worldW, worldH: where the picture sits in the world of lib/geo.js (pixels of the Ross Valley picture). Names are not baked in: the page draws `places` as labels.",
+ "places": [
+  {
+   "name": "Berkeley",
+   "kind": "city",
+   "lon": -122.27286,
+   "lat": 37.87084
+  },
+  {
+   "name": "Richmond",
+   "kind": "city",
+   "lon": -122.34775,
+   "lat": 37.93576
+  },
+  {
+   "name": "San Rafael",
+   "kind": "city",
+   "lon": -122.53167,
+   "lat": 37.97478
+  },
+  {
+   "name": "San Pablo",
+   "kind": "town",
+   "lon": -122.34553,
+   "lat": 37.96215
+  },
+  {
+   "name": "Hercules",
+   "kind": "town",
+   "lon": -122.28858,
+   "lat": 38.01714
+  },
+  {
+   "name": "El Cerrito",
+   "kind": "town",
+   "lon": -122.30141,
+   "lat": 37.91541
+  },
+  {
+   "name": "Albany",
+   "kind": "town",
+   "lon": -122.29835,
+   "lat": 37.88716
+  },
+  {
+   "name": "Pinole",
+   "kind": "town",
+   "lon": -122.29886,
+   "lat": 38.00437
+  },
+  {
+   "name": "Mill Valley",
+   "kind": "town",
+   "lon": -122.54498,
+   "lat": 37.90604
+  },
+  {
+   "name": "Emeryville",
+   "kind": "town",
+   "lon": -122.28653,
+   "lat": 37.83141
+  },
+  {
+   "name": "San Anselmo",
+   "kind": "town",
+   "lon": -122.5615,
+   "lat": 37.97443
+  },
+  {
+   "name": "Larkspur",
+   "kind": "town",
+   "lon": -122.53525,
+   "lat": 37.93409
+  },
+  {
+   "name": "Piedmont",
+   "kind": "town",
+   "lon": -122.23163,
+   "lat": 37.82437
+  },
+  {
+   "name": "Corte Madera",
+   "kind": "town",
+   "lon": -122.52747,
+   "lat": 37.92548
+  },
+  {
+   "name": "Tiburon",
+   "kind": "town",
+   "lon": -122.46081,
+   "lat": 37.87753
+  },
+  {
+   "name": "Sausalito",
+   "kind": "town",
+   "lon": -122.48547,
+   "lat": 37.85903
+  },
+  {
+   "name": "Fairfax",
+   "kind": "town",
+   "lon": -122.58797,
+   "lat": 37.98729
+  },
+  {
+   "name": "San Pablo Bay",
+   "kind": "water",
+   "lon": -122.38543,
+   "lat": 38.04863
+  },
+  {
+   "name": "Richardson Bay",
+   "kind": "water",
+   "lon": -122.48905,
+   "lat": 37.87797
+  }
+ ]
+}

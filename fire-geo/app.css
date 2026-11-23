@@ -1,0 +1,250 @@
+/* fire-geo, the Technology view. Tokens and shared primitives are in shared/shell.css; colours, radii and fonts
+   here come from those tokens. Four type sizes only: --fs-xl (the verdict), --fs-l (headings), --fs-m (rules and
+   text), --fs-s (quiet: citations and small labels). Cards take the height of their content and align at the top;
+   when a card's content changes size the card's height is interpolated, never snapped. */
+html, body { height: 100%; }
+body { display: grid; grid-template-rows: var(--shell-bar, 64px) minmax(0, 1fr); overflow: hidden; }
+
+.board {
+  --gap: clamp(16px, 1.6vw, 30px); --pad: clamp(18px, 1.5vw, 28px);
+  --fs-xl: clamp(26px, 1.05vw + 12px, 34px); --fs-l: clamp(17px, .5vw + 10.5px, 21px); --fs-m: clamp(14px, .3vw + 9.7px, 16px); --fs-s: clamp(12px, .2vw + 9.1px, 13.5px);
+  --row: clamp(34px, 1vw + 20px, 42px);
+  box-sizing: border-box; display: grid; grid-template-columns: minmax(250px, .5fr) minmax(0, 1fr) minmax(360px, .74fr); gap: var(--gap); align-items: start;
+  width: 100%; max-width: min(1960px, calc((100vh - 298px) * 2.34)); margin: 0 auto; padding: clamp(10px, calc(3.4vh - 8px), 40px) clamp(24px, 3vw, 56px) 76px;      /* the top bar took 8 px more: they come out of this top margin */
+}
+.card { padding: var(--pad); min-width: 0; display: flex; flex-direction: column; }
+.board-foot { display: none; }
+
+/* text that changes in place: two stacked slots that crossfade, so there is no blank frame and no size change */
+.swap { display: inline-grid; min-width: 0; }
+.swap.is-block { display: grid; }
+.swap > .swap-item { grid-area: 1 / 1; min-width: 0; max-width: 100%; opacity: 0; transition: opacity 180ms var(--flat); }
+.swap > .swap-item.on { opacity: 1; }
+.is-clip > .swap-item { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* is-fit: only the words on show take up room. The words that are leaving fade out on top of them, out of flow, so the
+   box is the new size at once and whatever is around it can glide there. */
+/* is-replace: for words that have nothing in common with the ones they replace. The old ones are gone (90 ms) before the
+   new ones show, and the new ones rise a little, so it reads as a replacement and the two are never legible together.
+   Without it (a morph) the two crossfade in place: only for small changes, a number or a suffix. setSwap() chooses. */
+.swap.is-replace > .swap-item { transition: opacity 90ms linear, transform 0s linear 90ms; transform: translateY(5px); }
+.swap.is-replace > .swap-item.on { transition: opacity 170ms var(--flat) 90ms, transform 200ms var(--flat) 90ms; transform: none; }
+.swap.is-fit { position: relative; }
+.swap.is-fit > .swap-item:not(.on) { position: absolute; top: 0; left: 0; }
+.row-cite.is-fit > .swap-item:not(.on) { left: auto; right: 0; }
+
+/* ---------------------------------------------------------------- photo: the card is as tall as the photograph needs */
+.photo-card .shell-seg > button { padding: 0 8px; }
+.card-title { font-size: var(--fs-l); font-weight: 650; letter-spacing: -.02em; line-height: 1.2; margin: clamp(14px, 2vh, 22px) 2px clamp(10px, 1.4vh, 16px); }
+.stage-box { position: relative; transition: height 250ms var(--flat) 90ms; }          /* its height is interpolated when the photograph changes */
+.stage-box.is-instant { transition: none; }
+/* one picture block at a time: the one leaving is gone (100 ms) before the one arriving shows, after the box has travelled */
+.stage-layer { position: absolute; top: 0; left: 0; right: 0; display: grid; justify-items: center; opacity: 0; pointer-events: none; transition: opacity 100ms linear; }
+.stage-layer.on { opacity: 1; pointer-events: auto; transition: opacity 180ms var(--flat) 290ms; }
+.stage-tools { display: flex; justify-content: center; margin-top: 10px; min-height: 30px; }
+.fix { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 12px; margin: clamp(12px, 1.8vh, 20px) 2px 0; }
+.fix-title { font-size: var(--fs-m); font-weight: 650; letter-spacing: -.01em; line-height: 1.3; min-height: 2.6em; }
+.fix-dots { display: flex; gap: 2px; height: 1.3em; align-items: center; }
+.fix-dot { all: unset; cursor: pointer; width: 22px; height: 22px; display: grid; place-items: center; transition: opacity 180ms var(--flat), transform 70ms var(--flat); -webkit-tap-highlight-color: transparent; }
+.fix-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: rgba(var(--ink-rgb), .22); transition: background-color 110ms var(--flat), transform 250ms var(--flat); }
+.fix-dot:hover::before { background: rgba(var(--ink-rgb), .45); }
+.fix-dot[aria-pressed="true"]::before { background: var(--ink); transform: scale(1.25); }
+.fix-dot:active { transform: scale(.9); }
+.fix-dot.is-off { opacity: 0; pointer-events: none; }
+.fix-dot:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 50%; }
+
+/* ---------------------------------------------------------------- map */
+.map-box { position: relative; aspect-ratio: 1344 / 1289; overflow: hidden; border-radius: var(--r-media); background: #f2f3f6; cursor: crosshair; touch-action: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--ink-rgb), .08); user-select: none; -webkit-user-select: none; outline: none; }
+.map-box:focus-visible { box-shadow: inset 0 0 0 2px var(--hi); }
+/* One world, two regions. Each region is a picture with its layers; app.js gives it one transform from the camera.
+   Only the region the map rests on is shown. During a trip both are, on the plain ground between them. */
+.map-world { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; background-color: inherit; }
+.map-corridor { position: absolute; display: block; pointer-events: none; }                 /* a canvas, drawn once: the map between the regions */
+.map-far { position: absolute; inset: 0; pointer-events: none; opacity: 0; will-change: opacity; }   /* its town names, shown while pulled back */
+.map-far .map-name { font-size: 21px; letter-spacing: .1em; }                                /* seen at about half scale */
+.map-far .map-name.is-water { font-style: italic; font-weight: 500; text-transform: none; letter-spacing: .03em; }
+.map-region { position: absolute; overflow: hidden; background-color: inherit; will-change: opacity; }
+.map-box.is-flying { cursor: default; }
+.map-box.is-flying .pin-tag { opacity: 0; }
+/* a pill that is waiting for the map to be ready before it can fly: it breathes, nothing spins */
+.shell-pill.is-working { animation: pill-wait 1.2s ease-in-out infinite; }
+@keyframes pill-wait { 50% { opacity: .5; } }
+.map-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.map-base { filter: grayscale(1) contrast(.8) brightness(1.08); opacity: .5; mix-blend-mode: multiply; -webkit-user-drag: none; }
+/* mapped fire hazard zones and WUI areas: a soft tint with a fine stipple. Dots, not lines: the street grid here runs
+   on the same diagonal as a hatch would, and the two were being mistaken for each other. */
+.map-hazard .zone-tint { fill: rgba(var(--ink-rgb), .055); }
+.map-hazard .zone-dots { fill: url(#stipple); }
+/* Berkeley's three zones: High a plain tint, Very High dotted, the mitigation areas darker with a denser dot. */
+.map-hazard .zone-tint.is-high { fill: rgba(var(--ink-rgb), .085); }
+.map-hazard .zone-tint.is-mitigation { fill: rgba(var(--ink-rgb), .13); }
+.map-hazard .zone-dots.is-very { fill: url(#stippleVery); }
+.map-hazard .zone-dots.is-mitigation { fill: url(#stippleDense); }
+.map-hazard .zone-edge { fill: none; stroke: rgba(var(--ink-rgb), .4); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.map-hazard .zone-edge.is-mitigation { stroke: rgba(var(--ink-rgb), .72); stroke-width: 1.5px; }
+.map-lines path { fill: none; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.map-lines .is-town { stroke: rgba(var(--ink-rgb), .62); stroke-width: 1.4px; }
+.map-lines .is-other { stroke: rgba(var(--ink-rgb), .3); stroke-width: 1px; stroke-dasharray: 3 3; }
+/* the entered place: outline and fill ease in, the one you left eases out. Opacity only, so a fast scrub just reverses. */
+.map-area { opacity: 0; transition: opacity 260ms var(--flat); will-change: opacity; }
+.map-area.on { opacity: 1; }
+.map-area path { fill: rgba(var(--hi-rgb), .10); stroke: var(--hi); stroke-width: 2px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.map-area.is-other path { fill: rgba(var(--ink-rgb), .09); stroke: rgba(var(--ink-rgb), .72); stroke-width: 1.6px; }
+.map-name { position: absolute; transform: translate(-50%, -50%); font-size: 11.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: rgba(var(--ink-rgb), .74); white-space: nowrap; pointer-events: none;
+  text-shadow: 0 0 3px #f4f5f7, 0 0 6px #f4f5f7, 0 0 10px #f4f5f7; transition: opacity 260ms var(--flat); }
+.map-name.on { opacity: 0; }                       /* the pin's own label names the place you are in */
+.map-osm { position: absolute; right: 9px; bottom: 6px; z-index: 6; font-size: 10px; font-weight: 600; color: rgba(var(--ink-rgb), .66); text-decoration: none; text-shadow: 0 0 3px #f4f5f7, 0 0 6px #f4f5f7; }
+.map-osm:hover { color: var(--ink); text-decoration: underline; }
+
+.map-pin { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 4; will-change: transform; cursor: grab; }
+.map-pin.is-held { cursor: grabbing; }
+.pin-hit { position: absolute; left: -24px; top: -24px; width: 48px; height: 48px; border-radius: 50%; }
+.pin-halo { position: absolute; left: -17px; top: -17px; width: 34px; height: 34px; border-radius: 50%; background: rgba(var(--hi-rgb), .16); opacity: 0; transform: scale(.7); transition: opacity 140ms var(--flat), transform 140ms var(--flat); }
+.map-pin.is-held .pin-halo, .map-box:focus-visible .pin-halo { opacity: 1; transform: none; }
+.pin-dot { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--hi); border: 3px solid #fff; box-shadow: 0 1px 2px rgba(var(--ink-rgb), .3), 0 6px 14px -4px rgba(var(--hi-rgb), .7); }
+.pin-tag { position: absolute; left: 0; bottom: 17px; width: max-content; transform: translateX(-50%); display: grid; justify-items: center; pointer-events: none; white-space: nowrap; text-align: center;
+  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px #fff, 0 0 12px #f4f5f7; transition: transform 180ms var(--flat), opacity 160ms var(--flat); }
+.map-pin.is-low .pin-tag { transform: translate(-50%, calc(100% + 34px)); }
+.map-pin.is-east .pin-tag { transform: translateX(-88%); justify-items: end; } .map-pin.is-west .pin-tag { transform: translateX(-12%); justify-items: start; }
+.map-pin.is-east.is-low .pin-tag { transform: translate(-88%, calc(100% + 34px)); } .map-pin.is-west.is-low .pin-tag { transform: translate(-12%, calc(100% + 34px)); }
+.map-pin.is-east .pin-place, .map-pin.is-east .pin-zone { justify-items: end; } .map-pin.is-west .pin-place, .map-pin.is-west .pin-zone { justify-items: start; }
+.pin-place { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); justify-items: center; }
+.pin-zone { font-size: 11.5px; font-weight: 650; color: #4f5663; justify-items: center; height: 15px; }
+
+.chips { display: grid; row-gap: 8px; margin-top: clamp(12px, 1.8vh, 18px); }
+.chips-row { display: flex; gap: 8px; flex-wrap: wrap; }      /* row 1: the places on this map · row 2: the far-away ones */
+/* the distance only matters for the ladder-fuel photograph; for the other one the row closes, and the card with it */
+.measure { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 44px; margin-top: clamp(12px, 1.8vh, 18px); overflow: hidden;
+  transition: height 250ms var(--flat), margin-top 250ms var(--flat), opacity 200ms var(--flat); }
+.measure.is-off { height: 0; margin-top: 0; opacity: 0; pointer-events: none; }
+.measure-label { font-size: var(--fs-m); font-weight: 600; padding-left: 2px; }
+.stepper { display: inline-flex; align-items: center; gap: 2px; height: 40px; padding: 0 4px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .92); margin: 2px;
+  box-shadow: 0 0 0 1px var(--line2), 0 8px 18px -12px rgba(var(--shade), .5); }
+.step-btn { all: unset; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: var(--ink2); transition: transform 70ms var(--flat), color 110ms var(--flat), background-color 110ms var(--flat); -webkit-tap-highlight-color: transparent; }
+.step-btn:hover { color: var(--ink); background: rgba(var(--ink-rgb), .06); }
+.step-btn:active { transform: scale(.9); }
+.step-btn:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; }
+.step-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.scrub { all: unset; cursor: ew-resize; touch-action: none; user-select: none; -webkit-user-select: none; min-width: 4.2em; text-align: center; font-size: var(--fs-l); font-weight: 650; letter-spacing: -.02em; line-height: 32px; border-radius: 10px; will-change: transform; }
+.scrub small { font-size: var(--fs-s); font-weight: 600; color: var(--ink2); letter-spacing: 0; margin-left: 3px; }
+.scrub:focus-visible { outline: 2px solid var(--hi); outline-offset: 0; }
+
+/* ---------------------------------------------------------------- codes */
+.codes-card { position: relative; }
+/* the highlight under the chosen rule: one element that glides, kept outside the statewide block */
+.row-select { position: absolute; left: calc(var(--pad) - 10px); right: calc(var(--pad) - 10px); top: 0; height: 0; border-radius: var(--r-row); background: var(--hi-soft); pointer-events: none; will-change: transform;
+  transition: transform 250ms var(--flat), height 250ms var(--flat), opacity 180ms var(--flat); }
+.verdict-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+.verdict-word { font-size: var(--fs-xl); font-weight: 650; letter-spacing: -.03em; line-height: 1.12; white-space: nowrap; }
+.verdict-tally { display: flex; gap: 12px; align-items: center; }
+.tally-item { display: inline-flex; gap: 6px; align-items: center; font-size: var(--fs-m); font-weight: 650; color: var(--ink2); }
+.verdict-line { grid-column: 2 / -1; font-size: var(--fs-m); font-weight: 550; color: var(--ink2); margin-top: 3px; min-height: 1.4em; line-height: 1.4; }
+
+.layer { margin-top: clamp(18px, 3vh, 36px); position: relative; }
+.layer-title { font-size: var(--fs-l); font-weight: 650; letter-spacing: -.02em; line-height: 1.25; min-height: 1.25em; }
+/* the name, then the one sentence about what changed here on a line of its own. With nothing to say that line is empty
+   and takes no room. */
+.place-head { display: flex; flex-wrap: wrap; align-items: baseline; }
+.place-head .layer-title { flex: none; }
+.diff-line { flex: 0 0 100%; font-size: var(--fs-m); font-weight: 550; line-height: 1.36; color: var(--ink); }
+.diff-line > .swap-item.on:not(:empty) { padding: 1px 0 3px; }
+.place-line { font-size: var(--fs-s); font-weight: 550; color: var(--ink2); margin-top: 2px; min-height: 1.4em; line-height: 1.4; }
+.rows { position: relative; margin-top: clamp(4px, .8vh, 10px); }
+
+/* one line per rule: mark, its name with its value as one phrase, and the citation, quiet */
+.code-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; column-gap: 10px; align-items: baseline; min-height: var(--row); padding: calc((var(--row) - 1.35em) / 2) 0;
+  box-sizing: border-box; font-size: var(--fs-m); line-height: 1.35; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.code-row .verdict-mark { align-self: center; }
+.code-row.is-leaving { position: absolute; left: 0; right: 0; pointer-events: none; }
+.code-row:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: var(--r-row); }
+.row-what { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-label { font-weight: 600; }
+.row-phrase { font-weight: 550; color: var(--ink2); }
+.row-phrase .row-num { font-weight: 650; color: var(--ink); }
+.row-cite { font-size: var(--fs-s); font-weight: 550; color: var(--ink2); text-align: right; white-space: nowrap; justify-items: end; }
+/* hover: the rule under the pointer stays, the others in its list ease back (slow and even, in and out) */
+@media (hover: hover) { .code-row { transition: opacity 420ms var(--soft); } .rows:hover .code-row:not(:hover) { opacity: .46; } }
+
+/* the chosen rule's own text: why this verdict, then the ordinance's words. Nothing else on the page explains itself. */
+/* the chosen rule's text changes as one block: out (90 ms), then in. The block that left is out of flow, so the pane is
+   the size of what it shows and the card can travel there. Two texts are never laid over each other. */
+.detail { position: relative; margin-top: clamp(12px, 2vh, 24px); font-size: var(--fs-m); }
+.detail-sheet { min-width: 0; opacity: 0; pointer-events: none; transition: opacity 90ms linear; }
+.detail-sheet:not(.on) { position: absolute; inset: 0; overflow: hidden; }      /* never taller than what replaced it */
+.detail-sheet.on { opacity: 1; pointer-events: auto; transition: opacity 170ms var(--flat) 90ms; }
+.detail-why { font-weight: 550; line-height: 1.4; }
+.detail-why .verdict-mark { margin-right: 9px; position: relative; top: -1px; }
+.detail-why b { font-weight: 650; margin-right: 6px; }
+.detail-cite { font-size: var(--fs-s); font-weight: 600; color: var(--ink2); margin-top: clamp(8px, 1.2vh, 12px); line-height: 1.4; }
+.detail-quote { margin-top: 3px; font-weight: 500; line-height: 1.45; color: var(--ink2); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---------------------------------------------------------------- Sources and notes: a bottom sheet */
+.notes-veil { position: fixed; inset: 0; z-index: 40; background: rgba(238, 240, 243, .62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); opacity: 0; pointer-events: none; transition: opacity 240ms var(--flat); }
+.notes-veil.on { opacity: 1; pointer-events: auto; }
+.notes-sheet { position: fixed; z-index: 41; left: 50%; bottom: 0; width: min(780px, calc(100% - 24px)); max-height: min(84vh, 780px); transform: translate(-50%, 104%); visibility: hidden;
+  transition: transform 340ms var(--flat), visibility 0s linear 340ms; border-radius: 28px 28px 0 0; background: rgba(251, 252, 253, .97); outline: none; display: flex; flex-direction: column;
+  box-shadow: 0 -24px 60px -30px rgba(var(--shade), .5), 0 0 0 1px rgba(255, 255, 255, .9); }
+.notes-sheet.on { transform: translate(-50%, 0); visibility: visible; transition: transform 340ms var(--flat), visibility 0s; }
+.notes-grab { width: 44px; height: 5px; border-radius: 3px; background: rgba(var(--ink-rgb), .2); margin: 10px auto 2px; flex: none; }
+.notes-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 28px 12px; flex: none; }
+.notes-head h2 { font-size: 20px; font-weight: 650; letter-spacing: -.02em; }
+.notes-body { overflow: auto; padding: 2px 28px 30px; display: grid; gap: 24px; }
+.notes-block h3 { font-size: 15px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 8px; }
+.notes-block p { font-size: 13.5px; font-weight: 500; line-height: 1.5; color: var(--ink2); }
+.notes-block p + p { margin-top: 6px; }
+.notes-block a { color: var(--ink); text-underline-offset: 2px; }
+.notes-kv { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 7px 16px; align-items: baseline; font-size: 13.5px; line-height: 1.5; }
+.notes-kv dt { font-weight: 600; color: var(--ink2); }
+.notes-kv dd { font-weight: 500; color: var(--ink); min-width: 0; }
+.notes-kv dd small { display: block; font-size: 12.5px; color: var(--ink2); }
+
+/* ---------------------------------------------------------------- narrow: the three cards stack and the view scrolls */
+@media (max-width: 1100px) {
+  .board { grid-template-columns: minmax(0, 1fr); max-width: 560px; padding: 6px 12px 24px; gap: 12px; }
+  .card { padding: 14px; }
+  .board-foot { display: flex; justify-content: center; padding: 0 12px 96px; margin: 0; }
+  .verdict-head { grid-template-columns: auto minmax(0, 1fr); } .verdict-tally { grid-column: 1 / -1; margin-top: 8px; }
+  .place-head { flex-wrap: wrap; } .diff-line { text-align: left; justify-items: start; flex-basis: 100%; }
+  .notes-kv { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .notes-kv dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .swap > .swap-item, .row-select, .map-area, .map-name, .stage-layer, .stage-box, .detail-sheet, .measure, .pin-halo, .pin-tag, .fix-dot, .fix-dot::before, .code-row, .notes-veil, .notes-sheet, .notes-sheet.on { transition-duration: 1ms !important; }
+}
+
+/* ---------------------------------------------------------------- Berkeley's picture
+   It was drawn from OpenStreetMap data in a lighter hand than the Ross Valley tiles (white streets on pale blocks), so
+   it takes a firmer version of the same pearl treatment to sit beside them. The city is also several times the size
+   of a Ross Valley town, so its "you are here" fill is lighter. */
+.map-region[data-region="berkeley"] .map-base { opacity: .82; filter: grayscale(1) contrast(1.16) brightness(1.01); }
+.map-region[data-region="berkeley"] .map-area path { fill: rgba(var(--hi-rgb), .055); }
+
+/* close is a symbol, not a word (STYLE.md: common actions are symbol buttons) */
+.notes-close { all: unset; box-sizing: border-box; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line2); }
+.notes-close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.notes-close:active { transform: scale(.94); } .notes-close:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- the Gleb look: content set in from rounded corners
+   The more rounded a container, the more its content is set in. The kit's cards and sheet have 48 px corners, so their
+   content sits 28 px in at the sides and 30 px up from the bottom (the top keeps the old value). The plain look's 24 px
+   corners with 22 px of padding already follow the rule. The room comes from the reading pane sitting a little closer
+   to the rules, not from a scroll. */
+html.gleb .board { --pad: 28px; }
+html.gleb .board > .card { padding: 22px var(--pad) 30px; }
+html.gleb .detail { margin-top: 10px; }
+html.gleb .notes-body { --scroll-inset-bottom: 44px; }       /* the sheet's scrollbar stops before its rounded bottom corner */
+
+/* ---------------------------------------------------------------- short windows (1280 x 720)
+   The same screen, drawn tighter, so nothing scrolls even with Berkeley's seven rules: lower rows, smaller gaps, a
+   lower picture, and the chosen rule's quoted text held to two lines (all of it is in "Sources and notes"). */
+@media (max-height: 780px) and (min-width: 1101px) {
+  .board { --row: 28px; --fs-xl: 24px; padding-top: 6px; padding-bottom: 64px; }
+  .board > .card { padding-top: 14px; padding-bottom: 20px; }
+  html.gleb .board > .card { padding-top: 14px; padding-bottom: 28px; }      /* still set in from the 48 px corner */
+  .layer { margin-top: 10px; }
+  .rows { margin-top: 2px; }
+  .detail, html.gleb .detail { margin-top: 6px; }
+  .detail-cite { margin-top: 4px; }
+  .detail-quote { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .chips, .measure { margin-top: 10px; }
+  .measure { height: 38px; }
+}

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fire code by location</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="lib/beforeafter.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="shared/gleb/gleb.css">
+<script src="shared/gleb/gleb.js"></script>
+</head>
+<body>
+<!-- One document, two views. Both stay alive; the pill crossfades between them (shared/shell.js). -->
+<header class="shell-bar" data-shell="technology"><button type="button" class="shell-pill" id="notesLink">Sources and notes</button></header>
+
+<div class="shell-views">
+<div class="shell-view on" data-view="technology">
+<main class="board" id="board">
+
+  <section class="shell-glass card photo-card" id="photoCard" aria-label="Photograph and correction">
+    <div class="shell-seg is-wide" id="photoTabs" aria-label="Photograph">
+      <span class="shell-seg-ind"></span>
+      <button type="button" class="on" data-value="ladder">Ladder fuel</button>
+      <button type="button" data-value="sprinkler">Painted sprinkler</button>
+    </div>
+    <h1 class="card-title" id="findingName"></h1>
+    <div class="stage-box" id="stageBox">
+      <div class="stage-layer on"></div>
+      <div class="stage-layer"></div>
+    </div>
+    <!-- one switch for whichever picture is up: it stays put while the pictures change over -->
+    <div class="stage-tools"><button type="button" class="shell-pill ba-toggle" id="changeSwitch" aria-pressed="false"><span class="ba-check" aria-hidden="true"></span>Show what changed</button>
+    </div>
+    <div class="fix">
+      <p class="fix-title" id="fixTitle"></p>
+      <div class="fix-dots" id="fixDots" role="group" aria-label="Choose a correction"></div>
+    </div>
+  </section>
+
+  <section class="shell-glass card map-card" id="mapCard" aria-label="Location">
+    <div class="map-box" id="mapBox" tabindex="0" role="application" aria-label="Map of the Ross Valley with a pin for the property">
+      <div class="map-world" id="mapWorld"></div>
+      <a class="map-osm" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Places"></div>
+    <div class="measure" id="measure">
+      <span class="measure-label" id="distLabel">Distance to the building</span>
+      <div class="stepper">
+        <button type="button" class="step-btn" id="distDown" aria-label="One foot less"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg></button>
+        <button type="button" class="scrub shell-num" id="scrub" role="slider" aria-labelledby="distLabel" aria-valuemin="0" aria-valuemax="150"><span id="distNum">20</span><small>ft</small></button>
+        <button type="button" class="step-btn" id="distUp" aria-label="One foot more"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="shell-glass card codes-card" id="codesCard" aria-label="Fire codes at this location">
+    <div class="verdict-head" id="verdictHead" aria-live="polite">
+      <span class="verdict-mark is-large" id="verdictMark"></span>
+      <h2 class="verdict-word" id="verdictWord"></h2>
+      <div class="verdict-tally" id="verdictTally" aria-label="Rules by verdict"></div>
+      <p class="verdict-line" id="verdictLine"></p>
+    </div>
+
+    <div class="layer layer-state" id="stateLayer">
+      <h3 class="layer-title">Statewide</h3>
+      <ol class="rows" id="stateRows"></ol>
+    </div>
+
+    <div class="layer layer-local" id="localLayer">
+      <div class="place-head">
+        <h3 class="layer-title" id="hereName"></h3>
+        <p class="diff-line" id="diffLine" aria-live="polite"></p>
+      </div>
+      <p class="place-line" id="hereLine"></p>
+      <ol class="rows" id="localRows"></ol>
+    </div>
+
+    <div class="detail" id="detail" aria-live="polite">
+      <div class="detail-sheet on"></div>
+      <div class="detail-sheet"></div>
+    </div>
+  </section>
+
+</main>
+<p class="board-foot"><button type="button" class="shell-pill" id="notesLinkFoot">Sources and notes</button></p>
+</div>
+<div class="shell-view" data-view="inspectors" inert></div>
+</div>
+
+<!-- Everything that is not the verdict, a rule or its text lives here, behind one button. -->
+<div class="notes-veil" id="notesVeil"></div>
+<aside class="notes-sheet" id="notesSheet" role="dialog" aria-modal="true" aria-labelledby="notesTitle" tabindex="-1" inert>
+  <div class="notes-grab" aria-hidden="true"></div>
+  <div class="notes-head"><h2 id="notesTitle">Sources and notes</h2><button type="button" class="notes-close gl-icon-button" id="notesClose" aria-label="Close" title="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 2.5l9 9M11.5 2.5l-9 9"/></svg></button></div>
+  <div class="notes-body" id="notesBody"></div>
+</aside>
+
+<script src="data/jurisdictions.js"></script>
+<script src="data/content.js"></script>
+<script src="data/hazard.js"></script>
+<!-- Berkeley, the fifth place: a researcher's handoff, joined to the shared rows in data/law.js and lib/geo.js -->
+<script src="data/city4/law.js"></script>
+<script src="data/city4/boundary.js"></script>
+<script src="data/city4/zones.js"></script>
+<script src="data/corridor.js"></script>     <!-- the map between the two regions (generated, tools/corridor-draw.js) -->
+<script src="data/law.js"></script>
+<script src="data/outlines.js"></script>
+<script src="lib/geo.js"></script>
+<script src="lib/codes.js"></script><script src="lib/emphasis.js"></script>
+<script src="lib/solutions.js"></script>
+<script src="lib/beforeafter.js"></script>
+<script src="lib/pindrag.js"></script>
+<script src="shared/shell.js"></script>
+<script src="app.js"></script>
+<script src="feedback-mode.js"></script>
+<script src="/progress/pill.js" defer></script>
+</body>
+</html>

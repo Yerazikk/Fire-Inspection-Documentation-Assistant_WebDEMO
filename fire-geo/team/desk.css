@@ -1,0 +1,390 @@
+/* team/desk.css: the senior inspector's laptop. Calm at rest: one photograph, one note, one short list of rules.
+   Everything else opens on request. Two text sizes for reading (14.5 and 13), one for headings; one body weight and
+   one emphasis; no boxes inside boxes; colour only in the verdict marks and the one blue (chosen, done, current). */
+
+.dk-app { position: relative; height: 100%; border-radius: 8px; overflow: hidden; overflow: clip; background: var(--bg); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 34px minmax(0, 1fr); font-size: 14px; isolation: isolate; }
+.dk-app::before { content: ""; position: absolute; width: 520px; height: 420px; right: -160px; top: -120px; border-radius: 50%; background: var(--hi); opacity: .05; filter: blur(80px); pointer-events: none; z-index: -1; }
+.dk-bar { display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .5); font-size: 12.5px; }
+.dk-dots { display: flex; gap: 6px; }
+.dk-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(38, 42, 49, .16); }
+.dk-bar b { font-weight: 650; }
+
+/* what was received: a narrow rail that is only there once there is more than one finding */
+.dk-panes { min-height: 0; display: grid; grid-template-columns: 0px minmax(0, 1fr); transition: grid-template-columns 250ms var(--flat); }
+.dk-panes[data-rail="on"] { grid-template-columns: 124px minmax(0, 1fr); }
+.dk-rail { min-width: 0; overflow: hidden; opacity: 0; visibility: hidden; border-right: 1px solid transparent; transition: opacity 250ms var(--flat), border-color 250ms var(--flat), visibility 0s 250ms; }
+.dk-panes[data-rail="on"] .dk-rail { opacity: 1; visibility: visible; border-right-color: var(--line); transition: opacity 250ms var(--flat), border-color 250ms var(--flat); }
+.dk-rail-in { box-sizing: border-box; width: 124px; height: 100%; overflow-y: auto; scrollbar-width: none; padding: 16px 12px; }
+.dk-list { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+/* An item is its picture with one word under it. It has no box of its own (a word inside a small rounded box sat
+   in the curve of its corners): the chosen one is ringed on its picture. */
+.dk-item-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); gap: 9px; padding: 5px 5px 3px; border-radius: 13px; border: 0 solid transparent; }
+.dk-item-thumb { outline: 1.5px solid transparent; outline-offset: 3px; transition: outline-color 140ms var(--flat); }
+.dk-item.is-on .dk-item-thumb { outline-color: var(--hi); }
+html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
+.dk-item-btn:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 13px; }
+.dk-item-thumb { width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; }
+.dk-item.is-arriving .dk-item-thumb { visibility: hidden; }
+.dk-item-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.dk-item-state { position: relative; font-size: 11.5px; font-weight: 650; color: var(--ink2); text-align: center; white-space: nowrap; }
+.dk-item[data-state="published"] .dk-item-state { color: var(--hi); }
+
+.dk-main { position: relative; min-width: 0; min-height: 0; }
+.dk-empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; padding: 24px; opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; }
+.dk-empty.is-on { opacity: 1; visibility: visible; transition: opacity 170ms var(--flat) 110ms, visibility 0s 110ms; }
+.dk-empty h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; }
+.dk-empty p { font-size: 14.5px; font-weight: 550; color: var(--ink2); }
+
+/* one finding. When another takes its place the old one leaves first, then the new one arrives: never two in one spot. */
+.dk-view { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; container-type: inline-size; }
+.dk-view.is-on { opacity: 1; visibility: visible; transition: opacity 170ms var(--flat) 110ms, visibility 0s 110ms; }
+.dk-view.is-arriving .dk-photo-img, .dk-view.is-arriving .dk-enlarge, .dk-view.is-arriving [data-rise] { visibility: hidden; }
+
+/* the breadcrumb: where this finding is, and what comes after */
+.dk-crumbs { grid-row: 1; padding: 14px 30px 0; }
+.dk-crumbs-list { position: relative; display: flex; align-items: center; flex-wrap: nowrap; padding-bottom: 7px; white-space: nowrap; }
+.dk-crumbs-list li { display: flex; align-items: center; }
+.dk-crumb-sep { padding: 0 9px; color: var(--ink3); font-style: normal; font-size: 13px; }
+.dk-crumb { all: unset; box-sizing: border-box; cursor: default; height: 28px; display: inline-flex; align-items: center; font-size: 13.5px; font-weight: 650; color: var(--ink3); transition: color 160ms var(--flat); }
+.dk-crumb[data-state="done"] { color: var(--ink); cursor: pointer; }
+.dk-crumb[data-state="done"]:hover { text-decoration: underline; text-decoration-color: var(--line2); text-underline-offset: 4px; }
+.dk-crumb[data-state="current"] { color: var(--hi); }
+.dk-crumb[data-state="skipped"] { text-decoration: line-through; text-decoration-color: var(--ink3); }
+.dk-crumb:focus-visible { outline: 2px solid var(--hi); outline-offset: 3px; border-radius: 6px; }
+.dk-crumb[data-step="owner"] { position: relative; }
+.dk-crumb-tick { position: absolute; left: calc(100% + 7px); top: 50%; width: 17px; height: 17px; margin-top: -9px; border-radius: 50%; background: var(--hi); color: #fff; display: grid; place-items: center; opacity: 0; transform: scale(.6); transition: opacity 180ms var(--flat), transform 220ms var(--flat); }
+.dk-view[data-published="1"] .dk-crumb-tick { opacity: 1; transform: none; }
+.dk-crumb-mark { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; border-radius: 2px; background: var(--hi); transition: transform 250ms var(--flat), width 250ms var(--flat); }
+
+.dk-work { grid-row: 2; min-height: 0; display: grid; grid-template-columns: minmax(230px, 34%) minmax(0, 1fr); gap: 30px; padding: 18px 26px 0 26px; }
+.dk-context { min-height: 0; min-width: 0; overflow-y: auto; scrollbar-width: none; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 14px; padding: 2px 4px 18px 4px; }
+.dk-context::-webkit-scrollbar { display: none; }
+.dk-photo { position: relative; }
+.dk-photo-img { width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; box-shadow: var(--tm-shadow-photo); }
+/* placed symbols name their parent too, so a skin that restyles round buttons does not move them */
+.dk-photo > .dk-enlarge.tm-sym { position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; border-color: transparent; background: rgba(255, 255, 255, .9); }
+.dk-rec-photo > .dk-rec-enlarge.tm-sym { width: 30px; height: 30px; }
+.dk-work.tm-softscroll { -webkit-mask-image: none; mask-image: none; }      /* it scrolls as a whole only on a real phone; the soft edges are switched on there (small sizes, at the end) */
+.dk-note { font-size: 19px; font-weight: 600; line-height: 1.3; letter-spacing: -.01em; }
+.dk-meta { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; justify-items: start; }
+.dk-town { position: relative; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.dk-fieldline { font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.dk-recorded-toggle.tm-btn { padding: 0; height: auto; min-height: 30px; flex-direction: row-reverse; white-space: normal; text-align: left; max-width: 100%; }
+.dk-recorded-toggle .tm-icon { transition: transform 200ms var(--flat); }
+.dk-recorded-toggle.is-open .tm-icon { transform: rotate(180deg); }
+.dk-recorded { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; justify-self: stretch; padding-top: 2px; }
+.dk-recorded h4 { margin: 8px 0 0; }
+.dk-rec-note { font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+.dk-rec-list { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; font-size: 13px; }
+.dk-rec-list dt { color: var(--ink2); font-weight: 550; margin-top: 5px; }
+.dk-rec-list dd { margin: 0; font-weight: 650; }
+.dk-rec-list dd.is-none { color: var(--ink3); font-weight: 600; }
+.dk-rec-list.is-pairs { grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; }
+.dk-rec-list.is-pairs dt { margin-top: 0; }
+.dk-rec-photo { display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+.dk-rec-shot { width: 84px; aspect-ratio: 4 / 3; border-radius: 9px; }
+
+.dk-steps { position: relative; min-height: 0; min-width: 0; }
+.dk-pane { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; }
+.dk-pane.is-on { opacity: 1; visibility: visible; transition: opacity 170ms var(--flat) 110ms, visibility 0s 110ms; }
+.dk-pane-scroll { min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 2px 8px 22px 4px; }
+.dk-pane-scroll::-webkit-scrollbar, .dk-rail-in::-webkit-scrollbar { display: none; }
+.dk-rules-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; padding: 0 4px 8px; }
+.dk-h { position: relative; font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+.dk-tally { display: flex; gap: 13px; flex: none; }
+.dk-tally-n { position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2); }
+.dk-tally-n b { font-weight: 650; display: inline-block; min-width: 8px; }
+.dk-gap { position: relative; font-size: 13.5px; font-weight: 600; color: var(--ink2); padding: 0 4px 10px; line-height: 1.4; }
+.dk-gap:empty { display: none; }
+
+/* a rule: one line at rest */
+.dk-rows { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
+.dk-row { position: relative; border-top: 1px solid var(--line); }
+.dk-row:last-child { border-bottom: 1px solid var(--line); }
+.dk-row.lift { z-index: 2; }
+.dk-row-line { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: center; min-height: 50px; }
+.dk-verdict { all: unset; box-sizing: border-box; cursor: pointer; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px 0 6px; border-radius: 10px; font-size: 13.5px; transition: background-color 110ms var(--flat); }
+.dk-verdict:hover { background: var(--tm-wash); }
+/* a call that has not been made looks like what it is: something to press */
+.dk-row[data-verdict="yellow"] .dk-verdict { padding: 0 12px 0 9px; border-radius: var(--tm-radius-pill); background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line2), 0 3px 8px -5px rgba(var(--shade), .4); }
+.dk-row[data-verdict="yellow"] .dk-verdict:hover { box-shadow: 0 0 0 1px var(--ink3), 0 3px 8px -5px rgba(var(--shade), .4); }
+.dk-verdict:focus-visible, .dk-row-open:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 10px; }
+.dk-row-open { all: unset; box-sizing: border-box; cursor: pointer; position: relative; transition: margin-left 240ms var(--flat); display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 50px; padding: 0 6px 0 4px; border-radius: 10px; }   /* the name comes first; the citation takes what is left */
+.dk-row-name { position: relative; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-row-cite { position: relative; font-size: 12.5px; font-weight: 550; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.dk-cite-sec { display: none; }
+.dk-row-more { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+.dk-row-more > span { display: none; }
+.dk-row-more .tm-icon { transition: transform 220ms var(--flat); }
+.dk-row.is-open .dk-row-more .tm-icon { transform: rotate(180deg); }
+@container (min-width: 900px) { .dk-cite-sec { display: inline; } }
+@container (min-width: 1020px) { .dk-row-more > span { display: inline; } }
+
+/* the same rule, opened in place */
+.dk-row-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; padding: 0 8px 20px; }
+.dk-row-body h4, .dk-pane h4.shell-label { margin: 8px 0 0; font-size: 12px; }
+.dk-rule { position: relative; font-size: 14px; line-height: 1.5; font-weight: 500; color: var(--ink2); }
+.dk-cite-full { position: relative; font-size: 12.5px; font-weight: 550; color: var(--ink2); }
+.dk-read-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.dk-read { position: relative; font-size: 14.5px; line-height: 1.5; font-weight: 550; }
+.dk-read-row > .dk-read-tools { flex-wrap: nowrap; gap: 6px; }
+.dk-read-row .tm-sym { width: 30px; height: 30px; }
+.dk-confirm { position: relative; display: flex; align-items: baseline; gap: 8px; margin-top: 4px; font-size: 14px; font-weight: 600; line-height: 1.45; }
+.dk-confirm > .verdict-mark { transform: translateY(1px); }
+.dk-confirm > span { position: relative; }
+.dk-was { font-size: 12.5px; font-weight: 550; color: var(--ink2); padding-top: 4px; }
+
+/* the verdict, pressed: the system's own two-part switch (the sunken capsule and raised white pill of the tabs at
+   the top), small, in the verdict's place. The name and citation move right to make room; the row keeps its height.
+   Not decided: no pill on either side, and the yellow mark stays quietly at the left until a side is picked. */
+.dk-toggle.shell-seg { position: absolute; z-index: 4; box-sizing: border-box; display: inline-flex; align-items: center; height: 32px; padding: 3px; overflow: hidden; white-space: nowrap; outline: none; user-select: none; -webkit-user-select: none; }
+.dk-toggle.shell-seg:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: 99px; }
+/* the pill lies under the two words and their marks, so the chosen side reads on it (the shell's own thumb sits above its labels and carries a text copy; this one has marks to show) */
+.dk-toggle .shell-seg-ind { top: 3px; height: calc(100% - 6px); z-index: 0; transition: transform 250ms var(--flat), width 250ms var(--flat); }
+.dk-toggle.shell-seg > button { height: 26px; padding: 0 12px 0 9px; gap: 7px; font-size: 13px; font-weight: 550; color: var(--ink); }
+.dk-toggle.shell-seg > button.on { font-weight: 650; }
+.dk-toggle.shell-seg > button > span { display: inline-block; text-align: center; }
+.dk-toggle.shell-seg > button > span::after { content: attr(data-label); display: block; height: 0; overflow: hidden; visibility: hidden; font-weight: 650; }   /* the heavier word's width is kept, so choosing shifts nothing */
+.dk-toggle-from.verdict-mark { margin: 0 2px 0 7px; transition: opacity 180ms var(--flat); }
+.dk-toggle.is-chosen .dk-toggle-from { opacity: 0; }
+.dk-row.is-deciding { z-index: 3; }
+/* with the shared kit on, this switch keeps the raised white pill and ink words: no dark fill in a verdict */
+html.gleb .dk-toggle .shell-seg-ind { background: #fff; box-shadow: 0 1px 2px rgba(25, 34, 51, .10), 0 6px 14px -8px rgba(25, 34, 51, .35); }
+html.gleb .dk-toggle.shell-seg > button, html.gleb .dk-toggle.shell-seg > button.on { color: var(--ink); font-weight: 400; }
+html.gleb .dk-toggle.shell-seg > button.on { font-weight: 500; }
+html.gleb .dk-toggle.shell-seg > button > span::after { font-weight: 500; }
+html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
+
+/* the one button */
+.dk-foot-slot { margin-right: auto; }
+.dk-foot { grid-row: 3; display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 40px; padding: 10px 26px 14px; border-top: 1px solid var(--line); }
+.dk-primary { all: unset; box-sizing: border-box; cursor: pointer; position: relative; overflow: hidden; height: 40px; min-width: 0; padding: 0 22px; border-radius: var(--tm-radius-pill); background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 650; transition: transform 70ms var(--flat), opacity 140ms var(--flat); user-select: none; -webkit-user-select: none; }
+.dk-primary:active { transform: scale(.98); }
+.dk-primary:disabled { opacity: .3; cursor: default; }
+.dk-primary:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: var(--tm-radius-pill); }
+.dk-primary-label { position: relative; display: inline-block; white-space: nowrap; }
+.dk-view .dk-foot > .dk-primary { height: 40px; }      /* a normal-size button under either look */
+
+/* the photograph, enlarged */
+.dk-zoom { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+.dk-zoom.is-on { pointer-events: auto; }
+.dk-zoom-veil { position: absolute; inset: 0; background: rgba(238, 240, 243, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.dk-zoom-box { position: absolute; border-radius: 14px; cursor: zoom-out; box-shadow: 0 30px 60px -30px rgba(var(--shade), .6); }
+.dk-zoom > .dk-zoom-x.tm-sym { position: absolute; right: 16px; top: 14px; background: var(--tm-solid); }
+
+@media (max-width: 1179px) {
+  .dk-app { border-radius: 0; }
+  .dk-bar { display: none; }
+  .dk-app { grid-template-rows: minmax(0, 1fr); }
+}
+
+/* ================================================================ step 2: how to fix it
+   A list on the left; beside it the correction being looked at, large. The pictures are the corrections. */
+.dk-view[data-step="fix"] .dk-context { display: none; }
+.dk-view[data-step="fix"] .dk-work { grid-template-columns: minmax(0, 1fr); }
+.dk-fix { min-height: 0; display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 28px; padding: 2px 4px 14px; }
+.dk-fix-list { min-height: 0; overflow-y: auto; scrollbar-width: none; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; padding: 2px 4px 16px; }
+.dk-fix-list::-webkit-scrollbar, .dk-side::-webkit-scrollbar { display: none; }
+.dk-fix-list > .dk-h { min-height: 30px; display: flex; align-items: center; }
+.dk-fix-rows { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.dk-fix-row { box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px; border-radius: 18px; border: 1.5px solid transparent; background: var(--tm-surface); outline: none; transition: border-color 140ms var(--flat), background-color 140ms var(--flat); }
+/* looked at: the chosen surface (solid, lifted). Not a blue edge: blue here would read as ticked or as keyboard focus. */
+.dk-fix-row:hover { background: color-mix(in srgb, var(--tm-solid) 55%, var(--tm-surface)); }
+.dk-fix-row.is-on { background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line2), 0 10px 22px -16px rgba(var(--shade), .55); }
+/* ticked to use: a filled check. Not ticked: an empty one. The same in both looks. */
+.dk-fix-rows .dk-fix-row .dk-use > .tm-box { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--ink3); background: transparent; color: transparent; box-shadow: none; }
+.dk-fix-rows .dk-fix-row .dk-use[aria-checked="true"] > .tm-box { border-color: var(--ink); background: var(--ink); color: #fff; }
+.dk-fix-row:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: 18px; }
+.dk-fix-thumb { width: 72px; aspect-ratio: 1; border-radius: 12px; }
+.dk-fix-text { min-width: 0; display: grid; gap: 1px; }
+.dk-fix-name { position: relative; font-size: 14px; font-weight: 650; line-height: 1.25; }
+.dk-fix-stand { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.dk-use { all: unset; box-sizing: border-box; cursor: pointer; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; }
+.dk-use:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 12px; }
+.dk-mine.tm-btn { justify-self: start; }
+.dk-mine.is-on { border-color: var(--hi); }
+.dk-detail { position: relative; min-height: 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); container-type: size; }
+.dk-detail-pane { min-height: 0; min-width: 0; display: grid; grid-template-columns: auto minmax(220px, 1fr); gap: 26px; }
+.dk-big .ba-tag-after { top: 12px; } .dk-big .ba-tag-before { bottom: 12px; }      /* 12, not the shared 10: inside a 24 px corner the word sits 15 px in */
+.dk-big-wrap { min-height: 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; }
+/* the large picture keeps the photograph's own shape and takes the height there is */
+.dk-big { height: min(100cqh - 46px, (100cqw - 280px) / var(--a, 1)); aspect-ratio: var(--a, 1); min-height: 160px; }
+/* a wide photograph: the picture across the top, the steps under it */
+.dk-detail-pane.is-wide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 14px; }
+.dk-detail-pane.is-wide .dk-big { height: min(58cqh, 100cqw / var(--a, 1)); }
+.dk-detail-pane.is-wide .dk-big-wrap { justify-items: start; }
+.dk-detail-pane[data-kind="own"] .dk-big { height: min(100cqh - 110px, (100cqw - 280px) / var(--a, 1)); border-radius: 18px; }
+.dk-side { min-height: 0; min-width: 0; overflow-y: auto; scrollbar-width: none; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; padding: 2px 4px 16px 4px; }      /* room at both sides for a focus ring */
+.dk-card-title { position: relative; margin: 0; font-size: 18px; font-weight: 650; line-height: 1.25; letter-spacing: -.01em; }
+.dk-card-stand { font-size: 12.5px; font-weight: 600; color: var(--ink2); margin-top: -6px; }
+.dk-card-plain { position: relative; font-size: 14.5px; line-height: 1.5; font-weight: 550; }
+.dk-card-steps, .rp-steps { margin: 0; padding: 0 0 0 22px; list-style: decimal; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; font-size: 14px; line-height: 1.45; }
+.dk-card-steps li, .rp-steps li { position: relative; padding-left: 2px; }
+.dk-card-steps li::marker, .rp-steps li::marker { font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.dk-step, .rp-step { position: relative; display: inline; }
+.is-editing [data-edit] { display: block; }
+.dk-card-stepshead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dk-card-stepshead .tm-sym, .dk-ask-row .tm-sym, .dk-off-row .tm-sym, .dk-plan .tm-sym, .dk-side > .tm-btns > .tm-sym, .dk-rules-head .tm-sym { width: 30px; height: 30px; }
+.dk-plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.dk-plan-say { font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.dk-new { grid-column: 1 / -1; align-self: start; max-width: 560px; display: grid; gap: 12px; padding-top: 4px; }
+.dk-off { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 6px 2px 0; }
+.dk-off-list { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.dk-off-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 600; color: var(--ink2); }
+/* A narrow pane (the laptop tab on a real phone; a small window with the sidebar out): one scrolling column, the
+   picture first and its words under it. The picture is capped by the height there is, so it never fills the pane and
+   the words always follow it. (Down to 400 px the picture and its words still fit side by side.) */
+@container (max-width: 400px) {
+  .dk-detail-pane, .dk-detail-pane.is-wide { display: block; overflow-y: auto; scrollbar-width: none; padding: 0 4px; }
+  .dk-detail-pane .dk-big, .dk-detail-pane.is-wide .dk-big, .dk-detail-pane[data-kind="own"] .dk-big { height: auto; min-height: auto; width: min(100%, 62cqh * var(--a, 1)); }      /* min-height auto: the box grows to hold the switch under the picture, so the words start below it */
+  .dk-detail-pane .dk-big-wrap { justify-items: center; margin-bottom: 14px; }
+  .dk-detail-pane .dk-side { overflow: visible; padding-bottom: 20px; }
+}
+/* asking for a rewrite: one line to say what should be different, a few examples to tap */
+.dk-ask { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 2px 2px 4px; }
+.dk-ask-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.dk-input { box-sizing: border-box; width: 100%; height: 38px; padding: 0 14px; border-radius: var(--tm-radius-pill); border: 1.5px solid var(--line2); background: var(--tm-solid); font-size: 14px; font-weight: 550; outline: none; }
+.dk-input:focus-visible { border-color: var(--hi); box-shadow: inset 0 0 0 .75px var(--hi); outline: none; border-radius: var(--tm-radius-pill); }
+.dk-input::placeholder { color: var(--ink3); }
+.dk-ask-steps.tm-steps { gap: 9px; padding: 4px 2px; }
+.dk-ask-steps .tm-step { font-size: 13.5px; }
+.dk-ask-note { font-size: 13px; font-weight: 600; color: var(--ink2); line-height: 1.45; }
+
+/* ================================================================ steps 3 and 4: the drafts (for the file, then for the owner)
+   At these steps the finding's photo and note step aside: the draft is the whole screen. */
+.dk-view[data-step="owner"] .dk-context, .dk-view[data-step="file"] .dk-context { display: none; }
+.dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { grid-template-columns: minmax(0, 1fr); padding: 8px 10px 10px; }
+/* the draft has the whole screen: the step's button floats at the bottom right on a soft backing, with no strip under the page.
+   For the file it is the laptop's own button (with Copy and Print). For the owner it is Publish, which belongs to the
+   browser window (.rp-act) so that it is still there when the page is enlarged; both sit in the same spot. */
+.dk-view[data-step="file"] .dk-foot, .rp-act { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
+.dk-view[data-step="file"] .dk-foot-slot { margin-right: 0; }
+.dk-view[data-step="owner"] .dk-foot { display: none; }
+.rp-act { right: 14px; bottom: 12px; display: flex; align-items: center; }
+.rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
+/* after Publish the button is gone and a line at the foot of the window says what happened. It is part of the
+   window's own frame (the same wash as its top bar), takes its own height and never covers the page. */
+.rp-act[hidden] { display: none; }
+.rp-done { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; border-top: 1px solid var(--line); background: var(--tm-wash); }
+.rp-done[hidden] { display: none; }
+.rp-done-mark { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--hi); color: #fff; display: grid; place-items: center; }
+.rp-done-text { flex: 1; margin: 0; min-width: 0; font-size: 13px; line-height: 1.4; font-weight: 550; color: var(--ink2); }
+.rp-done-text > b { margin-right: 4px; font-weight: 650; color: var(--ink); }
+.rp-window .rp-done > .tm-sym { flex: none; width: 30px; height: 30px; }
+.rp-window.is-big .rp-act { right: 22px; bottom: 20px; }
+.dk-pane-fixed { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+/* a draft opened large: over most of the window, the same live page */
+.dk-big-layer { font-size: 14px; }      /* the laptop app's own base size: the page reads the same out here */
+.dk-big-veil { position: fixed; inset: 0; z-index: 70; background: rgba(20, 24, 33, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.dk-big-hole { visibility: hidden; }
+.rp-window.is-big, .doc-frame.is-big { position: fixed; z-index: 71; margin: 0; max-width: none; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .55); }
+.dk-big-btn.tm-sym { width: 26px; height: 26px; }
+/* words in a draft: click and type. A soft ground under the pointer and under the caret says so; nothing else does. */
+.tm-direct { outline: none; cursor: text; border-radius: 6px; white-space: pre-wrap; transition: background-color 120ms var(--flat), box-shadow 120ms var(--flat); }
+.tm-direct:hover { background: var(--tm-wash); box-shadow: 0 0 0 5px var(--tm-wash); }
+.tm-direct:focus, .tm-direct:focus-visible { background: rgba(104, 146, 248, .1); box-shadow: 0 0 0 5px rgba(104, 146, 248, .1); outline: none; border-radius: 6px; }
+/* step 3: the owner's page is a website, shown in a browser window at desktop width */
+.rp-window { position: relative; min-height: 0; justify-self: stretch; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 36px minmax(0, 1fr) auto; border-radius: 14px; overflow: hidden; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -38px rgba(var(--shade), .5); }
+/* Enlarge is the way to read the page properly, so it is a plain round button on the bar, not a faint mark */
+.rp-bar > .dk-big-btn.tm-sym { justify-self: end; width: 28px; height: 28px; border-radius: 50%; background: var(--tm-solid); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.rp-bar { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; padding: 0 10px 0 14px; border-bottom: 1px solid var(--line); background: var(--tm-wash); }
+.rp-addr { position: relative; justify-self: center; max-width: 100%; box-sizing: border-box; height: 26px; padding: 0 16px; border-radius: 99px; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line); display: inline-flex; align-items: center; font-size: 12.5px; font-weight: 550; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-scroll { min-height: 0; overflow-y: auto; container-type: size; }      /* size: so a picture can be capped by the height that is visible */
+/* the two drafts are long, so each shows a thin scrollbar (.tm-thinscroll). Its track stops short of the round corners:
+   the window's top bar is straight and its bottom corners are 14 px; the enlarged document's corners are 18 px. */
+.rp-scroll { --scroll-inset-top: 6px; --scroll-inset-bottom: 14px; }
+.doc-scroll { --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
+.rp-page { position: relative; box-sizing: border-box; max-width: 784px; margin: 0 auto; padding: 28px 32px 100px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 13px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating button */
+.rp-window.is-big .rp-page { max-width: 880px; font-size: 18px; gap: 16px; padding-top: 44px; }
+.rp-window.is-big .rp-title { font-size: 42px; }
+.rp-window.is-big .rp-page h2 { font-size: 25px; }
+.rp-window.is-big .rp-sol-title { font-size: 22px; }
+.rp-window.is-big .rp-steps { font-size: 17px; }
+.rp-agency { position: relative; font-size: 12.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); }
+.rp-title { margin: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.025em; font-weight: 650; }
+.rp-photo { width: 100%; aspect-ratio: 3 / 1; border-radius: 20px; margin: 6px 0 2px; }
+@container (max-height: 440px) { .rp-photo { aspect-ratio: 9 / 2; } .rp-page { padding-top: 18px; } .rp-title { font-size: 26px; } }      /* a short window: the top of the page is tighter and the photograph gives up height, so the first screenful still reaches "What is wrong" */
+.rp-page h2 { margin: 22px 0 0; font-size: 21px; font-weight: 650; letter-spacing: -.015em; }
+.rp-text { position: relative; margin: 0; max-width: 62ch; font-weight: 500; }
+/* an option: its heading, the picture across the column, its steps under it. No panel; a hairline and air between options. */
+.rp-sols { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
+.rp-sol { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 36px 0 4px; margin-top: 36px; border-top: 1px solid var(--line); }
+.rp-sol:first-child { margin-top: 10px; padding-top: 22px; border-top: 0; }
+html.gleb .rp-figwrap button.ba-toggle.shell-pill:not([aria-pressed="true"]) { background: var(--tm-wash); }      /* the kit's pale pill is invisible on a white page */
+.rp-figwrap { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 10px; }
+.rp-figwrap > .ba-tools { margin-top: 0; }      /* the switch belongs to the picture: 10 px under it */      /* on the same left edge as the heading above it and the steps below */
+.rp-fig { width: min(100%, 60cqh * 4 / 3); }      /* never taller than six tenths of what is visible */
+.rp-sol-head { display: grid; gap: 2px; justify-items: start; }
+.rp-sol-title { margin: 0; font-size: 18.5px; font-weight: 650; line-height: 1.3; }
+.rp-optn { position: relative; }
+.rp-opt { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.rp-pick { color: var(--ink2); }
+.rp-steps { font-size: 15.5px; gap: 9px; }
+.rp-law { position: relative; margin-top: 10px; font-size: 12.5px; font-weight: 550; color: var(--ink2); line-height: 1.5; }
+@container (max-width: 640px) { .rp-page { padding: 22px 20px 96px; } .rp-title { font-size: 26px; } }
+/* step 4: the file document, a page */
+.doc-frame { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.doc-frame > .dk-big-btn.tm-sym { position: absolute; right: 18px; top: 10px; z-index: 3; width: 30px; height: 30px; }
+.doc-frame.is-big { border-radius: 18px; overflow: hidden; background: var(--bg); }
+.doc-frame.is-big .doc-page { max-width: 900px; font-size: 16.5px; }
+.doc-scroll { min-height: 0; overflow-y: auto; padding: 14px 8px 96px; }
+.doc-page { position: relative; box-sizing: border-box; max-width: 740px; margin: 0 auto; padding: 46px 54px 56px; border-radius: 24px; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -40px rgba(var(--shade), .45); font-size: 14px; line-height: 1.6; }
+.doc-page::after { content: ""; display: block; clear: both; }
+.doc-page > * + * { margin-top: 8px; }
+.doc-photo { float: right; width: 200px; aspect-ratio: 4 / 3; border-radius: 14px; margin: 2px 0 14px 24px; }
+.doc-h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.22; }
+.doc-h3 { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.doc-page > .doc-h3 { margin-top: 22px; }
+.doc-h4 { margin: 14px 0 0; font-size: 14.5px; font-weight: 650; display: flex; align-items: baseline; gap: 8px; }
+.doc-page > .doc-h4 { margin-top: 16px; }
+.doc-h4 > .verdict-mark { transform: translateY(1px); }
+.doc-h2 > span, .doc-h3 > span, .doc-h4 > span { position: relative; }
+.doc-p { position: relative; margin: 0; }
+/* fixed lines (citations, what was recorded): quiet, and plainly not text to type into */
+.doc-p.is-fixed { color: var(--ink2); cursor: default; }
+.doc-p.doc-cite { display: table; padding: 1px 10px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--line2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.doc-rule { position: relative; margin: 0; color: var(--ink2); padding-left: 14px; border-left: 2px solid var(--line2); cursor: default; }
+
+/* ================================================================ small sizes
+   These rules come last: several of them adjust rules written further up for the later steps, and a rule of equal
+   weight only wins when it comes after. */
+/* a small laptop (a short window): the same two columns, tighter, without the citation at rest */
+@container (max-width: 700px) {
+  .dk-crumbs { padding: 10px 16px 0; overflow-x: auto; scrollbar-width: none; }
+  .dk-crumb-sep { padding: 0 6px; }
+  .dk-work { grid-template-columns: minmax(150px, 32%) minmax(0, 1fr); gap: 18px; padding: 12px 12px 0 16px; }
+  .dk-note { font-size: 16px; }
+  .dk-row-line { grid-template-columns: 146px minmax(0, 1fr); }
+  .dk-row-cite { display: none; }
+  .dk-foot { padding: 8px 16px 10px; min-height: 40px; }
+  .dk-primary { height: 40px; min-width: 150px; font-size: 14px; }
+  .dk-fix { grid-template-columns: minmax(170px, 34%) minmax(0, 1fr); gap: 16px; }
+  .dk-fix-row { grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px; }
+  .dk-fix-thumb { width: 52px; }
+  .doc-page { padding: 26px 22px 30px; }
+  .doc-photo { width: 120px; margin-left: 14px; }
+  .rp-window { border-radius: 14px; }
+}
+/* narrower still (the laptop on a real phone): one column that scrolls as a whole */
+@container (max-width: 480px) {
+  .dk-work { display: block; overflow-y: auto; scrollbar-width: none; padding: 12px 14px 0; }
+  .dk-work.tm-softscroll { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ss-top), #000 calc(100% - var(--ss-bottom)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ss-top), #000 calc(100% - var(--ss-bottom)), transparent 100%); }
+  .dk-context { overflow: visible; padding-bottom: 16px; }
+  .dk-photo-img { aspect-ratio: 16 / 9; }
+  .dk-pane { position: relative; inset: auto; display: none; }
+  .dk-pane.is-on { display: grid; }
+  .dk-pane-scroll { overflow: visible; padding: 2px 2px 18px; }
+  /* the later steps there. Corrections: the list, then the one being looked at under it, all in the one column. */
+  .dk-fix { display: block; padding: 2px 0 14px; }
+  .dk-fix-list { overflow: visible; padding-bottom: 14px; }
+  .dk-detail { display: block; container-type: inline-size; }      /* no height of its own here: the picture is capped by the screen instead */
+  /* a draft keeps the height of the screen and scrolls inside itself */
+  .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { display: grid; grid-template-rows: minmax(0, 1fr); overflow: hidden; padding: 6px 6px 8px; }
+  .dk-view[data-step="owner"] .dk-steps, .dk-view[data-step="file"] .dk-steps { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+}
+
+/* ================================================================ step 5: published */
+
+@media print {
+  #tmPrint .doc-page { box-shadow: none; border-radius: 0; padding: 0; margin: 0; max-width: none; font-size: 10pt; }
+}

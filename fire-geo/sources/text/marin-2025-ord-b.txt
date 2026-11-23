@@ -1,0 +1,844 @@
+
+=== page 1 ===
+ORDINANCE NO. XXXX
+AN ORDINANCE OF THE MARIN COUNTY BOARD OF SUPERVISORS:
+AN ORDINANCE ADOPTING BY REFERENCE, WITH CERTAIN MODIFICATIONS,
+THE 2025 CALIFORNIA BUILDING STANDARDS CODE, TITLE 24, CALIFORNIA
+CODE OF REGULATIONS, INCLUDING: THE CALIFORNIA BUILDING CODE AND
+ITS APPENDICES C AND Q; THE CALIFORNIA RESIDENTIAL CODE AND ITS
+APPENDICES BB, BI, BJ, BK BM, BO, AND CJ; THE CALIFORNIA ELECTRICAL
+CODE; THE CALIFORNIA MECHANICAL CODE; THE CALIFORNIA PLUMBING
+CODE; THE CALIFORNIA ENERGY CODE; THE CALIFORNIA WILDLAND-URBAN
+INTERFACE CODE; THE CALIFORNIA HISTORICAL BUILDING CODE; THE
+CALIFORNIA EXISTING BUILDING CODE; THE CALIFORNIA GREEN BUILDING
+STANDARDS CODE; THE CALIFORNIA REFERENCED STANDARDS CODE;
+ARTICLE 8 OF SUBCHAPTER 1 OF CHAPTER 1 OF TITLE 25 CALIFORNIA CODE
+OF REGULATIONS; 2024 INTERNATIONAL PROPERTY MAINTENANCE CODE.
+*********************************************************
+The BOARD OF SUPERVISORS OF THE COUNTY OF MARIN hereby ordains as
+follows:
+SECTION I. FINDINGS. The Board of Supervisors makes the following findings in
+support of this ordinance.
+1. The Marin County Board of Supervisors finds that in order to best protect the
+health, safety, and welfare of the citizens of the County of Marin, the standards of
+building within the County must conform with State law except where local
+conditions warrant more restrictive regulations, and therefore the County of Marin
+wishes to adopt by reference the 2025 State Construction Standards in California
+Code of Regulations Title 24, with certain modifications set forth herein.
+2. Pursuant to Sections 17958.5, 17958.7, and 18941.4 of the California Health and
+Safety Code, the County of Marin determines that the following modifications to
+the 2025 California Construction Standards are reasonably necessary because
+of local climatic, geological, or topographical conditions that are unique to the
+County of Marin as follows:
+a. Because of the steep terrain, narrow roads, close proximity to the San
+Andreas and Hayward seismic faults, and the unique conditions exist that
+require special consideration whenever construction is proposed within the
+County. Additionally, due to the high temperatures, humidity, rainfall, wind,
+and restricted accessibility by fire apparatus, and the lack of water supply
+Page 1 of 22
+
+=== page 2 ===
+for domestic use and fire suppression, there are hazards within the County
+that require solutions in addition to those specified within the various
+construction codes.
+b. The County is designated as within Seismic Design Categories D, E, and
+F and is located in close proximity to the San Andreas and Hayward
+seismic faults indicated by the U.S. Geological Survey and California
+Division of Mines and Geology.
+c. The County includes many areas of hills and steep terrain, which are
+susceptible to earth sliding due to both uncontrolled storm water drainage,
+rain events, and geology.
+d. The County is populated with the majority of structures constructed of
+wood framing and most with combustible exterior materials.
+e. Many buildings were erected prior to the enactment of modern zoning and
+building codes with the result that many are located with little to no
+property setbacks, which can negatively affect the provision of fire
+protection services at those locations.
+f. The steep terrain and hilly topography of most of the County, combined
+with the narrow roads, adversely impact the fire department's ability to
+respond to emergency situations.
+g. The water pressure and supply available for fire suppression is limited in
+the hilly areas of the County.
+h. The County’s climate is periodically subject to relatively dry winters, hot
+dry summers and droughts. The County is also subject to a combination of
+strong winds, low humidity and high temperatures which may lead to the
+shutoff of electrical power by the serving utility company, thereby
+negatively impacting the community and the County’s emergency
+services. The lack of rainfall can result in water shortages and reductions
+in available ground water that impact the public health, safety, and welfare
+of its citizens and businesses in such a way that their effects should be
+mitigated through appropriate amendments to the construction codes to
+prohibit the use of equipment or fixtures which waste water and require
+water conservation measures, the efficient use of potable water, including
+utilization of fire-resistive construction and fire protection systems to
+Page 2 of 22
+
+=== page 3 ===
+reduce the use of water for fire-fighting, and other water-saving
+measures.
+3. Pursuant to Health and Safety Code section 17958(b)(1), the County may adopt
+the modifications to the 2025 California Construction Standards described herein;
+other than the modification adopting the Wildland-Urban Interface Code, Part 7,
+Chapter 5; because such modifications are substantially equivalent to changes or
+modifications that were previously adopted by the County and in effect as of
+September 30, 2025. Pursuant to Health and Safety Code sections 17958(b)(1)
+and (3), the County may adopt the modification to the 2025 California
+Construction Standards that adopts the Wildland-Urban Interface Code, Part 7,
+Chapter 5 because that modification is in part substantially equivalent to changes
+or modifications that were previously adopted by the County and in effect as of
+September 30, 2025, and in part relates to home hardening.
+4. Environmental Review. Adoption of this Ordinance does not require review
+under the California Environmental Quality Act (CEQA) since it does not
+constitute a “project” pursuant to CEQA Guidelines section 15378. In addition,
+adoption of this ordinance is exempt from CEQA review under the “common
+sense” exemption at section 15061(b)(3) of the CEQA Guidelines (Cal. Code
+Regs., Tit. 14) because it can be seen with certainty there is no possibility that it
+will have a significant environmental effect.
+SECTION II: AMENDMENTS TO TITLE 19
+The following portions of Marin County Code Title 19 (Marin County Building Code) are
+hereby repealed, amended, and replaced as follows:
+• Amend Section 19.04.010 to read as follows:
+19.04.010 Marin County Building Codes adopted.
+Express findings: Pursuant to Health and Safety Code Sections 17958.7 and 18941.5,
+the Marin County Board of Supervisors hereby finds adoption of the following
+appendices are necessary because of local climatic, geological, and/or topographical
+conditions:
+1. Adoption of Appendix C of the 2025 California Building Code regulating group
+U agricultural buildings is reasonably necessary because Marin's local climatic
+and topographical conditions (which have historically allowed for large-scale
+and varied agricultural uses to thrive) are requisite factors supporting our need
+for the added provisions contained in this appendix.
+Page 3 of 22
+
+=== page 4 ===
+2. Adoption of Appendix Q of the 2025 California Building Code providing for
+emergency housing is reasonably necessary because Marin's local climatic,
+topographical, and geological conditions increases the vulnerability of our
+aging housing stock to damage from known and future extreme weather, fire,
+slope-failure, and seismic events.
+3. Adoption of Appendix BB of the 2025 California Residential Code regulating
+tiny houses is reasonably necessary because Marin's topographical conditions
+reduce the availability and viability of providing sufficient dwelling sites to
+respond to increased demand for housing;
+4. Adoption of Appendix BI of the 2025 California Residential Code regulating
+light straw-clay construction is reasonably necessary because Marin's local
+climatic and topographical conditions insofar as our climatic seasonal reduction
+in vegetative moisture content, combined with Marin's populated steep terrain,
+prescribe the application of construction materials which are naturally resistant
+to wildland fire exposure;
+5. Adoption of Appendix BJ of the 2025 California Residential Code regulating
+strawbale construction is reasonably necessary because Marin's local climatic
+and topographical conditions insofar as our climatic seasonal reduction in
+vegetative moisture content, combined with Marin's populated steep terrain,
+prescribe the application of construction materials which are naturally resistant
+to wildland fire exposure;
+6. Adoption of Appendix BK of the 2025 California Residential Code regulating
+cob construction (monolithic adobe) is reasonably necessary because Marin's
+local climatic and topographical conditions insofar as our climatic seasonal
+reduction in vegetative moisture content, combined with Marin's populated
+steep terrain, prescribe the application of construction materials which are
+naturally resistant to wildland fire exposure;
+7. Adoption of Appendix BM of the 2025 California Residential Code regulating
+3D-printed building construction is reasonably necessary because Marin's local
+climatic and topographical conditions insofar as our climatic seasonal reduction
+in vegetative moisture content, combined with Marin's populated steep terrain,
+prescribe the application of construction materials which are naturally resistant
+to wildland fire exposure.
+8. Adoption of Appendix BO of the 2025 California Residential Code regulating
+existing buildings and structures is reasonably necessary because Marin's
+geology increases the vulnerability of our aging housing stock to damage from
+known local seismic activity;
+9. Adoption of Appendix CJ of the 2025 California Residential Code providing for
+emergency housing is reasonably necessary because Marin's local climatic,
+topographical, and geological conditions increases the vulnerability of our
+aging housing stock to damage from known and future extreme weather, fire,
+slope failure, and seismic events.
+Page 4 of 22
+
+=== page 5 ===
+10. Adoption of Division A4.6 (excluding Section A4.601.5 Tier 2) of the 2025
+California Green Building Standards Code regulating Tier 1 compliance is
+reasonably necessary because of Marin's local topographical and
+environmental conditions insofar as the County of Marin is bordered by sea
+water on three sides, presenting a direct adverse local impact to potential sea
+level rise as the result of construction related contributions to climate change.
+This title shall be known as the Marin County Building Code. The promotion of
+healthy, safe, and sustainable communities; the preservation of Marin's unique
+environmental heritage; and the welfare and meaningful participation of the people of
+the county of Marin and protection of the property situated therein require adopting the
+following codes:
+(1) The 2025 edition of the California Building Code, known as California Code of
+Regulations, Part 2 of Title 24, incorporating the 2024 edition of the
+"International Building Code" published by the International Code Council,
+including: Appendix C for group U agricultural buildings; and Appendix Q for
+emergency housing; with exceptions, additions and deletions as provided in
+this title.
+(2) The 2025 edition of the California Residential Code, known as California Code
+of Regulations, Part 2.5 of Title 24, incorporating the 2024 edition of the
+"International Residential Code" published by the International Code Council,
+including: Appendix BB for tiny houses; Appendix BI for light straw-clay
+construction; Appendix BJ for strawbale construction; Appendix BK for cob
+construction (monolithic adobe); Appendix BM for 3D-printed building
+construction; Appendix BO for existing buildings and structures; and Appendix
+CJ for emergency housing; with exceptions, additions and deletions as
+provided in this title.
+(3) The 2025 edition of the California Electrical Code, known as California Code of
+Regulations, Part 3 of Title 24, incorporating the 2023 edition of the "National
+Electrical Code" published by the National Fire Protection Association, with
+exceptions, additions and deletions as provided in this title.
+(4) The 2025 edition of the California Mechanical Code, known as California Code
+of Regulations, Part 4 of Title 24, incorporating the 2024 edition of the "Uniform
+Mechanical Code" published by the International Association of Plumbing and
+Mechanical Officials, with exceptions, additions, and deletions as provided in
+this title.
+(5) The 2025 edition of the California Plumbing Code, known as California Code of
+Regulations, Part 5 of Title 24, incorporating the 2024 edition of the "Uniform
+Plumbing Code" as published by the International Association of Plumbing and
+Mechanical Officials, with exceptions, additions, and deletions as provided in
+this title.
+(6) The 2025 edition of the California Energy Code known as California Code of
+Regulations, Part 6 of Title 24.
+Page 5 of 22
+
+=== page 6 ===
+(7) The 2025 edition of the California Wildland-Urban Interface Code known as
+California Code of Regulations, Part 7 of Title 24.
+(8) The 2025 edition of the California Historical Building Code known as California
+Code of Regulations, Part 8 of Title 24.
+(9) The 2025 edition of the California Existing Building Code, known as California
+Code of Regulations, Part 10 of Title 24, incorporating content from the 2024
+edition of the "International Existing Building Code" published by the
+International Code Council.
+(10) The 2025 edition of the California Green Building Standards Code known as
+California Code of Regulations, Part 11 of Title 24, including Division A4.6 for
+Tier 1, with exceptions, additions, and deletions as provided in this Title.
+(11) The 2025 edition of the California Referenced Standards Code known as
+California Code of Regulations, Part 12 of Title 24.
+(12) Article 8 (commencing with Section 74) of Subchapter 1 of Chapter 1 of Title
+25 of the California Code of Regulations, with changes or modifications as
+provided in Chapter 19.20 of the Marin County Code.
+(13) The 2024 edition of the International Property Maintenance Code, with
+exceptions, additions, and deletions as provided in this title.
+• Amend Section 19.04.012 to read as follows:
+19.04.012 Construction of terms.
+Contained within the provisions of this title, Chapter 11.20, Chapter 11.21 and the
+codes adopted in Section 19.04.010, where the word "city" occurs, it means the word
+"county," where the words "city council" occur, they mean the words "board of
+supervisors," and where the words “chief building official,” "building official,"
+"administrative authority," "chief building inspector" or "authority enforcing this code"
+occur, they mean the words "building official" of Marin County.
+• Amend Section 19.04.022 to read as follows:
+19.04.022 Chief building official's powers and duties.
+(a) The chief building official is authorized and directed to enforce all of the provisions
+of these codes and for such purpose shall have the powers of a peace officer.
+(b) In addition to other specific duties, it shall be the duty of the chief building official
+and deputies to be familiar with and to cooperate with the Marin County Fire
+Department in the enforcement of laws and regulations of the state of California
+and any local ordinances relating to:
+(1) The installation of automatic and other fire alarm and extinguishing equipment
+where required before occupancy;
+Page 6 of 22
+
+=== page 7 ===
+(2) The requirements for storage and use of flammable material;
+(3) The requirements of adequate means of egress in case of fire in factories,
+stores, hotels, apartment houses, asylums, schools, hospitals, places of public
+assemblage and all other places in which a number of persons will be housed,
+live, work or congregate;
+(4) Cooperation with the Chief of the Marin County Fire Department, when called
+upon to do so, in the investigation of the cause, origin and circumstances of
+fire; provided, however, that the primary responsibility, insofar as the provisions
+of any of the foregoing affect the construction of new and alteration of existing
+structures, shall lie with the chief building official, and insofar as the same
+relate to the use and operation of premises or the structures and personal
+property located thereon after the final inspection, shall lie with the Chief of the
+Marin County Fire Department or other appropriate fire protection authority.
+(c) Handling funds. It shall be the duty of the chief building official to keep a permanent
+record of all funds paid into his/her office, which funds shall be turned over to the
+county treasurer at least once each week for deposit in the building and safety
+division fund of the county of Marin for which the county treasurer shall render a
+receipt.
+(d) Custodian of plans. The chief building official shall be custodian of all building plans
+and other records pertaining to his/her office and the work thereof, and he/she shall
+allow none to leave official county control. Upon relinquishment of his/her office
+shall turn such records over to his/her successor in proper order and condition.
+(e) Administration duties. It shall be the duty of the chief building official to administer
+all the provisions of this chapter, to condemn any building, work, fixture, or
+condition which, by violation of any provision of this chapter, is detrimental to public
+health and safety, to conduct all his official actions by accepted and standard
+methods and procedures, which shall also govern his/her treatment of any details of
+construction not covered by this chapter. However, any alteration, repair or
+installation of a nonconforming nature which, in his/her opinion, can only decrease
+hazard to health and safety, may be authorized by him/her in writing when strict
+compliance with this chapter would cause an unwarranted hardship.
+(f) Enforcement/citation authority. The following designated employee positions may
+enforce the provisions of this title and Chapters 11.20 and 11.21 of this code by the
+issuance of citations. Persons employed in such positions are authorized to
+exercise the authority provided in Penal Code Section 836.5 and are authorized to
+issue citations for violations of this title and Chapter 11.20 of these codes. The
+designated employee positions are: (1) building official; (2) assistant building
+official; and (3) senior building inspector; and (4) building inspector I and II.
+• Amend Section 19.04.064 to read as follows:
+19.04.064 Amendments to 2025 Wildland-Urban Interface Code – Chapter 5.
+Page 7 of 22
+
+=== page 8 ===
+Express finding: Pursuant to Health and Safety Code Sections 17958.7 and
+18941.5, the Marin County Board of Supervisors hereby finds the following fire
+protection modifications to the California Wildland-Urban Interface Code as set forth in
+this section are reasonably necessary because of Marin's local climatic and
+topographical conditions insofar as our climatic seasonal reduction in vegetative
+moisture content, combined with Marin's populated steep terrain, require the following
+enhanced fire protection measures.
+• Section 501.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+501.1 Scope. New and substantially remodeled buildings and structures located in
+any Fire Hazard Severity Zone or Wildland-Urban Interface (WUI) Fire Area designated
+by the enforcing agency shall be constructed in accordance with the California Building
+Code and this code. This chapter applies to building materials, system and/or
+assemblies used in the exterior design and construction of new buildings, substantial
+remodels, additions, modifications, and/or relocation within a Fire Hazard Severity Zone
+or Wildland Urban Interface (WUI) Fire Area as defined in Section 202.
+Exceptions:
+1. Group U accessory structures not exceeding 120 square feet (11m2) in floor
+area where located not less than 50 feet (15 240 mm) from applicable
+buildings.
+2. Group U agricultural buildings not less than 50 feet (15 240 mm) from
+applicable buildings.
+• Section 501.5 of the 2025 Wildland-Urban Interface Code is hereby added:
+Section 501.5 Definitions.
+MODIFIED. Any replacement either same in size or different in size or an addition
+of any building component.
+• Section 503.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.1 General. Buildings and structures hereafter constructed, modified or
+relocated into or within any Fire Hazard Severity Zone or Wildland-Urban Interface
+(WUI) Fire Area shall meet the construction requirements in accordance with Chapter 5.
+Materials required to be ignition-resistant building materials shall comply with the
+requirements of Section 503.2.
+Exceptions:
+1. New accessory buildings and miscellaneous structures complying with
+Section 504.11.
+Page 8 of 22
+
+=== page 9 ===
+2. Additions to and remodels of buildings originally constructed prior to July 1,
+2008.
+2. Group C occupancy special buildings conforming to the limitations specified in
+Section 450.4.1 of the California Building Code.
+• Section 503.3.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 503.3.1 Qualification by Testing. Material and material assemblies tested
+in accordance with the requirements of Section 503 shall be accepted for use
+when the results and conditions of those tests are met. Product evaluation testing
+of material and material assemblies shall be approved or listed by the State Fire
+Marshal or identified in a current report issued by an agency approved by the
+building official and/or the fire official.
+• Section 504.3 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.3 Protection of enclosed eaves. The exposed underside of enclosed
+roof eaves and soffits shall be protected on the exposed underside by one or more of
+the following:
+1. Noncombustible materials.
+2. Ignition-resistant building materials.
+3. Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as tested in accordance with ASTM
+E119 or UL 263.
+4. 2-inch (51 mm) nominal dimension lumber.
+5. 1-inch (25 mm) nominal fire-retardant-treated lumber or 3/4 -inch (19.1
+mm) nominal fire-retardant-treated plywood, identified for exterior use
+and complying with Section 2303.2 of the California Building Code.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+6. Boxed-in roof eave soffit assemblies with an underside that meets the
+performance criteria in Section 504.7.2 when tested in accordance with
+the test procedures set forth in ASTM E2957.
+7. Boxed-in roof eave soffit assemblies with an underside that meets the
+performance criteria in accordance with the test producers set forth in
+SFM Standard 12-7A-3.
+Facias are required and shall be ignition-resistant building materials, fire-retardant-
+treated wood labeled for exterior use and complying with Section 2303.2 of the
+Page 9 of 22
+
+=== page 10 ===
+California Building Code, materials approved for not less than 1-hour fire-resistance-
+rated construction or 2-inch (51 mm) nominal dimension lumber.
+• Section 504.3.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.3.1 Protection of open eaves. The exposed roof deck on the
+underside of unenclosed roof eaves shall consist of one or more of the following:
+1. Noncombustible material.
+2. Ignition-resistant building material.
+3. Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+4. Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as tested in accordance with ASTM
+E119 or UL 263.
+5. 2-inch (51 mm) nominal dimension lumber.
+6. One layer of 5/8-inch (16 mm) Type X gypsum sheathing applied
+behind an exterior covering on the underside of the roof deck.
+7. The exterior portion of a 1-hour fire-resistance-rated exterior assembly,
+as tested in accordance with ASTM E119 or UL 263, applied to the
+underside of the roof deck designed for exterior fire exposure,
+including assemblies using the gypsum panel and sheathing products
+listed in the Gypsum Association Fire Resistance Design Manual.
+Facias, if provided, shall be of fire-retardant-treated wood labeled for exterior use
+and complying with Section 2303.2 of the California Building Code, ignition-resistance
+building materials, materials approved for not less than 1-hour fire-resistance-rated
+construction or 2-inch (51 mm) nominal dimension lumber.
+• Section 504.5 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.5 Exterior walls. Exterior walls of buildings or structures shall be
+constructed with one or more of the following methods, unless they are covered with an
+exterior wall covering complying with Sections 504.5.2 and 504.5.2.1:
+1. 1-hour fire-resistance-rated construction on the exterior side.
+2. Noncombustible materials.
+3. Heavy timber. Assembly of sawn lumber or glue-laminated wood with
+the smallest minimum nominal dimension of 4 inches (102 mm). Sawn
+Page 10 of 22
+
+=== page 11 ===
+or glue-laminated planks splined, tongue-and-groove or set close
+together and well spiked.
+4. Log wall construction.
+5. Wall assemblies that have been tested in accordance with the test
+procedures for a 10-minute direct flame contact exposure test set forth
+in ASTM E2707 with the conditions of acceptance shown in Section
+504.9.3.
+6. Wall assemblies that meet the performance criteria in accordance with
+the test procedures for a 10-minute direct flame contact exposure test
+set forth in SFM Standard 12-7A-1.
+7. Wall assemblies suitable for exterior fire exposure containing one layer
+of 5/8-inch (15.9 mm) Type X gypsum sheathing applied behind the
+exterior wall covering or cladding on the exterior side of the framing.
+8. Wall assemblies suitable for exterior fire exposure with a 1-hour fire-
+resistance rating, rated from the exterior side, as tested in accordance
+with ASTM E119 or UL 263.
+9. Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+Such material shall extend from the top of the foundation to the underside
+of the roof sheathing.
+• Section 504.5.2 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.5.2 Exterior wall coverings. Exterior wall coverings shall comply with
+one or more of the following requirements:
+1. Noncombustible material.
+2. Ignition-resistance building material labeled for exterior use.
+3. Fire-retardant-treated wood labeled for exterior use and complying with
+the requirements of Section 2303.2 of the California Building Code.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+4. Fire-retardant-treated wood shingles and shakes which have been
+qualified in accordance with Section 1505.6 of the California Building
+Code for use as “Class B” roof covering shall be an acceptable
+alternative wall covering material where installed over solid sheathing.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+Page 11 of 22
+
+=== page 12 ===
+Exception: Exterior wall coverings which are a component of an approved wall
+assembly complying with Section 504.5.
+• Section 504.7 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7 Projections. Unenclosed accessory structures attached to
+buildings with habitable spaces and projections, other than decks, shall be heavy timber
+construction or constructed of one of the following:
+1. Noncombustible materials.
+2. Fire-retardant-treated wood identified for exterior use and meeting the
+requirements of Section 2303.2 of the California Building Code.
+Exception: Shall be permitted in structures except for the construction of new
+structures.
+3. Ignition-resistant building materials in accordance with Section 503.2.
+4. Materials approved for not less than 1-hour fire-resistance-rated construction
+on the exterior side, as tested in accordance with ASTM E119 or UL 263.
+5. One layer of 5/8-inch (15.9 mm) Type X gypsum sheathing applied behind the
+exterior covering on the underside of the ceiling.
+6. The exterior portion of a 1-hour fire-resistance-rated exterior assembly, as
+tested in accordance with ASTM E119 or UL 263, applied to the underside of
+the ceiling assembly, including assemblies using the gypsum panel and
+sheathing products listed in the Gypsum Association Fire Resistance Design
+Manual.
+7. The underside of a floor projection assembly that meets the performance
+criteria in Section 504.7.2 when tested in accordance with the test procedures
+set forth in ASTM E2957.
+8. The underside of a floor projection assembly that meets the performance
+criteria in accordance with the test procedures set forth in SFM Standard 12-
+7A-3.
+• Section 504.7.1 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7.1 Underside of projections. The underside of projections shall be
+enclosed to grade in accordance with the requirements of this chapter or the underside
+of the exposed underfloor shall be protected by one or more of the following:
+1. Noncombustible material.
+2. Ignition-resistant building material shall be labeled for exterior use and
+shall meet the requirements of Section 503.2.
+Page 12 of 22
+
+=== page 13 ===
+3. Fire-retardant-treated wood shall be labeled for exterior use and shall
+meet the requirements of Section 2303.2.
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+4. Materials approved for not less than 1-hour fire-resistance-rated
+construction on the exterior side, as treated in accordance with ASTM
+E119 or UL 263.
+5. One layer of 5/8-inch (15.9 mm) Type X gypsum sheathing applied
+behind an exterior covering on the underside of the floor projection.
+6. The exterior portion of a 1-hour fire-resistance-rated exterior assembly,
+as tested in accordance with ASTM E119 or UL 263, applied to the
+underside of the floor, including assemblies using the gypsum panel
+and sheathing products listed in the Gypsum Association Fire
+Resistance Design Manual.
+7. The underside of a floor assembly that meets the performance criteria
+in Section 504.7.2 when tested in accordance with the test procedures
+set forth in ASTM E2957.
+8. The underside of a floor assembly that meets the performance criteria
+in accordance with the test procedures set forth in SFM Standard 12-
+7A-3.
+Exception: Structural columns and beams are not required to be protected in
+accordance with Section 504.7.1 when constructed with sawn lumber or glue-laminated
+wood with the smallest minimum nominal dimension of 4 inches (102 mm). Sawn or
+glue-laminated planks shall be splined, tongue-and-groove, or set close together and
+well spiked.
+• Section 504.7.3.2 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.7.3.2 Decking surfaces. The walking surface material of decks,
+porches, balconies and stairs shall be constructed with any of the following materials:
+1. Material that complies with the performance requirements of Section
+504.7.3.3 when tested in accordance with ASTM E2632 and ASTM
+E2726.
+2. Ignition-resistance building material that complies with the performance
+requirements of Section 503.2.4.
+3. Material that complies with the performance requirements of both SFM
+Standard 12-7A-4 and Section 503.2.4.
+4. Fire-retardant-treated wood labeled for exterior use and complying with
+Section 2303.2 of the California Building Code.
+Page 13 of 22
+
+=== page 14 ===
+Exception: Shall be permitted in structures except for the construction
+of new structures.
+5. Noncombustible material.
+6. Any material that complies with the performance requirements of SFM
+Standard 12-7A-4A and any attached exterior wall covering that is
+noncombustible or ignition-resistant building materials.
+Exception: Wall material shall be permitted to be of any material that
+otherwise complies with this chapter when the decking surface material
+complies with the performance requirements of ASTM E84 or UL 723
+with a Class B flame spread index.
+7. Any material that complies with the performance requirements of
+Section 504.7.3.4 when tested in accordance with ASTM E2632 and
+any attached exterior wall covering that is noncombustible or ignition-
+resistant building materials.
+Exception: Wall material shall be permitted to be of any material that
+otherwise complies with this chapter when the decking surface material
+complies with the performance requirements of ASTM E84 or UL 723
+with a Class B flame spread index.
+• Section 504.7.3.5 of the 2025 Wildland-Urban Interface Code is hereby added to
+read as follows:
+Section 504.7.3.5 Deck Repairs. Repairs to decks that require replacement or
+removal of less than 50% of the existing square footage of deck surfaces do not have to
+meet the requirements of Section 504.7.3.2.
+Repairs to decks that require replacement or removal of more than 50% of the
+existing square footage of deck surfaces shall have deck surface materials that meet
+the requirements of Section 504.7.3.2.
+Repairs to decks that require replacement or removal of less than 50% of the
+supporting structure of deck surfaces do not have to meet the requirements of Section
+504.7.3.2.
+Repairs to decks that require replacement or removal of more than 50% of the
+supporting structure of deck surfaces, shall have deck surface and supporting structure
+materials that meet the requirements of Section 504.7.3.
+• Section 504.8 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.8 Exterior glazing. New or replacement: Exterior windows, window
+walls and glazed doors, windows within exterior doors, and skylights shall be
+constructed of any of the following:
+Page 14 of 22
+
+=== page 15 ===
+1. Multilayered glazed panels with at least one pane of tempered glass
+complying with Section 2406 of the California Building Code.
+2. Glass block.
+3. Glazing with a fire-protection rating of not less than 20 minutes when
+tested according to NFPA 257 or UL 9, and shall be exempt from the
+hose stream test.
+4. Glazing meeting the performance requirements of SFM Standard 12-
+7A-2.
+• Section 504.9 of the 2025 Wildland-Urban Interface Code is hereby amended to
+read as follows:
+Section 504.9 Exterior doors. New or modified: Exterior doors shall be
+constructed in accordance with any of the following:
+1. Noncombustible construction.
+2. Solid-core wood not less than 1-3/4 inches thick (44 mm).
+3. The exterior door shall be constructed of solid core wood that complies
+with the following requirements:
+3.1 Stiles and rails shall not be less than 1-3/8 inches (35 mm)
+thick.
+3.2 Raised panels shall not be less than 1-1/4 inches (32 mm)
+thick, except for the exterior perimeter of the raised panel
+that shall be permitted to taper to a tongue not less than 3/8
+inch (10 mm) thick.
+4 Have a fire protection rating of not less than 20 minutes when tested
+according to NFPA 252, UL 10B or UL 10C.
+5 The exterior surface or cladding meeting the performance
+requirements of Section 504.9.3 when tested in accordance with ASTM
+E2707.
+6 The exterior surface or cladding shall be tested to meet the
+performance requirements of SFM Standard 12-7A-1.
+Windows within doors and glazed doors shall be in accordance with
+Section 504.8.
+• Section 508 of the 2025 Wildland-Urban Interface Code is hereby added to read as
+follows:
+Section 508 – Replacement or Repair of Exterior Wall Coverings
+Section 508.A General. The exterior wall covering on buildings or structures in
+existence prior to the adoption of this code, when more than fifty percent (50%) of
+Page 15 of 22
+
+=== page 16 ===
+exterior wall covering on one face or elevation of a structure is repaired or replaced
+within a twelve (12) month period, the entire face or elevation of exterior wall covering
+shall comply with Section 504.5.2 of this code.
+• Amend Section 19.04.065 to read as follows:
+19.04.065 Fire protection systems.
+Express finding: Pursuant to Health and Safety Code Sections 17958.7 and
+18941.5, the Marin County Board of Supervisors hereby finds the following fire
+protection modifications to the California Building Code as set forth in this section are
+reasonably necessary because of Marin's local climatic and topographical conditions
+insofar as our climatic seasonal reduction in vegetative moisture content, combined with
+Marin's populated steep terrain, require the following enhanced fire protection
+measures.
+Fire protection systems for all buildings shall be in conformance with the
+requirements contained within the 2025 California Fire Code, as adopted, amended and
+set forth in Title 16 of this code, and adopted herein by reference, and administered by
+the fire code official.
+• Amend Section 19.04.070 to read as follows:
+19.04.070 Emergency escape and rescue openings.
+Express finding: Pursuant to Health and Safety Code Sections 17958.7 and
+18941.5, the Marin County Board of Supervisors hereby finds the following emergency
+escape modification to the California Residential Code as set forth in this section are
+reasonably necessary because of Marin's local topographical conditions insofar as our
+populated steep terrain, require the following enhanced emergency rescue measure.
+Section R319.1 of Chapter 3 of the 2025 California Residential Code (Title 24, Part
+2.5), California Code of Regulations is hereby amended by adding this paragraph as
+follows:
+Emergency escape and rescue openings serving unsprinklered sleeping areas on
+the second floor or with escape openings over twelve feet above grade shall be
+provided with an approved permanent escape ladder or device.
+• Amend Section 19.04.071 to read as follows:
+19.04.071 Emergency housing.
+Express findings: Pursuant to Health and Safety Code Sections 17958.7 and
+18941.5, the Marin County Board of Supervisors hereby finds the following
+modifications to Appendix Q of the 2025 California Building Code and Appendix CJ of
+the 2025 California Residential Code are reasonably necessary to limit the application
+of these appendices to conform with the authority and provisions within Government
+Page 16 of 22
+
+=== page 17 ===
+Code Section 8698.4 and during a declaration of a shelter crisis by the Marin County
+Board of Supervisors:
+Appendix Section Q101.1 of the 2025 California Building Code (Title 24, Part 2,
+Volume 2), California Code of Regulations is hereby amended to read as follows:
+Q101.1 Scope. Application of this appendix shall be limited to the duration, terms,
+and locations specified in a duly declared shelter crisis by the Marin County Board
+of Supervisors in accordance with the authority and provisions provided within
+Government Code Section 8698.4. This appendix shall be applicable to emergency
+housing and emergency housing facilities, as defined in Section Q102.
+Appendix Section CJ101.1 of the 2025 California Residential Code (Title 24, Part
+2.5), California Code of Regulations is hereby amended to read as follows:
+CJ101.1 Scope. Application of this appendix shall be limited to the duration, terms,
+and locations specified in a duly declared shelter crisis by the Marin County Board
+of Supervisors in accordance with the authority and provisions provided within
+Government Code Section 8698.4. This appendix shall be applicable to emergency
+housing and emergency housing facilities, as defined in Section CJ102.
+• Amend Section 19.04.080 to read as follows:
+19.04.080 Fire classification.
+Express finding: Pursuant to Health and Safety Code Sections 17958.7 and
+18941.5, the Marin County Board of Supervisors hereby finds the following fire
+classification modifications to the California Building Code as set forth in this section are
+reasonably necessary because of Marin's local climatic and topographical conditions
+insofar as our climatic seasonal reduction in vegetative moisture content, combined with
+Marin's populated steep terrain, require the following enhanced fire classification
+measures.
+Table 1505.1 of Chapter 15 of the 2025 California Building Code (Title 24, Part 2),
+California Code of Regulations is amended to read as follows:
+TABLE 1505.1*
+MINIMUM ROOF COVERING CLASSIFICATION
+FOR TYPES OF CONSTRUCTION
+I A I B II A II B III A III B IV V A V B
+A A A A A A A A A
+* Unless otherwise required in accordance with Section 19.04.064.
+Sections 1505.1.2 and R902.1.2 Roof coverings within all other areas. The entire
+roof covering of every existing structure where more than 50 percent of the total
+roof area is replaced within any one-year period, the entire roof covering of every
+new structure and any roof covering applied in the alteration, repair, or replacement
+Page 17 of 22
+
+=== page 18 ===
+of the roof of every existing structure shall be a fire-retardant roof covering that is at
+least Class A.
+Sections 1505.1.3 and R902.1.3 Roofing requirements in a Wildland-Urban
+Interface Fire Area. The entire roof covering of every existing structure where more
+than 50 percent of the total roof area is replaced within any one-year period, the
+entire roof covering of every new structure, and any roof covering applied in the
+alteration, repair, or replacement of the roof of every existing structure shall be a
+fire-retardant roof covering that is at least Class A.
+• Amend Section 19.07.040 to read as follows:
+19.07.040 California Building Standards Code amendments.
+Section 1901.2 of the 2025 California Building Code is hereby amended as follows:
+1901.2 Plain and reinforced concrete. Structural concrete shall be designed and
+constructed in accordance with the requirements of this chapter and ACI 318 as
+amended in Section 1905 of this code and Chapter 19.07 of Marin County Code.
+Other than compliance with Chapter 19.07 of Marin County Code, except for the
+provisions of Sections 1904 and 1907, the design and construction of slabs on
+grade shall not be governed by this chapter unless they transmit vertical loads or
+lateral forces from other parts of the structure to the soil.
+Section R402.2.1 of the 2025 California Residential Code is hereby amended as
+follows:
+R402.2.1 Materials for concrete. Materials for concrete shall comply with the
+requirements of Section R608.5.1, as amended by Chapter 19.07 of Marin County
+Code.
+Section R404.1.3 of the 2025 California Residential Code is hereby amended as
+follows:
+R404.1.3 Concrete foundation walls. Concrete foundation walls that support light-
+frame walls shall be designed and constructed in accordance with the provisions of
+this section, ACI 318, ACI 332, or PCA 100, as amended by Chapter 19.07 of Marin
+County Code. Concrete foundation walls that support above-grade concrete walls
+that are within the applicability limits of Section R608.2 shall be designed and
+constructed in accordance with the provisions of this section, ACI 318, ACI 332, or
+PCA 100, as amended by Chapter 19.07 of Marin County Code. Concrete
+foundation walls that support above-grade concrete walls that are not within the
+applicability limits of Section R608.2 shall be designed and constructed in
+accordance with the provisions of ACI 318, ACI 332, or PCA 100, as amended by
+Chapter 19.07 of Marin County Code. Where ACI 318, ACI 332, PCA 100 or the
+provisions of this section, as amended by Chapter 19.07 of Marin County Code, are
+used to design concrete foundation walls, project drawings, typical details and
+specifications are not required to bear the seal of the architect or engineer
+Page 18 of 22
+
+=== page 19 ===
+responsible for design, unless otherwise required by the state law of the jurisdiction
+having authority.
+Section R506.1 of the 2025 California Residential Code is hereby amended as
+follows:
+R506.1 General. Concrete slab-on-ground floors shall be designed and constructed
+in accordance with the provisions of this section or ACI 332, as amended by
+Chapter 19.07 of Marin County Code. Floors shall be a minimum 3 1/2 inches
+(89mm) thick (for expansive soils, see Section R403.1.8). The specified
+compressive strength of concrete shall be as set forth in Section R402.2.
+Section R608.5 of the 2025 California Residential Code is hereby amended as
+follows:
+R608.5 Materials. Materials used in the construction of concrete walls shall comply
+with this section, as amended by Chapter 19.07 of Marin County Code.
+Section 301 of the 2025 California Green Building Standards Code is hereby
+augmented with the following:
+301.6 Low-carbon concrete requirements for all projects. Plain and reinforced
+concrete installed as part of any project subject to the application of this code shall
+demonstrate compliance with the requirements of Chapter 19.07 of Marin County
+Code, the full text of which is herein added to this code by reference.
+Section A4.403.2 of the 2025 California Green Building Standards Code is hereby
+amended as follows:
+A4.403.2 Reduction in cement use. As allowed by the enforcing agency, cement
+use in foundation mix design shall be reduced as outlined in the requirements of
+Chapter 19.07 of Marin County Code.
+Section A5.405.5 of the 2025 California Green Building Standards Code is hereby
+amended as follows:
+A5.405.5 Cement and concrete. Use cement and concrete made with recycled
+products and complying with the following sections and the requirements of
+Chapter 19.07 of Marin County Code.
+• Amend Section 19.14.020 to read as follows:
+19.14.020 Additional verifications required.
+Prior to, and as a condition of the issuance and final inspection of any maintenance or
+minor improvement permits (i.e., permits not requiring the submittal of plans and plan
+review approval prior to permit issuance), the permit applicant must demonstrate
+compliance with the following requirements by submitting a signed affirmative
+declaration indicating compliance with this chapter to the building inspector during final
+inspection. Each signed declaration shall be retained and attached to the permanent
+record of the permit.
+Page 19 of 22
+
+=== page 20 ===
+Prior to, and as a condition of the issuance and final inspection of any other permit (i.e.,
+permits requiring the submittal of plans and plan review approval prior to permit
+issuance), the permit applicant must demonstrate compliance with the following
+requirements through an inspection of the property by the building inspector in
+connection with the final inspection associated with the permit, except that compliance
+with California Civil Code 1101.4 (a), 1101.5 (d)(2), and California Plumbing Code 401.3
+for water conserving plumbing fixtures may be verified by providing a signed affirmative
+declaration indicating compliance. The building inspector's approval of final inspection
+shall serve as verification of compliance with this chapter and shall be retained and
+attached to the permanent record of the permit.
+1. For all building permits issued after July 1, 2023: In accordance with California
+Civil Code sections 1101.4 (a) and 1101.5 (d)(2), and California Plumbing Code
+401.3, for all building alterations or improvements to dwelling units within
+residential real property, as a condition for issuance of a certificate of final
+completion and occupancy, or final approval by the Marin County Community
+Development Agency Building and Safety Division, the permit holder shall
+replace all noncompliant plumbing fixtures with water conserving plumbing
+fixtures that comply with the latest edition of the California Plumbing Code.
+2. For all building permits issued after July 1, 2023: Pursuant to California Health
+and Safety Code section 13113.7(a)(2) and California Residential Code section
+R310.2.2, smoke alarms approved by the State Fire Marshal shall be installed
+and verified in residential dwelling units undergoing alterations and
+improvements when the value of the alteration or improvement is at least one
+thousand dollars.
+Page 20 of 22
+
+=== page 21 ===
+3. For all building permits issued after July 1, 2023: Pursuant to California Health
+and Safety Code section 17926(a) and California Residential Code section
+R311.2, carbon monoxide alarms shall be installed and verified in all existing
+dwelling units where either or both of the following conditions exist: 1) The
+dwelling unit contains a fuel-fired appliance or fireplace; or 2) The dwelling unit
+has an attached garage with an opening that communicates with the dwelling
+unit.
+4. For all building permits issued after July 1, 2023: In accordance with this chapter
+and Chapter 19.13, for any gate more than forty-eight inches in width or more
+than eighty-four inches in height (except for gates serving rural agricultural
+properties, as determined by the director, or her/his assign), gate safeguards
+providing fall-over protection are required to be installed and maintained by the
+property owner. As a condition of final inspection, the permit holder shall ensure
+that existing gates requiring fall-over protection safeguards are provided with
+compliant installed safeguards and verified in accordance with this chapter prior
+to permit closure.
+• Amend Section 19.18.040 to read as follows:
+19.18.040 Code requirements—General.
+Except as provided herein, each floating home or ark shall comply with the
+provisions of Chapter 19.04. A dwelling unit which meets the minimum requirements for
+efficiency dwelling unit set forth under the current edition of the California Residential
+Code (Title 24, Part 2.5), California Code of Regulations may be newly constructed,
+provided all stability design is performed in accordance with this chapter. As an
+alternative to the ceiling heights specified in Section R313 of the 2025 California
+Residential Code, minimum ceiling heights may be six feet, six inches, provided that no
+portion of the ceiling is less than six feet, six inches and that floor areas comply with
+Section 19.18.045(b) of the Marin County Code.
+SECTION III: VALIDITY
+If any section, subsection, sentence, clause, or phrase of the provisions depicted in this
+Ordinance is for any reason held to be invalid, such decision shall not affect the validity
+of the remaining provisions adopted under this Ordinance. The Board of Supervisors of
+Marin County hereby declares that it would have adopted the Ordinance and each
+section, subsection, sentence, clause, or phrase thereof, irrespective of the fact that any
+one or more sections, subsections, sentences, clauses, or phrases thereof shall be
+declared invalid.
+Page 21 of 22
+
+=== page 22 ===
+SECTION IV: VOTE
+Notice of this Ordinance was published pursuant to Government Code sections 50022.3,
+50022.6, 6066, and 25124(b)(1), and a certified copy of the full text of this Ordinance was
+posted in the office of the Clerk of the Marin County Board of Supervisors at least five (5)
+days prior to the Board of Supervisors meeting at which it was adopted.
+PASSED AND ADOPTED at a regular meeting of the Board of Supervisors of the
+County of Marin held on this 18th day of November by the following vote:
+AYES:
+NOES:
+ABSENT:
+__________________________________
+PRESIDENT, BOARD OF SUPERVISORS
+ATTEST:
+CLERK
+Page 22 of 22

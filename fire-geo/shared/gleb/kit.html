@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gleb kit · Fire code by location</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/shared/shell.css">
+<link rel="stylesheet" href="/lib/beforeafter.css">
+<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/team/team.css">
+<link rel="stylesheet" href="/team/phone.css">
+<link rel="stylesheet" href="/team/desk.css">
+<link rel="stylesheet" href="gleb.css">
+<script src="gleb.js"></script>
+<style>
+  /* this page only. The pages' stylesheets are loaded so the mock-ups below use the real class names. */
+  html, body { height: auto; }
+  body.kit { display: block; overflow: auto; height: auto; min-height: 100vh; padding: 0 0 120px; }
+  .kit-top { max-width: 1320px; margin: 0 auto; padding: 44px 40px 8px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .kit-top h1 { font: 300 56px/60px var(--gl-font, inherit); letter-spacing: -.03em; }
+  .kit-top p { margin-top: 10px; max-width: 640px; font-size: 15px; line-height: 22px; color: var(--ink2); }
+  .kit-part { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+  .kit-part > h2 { font: 500 24px/28px var(--gl-font, inherit); letter-spacing: -.03em; margin: 56px 0 4px; }
+  .kit-part > .kit-lead { font-size: 14px; line-height: 20px; color: var(--ink2); max-width: 760px; margin-bottom: 16px; }
+  .kit-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; margin-top: 12px; }
+  .kit-mine, .kit-ref { border-radius: 36px; padding: 24px; min-width: 0; }
+  .kit-mine { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); display: grid; gap: 18px; align-content: start; }
+  .kit-ref { background: #949EB0; display: grid; gap: 10px; align-content: start; }
+  .kit-ref img { display: block; max-width: 100%; height: auto; border-radius: 24px; }
+  .kit-tag { font: 500 12px/16px var(--gl-font, inherit); color: var(--ink2); }
+  .kit-ref .kit-tag { color: #192233; }
+  .kit-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .kit-line > .kit-tag { flex: none; width: 92px; }
+  .kit-stack { display: grid; gap: 12px; justify-items: start; }
+  .kit-dark { background: #6B788F; border-radius: 24px; padding: 18px 22px; display: inline-flex; gap: 22px; align-items: center; }
+  .kit-swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .kit-swatch { width: 92px; }
+  .kit-swatch i { display: block; height: 56px; border-radius: 24px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
+  .kit-swatch b { display: block; margin-top: 6px; font-size: 12px; }
+  .kit-swatch span { display: block; font-size: 12px; color: var(--ink2); }
+  .kit-radii { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+  .kit-radii i { display: grid; place-items: end start; width: 84px; height: 84px; padding: 8px; background: rgba(255, 255, 255, .58); font: 500 12px/16px var(--gl-font, inherit); font-style: normal; }
+  .kit-pages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; align-items: start; }
+  .kit-mock { display: grid; gap: 10px; align-content: start; min-width: 0; }
+  .kit-phone { width: 100%; max-width: 372px; border-radius: 39px; padding: 22px 16px 18px; display: grid; gap: 12px; }
+  .kit-desk { border-radius: 24px; padding: 18px 20px; }
+  .kit-card { --pad: 20px; --fs-xl: 27px; --fs-l: 17.5px; --fs-m: 14px; --fs-s: 12px; --row: 38px; position: relative; }
+  .kit-chosen { position: relative; z-index: 0; }
+  .kit-chosen::before { content: ""; position: absolute; z-index: -1; inset: 0 -10px; border-radius: var(--r-row); background: var(--hi-soft); }
+  html.gleb .kit-chosen::before { border-radius: 999px; background: linear-gradient(100deg, #fff 0%, #fff 46%, #EAF2FF 72%, #D6E1FB 100%); box-shadow: 0 8px 20px -10px rgba(25, 34, 51, .3); }
+  .kit-toggle { display: inline-flex; gap: 8px; align-items: center; }
+  html:not(.gleb) .kit-only-gleb { display: none; }
+  html.gleb .kit-only-plain { display: none; }
+  @media (max-width: 1000px) { .kit-row, .kit-pages { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body class="kit gl-scope">
+
+<header class="kit-top">
+  <div>
+    <h1>The Gleb kit</h1>
+    <p>His components, drawn from his frames, for the two fire-geo pages. On the left of each row is the kit. On the right is the crop of his tile it was built from. How things move stays as it is on the pages today.</p>
+  </div>
+  <div class="kit-toggle">
+    <span class="kit-tag">Look</span>
+    <div class="gl-seg shell-seg" id="kitLook" aria-label="Which look">
+      <span class="gl-seg-ind shell-seg-ind"></span>
+      <button type="button" class="on" data-value="1">Gleb</button>
+      <button type="button" data-value="0">As it was</button>
+    </div>
+    <a class="gl-chip shell-pill" href="/">Technology</a>
+    <a class="gl-chip shell-pill" href="/#inspectors">Inspectors</a>
+  </div>
+</header>
+
+<!-- ============================================================ foundations -->
+<section class="kit-part" id="foundations">
+  <h2>Colour, type, corners</h2>
+  <p class="kit-lead">Five colours and leaf. Two weights of Inter. Corners 60, 48, 36, 24 and never 12. Things you touch are capsules or circles.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="kit-swatches">
+        <div class="kit-swatch"><i style="background:#192233"></i><b>Ink</b><span>text, action</span></div>
+        <div class="kit-swatch"><i style="background:#8595AC"></i><b>Mist</b><span>the air</span></div>
+        <div class="kit-swatch"><i style="background:#fff"></i><b>Light</b><span>what it knows</span></div>
+        <div class="kit-swatch"><i style="background:#6892F8"></i><b>Sky</b><span>active</span></div>
+        <div class="kit-swatch"><i style="background:#FF765A"></i><b>Ember</b><span>needs you</span></div>
+        <div class="kit-swatch"><i style="background:#52D98C"></i><b>Leaf</b><span>working</span></div>
+      </div>
+      <div class="kit-stack">
+        <span class="gl-title">Good evening.</span>
+        <span class="gl-heading">When do we start?</span>
+        <span class="gl-body">19:30 to 21:30 · 7 stay to the end</span>
+        <span class="gl-caption gl-soft">Fri 23 Oct · Shimbashi 2F</span>
+      </div>
+      <div class="kit-radii">
+        <i style="border-radius:60px 0 0 0">tray 60</i><i style="border-radius:48px 0 0 0">sheet 48</i><i style="border-radius:36px 0 0 0">tile 36</i><i style="border-radius:24px 0 0 0">card 24</i>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Verdicts</span>
+        <span class="tm-vmark"><i class="verdict-mark" data-verdict="red"></i>Violation</span>
+        <span class="tm-vmark"><i class="verdict-mark" data-verdict="yellow"></i>Check on site</span>
+        <span class="tm-vmark"><i class="verdict-mark" data-verdict="green"></i>Compliant</span>
+        <span class="tm-vmark"><i class="verdict-mark"></i>Not carried</span>
+      </div>
+      <span class="kit-tag">The three verdict colours are Andrew's and stay red, yellow and green, each with a shape and a word. His system has no counterpart.</span>
+    </div>
+    <div class="kit-ref"><span class="kit-tag">His icons: 24 grid, 1.75 stroke (27-icons/t-01-01)</span><img src="ref/icons.png" alt="His line icon set">
+      <div class="kit-line" style="color:#192233">
+        <i class="gl-icon" data-i="check"></i><i class="gl-icon" data-i="x"></i><i class="gl-icon" data-i="plus"></i><i class="gl-icon" data-i="minus"></i><i class="gl-icon" data-i="chevron-left"></i><i class="gl-icon" data-i="chevron-right"></i><i class="gl-icon" data-i="chevron-down"></i><i class="gl-icon" data-i="arrow-up"></i><i class="gl-icon" data-i="search"></i><i class="gl-icon" data-i="camera"></i><i class="gl-icon" data-i="calendar"></i><i class="gl-icon" data-i="pin"></i><i class="gl-icon" data-i="lock"></i><i class="gl-icon" data-i="sun"></i><i class="gl-icon" data-i="send"></i><i class="gl-icon" data-i="picture"></i><i class="gl-icon" data-i="pencil"></i><i class="gl-icon" data-i="mic"></i><i class="gl-icon" data-i="sparkle"></i><i class="gl-icon" data-i="working"></i>
+      </div>
+      <span class="kit-tag">Above: the kit's icons, redrawn to his grid and stroke.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ buttons -->
+<section class="kit-part" id="buttons">
+  <h2>Buttons</h2>
+  <p class="kit-lead">Ink asks for a decision. Light sends. Veil is everything else. Pressed is 86%. Disabled is 40%. Anything that sends is a hold.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="kit-line"><span class="kit-tag">Ink</span>
+        <button class="gl-button" type="button">Confirm</button>
+        <button class="gl-button" type="button" data-gl="hold"><span class="gl-hold-fill"></span><span>Hold to send</span></button>
+        <button class="gl-button is-loading" type="button" aria-label="Sending"><span>Confirm</span><i class="gl-loader"></i></button>
+        <button class="gl-button" type="button" disabled>Confirm</button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Light</span>
+        <button class="gl-button is-light" type="button">Confirm</button>
+        <button class="gl-button is-light" type="button" data-gl="hold"><span class="gl-hold-fill"></span><span>Hold to send</span></button>
+        <button class="gl-button is-light is-loading" type="button" aria-label="Sending"><span>Confirm</span><i class="gl-loader"></i></button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Veil</span>
+        <button class="gl-button is-veil" type="button">Not now</button>
+        <button class="gl-button is-veil is-loading" type="button" aria-label="Working"><span>Not now</span><i class="gl-loader"></i></button>
+        <button class="gl-button is-veil" type="button" disabled>Not now</button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Icon button</span>
+        <button class="gl-icon-button" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button>
+        <button class="gl-icon-button is-small" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button>
+        <button class="gl-icon-button is-ink" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button>
+        <button class="gl-icon-button is-small is-ink" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button>
+        <button class="gl-icon-button is-bare" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button>
+        <button class="gl-icon-button" type="button" aria-label="Close" disabled><i class="gl-icon" data-i="x"></i></button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Two at most</span>
+        <div class="gl-pair" style="width:324px"><button class="gl-button is-light" type="button">Pause</button><button class="gl-button" type="button">Stop</button></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Loader</span>
+        <span class="kit-dark"><i class="gl-loader is-16"></i><i class="gl-loader"></i><i class="gl-loader is-40"></i><i class="gl-loader is-16 is-light"></i><i class="gl-loader is-light"></i><i class="gl-loader is-40 is-light"></i></span>
+      </div>
+      <span class="kit-tag">His loader turns once every 1.2 s. Here nothing spins: the ring keeps his shape, holds still and breathes on the same 1.2 s beat.</span>
+    </div>
+    <div class="kit-ref">
+      <span class="kit-tag">30-buttons/t-01-01</span><img src="ref/buttons.png" alt="His buttons and icon buttons">
+      <span class="kit-tag">30-buttons/t-02-01, States and Loader</span><img src="ref/states.png" alt="His state table"><img src="ref/loader.png" alt="His loader">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ chips, segmented, dots, outline -->
+<section class="kit-part" id="chips">
+  <h2>Chips, segmented control, page dots</h2>
+  <p class="kit-lead">One capsule, five kinds. Chosen is ink with a check. The segmented control is the same chips on a quiet track, and its pill slides.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="kit-line"><span class="kit-tag">Regular 32</span>
+        <button class="gl-chip" type="button">Fairfax</button>
+        <button class="gl-chip is-selected" type="button">Fairfax</button>
+        <button class="gl-chip is-suggested" type="button">Try again</button>
+        <span class="gl-chip is-needs">Needs you</span>
+        <span class="gl-chip is-working">Working</span>
+        <button class="gl-chip" type="button" disabled>Fairfax</button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Small 24</span>
+        <button class="gl-chip is-small" type="button">Fairfax</button>
+        <button class="gl-chip is-small is-selected" type="button">Fairfax</button>
+        <button class="gl-chip is-small is-suggested" type="button">Try again</button>
+        <span class="gl-chip is-small is-needs">Needs you</span>
+        <span class="gl-chip is-small is-working">Working</span>
+        <span class="gl-tag">Local rule</span>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Tap to choose</span>
+        <div class="gl-chips" id="kitChips">
+          <button class="gl-chip" type="button" aria-pressed="true">Ross</button><button class="gl-chip" type="button" aria-pressed="false">Fairfax</button><button class="gl-chip" type="button" aria-pressed="false">San Anselmo</button><button class="gl-chip" type="button" aria-pressed="false">County</button>
+        </div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Segmented</span>
+        <div class="gl-seg" data-gl="seg"><span class="gl-seg-ind"></span><button type="button" class="on" data-value="plan">Plan</button><button type="button" data-value="friday">Friday</button><button type="button" data-value="after">After</button></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Full width</span>
+        <div class="gl-seg is-wide" data-gl="seg" style="width:328px"><span class="gl-seg-ind"></span><button type="button" data-value="a">Driving</button><button type="button" class="on" data-value="b">Biking</button><button type="button" data-value="c">Walking</button></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Page dots</span>
+        <div class="gl-dots" id="kitDots"><button type="button" aria-pressed="true" aria-label="First"></button><button type="button" aria-pressed="false" aria-label="Second"></button><button type="button" aria-pressed="false" aria-label="Third"></button></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Outline capsule</span>
+        <span class="gl-outline is-two-line" style="width:300px"><span>Ross · Town</span><small>Ross Valley Fire Department</small></span>
+        <span class="gl-outline is-small">Required</span>
+      </div>
+      <span class="kit-tag">The outline capsule is for context only, never a button. Andrew's outline tags land on it.</span>
+    </div>
+    <div class="kit-ref">
+      <span class="kit-tag">32-segmented-chips/t-01-01</span><img src="ref/segmented.png" alt="His segmented control and page dots">
+      <span class="kit-tag">32-segmented-chips/t-01-02</span><img src="ref/chips.png" alt="His chips"><img src="ref/chip-stress.png" alt="His chips and segmented on a light card">
+      <span class="kit-tag">32-segmented-chips/t-02-01</span><img src="ref/outline-capsule.png" alt="His outline capsule">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ rows, switch, slider, field -->
+<section class="kit-part" id="controls">
+  <h2>Rows, switch, slider, field</h2>
+  <p class="kit-lead">A row has no card, border or divider. The switch is leaf when on. The slider has no thumb. The field is a capsule with no rim.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="gl-list" style="max-width:340px">
+        <div class="gl-row"><span class="gl-row-disc"><i class="gl-icon" data-i="calendar"></i></span><span class="gl-row-text"><span class="gl-row-title">Inspection not yet set</span><span class="gl-row-detail">When · Proposed Tuesday</span></span></div>
+        <div class="gl-row is-compact"><span class="gl-row-disc">R</span><span class="gl-row-text"><span class="gl-row-title">Painted sprinkler</span><span class="gl-row-detail">Ross · sent 14:02</span></span><i class="gl-dot"></i></div>
+        <div class="gl-row is-compact"><span class="gl-row-disc">F</span><span class="gl-row-text"><span class="gl-row-title">Ladder fuel by the deck</span><span class="gl-row-detail">Fairfax · sent 13:40</span></span><i class="gl-dot is-ember"></i></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Switch</span>
+        <button class="gl-switch" data-gl="switch" aria-checked="true" aria-label="Example, on"></button>
+        <button class="gl-switch" data-gl="switch" aria-checked="false" aria-label="Example, off"></button>
+        <button class="gl-switch" aria-checked="true" aria-label="Example, unavailable" disabled></button>
+        <button class="gl-switch is-small" data-gl="switch" aria-checked="true" aria-label="Small, on"></button>
+        <button class="gl-switch is-small" data-gl="switch" aria-checked="false" aria-label="Small, off"></button>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Tick well</span>
+        <span class="gl-tick is-on"><i class="gl-icon" data-i="check"></i></span><span class="gl-tick"></span>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Slider</span>
+        <div class="gl-slider" data-gl="slider" data-value="0.57" aria-label="Example level"><span class="gl-slider-fill"></span><i class="gl-icon" data-i="sun"></i></div>
+      </div>
+      <div class="kit-line"><span class="kit-tag">Stepper</span>
+        <div class="gl-stepper" data-kit-step><button class="gl-icon-button is-small" type="button" aria-label="One foot less"><i class="gl-icon" data-i="chevron-left"></i></button><span class="gl-readout is-scrub gl-num"><span>20</span><small>ft</small></span><button class="gl-icon-button is-small" type="button" aria-label="One foot more"><i class="gl-icon" data-i="chevron-right"></i></button></div>
+        <div class="gl-stepper is-capsule" data-kit-step><button class="gl-icon-button is-small" type="button" aria-label="One foot less"><i class="gl-icon" data-i="chevron-left"></i></button><span class="gl-stepper-num"><span>20</span><small>ft</small></span><button class="gl-icon-button is-small" type="button" aria-label="One foot more"><i class="gl-icon" data-i="chevron-right"></i></button></div>
+      </div>
+      <div class="kit-stack" style="width:300px;justify-items:stretch">
+        <label class="gl-field"><i class="gl-icon" data-i="plus"></i><input placeholder="Ask anything" aria-label="Ask anything"><i class="gl-icon" data-i="mic"></i></label>
+        <label class="gl-field"><i class="gl-icon" data-i="plus"></i><input value="Head stamp TY3251" aria-label="Typed"><button class="gl-send" type="button" aria-label="Send"><i class="gl-icon" data-i="arrow-up"></i></button></label>
+        <div><label class="gl-field"><i class="gl-icon" data-i="plus"></i><input placeholder="Year on the head" aria-label="Year"></label><p class="gl-error">That year is not on the head. Try again.</p></div>
+      </div>
+      <span class="kit-tag">His slider is for a level. A number you set by hand keeps Andrew's control: drag the number, or step it with the arrows. It wears his big Light readout.</span>
+    </div>
+    <div class="kit-ref">
+      <span class="kit-tag">33-lists-controls/t-01-01</span><img src="ref/rows.png" alt="His list rows"><img src="ref/switch-slider.png" alt="His switch and slider">
+      <span class="kit-tag">30-buttons/t-02-01, Ask input</span><img src="ref/ask-input.png" alt="His ask input states">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ cards -->
+<section class="kit-part" id="cards">
+  <h2>Cards, lit rows, card states</h2>
+  <p class="kit-lead">One shell: frosted glass, corner 48, a title with a caption, rows with hairlines, two buttons at most. One row is lit at a time. A state changes the mark, the words and the chips, never the shape.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="kit-line" style="align-items:flex-start">
+        <div class="gl-card" style="width:328px">
+          <h3 class="gl-card-title">Painted sprinkler</h3>
+          <p class="gl-card-caption"><i class="gl-dot is-leaf"></i>Checking the codes · step 3 of 5</p>
+          <div class="gl-card-body gl-steps">
+            <div class="gl-step is-done">Read the photograph</div>
+            <div class="gl-step is-done">Found the place</div>
+            <div class="gl-step is-run">Matching the fire code</div>
+            <div class="gl-step">Draft the correction</div>
+          </div>
+          <div class="gl-card-actions gl-pair"><button class="gl-button is-light" type="button">Pause</button><button class="gl-button" type="button">Stop</button></div>
+        </div>
+        <div class="kit-stack" style="width:328px;justify-items:stretch">
+          <div class="gl-rowcard is-lit"><i class="gl-icon is-small" data-i="working"></i><span class="gl-row-text"><span class="gl-row-title">Vegetation near the deck</span><span class="gl-row-detail">Checking now · row 2 of 6</span></span><span class="gl-chip is-small is-suggested">Live</span></div>
+          <div class="gl-rowcard"><i class="gl-ring"></i><span class="gl-row-text"><span class="gl-row-title">Sprinkler heads</span><span class="gl-row-detail">Violation · sample citation</span></span><span class="gl-chip is-small">View</span></div>
+          <div class="gl-rowcard"><i class="gl-ring"></i><span class="gl-row-text"><span class="gl-row-title">Address numbers</span><span class="gl-row-detail">Compliant · seen from the road</span></span><span class="gl-chip is-small">View</span></div>
+        </div>
+      </div>
+      <div class="kit-line" style="align-items:flex-start">
+        <div class="gl-card" style="width:328px"><div class="gl-state is-loading"><span class="gl-light" aria-hidden="true"></span><div><p class="gl-state-title">Reading the photograph</p><p class="gl-state-sub">Step 2 of 5 · about 20 seconds</p></div><div class="gl-chips"><button class="gl-chip" type="button">Stop</button></div></div></div>
+        <div class="gl-card" style="width:328px"><div class="gl-state"><span class="gl-state-glyph"><i class="gl-ember"></i></span><div><p class="gl-state-title">Could not read the head stamp</p><p class="gl-state-sub">The photograph is too dark. Nothing was sent.</p></div><div class="gl-chips"><button class="gl-chip is-suggested" type="button">Try again</button><button class="gl-chip" type="button">Type it</button></div></div></div>
+      </div>
+      <div class="kit-line" style="align-items:flex-start">
+        <div class="gl-card" style="width:328px"><div class="gl-state"><span class="gl-state-glyph"><i class="gl-ring"></i></span><div><p class="gl-state-title">Nothing sent yet</p><p class="gl-state-sub">Take a photograph and it lands here.</p></div><div class="gl-chips"><button class="gl-chip" type="button">Load a sample</button></div></div></div>
+        <div class="gl-card" style="width:328px"><div class="gl-state"><span class="gl-state-glyph"><i class="gl-icon" data-i="check"></i></span><div><p class="gl-state-title">Sent to the senior inspector</p><p class="gl-state-sub">Ross · 14:02 · six checks</p></div><div class="gl-chips"><button class="gl-chip" type="button">View</button></div></div></div>
+      </div>
+      <span class="kit-tag">A wait inside a card shows the Light, his one loader. It does not turn: the leaf tint breathes.</span>
+    </div>
+    <div class="kit-ref">
+      <span class="kit-tag">37-generative-ui/t-09-01, card shell</span><img src="ref/card.png" alt="His card on the phone" style="max-width:300px">
+      <span class="kit-tag">37-generative-ui/t-10-01, rows</span><img src="ref/lit-rows.png" alt="His lit and quiet rows" style="max-width:300px">
+      <span class="kit-tag">37-generative-ui/t-11-01 and t-12-01, card states</span><img src="ref/card-states-a.png" alt="His card states, first row"><img src="ref/card-states-b.png" alt="His card states, second row">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ sheet -->
+<section class="kit-part" id="sheets">
+  <h2>Sheet</h2>
+  <p class="kit-lead">One sheet. Up to four blocks: the facts, the question, the choice, what happens next. One Ink action and a close disc. Sending is a hold.</p>
+  <div class="kit-row">
+    <div class="kit-mine">
+      <div class="kit-line" style="align-items:flex-start">
+        <div class="gl-sheet">
+          <dl class="gl-sheet-facts"><div><dt>Finding</dt><dd>Sprinkler</dd></div><div><dt>Place</dt><dd>Ross</dd></div><div><dt>Checks</dt><dd>6 of 6</dd></div></dl>
+          <h3 class="gl-sheet-question">Send it for review?</h3>
+          <p class="gl-why">One row is a violation. Two need a look on site.</p>
+          <div class="gl-seg is-wide" data-gl="seg"><span class="gl-seg-ind"></span><button type="button" class="on" data-value="now">Now</button><button type="button" data-value="later">After the visit</button></div>
+          <p class="gl-then">Goes to the senior inspector with the photograph and your answers.</p>
+          <div class="gl-sheet-actions"><button class="gl-button" type="button" data-gl="hold"><span class="gl-hold-fill"></span><span>Hold to send</span></button><button class="gl-icon-button" type="button" aria-label="Close"><i class="gl-icon" data-i="x"></i></button></div>
+        </div>
+        <div class="gl-sheet">
+          <h3 class="gl-sheet-question" style="margin-top:0">Where are you?</h3>
+          <div class="kit-stack" style="justify-items:stretch" role="radiogroup" aria-label="Place" id="kitPlaces">
+            <button class="gl-option is-on" type="button" role="radio" aria-checked="true"><span>Ross <small class="gl-caption" style="opacity:.8">Town</small></span><span class="gl-tick is-on"><i class="gl-icon" data-i="check"></i></span></button>
+            <button class="gl-option" type="button" role="radio" aria-checked="false"><span>Fairfax <small class="gl-caption" style="opacity:.8">Town</small></span><span class="gl-tick"><i class="gl-icon" data-i="check"></i></span></button>
+            <button class="gl-option" type="button" role="radio" aria-checked="false"><span>Unincorporated <small class="gl-caption" style="opacity:.8">County</small></span><span class="gl-tick"><i class="gl-icon" data-i="check"></i></span></button>
+          </div>
+        </div>
+      </div>
+      <span class="kit-tag">It rises and leaves the way the pages' sheet does today: from the bottom edge, about 340 ms, eased out, and closing is the reverse.</span>
+    </div>
+    <div class="kit-ref"><span class="kit-tag">34-sheets/t-01-01, Sheet / Decision</span><img src="ref/sheet.png" alt="His decision sheet"></div>
+  </div>
+</section>
+
+<!-- ============================================================ these pages, Gleb-ified -->
+<section class="kit-part" id="pages">
+  <h2>These pages, Gleb-ified</h2>
+  <p class="kit-lead">The pages' own parts, with their real class names, wearing the kit. Nothing below was rewritten. Switch the look at the top to compare.</p>
+  <div class="kit-pages">
+
+    <div class="kit-mock">
+      <span class="kit-tag">Technology · photo switch and a correction card</span>
+      <section class="shell-glass card photo-card kit-card">
+        <div class="shell-seg is-wide gl-seg" data-gl="seg" aria-label="Photograph">
+          <span class="shell-seg-ind gl-seg-ind"></span>
+          <button type="button" class="on" data-value="ladder">Ladder fuel</button>
+          <button type="button" data-value="sprinkler">Painted sprinkler</button>
+        </div>
+        <h1 class="card-title">Ladder fuel under a canopy</h1>
+        <div class="ba-tools" style="margin-top:0"><button type="button" class="shell-pill ba-toggle" id="kitToggle" aria-pressed="true"><span class="ba-check" aria-hidden="true"></span>Show what changed</button></div>
+        <div class="fix">
+          <p class="fix-title">Remove the lower tier of bushes</p>
+          <div class="fix-dots" id="kitFix" role="group" aria-label="Choose a correction"><button type="button" class="fix-dot" aria-pressed="true" aria-label="Correction 1"></button><button type="button" class="fix-dot" aria-pressed="false" aria-label="Correction 2"></button><button type="button" class="fix-dot" aria-pressed="false" aria-label="Correction 3"></button></div>
+        </div>
+      </section>
+      <span class="kit-tag">Technology · map chips and the distance stepper</span>
+      <section class="shell-glass card map-card kit-card">
+        <div class="chips" id="kitMapChips" role="group" aria-label="Places" style="margin-top:0">
+          <button type="button" class="shell-pill" aria-pressed="true">Ross</button><button type="button" class="shell-pill" aria-pressed="false">San Anselmo</button><button type="button" class="shell-pill" aria-pressed="false">Fairfax</button><button type="button" class="shell-pill" aria-pressed="false">Unincorporated</button>
+        </div>
+        <div class="measure">
+          <span class="measure-label">Distance to the building</span>
+          <div class="stepper" data-kit-step>
+            <button type="button" class="step-btn" aria-label="One foot less"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg></button>
+            <span class="scrub shell-num"><span>20</span><small>ft</small></span>
+            <button type="button" class="step-btn" aria-label="One foot more"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg></button>
+          </div>
+        </div>
+      </section>
+      <span class="kit-tag">Technology · the verdict, rules with one chosen, and its text</span>
+      <section class="shell-glass card codes-card kit-card">
+        <div class="verdict-head"><span class="verdict-mark is-large" data-verdict="red"></span><h2 class="verdict-word">Violation here</h2><div class="verdict-tally"><span class="tally-item"><i class="verdict-mark" data-verdict="red"></i>1</span><span class="tally-item"><i class="verdict-mark" data-verdict="yellow"></i>2</span><span class="tally-item"><i class="verdict-mark" data-verdict="green"></i>1</span></div><p class="verdict-line">Ladder fuel within 30 ft.</p></div>
+        <div class="layer">
+          <h3 class="layer-title">Ross</h3>
+          <ol class="rows" id="kitRows">
+            <li class="code-row kit-chosen"><span class="verdict-mark" data-verdict="red"></span><span class="row-what"><span class="row-label">Ladder fuels</span><span class="row-phrase"> · within <span class="row-num">30</span> ft</span></span><span class="row-cite">sample §</span></li>
+            <li class="code-row"><span class="verdict-mark" data-verdict="yellow"></span><span class="row-what"><span class="row-label">Canopy trees</span><span class="row-phrase"> · <span class="row-num">8</span> in. or less</span></span><span class="row-cite">sample §</span></li>
+            <li class="code-row"><span class="verdict-mark" data-verdict="yellow"></span><span class="row-what"><span class="row-label">Roadside</span><span class="row-phrase"> · <span class="row-num">10</span> ft each side</span></span><span class="row-cite">sample §</span></li>
+            <li class="code-row"><span class="verdict-mark" data-verdict="green"></span><span class="row-what"><span class="row-label">Address numbers</span></span><span class="row-cite">sample §</span></li>
+          </ol>
+        </div>
+        <div class="detail"><div class="detail-sheet on"><p class="detail-why"><span class="verdict-mark" data-verdict="red"></span><b>Violation.</b>Inside the 30 ft reach at 20 ft.</p><p class="detail-cite">Sample citation, for this preview only</p><p class="detail-quote">“Ladder fuels <mark class="code-key">shall be removed within 30 feet</mark> of the structure.”</p></div></div>
+      </section>
+    </div>
+
+    <div class="kit-mock">
+      <span class="kit-tag">Inspectors, laptop · rules, one open with its three verdict choices</span>
+      <div class="kit-desk dk-app" style="height:auto;display:block;font-size:14px">
+        <ol class="dk-rows" style="padding:0">
+          <li class="dk-row is-open lift" data-verdict="red">
+            <div class="dk-row-line"><button class="dk-verdict" type="button"><i class="verdict-mark" data-verdict="red"></i><span>Violation</span><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></button><button class="dk-row-open" type="button"><span class="dk-row-name">Ladder fuels</span><span class="dk-row-cite">sample §</span><span class="dk-row-more"><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></span></button></div>
+            <div class="dk-row-body"><h4 class="shell-label">The rule says</h4><p class="dk-rule">Sample wording: <mark class="code-key">ladder fuels shall be removed</mark> within 30 feet of the structure.</p><h4 class="shell-label">What the app thinks</h4><p class="dk-read">The hedge sits under the canopy, about 20 feet from the wall.</p>
+              <div class="tm-btns"><button class="tm-btn" type="button"><span>Change wording</span></button><button class="tm-btn is-quiet" type="button"><span>Put it back</span></button></div>
+              <div class="dk-choices" id="kitChoices" role="group" aria-label="Verdict"><button class="dk-choice" type="button" aria-pressed="true"><i class="verdict-mark" data-verdict="red"></i><span>Violation</span></button><button class="dk-choice" type="button" aria-pressed="false"><i class="verdict-mark" data-verdict="yellow"></i><span>Check on site</span></button><button class="dk-choice" type="button" aria-pressed="false"><i class="verdict-mark" data-verdict="green"></i><span>Compliant</span></button></div></div>
+          </li>
+          <li class="dk-row" data-verdict="yellow">
+            <div class="dk-row-line"><button class="dk-verdict" type="button"><i class="verdict-mark" data-verdict="yellow"></i><span>Check on site</span><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></button><button class="dk-row-open" type="button"><span class="dk-row-name">Canopy trees</span><span class="dk-row-cite">sample §</span><span class="dk-row-more"><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></span></button></div>
+          </li>
+          <li class="dk-row" data-verdict="green">
+            <div class="dk-row-line"><button class="dk-verdict" type="button"><i class="verdict-mark" data-verdict="green"></i><span>Compliant</span><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></button><button class="dk-row-open" type="button"><span class="dk-row-name">Address numbers</span><span class="dk-row-cite">sample §</span><span class="dk-row-more"><svg class="tm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 9.5 12 16l6.5-6.5"/></svg></span></button></div>
+          </li>
+        </ol>
+        <div class="dk-foot" style="padding:12px 0 0;border-top:0"><button class="dk-primary tm-hold" type="button" id="kitApprove"><span class="tm-hold-fill"></span><span class="dk-primary-label">Hold to approve</span></button></div>
+      </div>
+      <span class="kit-tag">Inspectors, laptop · the verdict menu, the trail and a received finding</span>
+      <div class="kit-desk dk-app" style="height:auto;display:grid;grid-template-rows:auto;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;font-size:14px">
+        <ul class="dk-list" style="width:92px"><li class="dk-item is-on" data-state="review"><button class="dk-item-btn" type="button"><span class="dk-item-thumb" style="display:block;background:linear-gradient(135deg,#7d8a72,#3f4a3a)"></span><span class="dk-item-state">To review</span></button></li></ul>
+        <div style="display:grid;gap:12px;justify-items:start">
+          <ol class="dk-crumbs-list" style="padding:0 0 7px"><li><button class="dk-crumb" data-state="done" type="button"><span>Finding</span></button></li><li><i class="dk-crumb-sep">›</i><button class="dk-crumb" data-state="current" type="button"><span>Rules</span></button></li><li><i class="dk-crumb-sep">›</i><button class="dk-crumb" type="button"><span>Corrections</span></button></li></ol>
+          <div class="dk-menu is-on" style="position:static" id="kitMenu"><button class="dk-menu-item is-on" type="button"><i class="verdict-mark" data-verdict="red"></i>Violation</button><button class="dk-menu-item" type="button"><i class="verdict-mark" data-verdict="yellow"></i>Check on site</button><button class="dk-menu-item" type="button"><i class="verdict-mark" data-verdict="green"></i>Compliant</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kit-mock">
+      <span class="kit-tag">Inspectors, phone · one list with one chosen, a field, the main button</span>
+      <div class="kit-phone ph-screen" style="height:auto">
+        <div class="ph-head" style="padding:0"><button class="ph-back" type="button" aria-label="Back"><svg class="tm-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button><h1>Is this it?</h1></div>
+        <div class="ph-opts" role="radiogroup" aria-label="What the photograph shows" id="kitOpts">
+          <button class="ph-opt is-on" type="button" role="radio" aria-checked="true"><span class="ph-opt-text">A sprinkler head covered in paint</span><i class="ph-tick"><svg class="tm-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i></button>
+          <button class="ph-opt" type="button" role="radio" aria-checked="false"><span class="ph-opt-text">A sprinkler head with a cover plate</span><i class="ph-tick"><svg class="tm-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i></button>
+          <button class="ph-opt" type="button" role="radio" aria-checked="false"><span class="ph-opt-text">Something else</span><i class="ph-tick"><svg class="tm-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i></button>
+        </div>
+        <textarea class="ph-field show" rows="2" placeholder="Say it in your own words" aria-label="Your own words"></textarea>
+        <div class="ph-q"><p class="ph-q-ask">Is the paint on the part that senses heat?</p>
+          <div class="ph-q-opts" id="kitPicks"><button class="ph-pick is-on" type="button" aria-pressed="true"><span class="ph-pick-text">Yes</span></button><button class="ph-pick" type="button" aria-pressed="false"><span class="ph-pick-text">No</span></button></div></div>
+        <div class="tm-steps ph-steps">
+          <div class="tm-step" data-state="done"><i class="tm-step-dot"></i><span>Read the photograph</span></div>
+          <div class="tm-step" data-state="run"><i class="tm-step-dot"></i><span>Matching the fire code</span></div>
+          <div class="tm-step" data-state="todo"><i class="tm-step-dot"></i><span>Writing the note</span></div>
+        </div>
+        <div class="ph-actions" style="padding:4px 0 0"><button class="ph-primary" type="button"><span class="ph-primary-label">Yes, that’s it</span></button><div class="ph-tools" style="justify-content:center"><button class="ph-btn" type="button"><span>Change wording</span></button><button class="ph-btn ph-btn-quiet" type="button"><span>Retake</span></button></div></div>
+      </div>
+      <span class="kit-tag">Inspectors, phone · a sheet with the number pad, and a sent row</span>
+      <div class="kit-phone ph-screen" style="height:auto">
+        <div class="ph-sent" style="border:0;padding:0"><span class="ph-sent-thumb" style="background:linear-gradient(135deg,#9aa58a,#5c6b4e)"></span><span class="ph-sent-text"><b>Painted sprinkler</b><span class="ph-small">Ross · 14:02</span></span><span class="ph-state" data-state="reviewed"><i class="ph-state-mark"><svg class="tm-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><span class="ph-state-text">Reviewed</span></span></div>
+        <div class="ph-sheet is-on" style="position:static;max-height:none">
+          <div class="ph-grab"></div><h2>Year on the head</h2>
+          <div class="ph-pad-display">1996</div>
+          <div class="ph-keys"><button class="ph-key" type="button">1</button><button class="ph-key" type="button">2</button><button class="ph-key" type="button">3</button><button class="ph-key" type="button">4</button><button class="ph-key" type="button">5</button><button class="ph-key" type="button">6</button><button class="ph-key" type="button">7</button><button class="ph-key" type="button">8</button><button class="ph-key" type="button">9</button></div>
+          <button class="ph-btn ph-btn-dark" type="button" style="height:48px"><span>Done</span></button><button class="ph-btn ph-sheet-close" type="button"><span>Close</span></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // this page only: the look switch, and taps on the specimens so their states can be tried
+  (function () {
+    var look = document.getElementById('kitLook'), on = window.Gleb.on();
+    look.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', (b.dataset.value === '1') === on); });
+    function placeAll() { document.querySelectorAll('.gl-seg, .shell-seg').forEach(function (el) { var o = el.querySelector(':scope > button.on'), i = el.querySelector(':scope > .gl-seg-ind, :scope > .shell-seg-ind'); if (o && i) { i.style.transition = 'none'; i.style.width = o.offsetWidth + 'px'; i.style.transform = 'translateX(' + o.offsetLeft + 'px)'; void i.offsetWidth; i.style.transition = ''; } }); }
+    window.Gleb.seg(look, function (v) { window.Gleb.set(v === '1'); requestAnimationFrame(placeAll); });
+    function single(id, sel, attr) {
+      var box = document.getElementById(id); if (!box) return;
+      box.addEventListener('click', function (e) { var b = e.target.closest(sel); if (!b) return; box.querySelectorAll(sel).forEach(function (x) { var is = x === b; x.setAttribute(attr, String(is)); if (attr === 'aria-checked') { x.classList.toggle('is-on', is); var t = x.querySelector('.gl-tick'); if (t) t.classList.toggle('is-on', is); } }); });
+    }
+    single('kitChips', '.gl-chip', 'aria-pressed'); single('kitMapChips', '.shell-pill', 'aria-pressed'); single('kitDots', 'button', 'aria-pressed'); single('kitFix', '.fix-dot', 'aria-pressed');
+    single('kitPlaces', '.gl-option', 'aria-checked'); single('kitOpts', '.ph-opt', 'aria-checked'); single('kitPicks', '.ph-pick', 'aria-checked'); single('kitChoices', '.dk-choice', 'aria-pressed');
+    document.getElementById('kitMenu').addEventListener('click', function (e) { var b = e.target.closest('.dk-menu-item'); if (b) this.querySelectorAll('.dk-menu-item').forEach(function (x) { x.classList.toggle('is-on', x === b); }); });
+    var rows = document.getElementById('kitRows'); rows.addEventListener('click', function (e) { var r = e.target.closest('.code-row'); if (r) rows.querySelectorAll('.code-row').forEach(function (x) { x.classList.toggle('kit-chosen', x === r); }); });
+    var tg = document.getElementById('kitToggle'); tg.addEventListener('click', function () { tg.setAttribute('aria-pressed', String(tg.getAttribute('aria-pressed') !== 'true')); });
+    document.querySelectorAll('[data-kit-step]').forEach(function (st) { var n = st.querySelector('span > span'), b = st.querySelectorAll('button'); b[0].addEventListener('click', function () { n.textContent = Math.max(0, +n.textContent - 1); }); b[1].addEventListener('click', function () { n.textContent = Math.min(150, +n.textContent + 1); }); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeAll);
+  })();
+</script>
+<script src="/progress/pill.js" defer></script>
+</body>
+</html>

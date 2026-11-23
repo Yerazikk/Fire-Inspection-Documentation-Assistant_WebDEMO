@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fire inspector build · progress</title>
+<style>
+:root{--ink:#262a31;--soft:#5b6170;--faint:#8a90a0;--line:rgba(38,42,49,.1);--blue:#4667f5;--flat:cubic-bezier(.22,1,.36,1);--sh:38,42,49}
+*{box-sizing:border-box;margin:0}
+html{background:#eef0f3;color:var(--ink);font:15px/1.45 ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+body{max-width:1080px;margin:0 auto;padding:44px 28px 60px}
+h1{font-size:30px;font-weight:650;letter-spacing:-.02em}
+.sub{color:var(--soft);margin-top:6px;max-width:640px}
+.top{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;margin:30px 0 26px}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{width:132px;height:132px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+.ring .bg{stroke:rgba(38,42,49,.09)}
+.ring .fg{stroke:var(--blue);stroke-dasharray:377;stroke-dashoffset:377;transition:stroke-dashoffset 600ms var(--flat)}
+.ring b{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:42px;font-size:34px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ring b small{font-size:15px;font-weight:600;color:var(--soft);margin-left:2px}
+.facts{display:grid;gap:8px;color:var(--soft)}
+.facts b{color:var(--ink);font-weight:600}
+.links a{color:var(--ink);text-decoration:none;border-bottom:1.5px solid var(--line);margin-right:16px}
+.links a.off{color:var(--faint);pointer-events:none;border-color:transparent}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:rgba(255,255,255,.72);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.9);border-radius:22px;padding:22px 22px 12px;box-shadow:0 1px 2px rgba(var(--sh),.06),0 18px 40px -22px rgba(var(--sh),.28)}
+.card h2{font-size:18px;font-weight:650;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline}
+.card h2 span{font-size:15px;font-variant-numeric:tabular-nums;color:var(--soft);font-weight:600}
+.bar{height:6px;border-radius:99px;background:rgba(38,42,49,.08);margin:12px 0 4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--blue);transition:width 600ms var(--flat)}
+.when{font-size:12.5px;color:var(--faint);min-height:18px}
+.rows{list-style:none;padding:0;margin:10px 0 0}
+.rows li{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.mark{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(38,42,49,.22);display:grid;place-items:center;transition:background-color 240ms var(--flat),border-color 240ms var(--flat)}
+.mark svg{width:11px;height:11px;opacity:0;transition:opacity 240ms var(--flat)}
+li[data-s=built] .mark,li[data-s=done] .mark{background:var(--blue);border-color:var(--blue)}
+li[data-s=built] .mark svg,li[data-s=done] .mark svg{opacity:1}
+li[data-s=wip] .mark{border-color:var(--blue);animation:breathe 1.6s ease-in-out infinite}
+@keyframes breathe{50%{box-shadow:0 0 0 5px rgba(70,103,245,.14)}}
+.name{transition:color 240ms var(--flat)}
+li[data-s=todo] .name{color:var(--faint)}
+.tag{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;border:1.5px solid var(--line);color:var(--soft);white-space:nowrap}
+li[data-s=wip] .tag{border-color:var(--blue);color:var(--blue)}
+li[data-s=todo] .tag{color:var(--faint)}
+.foot{margin-top:22px;font-size:12.5px;color:var(--faint);max-width:760px}
+@media (max-width:820px){.cols{grid-template-columns:1fr}.top{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<h1>Fire inspector build</h1>
+<p class="sub">Two tabs are being built by two agents. This page reads the project folder every 10 seconds and shows what exists.</p>
+<div class="top">
+  <div class="ring"><svg viewBox="0 0 132 132"><circle class="bg" cx="66" cy="66" r="60"/><circle class="fg" id="ringFg" cx="66" cy="66" r="60"/></svg><b><span id="pct">0</span><small>%</small></b></div>
+  <div class="facts">
+    <div id="summary">Reading the folder.</div>
+    <div class="links"><a id="lTech" class="off" href="/">Technology tab</a><a id="lTeam" class="off" href="/team/">Inspectors tab</a></div>
+    <div id="live"></div>
+  </div>
+</div>
+<div class="cols">
+  <section class="card" id="tech"><h2>Technology <span class="p">0%</span></h2><div class="bar"><i></i></div><div class="when"></div><ul class="rows"></ul></section>
+  <section class="card" id="team"><h2>Inspectors <span class="p">0%</span></h2><div class="bar"><i></i></div><div class="when"></div><ul class="rows"></ul></section>
+</div>
+<p class="foot">How this is counted: an item is "Built" when its code is found in the folder, and "Working on it" when it is the next missing item and the agent wrote something in the last three minutes. Built does not mean checked. A tab reaches 100% only when its agent reports that its tests pass; until then it stops at 95%.</p>
+<script>
+const LABEL = { todo: 'Not started', wip: 'Working on it', built: 'Built', done: 'Finished' };
+const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4 5 8.8l4.5-5.4"/></svg>';
+const ago = t => { if (!t) return 'nothing written yet'; const s = Math.max(0, Math.round((Date.now() - t) / 1000)); return s < 60 ? s + ' s ago' : s < 3600 ? Math.round(s / 60) + ' min ago' : Math.round(s / 3600) + ' h ago'; };
+function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+function tab(id, d) {
+  const root = document.getElementById(id), ul = root.querySelector('.rows');
+  setText(root.querySelector('.p'), d.pct + '%'); root.querySelector('.bar i').style.width = d.pct + '%';
+  setText(root.querySelector('.when'), d.finished ? 'Finished. ' + (d.note || '') : (d.lastFile ? 'Last file written ' + ago(d.lastFile) : 'Nothing written yet') + (Date.now() - d.agentActive < 180000 ? ' · agent is working' : d.agentActive ? ' · agent quiet for ' + ago(d.agentActive).replace(' ago', '') : ''));
+  for (const r of d.rows) {                       // keyed: rows are created once, then only their state changes
+    let li = ul.querySelector('[data-id="' + r.id + '"]');
+    if (!li) { li = document.createElement('li'); li.dataset.id = r.id; li.innerHTML = '<span class="mark">' + CHECK + '</span><span class="name"></span><span class="tag"></span>'; li.querySelector('.name').textContent = r.name; ul.appendChild(li); }
+    if (li.dataset.s !== r.state) { li.dataset.s = r.state; li.querySelector('.tag').textContent = LABEL[r.state]; }
+  }
+}
+async function tick() {
+  try {
+    const d = await (await fetch('status.json?' + Date.now(), { cache: 'no-store' })).json();
+    setText(document.getElementById('pct'), String(d.pct)); document.getElementById('ringFg').style.strokeDashoffset = 377 * (1 - d.pct / 100);
+    const all = [...d.tabs.tech.rows, ...d.tabs.team.rows], n = s => all.filter(r => r.state === s).length;
+    setText(document.getElementById('summary'), (n('built') + n('done')) + ' of ' + all.length + ' pieces built, ' + n('wip') + ' in progress, ' + n('todo') + ' not started.');
+    tab('tech', d.tabs.tech); tab('team', d.tabs.team);
+    document.getElementById('lTech').classList.toggle('off', d.tabs.tech.rows[2].state === 'todo'); document.getElementById('lTeam').classList.toggle('off', d.tabs.team.rows[0].state === 'todo');
+    setText(document.getElementById('live'), d.live8861 ? 'The final server is up at localhost:8861.' : 'Final server (localhost:8861) is not up yet. This preview is on localhost:8862.');
+  } catch (e) { setText(document.getElementById('summary'), 'Waiting for the first reading.'); }
+}
+tick(); setInterval(tick, 5000);
+</script><script src="/progress/pill.js" defer></script>
+</body></html>
