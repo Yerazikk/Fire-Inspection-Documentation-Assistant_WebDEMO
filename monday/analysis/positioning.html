@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Where We Fit — First Due, Fire Aside, and the Vegetation Inspection Gap</title>
+<style>
+/* Tokens carried over from monday/index.html so the document reads as the
+   same product family. Print-first: Letter, 0.75in margins set in the PDF
+   call, so the page box here is content width only. */
+:root{
+  --ink:#14191f; --soft:#39414c; --muted:#6b7280; --faint:#9aa1ab;
+  --rule:#dfe3e8; --edge:#c9ced6; --sunk:#f4f6f8;
+  --accent:#1557c0; --accent-soft:#eef3fc; --accent-edge:#c7d9f4;
+  --red:#a8383f; --red-soft:#fdeef0;
+  --amber:#7d5a10; --amber-soft:#fdf5e4;
+  --green:#2b6137; --green-soft:#eef6f0;
+  --mono:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  color:var(--ink); background:#fff;
+  font:10.5pt/1.52 "Segoe UI","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.011em;line-height:1.25}
+p{margin:0 0 .72em}
+p:last-child{margin-bottom:0}
+strong{font-weight:650}
+em{font-style:italic}
+
+/* ---------- page rhythm ----------
+   The document flows rather than being forced into fixed page boxes: the
+   blocks are not all one page tall and pretending otherwise leaves half-empty
+   pages. Breaks are controlled instead — nothing orphaned, nothing split that
+   has to be read whole, and two deliberate page starts. */
+@page{size:Letter}
+.page{page-break-after:auto}
+.break{page-break-before:always}
+section{margin:0 0 20pt;page-break-inside:auto}
+h2{
+  font-size:14pt;margin:0 0 3pt;padding-bottom:5pt;
+  border-bottom:1.5px solid var(--ink);
+  page-break-after:avoid;page-break-inside:avoid;
+}
+h3,h4{page-break-after:avoid}
+h2 + .sub, h2 + p{page-break-before:avoid}
+p{orphans:3;widows:3}
+blockquote,.verdict,.find,.stack,.meta,.cover{page-break-inside:avoid}
+blockquote{page-break-before:avoid}
+li{page-break-inside:avoid}
+h2 + .sub{color:var(--muted);font-size:9pt;margin:0 0 11pt}
+h3{font-size:11pt;margin:15pt 0 5pt;color:var(--ink)}
+h3:first-child{margin-top:0}
+h4{font:650 8.5pt/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);margin:13pt 0 5pt}
+.eyebrow{font:650 8pt/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 7pt}
+
+/* ---------- cover ---------- */
+.cover{padding-top:4pt;margin-bottom:26pt}
+.cover h1{font-size:25pt;line-height:1.14;max-width:21ch;margin:0 0 11pt;letter-spacing:-.02em}
+.cover .lede{font-size:11.5pt;line-height:1.5;color:var(--soft);max-width:62ch;margin:0 0 16pt}
+.cover .rule{height:3px;background:var(--ink);width:54pt;margin:0 0 15pt}
+.meta{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+}
+.meta div{padding:8pt 10pt 8pt 0}
+.meta dt{font:650 7.5pt/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.meta dd{margin:2pt 0 0;font-size:9.5pt;color:var(--ink);font-weight:550}
+
+/* ---------- callouts ---------- */
+.verdict{
+  background:var(--accent-soft);border:1px solid var(--accent-edge);
+  border-left:3px solid var(--accent);border-radius:3px;
+  padding:12pt 14pt;margin:0 0 16pt;
+}
+.verdict .eyebrow{margin-bottom:5pt}
+.verdict p{font-size:10.5pt;color:var(--ink)}
+blockquote{
+  margin:11pt 0;padding:9pt 0 9pt 13pt;border-left:2.5px solid var(--edge);
+  font-size:10pt;color:var(--soft);
+}
+blockquote p:first-child{font-style:italic}
+blockquote cite{display:block;margin-top:5pt;font-style:normal;font-size:8.5pt;color:var(--muted)}
+.note{font-size:9pt;color:var(--muted);line-height:1.45}
+
+/* ---------- lists ---------- */
+ul,ol{margin:0 0 .72em;padding-left:15pt}
+li{margin-bottom:3.5pt}
+li:last-child{margin-bottom:0}
+ul.tight li{margin-bottom:2pt}
+.lead-in{font-weight:650}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:8.7pt;line-height:1.4;margin:0 0 10pt}
+caption{
+  caption-side:top;text-align:left;font:650 8.5pt/1.3 var(--mono);
+  letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-bottom:6pt;
+}
+th,td{text-align:left;vertical-align:top;padding:6pt 8pt;border-bottom:1px solid var(--rule)}
+thead{display:table-header-group}
+thead th{
+  border-bottom:1.5px solid var(--ink);font-size:8.5pt;font-weight:650;
+  padding-bottom:5pt;
+}
+thead th.us{color:var(--accent)}
+tbody th{
+  font-weight:650;font-size:8.5pt;width:19%;color:var(--ink);
+  background:var(--sunk);
+}
+td.us{background:var(--accent-soft);border-bottom-color:var(--accent-edge)}
+tr{page-break-inside:avoid}
+.col-dim{color:var(--soft)}
+.mark{font-weight:650}
+.mark.no{color:var(--red)}
+.mark.yes{color:var(--green)}
+.mark.part{color:var(--amber)}
+
+/* ---------- module grid ---------- */
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:0 18pt;font-size:9.2pt}
+.mods ul{padding-left:13pt;margin:0}
+.relevance{
+  display:inline-block;font:650 7.5pt/1.5 var(--mono);letter-spacing:.05em;
+  text-transform:uppercase;padding:0 4pt;border-radius:2px;margin-left:4pt;
+  vertical-align:1.5px;
+}
+.relevance.high{background:var(--red-soft);color:var(--red)}
+.relevance.med{background:var(--amber-soft);color:var(--amber)}
+.relevance.low{background:var(--sunk);color:var(--faint)}
+
+/* ---------- layer stack ---------- */
+.stack{margin:12pt 0 14pt;border:1px solid var(--edge);border-radius:4px;overflow:hidden}
+.layer{padding:9pt 12pt;border-bottom:1px solid var(--rule);display:grid;
+  grid-template-columns:118pt 1fr;gap:12pt;align-items:baseline}
+.layer:last-child{border-bottom:0}
+.layer .lbl{font:650 8.5pt/1.35 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.layer .txt{font-size:9.2pt;line-height:1.45;color:var(--soft)}
+.layer.ours{background:var(--accent-soft)}
+.layer.ours .lbl{color:var(--accent)}
+.layer.ours .txt{color:var(--ink)}
+.layer.theirs .lbl{color:var(--muted)}
+
+/* ---------- numbered findings ---------- */
+.find{display:grid;grid-template-columns:20pt 1fr;gap:8pt;margin:0 0 11pt}
+.find .n{font:650 14pt/1 var(--mono);color:var(--accent-edge)}
+.find h3{margin:0 0 3pt}
+
+/* ---------- sources ---------- */
+.src{font-size:8.3pt;line-height:1.45;color:var(--soft)}
+.src ol{padding-left:16pt}
+.src li{margin-bottom:4pt}
+.src .u{font-family:var(--mono);font-size:7.6pt;color:var(--muted);word-break:break-all}
+
+/* ---------- footer line ---------- */
+.foot{
+  margin-top:20pt;padding-top:8pt;border-top:1px solid var(--rule);
+  font:8.3pt/1.4 var(--mono);color:var(--faint);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ PAGE 1 — cover + verdict ════════════════════ -->
+<div class="page">
+
+  <div class="cover">
+    <div class="rule"></div>
+    <p class="eyebrow">Competitive analysis · Fire Inspector V3</p>
+    <h1>Where we fit</h1>
+    <p class="lede">First Due sells the system of record for fire prevention. Fire Aside sells the
+    system of record for vegetation. Neither one reads the photograph. That is the whole opening —
+    and it is narrower and better defended than it first looks.</p>
+    <dl class="meta">
+      <div><dt>Prepared</dt><dd>19 November 2026</dd></div>
+      <div><dt>Subjects</dt><dd>First Due · Fire Aside</dd></div>
+      <div><dt>Basis</dt><dd>Vendor material, public contracts</dd></div>
+      <div><dt>Status</dt><dd>Internal · for decision</dd></div>
+    </dl>
+  </div>
+
+  <section>
+    <div class="verdict">
+      <p class="eyebrow">The finding in one paragraph</p>
+      <p>The <em>Fire Prevention</em> brochure describes a compliance ledger with a form builder on
+      top: checklist, code organizer, permit, invoice, occupancy record, map. Its unit of record is
+      an <strong>occupancy</strong> — a business at a suite, with an occupant load and an IFC class.
+      A hillside of brush has none of those fields, and a Berkeley fire chief has said so on the
+      public record. The vegetation niche therefore is real, but it is <strong>not empty</strong>:
+      Fire Aside has held it since 2021, is deployed county-wide in Marin — our own jurisdiction —
+      and already does parcel records, resident reports and correction photos. What no vendor in
+      either category publicly claims is the thing we built: <strong>a model that reads the
+      inspector's photograph, derives the finding, picks the local citation, drafts the notice, and
+      states plainly what the photograph cannot establish.</strong> We are not a better ledger. We
+      are the judgment layer that sits on one.</p>
+    </div>
+  </section>
+
+  <section class="break">
+    <h2>What we are comparing</h2>
+    <p class="sub">Three products, three different jobs</p>
+
+    <div class="stack">
+      <div class="layer theirs">
+        <div class="lbl">First Due<br>Fire Prevention</div>
+        <div class="txt">End-to-end prevention bureau suite: inspections, permitting, invoicing,
+        occupancies, pre-planning. Eighteen modules across the wider fire platform. The buyer is a
+        prevention bureau that issues permits and collects fees. <strong>Built for
+        structures.</strong></div>
+      </div>
+      <div class="layer theirs">
+        <div class="lbl">Fire Aside<br>DSI</div>
+        <div class="txt">Purpose-built defensible space and home-hardening inspection platform.
+        iPad field app, parcel database, interactive resident report, ChipperDay and grant
+        integration. 100+ agencies across 13 states. <strong>Built for vegetation — and it is the
+        only one.</strong></div>
+      </div>
+      <div class="layer ours">
+        <div class="lbl">Fire Inspector V3<br>(ours)</div>
+        <div class="txt">One photograph plus one spoken field note in; a defensible finding out —
+        fire-behaviour rationale, jurisdiction-gated citation, internal record, plain-language
+        owner notice, the property shown corrected, and an explicit account of what the photograph
+        does not prove. <strong>Built for the judgment, not the ledger.</strong></div>
+      </div>
+    </div>
+
+    <p>The three are not substitutes. First Due and Fire Aside both answer <em>who was inspected,
+    when, did it pass, was it billed, where is it on the map</em>. Ours answers <em>what is wrong in
+    this picture, why is it dangerous, which code makes it a violation, what exactly must the owner
+    do, and what does done look like</em>. Those are different questions, and only the second one
+    has been getting harder.</p>
+  </section>
+
+</div>
+
+<!-- ════════════════════ PAGE 2 — First Due ════════════════════ -->
+<div class="page">
+  <section>
+    <h2>First Due · the product line</h2>
+    <p class="sub">Eighteen modules. Four are adjacent to us; one is a direct claim we had to check.</p>
+
+    <div class="mods">
+      <div>
+        <h4>Prevention side</h4>
+        <ul class="tight">
+          <li><strong>Fire Prevention</strong> — inspections, permitting, invoicing
+            <span class="relevance high">direct</span></li>
+          <li><strong>Occupancies</strong> — the record every inspection hangs off
+            <span class="relevance high">direct</span></li>
+          <li><strong>First Due AI</strong> — platform-wide intelligence
+            <span class="relevance high">direct</span></li>
+          <li><strong>Community Connect</strong> — resident &amp; business portal
+            <span class="relevance med">adjacent</span></li>
+          <li><strong>Pre-Incident Planning</strong> — response plans, mapping
+            <span class="relevance med">adjacent</span></li>
+          <li><strong>Fire Investigations</strong> — post-incident documentation
+            <span class="relevance low">no overlap</span></li>
+          <li><strong>Hydrants</strong> — testing and maintenance
+            <span class="relevance low">no overlap</span></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Operations side</h4>
+        <ul class="tight">
+          <li>NERIS Software <span class="relevance low">no overlap</span></li>
+          <li>ePCR <span class="relevance low">no overlap</span></li>
+          <li>Scheduling &amp; Personnel <span class="relevance low">no overlap</span></li>
+          <li>Events &amp; Activities <span class="relevance low">no overlap</span></li>
+          <li>Training &amp; LMS <span class="relevance low">no overlap</span></li>
+          <li>Health &amp; Wellness <span class="relevance low">no overlap</span></li>
+          <li>Assets &amp; Inventory <span class="relevance low">no overlap</span></li>
+          <li>Mobile Responder · Incident Command <span class="relevance low">no overlap</span></li>
+          <li>Data &amp; Analytics · Advanced Insights <span class="relevance low">no overlap</span></li>
+          <li>ITM <span class="relevance low">no overlap</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:9pt">Fourteen of the eighteen are irrelevant to us. That is
+    the point: First Due's moat is breadth across a whole department, and a department that has
+    bought the suite has not thereby solved the vegetation problem.</p>
+
+    <h3>What the Fire Prevention module actually contains</h3>
+    <p>Read against the brochure page by page, the module is four things, and all four are custody
+    of a record rather than analysis of a condition.</p>
+
+    <ul>
+      <li><span class="lead-in">Inspections.</span> A checklist builder. Every finding is one row:
+      <span style="font-family:var(--mono);font-size:8.6pt">Pass / Fail / Citation / Corrected /
+      N/A</span>, plus a free-text comment and attachments. Their own copy: "Easily mark violations,
+      make comments, and capture photos and videos."</li>
+      <li><span class="lead-in">Code Organizer.</span> Import, create, activate, deactivate and link
+      code sets — CFC, IFC, IBC, NFPA, state and local. Linking is <em>manual and pre-curated</em>:
+      an administrator attaches sections to checklist items ahead of the season. Nobody at the
+      property picks a citation from the condition in front of them.</li>
+      <li><span class="lead-in">Permitting and Invoicing.</span> Permit lifecycle, certificates, fee
+      schedules, GL codes, collections, billing reports. Substantial, and entirely outside our
+      scope.</li>
+      <li><span class="lead-in">Occupancies and Pre-Planning.</span> Business name, suite, occupant
+      load, IFC class, sprinkler system, Knox box, ESRI mapping. This is the schema the whole module
+      is built on.</li>
+    </ul>
+
+    <h3>First Due AI — checked, because the name invites the assumption</h3>
+    <p>First Due markets an AI product and has been named twice to <em>Fast Company</em>'s "Next Big
+    Things in Tech." It is real, and it is <strong>entirely text and structured data</strong>. Five
+    published capabilities:</p>
+
+    <table>
+      <thead><tr><th style="width:27%">Capability</th><th style="width:30%">Input</th><th>Output</th></tr></thead>
+      <tbody>
+        <tr><th>AI documentation</th><td>Spoken or typed incident narrative</td><td class="col-dim">Mapped into NFIRS / NERIS fields</td></tr>
+        <tr><th>Quality assurance</th><td>Incident and patient records</td><td class="col-dim">Checked against NEMSIS, NFPA, agency protocol</td></tr>
+        <tr><th>Scheduling deputy</th><td>Vacancies, union and agency rules</td><td class="col-dim">Filled shift assignments</td></tr>
+        <tr><th>Data processing</th><td>Historical and real-time agency data</td><td class="col-dim">Analytics and suggestions</td></tr>
+        <tr><th>AI Assist</th><td>User questions</td><td class="col-dim">Knowledge-base answers</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>None of the five reads an image.</strong> None touches an inspection finding, a code
+    citation, a violation narrative or vegetation. Their flagship AI claim — describe the incident
+    aloud and watch the fields fill — is the same <em>shape</em> as ours but pointed at the
+    after-action report, not at the hazard. The word "vegetation" does not appear in the Fire
+    Prevention brochure; neither does "defensible space," "wildland," "WUI," or "parcel." Nor does
+    "AI."</p>
+
+    <h3>The tell: "Virtual Inspections"</h3>
+    <p>Their answer to inspector capacity is that the occupant shares a phone camera so an inspector
+    can watch remotely. The inspector is still on the call. The camera is a telepresence device, not
+    a sensor — which is precisely the ceiling a model that reads the frame removes.</p>
+  </section>
+
+</div>
+
+<!-- ════════════════════ PAGE 3 — the mismatch + Fire Aside ════════════════════ -->
+<div class="page">
+  <section>
+    <h2>Why a structure suite cannot be pointed at a hillside</h2>
+    <p class="sub">This is structural, not a roadmap gap — and it is confirmed by a buyer, not by us</p>
+
+    <p>In April 2022 the Berkeley Fire Chief took a sole-source contract for Fire Aside to City
+    Council. The justification is the clearest statement of our thesis available anywhere, and it
+    comes from the customer side of the table:</p>
+
+    <blockquote>
+      <p>"The Department has met with other major providers of fire prevention inspection software
+      and discovered that all of them are built for the inspection of structures — which is
+      completely different than the vegetation management inspections that the City is mandated to
+      perform."</p>
+      <cite>City of Berkeley, Consent Calendar Item 10, 26 April 2022</cite>
+    </blockquote>
+
+    <p>The same report notes the Department's current software "and the other leading fire inspection
+    software available is not capable of meeting the business and operational needs," and sizes the
+    mandate that broke it: a <strong>83% increase — 7,184 additional inspections</strong> — to cover
+    all Very High Fire Severity Zone properties in one mid-sized city.</p>
+
+    <p>The reason is schema, not features. An occupancy record wants a business name, a suite, an
+    occupant load, an IFC class, a permit and an invoice. A parcel of brush has none of them, and the
+    finding it produces is not checkbox-shaped:</p>
+
+    <table>
+      <caption>The same two findings, as each system can hold them</caption>
+      <thead><tr><th style="width:21%">Finding</th><th style="width:39%">As a checklist row</th><th>What is lost</th></tr></thead>
+      <tbody>
+        <tr>
+          <th>Painted sprinkler head</th>
+          <td class="col-dim">Automatic Fire Suppression → sprinkler obstructed → <strong>Fail</strong>
+          → comment → photo</td>
+          <td><span class="mark yes">Almost nothing.</span> A trained inspector knows it in half a
+          second and the remedy is singular: replace the head. The checkbox is nearly adequate — and
+          so AI adds little here.</td>
+        </tr>
+        <tr>
+          <th>Ladder fuel</th>
+          <td class="col-dim">Exterior → vegetation → <strong>Fail</strong> → comment → photo</td>
+          <td><span class="mark no">Everything.</span> The violation is a <em>spatial relationship
+          between two plants</em>; the remedy is a judgment about how much to cut. "Fail" cannot
+          carry <em>remove the lower tier, keep the oleander</em>, cannot say how much counts as
+          done, and cannot survive the owner's objection that you want to destroy their garden.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Those are the two examples already built. The sprinkler is the control case: it proves the
+    output format works on a built-environment finding, and it also shows where the incumbent's
+    checkbox loses little. <strong>Specialise where the checkbox collapses.</strong></p>
+  </section>
+
+  <section>
+    <h2>Fire Aside · the actual incumbent</h2>
+    <p class="sub">Not First Due. This is the company we are really measured against.</p>
+
+    <p>Fire Aside is a Northern California company selling <em>Defensible Space Inspections</em>
+    (DSI) — an iPad field app, a parcel-level database of vegetation and structure attributes, and
+    an automatically generated resident report. It serves <strong>100+ fire agencies, fire safe
+    councils and HOAs across 13 states</strong>, and it is funded by the Marin Wildfire Prevention
+    Authority for county-wide use after a 2021 pilot in Central and West Marin. That is the exact
+    jurisdiction this repository's code corpus targets.</p>
+
+    <h4>What it already does well — do not pitch against these</h4>
+    <ul class="tight">
+      <li>Parcel-level vegetation <em>and</em> home-hardening attribute capture, GPS-tagged, with photos</li>
+      <li>Automatic, prioritised resident report: photos of the exact issues, map images of where they are, multi-language, emailed or texted</li>
+      <li>Residents photograph the corrected work and upload it for approval; 30-day correction window</li>
+      <li>Integrations no one else has — ZoneHaven evacuation, ChipperDay community chipping, grant programs</li>
+      <li>Analytics on resident interaction and remediation behaviour</li>
+      <li>A claimed 40% reduction in time spent on re-inspections</li>
+    </ul>
+
+    <h4>What it does not publicly claim</h4>
+    <ul class="tight">
+      <li>Any use of AI, and any automatic analysis of a photograph. The photo is evidence shown to the resident; it is not read.</li>
+      <li>Fire code citation per finding — the report is a prioritised coaching checklist, not an enforceable record with a section number on it</li>
+      <li>Drafted hazard reasoning tied to the observed configuration</li>
+      <li>Any rendering of the property with the correction carried out</li>
+      <li>Any statement of what the evidence does <em>not</em> establish</li>
+    </ul>
+
+    <p class="note"><strong>Stated honestly:</strong> absence from marketing is not proof of absence
+    from the product. Treat these five as unclaimed rather than confirmed missing, and verify
+    against a live demo before putting any of it in front of a buyer.</p>
+
+    <p><span class="lead-in">Price anchor.</span> Berkeley's contract: <strong>$20,000 one-time
+    configuration plus $25,000 per year</strong>, two-year base with a four-year option, $160,000
+    ceiling over six years. Paid from Measure FF — a voter-approved parcel tax, not a prevention
+    software line item. That tells us both the ACV to expect and where the money comes from.</p>
+  </section>
+
+</div>
+
+<!-- ════════════════════ PAGE 4 — the comparison table ════════════════════ -->
+<div class="page">
+  <section class="break">
+    <h2>Feature-by-feature</h2>
+    <p class="sub">Shaded column is ours. Rows are ordered from their strength to ours.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:19%">&nbsp;</th>
+          <th style="width:27%">First Due · Fire Prevention</th>
+          <th style="width:27%">Fire Aside · DSI</th>
+          <th class="us">Fire Inspector V3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Unit of record</th>
+          <td class="col-dim">Occupancy — business at a suite</td>
+          <td class="col-dim">Parcel</td>
+          <td class="us">Parcel, plus the photographed condition itself</td>
+        </tr>
+        <tr>
+          <th>Inspection domain</th>
+          <td class="col-dim">Built environment — alarms, suppression, exits, electrical</td>
+          <td class="col-dim">Vegetation and home hardening</td>
+          <td class="us">Vegetation and defensible space</td>
+        </tr>
+        <tr>
+          <th>Permits, fees, invoicing</th>
+          <td><span class="mark yes">Full module</span> — fee schedules, GL codes, collections</td>
+          <td class="col-dim">Not the focus; grants and ChipperDay instead</td>
+          <td class="us"><span class="mark no">Out of scope by design</span></td>
+        </tr>
+        <tr>
+          <th>Ops integration</th>
+          <td><span class="mark yes">Deep</span> — pre-plan, ESRI, incident command</td>
+          <td class="col-dim">ZoneHaven, ChipperDay, grants</td>
+          <td class="us"><span class="mark no">None</span> — exports into a system of record</td>
+        </tr>
+        <tr>
+          <th>Field app, offline</th>
+          <td><span class="mark yes">Yes</span>, any device, in-browser</td>
+          <td><span class="mark yes">Yes</span>, purpose-built iPad app</td>
+          <td class="us">Route planning and capture; not yet hardened for offline</td>
+        </tr>
+        <tr>
+          <th>Resident portal</th>
+          <td><span class="mark part">Community Connect</span> — self-reported safety profile</td>
+          <td><span class="mark yes">Strong</span> — interactive report, multi-language, upload corrections</td>
+          <td class="us">Notice delivery; no portal</td>
+        </tr>
+        <tr>
+          <th>Finding capture</th>
+          <td class="col-dim">Checklist row + free-text comment</td>
+          <td class="col-dim">Structured attributes + GPS + photo</td>
+          <td class="us">Photograph + spoken field note, read into a structured finding</td>
+        </tr>
+        <tr>
+          <th>Role of the photograph</th>
+          <td><span class="mark no">Attachment</span></td>
+          <td><span class="mark part">Evidence shown to the resident</span></td>
+          <td class="us"><span class="mark yes">Read</span> — the finding is derived from it</td>
+        </tr>
+        <tr>
+          <th>AI</th>
+          <td class="col-dim">Five capabilities, all text / structured data. None read an image.</td>
+          <td class="col-dim">No public claim</td>
+          <td class="us">Vision-language model reads the frame; drafts record and notice</td>
+        </tr>
+        <tr>
+          <th>Code citation</th>
+          <td class="col-dim">Pre-curated — admin hand-links sections to checklist items</td>
+          <td class="col-dim">Not publicly claimed</td>
+          <td class="us">Selected per condition from a local corpus, gated on jurisdiction</td>
+        </tr>
+        <tr>
+          <th>Hazard reasoning</th>
+          <td class="col-dim">Inspector's free text</td>
+          <td class="col-dim">Prioritised checklist and resource links</td>
+          <td class="us">Drafted fire-behaviour rationale tied to the observed configuration</td>
+        </tr>
+        <tr>
+          <th>Owner-facing output</th>
+          <td class="col-dim">Form-builder report emailed to the occupancy contact</td>
+          <td class="col-dim">Interactive online report — photos, maps, prioritised</td>
+          <td class="us">Plain-language notice: what we found, why it is dangerous, what to do, and
+          whether all the plants must go</td>
+        </tr>
+        <tr>
+          <th>What "done" looks like</th>
+          <td><span class="mark no">Not addressed</span></td>
+          <td><span class="mark part">Photo of the issue; resident uploads the fix</span></td>
+          <td class="us"><span class="mark yes">After-image</span> — the owner's own photograph with
+          the correction carried out, same camera and light</td>
+        </tr>
+        <tr>
+          <th>Alternatives and partial compliance</th>
+          <td><span class="mark no">No</span></td>
+          <td><span class="mark no">Not claimed</span></td>
+          <td class="us">Ranked recommendations, including what is <em>not</em> acceptable</td>
+        </tr>
+        <tr>
+          <th>Uncertainty</th>
+          <td><span class="mark no">None</span> — a checkbox has no uncertainty</td>
+          <td><span class="mark no">Not claimed</span></td>
+          <td class="us"><span class="mark yes">Explicit</span> — what the photo cannot establish,
+          and the decision each gap hands back to the inspector</td>
+        </tr>
+        <tr>
+          <th>Buyer</th>
+          <td class="col-dim">Prevention bureau with permits and fees</td>
+          <td class="col-dim">Fire district, FireWise council, HOA</td>
+          <td class="us">Same as Fire Aside, plus insurers and utility vegetation programs</td>
+        </tr>
+        <tr>
+          <th>Price anchor</th>
+          <td class="col-dim">Suite pricing, undisclosed</td>
+          <td class="col-dim">$20k config + $25k/yr (Berkeley, 2022)</td>
+          <td class="us">Undetermined — but the anchor is set by the row to the left</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="note">Read the table top to bottom and the shape is unmistakable: we lose every row
+    about <em>holding a record</em> and win every row about <em>reaching a defensible conclusion</em>.
+    A strategy that tries to flip the top half is a five-year platform rebuild against two funded
+    incumbents. A strategy that deepens the bottom half is a product neither of them has announced.</p>
+  </section>
+
+</div>
+
+<!-- ════════════════════ PAGE 5 — AI players, where we fit, drivers ════════════════════ -->
+<div class="page">
+  <section>
+    <h2>The AI players — and why they are not in our seat</h2>
+    <p class="sub">Several companies apply computer vision to wildfire risk. All of them work at a different altitude.</p>
+
+    <table>
+      <thead><tr><th style="width:17%">Who</th><th style="width:25%">Imagery</th><th style="width:30%">What it produces</th><th>Gap</th></tr></thead>
+      <tbody>
+        <tr><th>FlyPix AI</th><td class="col-dim">Satellite, aerial, drone</td><td class="col-dim">Fuel load, vegetation dryness, WUI exposure maps; fuel-management prioritisation</td><td>Landscape scale. Prioritises <em>where to look</em>; issues nothing to an owner.</td></tr>
+        <tr><th>City Detect (PASS AI)</th><td class="col-dim">Vehicle-mounted cameras</td><td class="col-dim">Detects overgrown vegetation, maps high-risk zones, "year-round monitoring without manual inspections"</td><td>Drive-by code enforcement. No citation reasoning, no owner notice, no inspector in the loop.</td></tr>
+        <tr><th>EmberScan</th><td class="col-dim">Phone video walkaround with a printed scale marker</td><td class="col-dim">Rule-by-rule assessment and fix plan across ~12 hazard concepts</td><td>Closest in spirit — but sold to HOAs and owners, not to the enforcing agency. Advisory, not a record.</td></tr>
+        <tr><th>Research (WildfireVLM, LA County studies)</th><td class="col-dim">Satellite + resident-submitted photos</td><td class="col-dim">Parcel-level risk scores</td><td>Pre-product. Scores risk; does not produce an enforceable finding.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Every one of them either <em>screens at scale</em> or <em>advises an owner</em>. Nobody takes
+    <strong>one ground-level photograph taken by an inspector, plus that inspector's spoken note,
+    and returns an enforceable finding with the local citation, the owner's notice, and a candid
+    account of its own limits.</strong> That sentence is the niche. It is narrow on purpose.</p>
+  </section>
+
+  <section>
+    <h2>Where we fit — the three defensible things</h2>
+
+    <div class="find">
+      <div class="n">01</div>
+      <div>
+        <h3>The after-image</h3>
+        <p>The owner's own photograph with the lower hedge gone and the oleander kept — same camera,
+        same light, nothing else tidied, no measurement invented off a single frame. The prompt
+        discipline that makes it defensible rather than doctored already exists in the repo. For a
+        homeowner being told to cut their plants, this converts "you want to destroy my garden" into
+        "oh — just that row." No vendor in either category has anything like it, and it attacks the
+        exact metric Fire Aside sells on: post-inspection compliance.</p>
+      </div>
+    </div>
+
+    <div class="find">
+      <div class="n">02</div>
+      <div>
+        <h3>The uncertainty table</h3>
+        <p>A list of what the photograph cannot establish — the distance to the structure, the
+        species, the concealed dead growth, the controlling ordinance — each paired with the decision
+        it hands back to the inspector. This is what lets a fire marshal sign the document. Anything
+        that quietly asserts a distance from one frame dies on first appeal, and under Government
+        Code §51186 agencies must now stand up documented inspection, enforcement <em>and appeal</em>
+        procedures. An AI finding that volunteers its own limits is an asset in that proceeding; one
+        that hides them is a liability.</p>
+      </div>
+    </div>
+
+    <div class="find">
+      <div class="n">03</div>
+      <div>
+        <h3>The local-amendment corpus</h3>
+        <p>Defensible space is the one area where the state code is a floor and every district
+        amends it. The existing output already does the hard, correct thing: it refuses to name the
+        enforceable citation without the jurisdiction, and distinguishes Marin County §604.6(7) from
+        a Ross Valley town ordinance. First Due's answer is "import a code set and hand-link it";
+        Fire Aside's reports do not appear to cite sections at all. A curated per-district corpus
+        with the amendments in it is slow, boring, and a genuine moat. Marin Ordinance 3775 is
+        already ingested at 56 sections.</p>
+      </div>
+    </div>
+
+    <p>Those three compound. The citation makes the finding enforceable, the uncertainty table makes
+    it survivable on appeal, and the after-image makes the owner comply without one. Each is weak
+    alone and none is a feature a ledger company ships casually.</p>
+  </section>
+
+  <section>
+    <h2>Why now</h2>
+    <ul>
+      <li><span class="lead-in">Zone 0 is law.</span> The Board of Forestry adopted emergency
+      ember-resistant-zone regulations under AB 3074 on <strong>19 August 2026</strong> — five feet
+      from every exterior wall, deck, stair and pergola. All structures in State Responsibility
+      Areas; occupied structures in Very High severity zones in Local Responsibility Areas.
+      Pre-existing duties apply immediately; the rest phase in over three to five years.</li>
+      <li><span class="lead-in">The mandate multiplies inspections, not inspectors.</span> One
+      mid-sized city booked an 83% jump — 7,184 additional inspections — off a single earlier
+      expansion. Zone 0 is larger and the work is finer-grained: mulch, firewood, fence attachment,
+      what is under the deck.</li>
+      <li><span class="lead-in">Agencies must now own the appeal.</span> Ordinance-level inspection,
+      documentation, enforcement and appeal procedures, with notice before penalties. Defensibility
+      stops being a nicety.</li>
+      <li><span class="lead-in">Zone 0 findings are photograph-shaped.</span> Combustible mulch
+      against siding, firewood under a deck, a wooden fence meeting a wall — these are visible in a
+      frame and ambiguous in a checkbox, exactly like ladder fuel and unlike an exit sign.</li>
+    </ul>
+  </section>
+
+</div>
+
+<!-- ════════════════════ PAGE 6 — risks, what not to build, sources ════════════════════ -->
+<div class="page">
+  <section>
+    <h2>Risks, honestly stated</h2>
+    <ul>
+      <li><span class="lead-in">The niche has a funded incumbent in our own back yard.</span> Fire
+      Aside is paid for county-wide in Marin by MWPA and sole-sourced in Berkeley. Selling the
+      Marin story to a Marin agency means displacing software the regional authority already funds.
+      Either sell outside Marin first, or sell <em>through</em> Fire Aside rather than against it.</li>
+      <li><span class="lead-in">We are a layer, and layers get absorbed.</span> Photo-reading is a
+      feature a record company can buy or build. The defence is the corpus and the appeal posture,
+      not the model call — so the moat work is the boring work.</li>
+      <li><span class="lead-in">The dollars are modest.</span> $25k a year per agency sets the
+      ceiling. Reaching a real business means many districts, or a different buyer.</li>
+      <li><span class="lead-in">The money is not in a software line.</span> Berkeley paid from
+      Measure FF; Marin from MWPA. Grant and parcel-tax funding moves on its own calendar and dies
+      with its own politics.</li>
+      <li><span class="lead-in">Agencies are the slowest buyer available.</span> Insurers and utility
+      vegetation programs are hungrier and already pay for parcel-level evidence. Worth testing
+      before building a district go-to-market.</li>
+      <li><span class="lead-in">One wrong confident number ends the pilot.</span> A single fabricated
+      distance in a notice that reaches an appeal hearing is existential. The uncertainty discipline
+      is not a differentiator we chose; it is the licence to operate.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What not to build</h2>
+    <p>Permitting. Invoicing, fee schedules, GL codes, collections. Occupancy management. Pre-plans.
+    ESRI mapping. Scheduling, assets, training, ePCR. A resident portal to rival Community Connect.
+    ChipperDay and grant plumbing. Every one of those is a funded module at a competitor and a
+    distraction here. <strong>Export into the system of record; do not become one.</strong></p>
+  </section>
+
+  <section>
+    <h2>Recommendation</h2>
+    <div class="verdict">
+      <p class="eyebrow">What to do with this</p>
+      <p>Hold the position as <strong>the judgment layer for photograph-shaped vegetation
+      findings</strong>, and make the next build about defensibility rather than coverage: the
+      per-district amendment corpus, the appeal-ready record, and the after-image. Prove it on
+      Zone 0 findings, where the mandate is new, the volume is largest, and no incumbent has a
+      workflow yet. Then take it to whoever is most exposed to the appeal — which may well be an
+      insurer before it is a fire district.</p>
+    </div>
+  </section>
+
+  <section class="src break">
+    <h2 style="font-size:12pt">Sources</h2>
+    <p class="sub">All claims above are traceable to vendor material or public records. Retrieved 19 November 2026.</p>
+    <ol>
+      <li>First Due, <em>Fire Prevention</em> brochure (PDF, 5 pp.) — the document in this folder; inspections, permitting, invoicing, occupancies.</li>
+      <li>First Due, Fire Prevention Software <span class="u">firstdue.com/products/inspections</span></li>
+      <li>First Due, Fire Department Software — full module list <span class="u">firstdue.com/fire</span></li>
+      <li>First Due, AI at First Due — the five AI capabilities <span class="u">firstdue.com/ai</span></li>
+      <li>FireRescue1 — First Due's AI recognised on Fast Company's "Next Big Things in Tech" <span class="u">firerescue1.com</span></li>
+      <li>City of Berkeley, Consent Calendar Item 10, 26 April 2022 — <em>Contract: Fire Aside for Defensible Space Inspection Software</em>; sole-source justification, pricing, 83% / +7,184 inspection figure <span class="u">berkeleyca.gov/sites/default/files/2022-04/</span></li>
+      <li>Fire Aside <span class="u">fireaside.com</span> and DSI <span class="u">fireaside.com/dsi</span></li>
+      <li>Marin Wildfire Prevention Authority — Fire Aside subscription project page <span class="u">marinwildfire.org/project/defensible-space-evaluation-and-inspection-software-development</span></li>
+      <li>Fire Safe Marin — "The Defensible Space Inspection Report and Why You Should Open It" <span class="u">firesafemarin.org</span></li>
+      <li>Best Best &amp; Krieger LLP — California Board of Forestry Adopts Emergency "Zone 0" Regulations Under AB 3074, Sept 2026; requirements, phasing, SRA/LRA scope, Gov. Code §51186 <span class="u">bbklaw.com</span></li>
+      <li>PublicCEO — Board of Forestry adopts emergency Zone 0 regulations <span class="u">publicceo.com</span></li>
+      <li>FlyPix AI, wildfire risk assessment <span class="u">flypix.ai</span>; City Detect, AI-driven defensible spaces <span class="u">citydetect.com</span>; EmberScan; WildfireVLM (arXiv) and LA County AI wildfire risk study (arXiv).</li>
+    </ol>
+    <p class="note" style="margin-top:9pt">Where a capability is described as "not publicly claimed,"
+    that is what the public material shows and not a verified product gap. Confirm against a live
+    demo before relying on any of it commercially.</p>
+  </section>
+
+</div>
+
+</body>
+</html>

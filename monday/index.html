@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fire Inspector AI · Gold-Standard Inspection Output</title>
+<meta name="description" content="Two worked inspections — a ladder fuel condition and a painted fire sprinkler head — showing what the Fire Inspector AI should produce from one photograph and a short field note.">
+<style>
+/* ---- tokens: the app's paper palette, which is what the owner's letter is
+       already printed on. Cyan is the product's AR colour and is used only
+       over a photograph; the UI itself stays on a restrained blue. ---- */
+:root{
+  --paper:#f7f8fa; --card:#fff; --ink:#1b2330; --soft:#374151; --muted:#6b7280;
+  --rule:#e5e7eb; --edge:#d1d5db; --sunk:#f2f4f7;
+  --accent:#1557c0; --accent-soft:#eef3fc; --accent-edge:#c7d9f4;
+  --red:#b4414b; --red-soft:#fdeef0; --red-edge:#f2cdd2;
+  --amber:#8a6412; --amber-soft:#fdf5e4; --amber-edge:#eedcb4;
+  --green:#2f6b3c; --green-soft:#eef6f0; --green-edge:#cde3d3;
+  --ar-cyan:#22d3ee; --ar-red:#ff4d5e;
+  --r:10px; --shadow:0 1px 2px rgba(27,35,48,.05),0 8px 24px rgba(27,35,48,.06);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,"Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.011em;line-height:1.3}
+p{margin:0 0 .85em}p:last-child{margin-bottom:0}
+a{color:var(--accent)}
+img{max-width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ---- tabs ---- */
+.tabs{background:var(--card);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:20}
+.tabs .wrap{display:flex;gap:28px}
+.tab{appearance:none;border:0;background:none;font:inherit;font-weight:600;font-size:14.5px;
+  color:var(--muted);padding:14px 0;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .15s,border-color .15s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ---- generic blocks ---- */
+section{padding:52px 0;border-top:1px solid var(--rule)}
+section:first-child{border-top:0;padding-top:44px}
+.eyebrow{font:600 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.wrap > h2{font-size:21px;margin:0 0 24px}
+.wrap > h2 + .lede{margin-top:-16px}
+.lede{color:var(--soft);font-size:15.5px;max-width:68ch}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;
+  font:600 11.5px/1.7 inherit;border:1px solid}
+.pill.red{color:var(--red);background:var(--red-soft);border-color:var(--red-edge)}
+.pill.blue{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-edge)}
+.pill.amber{color:var(--amber);background:var(--amber-soft);border-color:var(--amber-edge)}
+.pill.green{color:var(--green);background:var(--green-soft);border-color:var(--green-edge)}
+.pill.grey{color:var(--muted);background:var(--sunk);border-color:var(--rule)}
+.tag{display:inline;margin-right:8px;font-weight:600;white-space:nowrap}
+.tag::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:currentColor;margin-right:6px;vertical-align:1.5px}
+.tag::after{content:" ·";color:var(--edge);font-weight:400}
+.tag.confirmed{color:var(--green)}
+.tag.observed{color:var(--accent)}
+.tag.verify{color:var(--amber)}
+.note{font-size:13px;color:var(--muted);line-height:1.55}
+
+/* ---- finding header ---- */
+.head{padding:44px 0 36px}
+.head h1{font-size:30px;margin:10px 0 14px;max-width:24ch}
+.head .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;
+  background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-top:26px}
+.head .meta div{background:var(--card);padding:13px 16px;box-shadow:0 0 0 1px var(--rule)}
+.head .meta dt{font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.head .meta dd{margin:2px 0 0;font-size:13.5px;color:var(--ink)}
+
+/* ---- overview: photo + overlay ---- */
+.ov{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:32px;align-items:start}
+.shot{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--edge);background:#000}
+.shot img{display:block;width:100%;height:100%;object-fit:cover}
+/* The scan overlay as the app draws it — thin unrounded boxes, a pin, a lead
+   line kinked 45° then level, and the name in mono caps; the finding in red
+   with a light fill. Geometry and label placement are ported from SCANFX in
+   public/app.js; the beam and the reveal sequence are not, because here the
+   result is simply shown. It sits on a photograph, so it keeps the app's
+   dark-UI colours rather than this page's. */
+.shot .ann{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .22s;z-index:3}
+.shot.on .ann{opacity:1}
+.ar{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible;color:var(--ar-cyan)}
+.ar .red{color:var(--ar-red)}
+.ar rect.rc{fill:none;stroke:currentColor;vector-effect:non-scaling-stroke}
+.ar .issue rect.rc{fill:currentColor;fill-opacity:.12}
+.ar .halo{fill:currentColor;fill-opacity:.22;r:6}
+.ar .dot{fill:currentColor;r:3}
+.ar .lead{fill:none;stroke:currentColor}
+.ar .lab{font:500 10.5px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;
+  fill:#bdf3ff;stroke:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9))}
+.ar .issue .lab{fill:#ffc2c8}
+.ar g.lit rect.rc{stroke-width:2.5}
+.ar g.lit .lab{fill:#fff}
+.shotbar{display:flex;align-items:center;gap:12px;margin-top:10px}
+.toggle{appearance:none;border:1px solid var(--edge);background:var(--card);border-radius:999px;
+  font:600 12.5px/1 inherit;color:var(--soft);padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.toggle:hover{border-color:var(--accent);color:var(--accent)}
+.toggle[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.toggle .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5}
+.toggle[aria-pressed=true] .dot{opacity:1}
+.cap{font-size:12.5px;color:var(--muted)}
+
+.quote{border-left:2px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;
+  padding:12px 16px;margin:0 0 16px}
+.quote p{font-size:15px;color:var(--ink)}
+.quote .who{font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.kvs{border-top:1px solid var(--rule);margin-top:18px}
+.kvs div{display:grid;grid-template-columns:132px 1fr;gap:16px;padding:11px 0;border-bottom:1px solid var(--rule)}
+.kvs dt{font:600 11px/1.75 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kvs dd{margin:0;font-size:14px;color:var(--soft)}
+.legend{list-style:none;margin:18px 0 0;padding:0;border-top:1px solid var(--rule)}
+.legend li{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);cursor:default}
+.legend b{width:9px;height:9px;border-radius:50%;background:#1aa7c4;margin:6px 0 0 5px;display:block}
+.legend li.red b{background:var(--red)}
+.legend li:hover .t{color:var(--accent)}
+.legend .t{display:block;font-size:14px;font-weight:600}
+.legend .d{display:block;font-size:13px;color:var(--muted);margin-top:1px}
+
+/* ---- the photograph and what was read off it, side by side ---- */
+.prow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:34px;align-items:start}
+.prow.hold > :first-child{position:sticky;top:60px}
+@media (max-width:980px){.prow.hold > :first-child{position:static}}
+
+/* ---- proposed corrections: every option on one line ---- */
+/* Each card is header / image / detail, and the three rows are shared across
+   the row via subgrid, so a title that wraps to two lines in one card cannot
+   push its slider out of line with its neighbours. */
+.grid3{display:grid;gap:20px;grid-template-rows:auto auto auto}
+.scard{display:grid;grid-template-rows:subgrid;grid-row:span 3;
+  background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+@supports not (grid-template-rows:subgrid){
+  .scard{display:block}
+  .scard .sh{min-height:112px}
+}
+.scard .sh{padding:14px 16px;border-bottom:1px solid var(--rule);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.scard .sh b{display:block;font-size:15px;line-height:1.35;margin-bottom:7px}
+.stage{background:var(--sunk);border-bottom:1px solid var(--rule);padding:16px}
+.scard .fb{padding:16px}
+.scard .facts{border-top:0}
+.scard .facts > div{grid-template-columns:1fr;gap:3px;padding:11px 0}
+.scard .facts > div:first-child{padding-top:0}
+.scard .facts ol{padding-left:17px}
+
+/* before / after */
+.ba{position:relative;overflow:hidden;background:#0b0f17;cursor:ew-resize;touch-action:none;--pos:50%}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none}
+.ba .before{clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+.ba .bar{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25);transform:translateX(-1px);pointer-events:none}
+.ba .grip{position:absolute;top:50%;left:var(--pos);width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35);display:grid;place-items:center;cursor:ew-resize;
+  border:0;padding:0;color:var(--ink);font:700 13px/1 var(--mono)}
+.ba .lab{position:absolute;padding:5px 10px;border-radius:999px;font:600 11.5px/1.6 inherit;
+  background:rgba(11,15,23,.72);color:#fff;backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap;
+  transition:opacity .18s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.ba .lab.l{left:12px;bottom:12px}
+.ba .lab.r{right:12px;top:12px}
+.ba .lab[data-off=true]{opacity:0}
+.disc{display:flex;gap:9px;align-items:flex-start;margin-top:16px;
+  font-size:12.5px;color:var(--muted);line-height:1.5}
+.disc svg{flex:none;margin-top:2px}
+
+.facts{display:grid;gap:0;border-top:1px solid var(--rule)}
+.facts > div{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.facts dt{font:600 11px/1.75 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0;font-size:14px;color:var(--soft)}
+.facts ol{margin:0;padding-left:19px}.facts li{margin:3px 0}
+.concl{margin:20px 0 0;font-size:14.5px;color:var(--soft)}
+.concl b{color:var(--ink)}
+.warn{border:1px solid var(--amber-edge);background:var(--amber-soft);border-radius:8px;padding:12px 15px;
+  font-size:13.5px;color:#6d4f0e;line-height:1.55}
+.warn b{color:var(--amber)}
+.stop{border:1px solid var(--red-edge);background:var(--red-soft);border-radius:var(--r);padding:16px 18px}
+.stop h4{font-size:14.5px;color:var(--red);margin-bottom:6px}
+.stop p{font-size:13.5px;color:#7d3b43;margin:0}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:22px}
+.extra{padding:17px 19px}
+.extra .t{font-size:14.5px;font-weight:650;margin:8px 0 6px}
+.extra p{font-size:13.5px;color:var(--soft)}
+
+/* ---- sprinkler identification ---- */
+.ident{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.verdict{border:1px solid var(--amber-edge);background:var(--amber-soft);border-radius:var(--r);padding:18px 20px;margin-bottom:22px}
+.verdict .v{display:flex;align-items:baseline;gap:10px;margin-bottom:7px}
+.verdict .v b{font-size:20px;color:var(--amber);letter-spacing:-.01em}
+.verdict p{font-size:13.5px;color:#6d4f0e;margin:0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font:600 11px/1.75 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:0 14px 9px 0;border-bottom:1px solid var(--edge);vertical-align:bottom}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--rule);color:var(--soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+table.codes{margin-top:16px;table-layout:fixed}
+table.codes th:nth-child(1){width:19%}
+table.codes th:nth-child(2){width:28%}
+table.codes th:nth-child(3){width:28%}
+table.codes td:first-child{white-space:normal;font:600 12.5px/1.5 var(--mono);color:var(--accent)}
+table.codes .tag{display:block;margin:0 0 4px}
+table.codes .tag::after{content:none}
+table.codes .none{color:var(--muted);opacity:.65}
+.conf{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--rule);position:relative;vertical-align:middle}
+.conf::after{content:"";position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--muted)}
+.conf.high::after{width:100%;background:var(--green)}
+.conf.moderate::after{width:52%;background:var(--amber)}
+.conf.none::after{width:0}
+.diagram{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:8px 8px 0;box-shadow:var(--shadow)}
+.diagram svg{display:block;width:100%;height:auto}
+.temps{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.temp{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:999px;padding:5px 11px 5px 6px;font-size:12.5px;background:var(--card)}
+.temp s{width:13px;height:13px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.15)}
+.temp b{font-weight:600}.temp span{color:var(--muted)}
+.ticks{list-style:none;margin:0;padding:0}
+.ticks li{position:relative;padding:8px 0 8px 26px;border-bottom:1px solid var(--rule);font-size:13.5px;color:var(--soft)}
+.ticks li::before{content:"";position:absolute;left:4px;top:15px;width:7px;height:7px;border-radius:2px;
+  border:1.5px solid var(--accent)}
+
+/* ---- jurisdiction map -----------------------------------------------------
+   Which code applies is a question about where the property is, so the codes
+   table is given the map that decides it. Each jurisdiction carries one accent
+   through the polygon, the pin, the card edge and the citation column, so a
+   move across a town line reads as one change rather than four. --------- */
+.juris{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:26px;align-items:start;margin-top:4px}
+.jmapwrap{position:relative}
+/* --k is map user-units per CSS pixel, kept current by a ResizeObserver, so
+   the pin, the labels and the boundary strokes stay the same visual weight
+   whether the map is 350px wide on a phone or 700px on a desktop. */
+.jmap{position:relative;border:1px solid var(--edge);border-radius:var(--r);overflow:hidden;
+  background:var(--sunk);touch-action:none;cursor:crosshair;box-shadow:var(--shadow);
+  --j:var(--muted);--j-soft:rgba(107,114,128,.13);--k:2.4}
+.jmap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+/* the overlay only — the hint pill below has an icon of its own */
+.jmap > svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.jmap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.jmap.dragging{cursor:grabbing}
+.jmap .zone{fill:rgba(107,114,128,.05);stroke:rgba(107,114,128,.5);
+  stroke-width:calc(1.1px * var(--k));stroke-dasharray:calc(4px * var(--k)) calc(3px * var(--k));
+  transition:fill .45s ease,stroke .45s ease,stroke-width .45s ease}
+.jmap .zone.other{stroke:rgba(107,114,128,.34);fill:rgba(107,114,128,.035)}
+.jmap .zone.on{stroke-width:calc(2.1px * var(--k));stroke-dasharray:none}
+.jmap .zone.ross{stroke:#1557c0}.jmap .zone.ross.on{fill:rgba(21,87,192,.15)}
+.jmap .zone.fairfax{stroke:#b4414b}.jmap .zone.fairfax.on{fill:rgba(180,65,75,.15)}
+.jmap .zone.san_anselmo{stroke:#2f6b3c}.jmap .zone.san_anselmo.on{fill:rgba(47,107,60,.15)}
+.jmap .zone.san_rafael.on,.jmap .zone.larkspur.on{fill:rgba(107,114,128,.16);stroke:#6b7280}
+@keyframes jpulse{
+  from{stroke-width:calc(7px * var(--k));opacity:.6}
+  to{stroke-width:calc(1.5px * var(--k));opacity:0}}
+.jmap .pulse{fill:none;opacity:0;pointer-events:none}
+.jmap .pulse.go{animation:jpulse .72s cubic-bezier(.2,.7,.3,1) forwards}
+.jmap .lab{font:600 calc(13.5px * var(--k))/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  fill:#4b5563;letter-spacing:.02em;paint-order:stroke;stroke:rgba(255,255,255,.92);
+  stroke-width:calc(3px * var(--k));text-anchor:middle;pointer-events:none;transition:fill .4s ease}
+.jmap .lab.on{fill:#111827}
+.jmap .lab.sub{font-size:calc(11px * var(--k));font-weight:500;fill:#8b94a3}
+.jmap .pin{pointer-events:none}
+.jmap .pin .halo{fill:var(--j);opacity:.15}
+.jmap .pin .stem{stroke:var(--j);stroke-width:2.6;stroke-linecap:round}
+.jmap .pin .head{fill:var(--j);stroke:#fff;stroke-width:2.4}
+.jmap .pin .shadow{fill:rgba(17,24,39,.2)}
+.jmap .grab{fill:transparent;cursor:grab;pointer-events:auto}
+.jmap.dragging .grab{cursor:grabbing}
+.jhint{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:7px;
+  padding:6px 11px 6px 8px;border-radius:999px;background:rgba(255,255,255,.93);
+  border:1px solid var(--rule);box-shadow:0 1px 6px rgba(27,35,48,.1);
+  font:600 11.5px/1.6 inherit;color:var(--soft);pointer-events:none;transition:opacity .3s}
+.jhint[data-off=true]{opacity:0}
+.jbar{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.jbar button{appearance:none;border:1px solid var(--edge);background:var(--card);border-radius:999px;
+  padding:6px 13px;font:600 12.5px/1.5 inherit;color:var(--soft);cursor:pointer;
+  transition:border-color .2s,color .2s,background .2s}
+.jbar button:hover{color:var(--ink);border-color:var(--muted)}
+.jbar button[aria-pressed=true]{color:#fff;border-color:transparent;background:var(--jb,var(--accent))}
+.jcard{border:1px solid var(--rule);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);
+  overflow:hidden;position:relative}
+.jcard .edge{height:4px;background:var(--j,var(--muted));transition:background .45s ease}
+.jcard .in{padding:18px 20px 20px}
+.jcard .nm{display:block;font-size:19px;font-weight:650;letter-spacing:-.012em;line-height:1.25}
+.jcard .kd{font:600 11px/1.7 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.jcard .hl{margin:12px 0 0;padding:10px 13px;border-radius:8px;background:var(--j-soft,var(--sunk));
+  font-size:13.5px;font-weight:600;color:var(--j,var(--ink));line-height:1.45}
+.jcard dl{margin:14px 0 0;display:grid;gap:0}
+.jcard dl > div{padding:11px 0;border-top:1px solid var(--rule)}
+.jcard dt{font:600 11px/1.7 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.jcard dd{margin:3px 0 0;font-size:13px;color:var(--soft);line-height:1.5}
+.jcard .src{margin-top:14px;font-size:12.5px}
+.jswap{display:block}
+.jreadout{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-top:12px;
+  font:600 11.5px/1.7 var(--mono);letter-spacing:.04em;color:var(--muted)}
+.jreadout b{color:var(--ink);font-weight:600}
+.jdiff{display:inline-flex;align-items:center;gap:7px;margin-top:18px;padding:5px 12px;border-radius:999px;
+  border:1px solid var(--rule);background:var(--sunk);font-size:12.5px;color:var(--soft);
+  transition:opacity .3s,transform .3s}
+.jdiff[data-quiet=true]{opacity:0;transform:translateY(-3px)}
+.jdiff s{width:7px;height:7px;border-radius:50%;background:var(--j,var(--muted));display:block}
+table.codes td.cite{color:var(--j,var(--accent));transition:color .45s ease}
+table.codes td.out{white-space:normal;font-weight:400;color:var(--soft);padding:18px 0}
+table.codes td.out b{color:var(--ink);font-weight:650}
+table.codes tr.is-new td{animation:jrow 1.9s ease-out}
+@keyframes jrow{0%,22%{background:var(--j-soft,var(--accent-soft))}100%{background:transparent}}
+.codeshead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:34px}
+.codeshead h3{font-size:16px}
+
+/* ---- what the citation changes about the work ---- */
+.jwork{border:1px solid var(--rule);border-radius:var(--r);background:var(--card);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:14px}
+.jwork .scope{padding:15px 20px;background:var(--j-soft,var(--sunk));
+  border-bottom:1px solid var(--rule);font-size:15px;color:var(--ink);line-height:1.5}
+.jwork .scope b{color:var(--j,var(--ink))}
+.jwork dl{margin:0;padding:4px 20px 6px;display:grid}
+.jwork dl > div{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;
+  padding:14px 0;border-bottom:1px solid var(--rule)}
+.jwork dt{font-size:13.5px;font-weight:650;color:var(--ink);line-height:1.45}
+.jwork dd{margin:0;font-size:13.5px;color:var(--soft);line-height:1.55}
+.jwork .enf{padding:14px 20px;background:var(--sunk);font-size:13px;color:var(--soft);line-height:1.55}
+.jwork .enf b{color:var(--ink);font-weight:650}
+@media (max-width:720px){.jwork dl > div{grid-template-columns:1fr;gap:4px}}
+
+/* the live note that sits with the corrections, up the page */
+.jscope{display:flex;gap:12px;align-items:flex-start;margin:0 0 22px;padding:13px 16px;
+  border:1px solid var(--rule);border-left:3px solid var(--j,var(--muted));border-radius:8px;
+  background:var(--card);font-size:13.5px;color:var(--soft);line-height:1.55;
+  transition:border-color .45s ease}
+.jscope b{color:var(--ink)}
+.jscope.owner{margin:18px 0 0}
+.jscope .where{color:var(--j,var(--ink));font-weight:650}
+.jscope a{white-space:nowrap}
+@media (max-width:860px){.juris{grid-template-columns:1fr}}
+/* Four columns of code text do not survive a phone. Below this width the
+   table becomes one card per citation, each cell labelled with the heading
+   it lost. */
+@media (max-width:720px){
+  table.codes,table.codes tbody,table.codes tr,table.codes td{display:block;width:auto}
+  table.codes thead{display:none}
+  table.codes{table-layout:auto;margin-top:6px}
+  table.codes tr{border:1px solid var(--rule);border-radius:8px;background:var(--card);
+    padding:14px 16px;margin-top:10px}
+  table.codes td{border:0;padding:0 0 11px;white-space:normal}
+  table.codes td:last-child{padding-bottom:0}
+  table.codes td::before{content:attr(data-l);display:block;margin-bottom:2px;
+    font:600 10.5px/1.7 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  table.codes td.cite{font-size:13px;padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid var(--rule)}
+  table.codes td.cite::before,table.codes td.out::before{content:none}
+  table.codes tr.is-new{animation:jcard 1.9s ease-out}
+  table.codes tr.is-new td{animation:none}
+  @keyframes jcard{0%,22%{background:var(--j-soft,var(--accent-soft))}100%{background:var(--card)}}
+}
+@media (prefers-reduced-motion:reduce){
+  .jmap .zone,.jcard .edge,.jmap .lab,table.codes td.cite{transition:none}
+  .jmap .pulse.go{animation:none}
+  table.codes tr.is-new td{animation:none}
+}
+
+/* ---- analysis accordions ---- */
+.acc{border:1px solid var(--rule);border-radius:var(--r);background:var(--card);overflow:hidden;box-shadow:var(--shadow)}
+.acc > details{border-top:1px solid var(--rule)}
+.acc > details:first-child{border-top:0}
+summary{list-style:none;cursor:pointer;padding:16px 20px;display:flex;align-items:center;gap:12px;
+  font-weight:600;font-size:15px;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary:hover{background:var(--sunk)}
+summary .chev{margin-left:auto;color:var(--muted);transition:transform .18s;flex:none}
+details[open] summary .chev{transform:rotate(90deg)}
+details[open] summary{border-bottom:1px solid var(--rule)}
+.body{padding:20px 20px 24px;max-width:84ch}
+.body h4{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+.body h4:first-child{margin-top:0}
+.body p,.body li{color:var(--soft);font-size:14.2px}
+.body ul,.body ol{margin:0 0 .85em;padding-left:20px}
+.body li{margin:4px 0}
+.body .kvs{margin-top:6px}
+
+/* ---- what the owner is sent: the same components as everything above ---- */
+.letter{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+  padding:26px 28px;box-shadow:var(--shadow)}
+.letter .lh{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:18px}
+.letter h3{font-size:17px}
+.letter .lh .s{font-size:13px;color:var(--muted);margin-top:4px}
+.letter h4{font-size:15.5px;margin:26px 0 8px}
+.letter p{font-size:14.5px;color:var(--soft)}
+.letter .opts{display:grid;gap:20px;margin-top:20px}
+.letter figure{margin:0;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.letter figure img{display:block;width:100%;height:auto;object-fit:cover}
+.letter figcaption{font-size:11.5px;font-weight:600;color:var(--muted);padding:7px 10px;
+  background:var(--sunk);border-top:1px solid var(--rule)}
+
+/* before and after, the same size, next to each other */
+.opt{margin:0}
+.opt .oh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.opt .oh b{font-size:15px}
+.opt > p{font-size:14px;color:var(--soft);margin:0 0 12px}
+.sbs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 auto}
+.sbs figcaption{text-align:center}
+.sbs .now figcaption{color:var(--soft)}
+.sbs .then{outline:2px solid var(--accent-edge);outline-offset:-1px}
+.sbs .then figcaption{color:var(--accent);background:var(--accent-soft);border-top-color:var(--accent-edge)}
+.todo{border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin:28px 0 0}
+.todo > div{display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 16px;border-top:1px solid var(--rule)}
+.todo > div:first-child{border-top:0}
+.todo dt{font:600 11px/1.75 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.todo dd{margin:0;font-size:14px;color:var(--soft)}
+.todo .no dd{color:var(--red)}
+.letter > details{margin-top:24px;border-top:1px solid var(--rule)}
+.letter > details > summary{padding:14px 0;font-size:13.5px;color:var(--muted)}
+.letter > details > summary:hover{background:none;color:var(--accent)}
+.letter .full h4{font-size:14.5px;margin:18px 0 6px}
+.letter .full p{font-size:14px}
+
+/* ---- closing ---- */
+.final{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--card);
+  border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.final div{background:var(--card);padding:16px 18px;box-shadow:0 0 0 1px var(--rule)}
+.final dt{font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.final dd{margin:4px 0 0;font-size:14px;color:var(--soft)}
+footer{border-top:1px solid var(--rule);background:var(--card);padding:28px 0 46px}
+footer p{font-size:12.5px;color:var(--muted);max-width:76ch}
+
+@media (max-width:980px){
+  .ov,.prow,.ident{grid-template-columns:minmax(0,1fr)}
+  .grid3{grid-template-columns:minmax(0,1fr)!important}
+  .letter{padding:22px 20px}
+  .head h1{font-size:25px}
+  .wrap{padding:0 20px}
+  section{padding:38px 0}
+}
+</style>
+</head>
+<body>
+
+<nav class="tabs" aria-label="Inspection examples">
+  <div class="wrap" role="tablist" id="tabs"></div>
+</nav>
+
+<main id="main"></main>
+
+<footer>
+  <div class="wrap">
+    <p>What the Fire Inspector AI should produce from one photograph and a short field note. Text from <code>ladderfuel.md</code> and <code>sprinkler.md</code>; after-images are AI visualisations generated once from the originals. Jurisdiction codes are quoted from each town’s own adopting ordinance — the source is linked on the jurisdiction card — with boundaries and basemap from OpenStreetMap. Citations, deadlines and corrective scope remain subject to inspector verification.</p>
+  </div>
+</footer>
+
+<script src="content.js"></script>
+<script src="jurisdictions.js"></script>
+<script>
+(function () {
+'use strict';
+
+const C = window.CONTENT;
+const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+const esc = s => String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+
+const CHEV = '<svg class="chev" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const INFO = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.3v4M8 4.9v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+// A 9:16 inspection photograph in a desktop column is over 1300px tall, which
+// pushes everything under it off the screen. Cap the height and let the width
+// follow, so portrait media sits centred at a readable size and landscape
+// media — already shorter than the cap — is left alone.
+function cap(node, aspect, maxH) {
+  // Both layers are absolutely positioned, so the box has no in-flow content
+  // to size itself from: as a flex item with width:auto it collapses to zero.
+  node.style.width = '100%';
+  node.style.maxWidth = Math.round(maxH * aspect) + 'px';
+  node.style.marginLeft = 'auto';
+  node.style.marginRight = 'auto';
+}
+
+const TAGS = { confirmed: 'Inspector confirmed', observed: 'Read from the photo', verify: 'Not settled yet' };
+const tag = t => t ? `<span class="tag ${t}">${TAGS[t]}</span>` : '';
+
+// ---------------------------------------------------------------------------
+// Blocks — the analysis prose, rendered from content.js
+// ---------------------------------------------------------------------------
+function blocks(list) {
+  return list.map(b => {
+    const t = tag(b.tag);
+    if (b.t === 'h') return `<h4>${b.v}</h4>`;
+    if (b.t === 'p') return `<p>${t}${b.v}</p>`;
+    if (b.t === 'ul') return (t ? `<p>${t}</p>` : '') + `<ul>${b.v.map(i => `<li>${i}</li>`).join('')}</ul>`;
+    if (b.t === 'ol') return `<ol>${b.v.map(i => `<li>${i}</li>`).join('')}</ol>`;
+    if (b.t === 'kv') return `<dl class="kvs">${b.v.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+    return '';
+  }).join('');
+}
+
+// ---------------------------------------------------------------------------
+// SCAN — the overlay, ported from SCANFX in public/app.js
+// ---------------------------------------------------------------------------
+// The app draws this box by box behind a sweeping beam; here the result is
+// simply shown, which is what SCANFX.draw() does for the lightbox. What is
+// carried over verbatim is the part that matters — the geometry, and the rule
+// for where a label goes so it stays legible and clear of its neighbours.
+const SCAN = (() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (n, at) => { const e = document.createElementNS(NS, n); for (const k in at) e.setAttribute(k, at[k]); return e; };
+
+  /** one box: b = { label, box:[left%,top%,w%,h%], tone } */
+  function box(ar, b, i, isIssue) {
+    const W = ar.clientWidth, H = ar.clientHeight;
+    const x0 = b.box[0] / 100 * W, y0 = b.box[1] / 100 * H, w = b.box[2] / 100 * W, h = b.box[3] / 100 * H, x1 = x0 + w;
+    const g = sv('g', { class: (isIssue ? 'issue ' : 'bx ') + (b.tone || 'cyan'), 'data-i': i });
+    g.appendChild(sv('rect', { x: x0, y: y0, width: w, height: h, 'stroke-width': isIssue ? 1.5 : 1, class: 'rc' }));
+
+    // The callout: a pin on the box, a lead that kinks 45° then runs level,
+    // the word at its end. Outside to the right when there is room, outside to
+    // the left when not, and inside the box (kinking down) when the box spans
+    // the frame. Labels already placed push a new one down.
+    const fs = 11.5, tw = b.label.length * fs * 0.56 + 14, kd = 16, run = 38, TOP = 14;
+    const placed = ar._labels || (ar._labels = []);
+    const hits = r => placed.some(q => r.x < q.x + q.w && r.x + r.w > q.x && r.y < q.y + q.h && r.y + r.h > q.y);
+    let sx, py, dir, down, anchor;
+    const py0 = Math.max(y0, TOP);
+    if (x1 + kd + run + 6 + tw < W - 8 && y0 >= TOP) { sx = x1; py = y0; dir = 1; down = false; anchor = 'start'; }
+    else if (x0 - kd - run - 6 - tw > 8 && y0 >= TOP) { sx = x0; py = y0; dir = -1; down = false; anchor = 'end'; }
+    else { sx = x0; py = Math.min(py0, y0 + h - 8); dir = 1; down = true; anchor = 'start'; }
+    let ky = down ? py + kd : py - kd, kx = sx + dir * kd, ex = kx + dir * run;
+    if (anchor === 'start' && ex + 6 + tw > W - 8) {
+      if (kx - 6 - tw > 8) { anchor = 'end'; dir = -1; ex = kx; }
+      else ex = Math.max(kx, W - 8 - 6 - tw);
+    }
+    const r = { x: anchor === 'start' ? ex + 6 : ex - 6 - tw, y: ky - 12, w: tw, h: 16 };
+    let guard = 0;
+    while (hits(r) && guard++ < 12) { ky += 18; kx = sx + dir * Math.abs(ky - py); r.y = ky - 12; }
+    placed.push(r);
+
+    const text = sv('text', { x: ex + (anchor === 'start' ? 6 : -6), y: ky + 4, 'text-anchor': anchor, class: 'lab' });
+    text.textContent = b.label;
+    g.append(
+      sv('circle', { cx: sx, cy: py, class: 'halo' }),
+      sv('circle', { cx: sx, cy: py, class: 'dot' }),
+      sv('path', { d: 'M' + sx + ' ' + py + ' L' + kx + ' ' + ky + ' H' + ex, 'stroke-width': isIssue ? 1.5 : 1, class: 'lead' }),
+      text);
+    ar.appendChild(g);
+  }
+
+  /** The elements first, then the finding, so the red box and its label win. */
+  function draw(ar, anns) {
+    ar.innerHTML = '';
+    ar._labels = [];
+    if (!ar.clientWidth) return;
+    anns.forEach((a, i) => { if (a.tone !== 'red') box(ar, a, i, false); });
+    anns.forEach((a, i) => { if (a.tone === 'red') box(ar, a, i, true); });
+  }
+
+  return { draw: draw };
+})();
+
+// ---------------------------------------------------------------------------
+// The photograph with the hazard overlay
+// ---------------------------------------------------------------------------
+function shot(ex, annotated) {
+  const fig = el('div', 'shot on');
+  fig.style.aspectRatio = ex.aspect;
+  cap(fig, ex.aspect, 620);
+  fig.innerHTML = `<img src="${ex.photo}" alt="Inspection photograph">` +
+    (annotated ? `<div class="ann"><svg class="ar"></svg></div>` : '');
+  if (!annotated) return { fig: fig, ar: null };
+
+  const ar = fig.querySelector('.ar');
+  // The overlay is absolute pixel geometry, so it is drawn once the figure has
+  // a width and redrawn whenever that changes. A panel on the tab that is not
+  // showing measures zero, so the observer is also what draws it on reveal.
+  const redraw = () => SCAN.draw(ar, ex.annotations);
+  if (window.ResizeObserver) {
+    let w = 0;
+    new ResizeObserver(() => {
+      if (Math.abs(fig.clientWidth - w) < 2) return;
+      w = fig.clientWidth;
+      redraw();
+    }).observe(fig);
+  } else {
+    requestAnimationFrame(redraw);
+    window.addEventListener('resize', redraw);
+  }
+  return { fig: fig, ar: ar };
+}
+
+// The annotated photograph with its toggle, legend and conclusion.
+function hazard(ex) {
+  const wrap = el('div');
+  const made = shot(ex, true);
+
+  const bar = el('div', 'shotbar');
+  const btn = el('button', 'toggle', '<span class="dot"></span>Hazard annotations');
+  btn.type = 'button';
+  btn.setAttribute('aria-pressed', 'true');
+  btn.onclick = () => {
+    const on = btn.getAttribute('aria-pressed') === 'true';
+    btn.setAttribute('aria-pressed', String(!on));
+    made.fig.classList.toggle('on', !on);
+  };
+  bar.append(btn);
+
+  wrap.append(made.fig, bar);
+  return { col: wrap, ar: made.ar };
+}
+
+// ---------------------------------------------------------------------------
+// The before / after slider
+// ---------------------------------------------------------------------------
+function compare(ex) {
+  const ba = el('div', 'ba');
+  ba.style.aspectRatio = ex.aspect;
+  cap(ba, ex.aspect, 660);
+  ba.innerHTML =
+    `<img class="after" alt="Proposed result after the correction">` +
+    `<img class="before" src="${ex.photo}" alt="Original inspection photograph">` +
+    `<span class="lab l">Before — inspection photograph</span>` +
+    `<span class="lab r">Proposed after — illustrative</span>` +
+    `<span class="bar"></span>` +
+    `<button class="grip" type="button" role="slider" aria-label="Reveal the proposed result"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">‹›</button>`;
+
+  const grip = ba.querySelector('.grip');
+  const labL = ba.querySelector('.lab.l'), labR = ba.querySelector('.lab.r');
+  const set = p => {
+    p = Math.max(0, Math.min(100, p));
+    ba.style.setProperty('--pos', p.toFixed(2) + '%');
+    grip.setAttribute('aria-valuenow', Math.round(p));
+    // A label belongs to the side it names: once the divider has swept past
+    // it, it is sitting over the other image and has to go.
+    labL.dataset.off = String(p < 24);
+    labR.dataset.off = String(p > 76);
+  };
+  const at = e => set((e.clientX - ba.getBoundingClientRect().left) / ba.offsetWidth * 100);
+
+  let dragging = false;
+  ba.addEventListener('pointerdown', e => {
+    dragging = true; ba.setPointerCapture(e.pointerId); at(e); e.preventDefault();
+  });
+  ba.addEventListener('pointermove', e => { if (dragging) at(e); });
+  ba.addEventListener('pointerup', e => { dragging = false; try { ba.releasePointerCapture(e.pointerId); } catch (_) {} });
+  grip.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 10 : 2;
+    const now = Number(grip.getAttribute('aria-valuenow'));
+    if (e.key === 'ArrowLeft') { set(now - step); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { set(now + step); e.preventDefault(); }
+    if (e.key === 'Home') { set(0); e.preventDefault(); }
+    if (e.key === 'End') { set(100); e.preventDefault(); }
+  });
+  ba.reset = () => set(50);
+  return ba;
+}
+
+// ---------------------------------------------------------------------------
+// Proposed corrections — every option on one line, each with its own compare
+// ---------------------------------------------------------------------------
+function corrections(ex) {
+  const row = el('div', 'grid3');
+  row.style.gridTemplateColumns = `repeat(${Math.min(ex.solutions.length, 3)},minmax(0,1fr))`;
+
+  ex.solutions.forEach(sn => {
+    const card = el('div', 'scard');
+
+    const head = el('div', 'sh');
+    head.innerHTML = `<b>${sn.title}</b>` +
+      `<span class="pill ${sn.badge === 'required' ? 'green' : 'amber'}">${sn.badgeText}</span>`;
+
+    const stage = el('div', 'stage');
+    const ba = compare(ex);
+    cap(ba, ex.aspect, 640);
+    ba.querySelector('.after').src = sn.image;
+    stage.append(ba);
+
+    const body = el('div', 'fb');
+    const rows = [
+      ['What changes', sn.change],
+      ['Where in the photo', sn.where],
+      ['How it is done', `<ol>${sn.how.map(h => `<li>${h}</li>`).join('')}</ol>`],
+      ['What is preserved', sn.keep],
+      ['Why it works', sn.why],
+    ];
+    body.innerHTML = `<dl class="facts">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+    if (sn.imageNote) {
+      const n = el('p', 'note', sn.imageNote);
+      n.style.marginTop = '14px';
+      body.append(n);
+    }
+    if (sn.limit) {
+      const w = el('div', 'warn', `<b>${sn.proposal ? 'Not from the inspection record.' : 'Limitation.'}</b> ${sn.limit}`);
+      w.style.marginTop = '14px';
+      body.append(w);
+    }
+
+    card.append(head, stage, body);
+    row.append(card);
+  });
+
+  return row;
+}
+
+// ---------------------------------------------------------------------------
+// Sprinkler identification — where the markings live, and what is missing
+// ---------------------------------------------------------------------------
+const SPRINKLER_SVG = `
+<svg viewBox="0 0 460 270" role="img" aria-label="Line diagram of a pendent fire sprinkler showing where identification markings are located">
+  <defs>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#d3d9e1" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ceiling -->
+    <rect x="140" y="14" width="180" height="12" fill="url(#hatch)" stroke="none"/>
+    <line x1="140" y1="26" x2="320" y2="26" stroke="#9aa3b0" stroke-width="2"/>
+    <!-- escutcheon: a shallow two-piece trim cup around the opening -->
+    <path d="M176 26 l-12 16 h44" stroke="#8a94a2" stroke-width="1.7"/>
+    <path d="M284 26 l12 16 h-44" stroke="#8a94a2" stroke-width="1.7"/>
+    <!-- threaded shank -->
+    <rect x="216" y="26" width="28" height="16" fill="#fff" stroke="#374151" stroke-width="1.8"/>
+    <line x1="216" y1="31" x2="244" y2="31" stroke="#b6bdc7" stroke-width="1"/>
+    <line x1="216" y1="36" x2="244" y2="36" stroke="#b6bdc7" stroke-width="1"/>
+    <!-- hex wrench boss -->
+    <path d="M210 42 h40 v22 h-40 z" fill="#fff" stroke="#374151" stroke-width="1.9"/>
+    <line x1="223" y1="42" x2="223" y2="64" stroke="#c3c9d2" stroke-width="1"/>
+    <line x1="237" y1="42" x2="237" y2="64" stroke="#c3c9d2" stroke-width="1"/>
+    <!-- orifice shoulder -->
+    <path d="M214 64 h32 l-4 12 h-24 z" fill="#fff" stroke="#374151" stroke-width="1.8"/>
+    <!-- two-arm frame: near vertical, a narrow open cage -->
+    <path d="M220 76 C 209 108, 208 152, 218 176" stroke="#374151" stroke-width="2.6"/>
+    <path d="M240 76 C 251 108, 252 152, 242 176" stroke="#374151" stroke-width="2.6"/>
+    <!-- release element: a slim glass bulb seated under the orifice -->
+    <path d="M226 78 h8 v40 a4 4 0 0 1 -4 4 a4 4 0 0 1 -4 -4 z" fill="#dbeafe" stroke="#1557c0" stroke-width="1.6"/>
+    <line x1="230" y1="122" x2="230" y2="172" stroke="#374151" stroke-width="1.8"/>
+    <!-- yoke and deflector -->
+    <rect x="216" y="174" width="28" height="7" rx="2" fill="#fff" stroke="#374151" stroke-width="1.8"/>
+    <ellipse cx="230" cy="190" rx="33" ry="5.5" fill="#fff" stroke="#374151" stroke-width="1.8"/>
+    <g stroke="#9aa3b0" stroke-width="1.3">
+      <line x1="202" y1="188" x2="196" y2="184"/><line x1="212" y1="194" x2="209" y2="200"/>
+      <line x1="221" y1="196" x2="220" y2="203"/><line x1="230" y1="196.5" x2="230" y2="204"/>
+      <line x1="239" y1="196" x2="240" y2="203"/><line x1="248" y1="194" x2="251" y2="200"/>
+      <line x1="258" y1="188" x2="264" y2="184"/>
+    </g>
+  </g>
+  <g stroke="#1557c0" stroke-width="1.2" fill="none" stroke-dasharray="3 3">
+    <path d="M170 38 H 112"/>
+    <path d="M208 53 H 112"/>
+    <path d="M211 140 H 112"/>
+    <path d="M236 98 H 340"/>
+    <path d="M265 190 H 340"/>
+  </g>
+  <g font-family="ui-monospace,SF Mono,Menlo,monospace" font-size="10" fill="#1557c0" font-weight="600">
+    <text x="107" y="41" text-anchor="end">ESCUTCHEON</text>
+    <text x="107" y="56" text-anchor="end">WRENCH BOSS</text>
+    <text x="107" y="143" text-anchor="end">FRAME ARM</text>
+    <text x="346" y="101">RELEASE ELEMENT</text>
+    <text x="346" y="193">DEFLECTOR FACE</text>
+  </g>
+</svg>`;
+
+function identification(id) {
+  const wrap = el('div');
+
+  const v = el('div', 'verdict');
+  v.innerHTML = `<div class="v"><b>Identification: ${id.verdict}</b><span class="pill amber">No product named</span></div><p>${id.verdictBody}</p>`;
+
+  const grid = el('div', 'ident');
+
+  const left = el('div');
+  left.innerHTML = `<p class="eyebrow">What the photograph supports</p>` +
+    `<table><thead><tr><th>Attribute</th><th>Reading</th><th>Basis</th><th>Confidence</th></tr></thead><tbody>` +
+    id.clues.map(([k, read, basis, conf]) =>
+      `<tr><td>${k}</td><td>${read}</td><td>${basis}</td><td><span class="conf ${conf}" title="${conf}"></span></td></tr>`
+    ).join('') + `</tbody></table>`;
+
+  const right = el('div');
+  right.innerHTML = `<p class="eyebrow">Where identification normally lives</p>` +
+    `<div class="diagram">${SPRINKLER_SVG}</div>` +
+    `<table style="margin-top:18px"><tbody>` +
+    id.markings.map(([k, v2]) => `<tr><td>${k}</td><td>${v2}</td></tr>`).join('') +
+    `</tbody></table>` +
+    `<p class="eyebrow" style="margin:26px 0 0">Temperature rating by bulb colour</p>` +
+    `<div class="temps">${id.tempKey.map(([n, f, c]) =>
+      `<span class="temp"><s style="background:${c}"></s><b>${f}</b><span>${n}</span></span>`).join('')}</div>` +
+    `<p class="note">${id.tempNote}</p>`;
+
+  grid.append(left, right);
+
+  const ev = el('div');
+  ev.style.marginTop = '34px';
+  ev.innerHTML = `<p class="eyebrow">What would be needed to confirm it</p>` +
+    `<ul class="ticks">${id.evidence.map(e => `<li>${e}</li>`).join('')}</ul>` +
+    `<div class="warn" style="margin-top:18px"><b>Replacement specification.</b> ${id.spec}</div>`;
+
+  wrap.append(v, grid, ev);
+  return wrap;
+}
+
+// ---------------------------------------------------------------------------
+// JURISDICTION — the map that decides which code applies
+// ---------------------------------------------------------------------------
+// Three towns sit end to end along Sir Francis Drake Boulevard, served by one
+// fire department, each enforcing a different fire code. So "which section do
+// I cite" is answered by the property's address and nothing else, and the
+// honest way to show that is to let the address move. The pin is the address;
+// the table under it is whatever that address makes enforceable.
+//
+// One pin is shared by both findings — it is one property — so a move made on
+// the ladder-fuel tab is already made when the sprinkler tab is opened.
+// The page must still render every other section if this file is missing, so
+// the module falls back to an empty valley rather than throwing on load.
+const J = window.JURIS || {
+  map: { src: '', w: 1, h: 1, west: 0, east: 1, south: 0, north: 1, credit: '' },
+  areas: [], jurisdictions: {}, outside: {}, fallback: '',
+};
+const REDUCE = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const ACC = {
+  ross:        ['#1557c0', 'rgba(21,87,192,.11)'],
+  fairfax:     ['#b4414b', 'rgba(180,65,75,.11)'],
+  san_anselmo: ['#2f6b3c', 'rgba(47,107,60,.11)'],
+  marin:       ['#8a6412', 'rgba(138,100,18,.11)'],
+  san_rafael:  ['#6b7280', 'rgba(107,114,128,.11)'],
+  larkspur:    ['#6b7280', 'rgba(107,114,128,.11)'],
+};
+
+// --- projection. The basemap was cropped to exact bounds in Web Mercator, so
+//     a lon/lat is a pixel and back with no tile server at run time.
+const MP = J.map;
+const merc = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+const MY0 = merc(MP.north), MY1 = merc(MP.south);
+const toX = lon => (lon - MP.west) / (MP.east - MP.west) * MP.w;
+const toY = lat => (merc(lat) - MY0) / (MY1 - MY0) * MP.h;
+const toLon = x => MP.west + x / MP.w * (MP.east - MP.west);
+const toLat = y => (Math.atan(Math.exp(MY0 + y / MP.h * (MY1 - MY0))) * 2 - Math.PI / 2) * 180 / Math.PI;
+
+// --- which polygon holds the pin. Ray casting, over every ring of every area;
+//     anything in none of them is unincorporated county land.
+function inRing(lon, lat, ring) {
+  let hit = false;
+  for (let i = 0, k = ring.length - 1; i < ring.length; k = i++) {
+    const [xi, yi] = ring[i], [xk, yk] = ring[k];
+    if ((yi > lat) !== (yk > lat) && lon < (xk - xi) * (lat - yi) / (yk - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+function locate(lon, lat) {
+  for (const a of J.areas) if (a.rings.some(r => inRing(lon, lat, r))) return a.id;
+  return J.fallback;
+}
+const record = id => J.jurisdictions[id] || J.outside[id];
+
+// --- the shared pin
+const START = (J.jurisdictions.ross || { pin: [0, 0] }).pin;
+const PIN = {
+  lon: START[0], lat: START[1],
+  id: 'ross', subs: [],
+  set(lon, lat, from) {
+    this.lon = Math.min(MP.east, Math.max(MP.west, lon));
+    this.lat = Math.min(MP.north, Math.max(MP.south, lat));
+    const id = locate(this.lon, this.lat);
+    const moved = id !== this.id;
+    this.id = id;
+    this.subs.forEach(fn => fn(moved, from));
+  },
+};
+
+const path = rings => rings.map(r =>
+  'M' + r.map(([lon, lat]) => toX(lon).toFixed(1) + ' ' + toY(lat).toFixed(1)).join('L') + 'Z').join('');
+
+// Each instance is one tab's copy of the map, card and table. They share the
+// pin, so both stay in step without either owning the other.
+function jurisdiction(kind, closing) {
+  const wrap = el('div');
+
+  // ---- the map
+  const mapbox = el('div', 'jmap');
+  mapbox.tabIndex = 0;
+  mapbox.setAttribute('role', 'application');
+  mapbox.setAttribute('aria-label', 'Property location. Drag the pin, or use the arrow keys, to move it between towns and see the applicable fire code change.');
+  const zones = J.areas.map(a =>
+    `<path class="zone ${a.id}${a.kind === 'other' ? ' other' : ''}" data-z="${a.id}" d="${path(a.rings)}"/>`).join('');
+  const labels = J.areas.filter(a => a.labelAt).map(a =>
+    `<text class="lab${a.kind === 'other' ? ' sub' : ''}" data-l="${a.id}" x="${toX(a.labelAt[0]).toFixed(0)}" y="${toY(a.labelAt[1]).toFixed(0)}">${a.name}</text>`).join('');
+  mapbox.innerHTML =
+    `<img src="${MP.src}" width="${MP.w}" height="${MP.h}" alt="Map of the Ross Valley showing the town limits of Fairfax, San Anselmo and Ross." draggable="false">` +
+    `<svg viewBox="0 0 ${MP.w} ${MP.h}" aria-hidden="true">` +
+      `<g>${zones}</g><path class="pulse"/><g>${labels}</g>` +
+      // drawn in CSS pixels and counter-scaled, so it is the same size at
+      // every map width — see --k
+      `<g class="pin"><circle class="halo" r="17"/><ellipse class="shadow" cx="0" cy="1" rx="5.5" ry="2.4"/>` +
+      `<line class="stem" x1="0" y1="0" x2="0" y2="-20"/><circle class="head" cx="0" cy="-26" r="7.5"/>` +
+      `<circle class="grab" cx="0" cy="-17" r="26"/></g>` +
+    `</svg>` +
+    `<div class="jhint">${PINICON}<span>Drag the pin into another town</span></div>`;
+  const svg = mapbox.querySelector('svg');
+  const pinG = mapbox.querySelector('.pin');
+  const pulse = mapbox.querySelector('.pulse');
+  const hint = mapbox.querySelector('.jhint');
+
+  // ---- the jump buttons
+  const bar = el('div', 'jbar');
+  ['ross', 'san_anselmo', 'fairfax', 'marin'].forEach(id => {
+    const r = J.jurisdictions[id];
+    const b = el('button', null, r.short);
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.style.setProperty('--jb', ACC[id][0]);
+    b.onclick = () => fly(r.pin[0], r.pin[1]);
+    bar.append(b);
+  });
+
+  const readout = el('div', 'jreadout');
+  const credit = el('p', 'note', MP.credit + ' A boundary drawn here is good to about ten metres — a parcel on the line is a question for the assessor, not for this map.');
+  credit.style.marginTop = '10px';
+
+  const card = el('aside', 'jcard');
+  card.innerHTML = '<div class="edge"></div><div class="in"></div>';
+  const cardIn = card.querySelector('.in');
+
+  const live = el('p', 'note');
+  live.setAttribute('role', 'status');
+  live.setAttribute('aria-live', 'polite');
+  live.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+
+  const grid = el('div', 'juris');
+  const left = el('div', 'jmapwrap');
+  left.append(mapbox, bar, readout, credit);
+  grid.append(left, card);
+
+  // ---- the table
+  const head = el('div', 'codeshead');
+  head.innerHTML = '<h3>What that makes enforceable</h3>';
+  const diff = el('span', 'jdiff');
+  diff.dataset.quiet = 'true';
+  head.append(diff);
+
+  const table = el('table', 'codes');
+  table.innerHTML = '<thead><tr><th>Section</th><th>What it requires</th><th>How it applies here</th><th>Still to confirm</th></tr></thead><tbody></tbody>';
+  table.style.marginTop = '12px';
+  const tbody = table.querySelector('tbody');
+
+  const concl = el('p', 'concl', `<b>Conclusion.</b> ${closing}`);
+
+  // ---- and what that does to the work itself, which is the part the owner
+  //      pays for. The citation changing is only interesting because this does.
+  const workHead = el('div', 'codeshead');
+  workHead.innerHTML = '<h3>What that changes about the correction</h3>';
+  const workBox = el('div', 'jwork');
+
+  wrap.append(grid, head, table, concl, workHead, workBox, live);
+
+  // ------------------------------------------------------------------ paint
+  let shown = null;        // the jurisdiction currently in the table
+  let gen = 0;             // cancels a swap that a faster drag has overtaken
+
+  function rowsFor(id) {
+    const r = J.jurisdictions[id];
+    return r ? r[kind].rows : null;
+  }
+
+  // Map user-units per CSS pixel. The pin is drawn at CSS-pixel sizes and
+  // scaled by this, so it does not shrink with the map.
+  let K = MP.w / 700;
+  function measure() {
+    const w = mapbox.clientWidth;
+    if (!w) return;
+    K = MP.w / w;
+    mapbox.style.setProperty('--k', K.toFixed(3));
+    paintPin();
+  }
+  if (window.ResizeObserver) new ResizeObserver(measure).observe(mapbox);
+  else window.addEventListener('resize', measure);
+
+  function paintPin() {
+    pinG.setAttribute('transform',
+      `translate(${toX(PIN.lon).toFixed(1)} ${toY(PIN.lat).toFixed(1)}) scale(${K.toFixed(3)})`);
+    readout.innerHTML =
+      `<span>Pin <b>${PIN.lat.toFixed(5)}, ${PIN.lon.toFixed(5)}</b></span>` +
+      `<span>Jurisdiction <b>${record(PIN.id).name}</b></span>`;
+  }
+
+  function paintRegion(id) {
+    // one place: the map, the card, the citation column, the diff pill and the
+    // scope-of-work panel all inherit the jurisdiction's colour from here
+    const [c, soft] = ACC[id] || ACC.marin;
+    wrap.style.setProperty('--j', c);
+    wrap.style.setProperty('--j-soft', soft);
+    svg.querySelectorAll('.zone').forEach(z => z.classList.toggle('on', z.dataset.z === id));
+    svg.querySelectorAll('.lab').forEach(l => l.classList.toggle('on', l.dataset.l === id));
+    bar.querySelectorAll('button').forEach((b, i) => {
+      b.setAttribute('aria-pressed', String(['ross', 'san_anselmo', 'fairfax', 'marin'][i] === id));
+    });
+    const area = J.areas.find(a => a.id === id);
+    if (area && !REDUCE.matches) {
+      pulse.setAttribute('d', path(area.rings));
+      pulse.setAttribute('stroke', c);
+      pulse.classList.remove('go');
+      void pulse.getBBox();
+      pulse.classList.add('go');
+    } else {
+      pulse.removeAttribute('d');
+    }
+  }
+
+  function cardHTML(id) {
+    const r = record(id);
+    if (J.outside[id]) {
+      return `<span class="kd">${r.kind}</span><span class="nm">${r.name}</span>` +
+        `<p class="hl">Outside the three towns this page carries.</p>` +
+        `<dl><div><dt>Fire agency</dt><dd>${r.agency}</dd></div>` +
+        `<div><dt>Why there is no table</dt><dd>${r.why}</dd></div></dl>`;
+    }
+    return `<span class="kd">${r.kind}</span><span class="nm">${r.name}</span>` +
+      `<p class="hl">${r[kind].headline}</p>` +
+      `<dl><div><dt>Fire agency</dt><dd>${r.agency}<br><span class="note">${r.agencyNote}</span></dd></div>` +
+      r.adopted.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') +
+      `</dl><p class="src note">Source: <a href="${r.source.url}" target="_blank" rel="noopener">${r.source.label}</a></p>`;
+  }
+
+  function buildRows(id, prevCites) {
+    const rows = rowsFor(id);
+    const frag = document.createDocumentFragment();
+    if (!rows) {
+      const tr = el('tr');
+      tr.innerHTML = `<td class="out" colspan="4">` +
+        `<b>${record(id).name}</b> — this page carries Ross, Fairfax, San Anselmo and unincorporated ` +
+        `Marin County only. Move the pin back inside the valley to see a table.</td>`;
+      frag.append(tr);
+      return [frag, [tr]];
+    }
+    const made = rows.map(c => {
+      const tr = el('tr');
+      const bare = c.cite.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (prevCites && !prevCites.has(bare)) tr.className = 'is-new';
+      // data-l is the column heading, which a narrow screen prints above each
+      // cell once the table has been stacked into cards
+      tr.innerHTML = `<td class="cite">${c.cite}</td>` +
+        `<td data-l="What it requires">${c.requires}</td>` +
+        `<td data-l="How it applies here">${c.applies}</td>` +
+        `<td data-l="Still to confirm">${c.open ? `<span class="tag verify">Not settled yet</span>${c.open}` : '<span class="none">Nothing outstanding</span>'}</td>`;
+      frag.append(tr);
+      return tr;
+    });
+    return [frag, made];
+  }
+
+  function workHTML(id) {
+    const r = J.jurisdictions[id];
+    if (!r) {
+      return `<div class="scope">No scope of work is stated for ${record(id).name}. ` +
+        `This page carries Ross, Fairfax, San Anselmo and unincorporated Marin County only.</div>`;
+    }
+    const w = r[kind].work;
+    return `<div class="scope">${w.scope}</div>` +
+      `<dl>${w.steps.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` +
+      `<p class="enf"><b>If it is not corrected.</b> ${w.enforcement}</p>`;
+  }
+
+  const citeSet = id => new Set((rowsFor(id) || []).map(c =>
+    c.cite.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()));
+
+  function paintDiff(from, to) {
+    if (!from || from === to) { diff.dataset.quiet = 'true'; return; }
+    const a = citeSet(from), b = citeSet(to);
+    const move = `<b>${record(from).short} → ${record(to).short}</b>`;
+    // Ross and San Anselmo adopted the same Ross Valley template under their
+    // own ordinances: every citation is rewritten and the rule is unchanged.
+    // Counting that as "6 of 6 changed" would be true and misleading at once.
+    const fj = J.jurisdictions[from], tj = J.jurisdictions[to];
+    const sameRule = fj && tj && fj[kind].headline === tj[kind].headline;
+    if (!b.size) {
+      diff.innerHTML = `<s></s><span>${move} · no codes loaded for this jurisdiction</span>`;
+    } else if (sameRule) {
+      diff.innerHTML = `<s></s><span>${move} · ${b.size} citations rewritten, same requirement</span>`;
+    } else {
+      let kept = 0;
+      b.forEach(c => { if (a.has(c)) kept++; });
+      const changed = b.size - kept;
+      diff.innerHTML = `<s></s><span>${move} · ` +
+        `${changed} of ${b.size} citation${b.size === 1 ? '' : 's'} changed` +
+        `${kept ? `, ${kept} carried over` : ''}</span>`;
+    }
+    diff.dataset.quiet = 'false';
+  }
+
+  // The swap is the point of the whole section: the old citations leave, the
+  // new ones arrive a row at a time, and the ones that are genuinely new to
+  // this jurisdiction hold a tint for a moment so the change is readable
+  // rather than merely instantaneous.
+  function swap(id) {
+    const prev = shown;
+    const mine = ++gen;
+    paintRegion(id);
+    paintDiff(prev, id);
+    live.textContent = `${record(id).name}. ${rowsFor(id) ? rowsFor(id).length + ' citations.' : 'No citations carried for this jurisdiction.'}`;
+
+    const put = () => {
+      if (mine !== gen) return;
+      // the fade-out holds its end state, so it has to go before the new card
+      // is faded in over the top of it
+      cardIn.getAnimations().forEach(a => a.cancel());
+      workBox.getAnimations().forEach(a => a.cancel());
+      cardIn.innerHTML = cardHTML(id);
+      workBox.innerHTML = workHTML(id);
+      const [frag, made] = buildRows(id, prev ? citeSet(prev) : null);
+      tbody.replaceChildren(frag);
+      shown = id;
+      if (REDUCE.matches) return;
+      [cardIn, workBox].forEach(n => n.animate(
+        [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 320, easing: 'cubic-bezier(.2,.7,.3,1)' }));
+      made.forEach((tr, i) => tr.animate(
+        [{ opacity: 0, transform: 'translateY(9px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 300, delay: 40 + i * 55, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' }));
+    };
+
+    if (REDUCE.matches || !prev) { put(); return; }
+    const old = Array.from(tbody.children);
+    old.forEach((tr, i) => tr.animate(
+      [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-7px)' }],
+      { duration: 190, delay: i * 18, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }));
+    [cardIn, workBox].forEach(n => n.animate([{ opacity: 1 }, { opacity: 0 }],
+      { duration: 170, fill: 'forwards' }));
+    setTimeout(put, Math.min(190 + old.length * 18, 330));
+  }
+
+  // ------------------------------------------------------------ interaction
+  function fly(lon, lat) {
+    if (REDUCE.matches) { PIN.set(lon, lat, wrap); return; }
+    const x0 = toX(PIN.lon), y0 = toY(PIN.lat), x1 = toX(lon), y1 = toY(lat);
+    const dur = Math.min(900, 380 + Math.hypot(x1 - x0, y1 - y0) * 0.45);
+    const t0 = performance.now();
+    (function step(t) {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;   // easeInOutCubic
+      // a shallow arc, so the pin reads as travelling rather than teleporting
+      const lift = Math.sin(Math.PI * e) * -Math.min(34, Math.hypot(x1 - x0, y1 - y0) * 0.09);
+      PIN.set(toLon(x0 + (x1 - x0) * e), toLat(y0 + (y1 - y0) * e + lift), wrap);
+      if (k < 1) requestAnimationFrame(step);
+      else PIN.set(lon, lat, wrap);
+    })(t0);
+  }
+
+  function fromEvent(e) {
+    const r = mapbox.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * MP.w;
+    const y = (e.clientY - r.top) / r.height * MP.h;
+    PIN.set(toLon(x), toLat(y), wrap);
+  }
+
+  let dragging = false;
+  mapbox.addEventListener('pointerdown', e => {
+    if (e.button != null && e.button !== 0) return;
+    dragging = true;
+    mapbox.classList.add('dragging');
+    mapbox.setPointerCapture(e.pointerId);
+    hint.dataset.off = 'true';
+    fromEvent(e);
+    e.preventDefault();
+  });
+  mapbox.addEventListener('pointermove', e => { if (dragging) fromEvent(e); });
+  const stop = e => {
+    if (!dragging) return;
+    dragging = false;
+    mapbox.classList.remove('dragging');
+    try { mapbox.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+  mapbox.addEventListener('pointerup', stop);
+  mapbox.addEventListener('pointercancel', stop);
+
+  // Arrow keys walk the pin — roughly 60 m a press, 300 m with shift, which is
+  // the scale at which a town line is actually crossed here.
+  mapbox.addEventListener('keydown', e => {
+    const step = (e.shiftKey ? 0.0027 : 0.00055);
+    const d = { ArrowUp: [0, step], ArrowDown: [0, -step], ArrowLeft: [-step, 0], ArrowRight: [step, 0] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    hint.dataset.off = 'true';
+    PIN.set(PIN.lon + d[0] * 1.27, PIN.lat + d[1], wrap);
+  });
+
+  // ---------------------------------------------------------------- wiring
+  PIN.subs.push((moved) => {
+    paintPin();
+    if (moved || shown === null) swap(PIN.id);
+  });
+  measure();
+  paintPin();
+  swap(PIN.id);
+
+  return wrap;
+}
+
+// The corrections are proposed several screens above the map, and read as
+// universal if nothing says otherwise. This strip sits with them and follows
+// the pin, so the scope of the work is never stated without its jurisdiction.
+function scopeNote(kind) {
+  const n = el('p', 'jscope');
+  const tail = kind === 'ladder'
+    ? 'The three options below are the same wherever the property sits. How far they have to reach is not.'
+    : 'The correction below is the same wherever the property sits. The edition it is written under, and whether this is a system the town required in the first place, are not.';
+  let last = null;
+  const paint = () => {
+    if (PIN.id === last) return;
+    last = PIN.id;
+    const r = J.jurisdictions[PIN.id];
+    n.style.setProperty('--j', (ACC[PIN.id] || ACC.marin)[0]);
+    n.innerHTML = PINICON + (r
+      ? `<span><span class="where">${r.where}:</span> ${r[kind].work.scope} ${tail} ` +
+        `<a href="#juris-${kind}">Move the pin</a>.</span>`
+      : `<span><span class="where">${record(PIN.id).name}:</span> outside the jurisdictions this page ` +
+        `carries, so the scope of the correction is not stated. <a href="#juris-${kind}">Move the pin</a>.</span>`);
+  };
+  PIN.subs.push(paint);
+  paint();
+  return n;
+}
+
+// Some towns put a step between the owner and the work — a plan and a permit
+// in Fairfax, an agency to confirm on county land. That belongs in the letter
+// the owner actually receives, and only when it is true of where they live.
+function ownerRider(kind) {
+  const n = el('p', 'jscope owner');
+  let last = null;
+  const paint = () => {
+    if (PIN.id === last) return;
+    last = PIN.id;
+    const r = J.jurisdictions[PIN.id];
+    const rider = r && r[kind].work.ownerRider;
+    n.hidden = !rider;
+    if (!rider) return;
+    n.style.setProperty('--j', (ACC[PIN.id] || ACC.marin)[0]);
+    n.innerHTML = PINICON + `<span><span class="where">Where this property is:</span> ${rider}</span>`;
+  };
+  PIN.subs.push(paint);
+  paint();
+  return n;
+}
+
+const PINICON = '<svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true"><path d="M6 13s4.5-4.6 4.5-7.6A4.5 4.5 0 1 0 1.5 5.4C1.5 8.4 6 13 6 13Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="6" cy="5.3" r="1.5" fill="currentColor"/></svg>';
+
+// ---------------------------------------------------------------------------
+// One tab
+// ---------------------------------------------------------------------------
+function panel(key, ex) {
+  const p = el('div');
+  p.id = 'panel-' + key;
+  p.setAttribute('role', 'tabpanel');
+  p.setAttribute('aria-labelledby', 'tab-' + key);
+
+  const section = nodes => { const sec = el('section'); const w = el('div', 'wrap'); w.append(...nodes); sec.append(w); return sec; };
+  const lede = t => { const n = el('p', 'lede', t); n.style.margin = '8px 0 24px'; return n; };
+
+  // --- 1. the inspector's note, then the photograph, then what was read off it
+  const note = el('div');
+  note.innerHTML =
+    `<div class="quote"><div class="who">Reported finding</div><p>“${esc(ex.note)}”</p></div>`;
+  note.style.maxWidth = '70ch';
+  note.style.marginBottom = '30px';
+
+  const obs = el('div');
+  obs.innerHTML = `<p class="eyebrow">What the photograph shows</p><div class="body" style="padding:0">${blocks(ex.analysis[0].blocks)}</div>`;
+
+  const prow = el('div', 'prow hold');
+  prow.append(shot(ex, false).fig, obs);
+
+  p.append(section([el('h2', null, 'Inspector input'), note, prow]));
+
+  // --- 2. the hazard, drawn on the photograph
+  const hz = hazard(ex);
+  const legend = el('ul', 'legend');
+  legend.innerHTML = ex.annotations.map((a, i) =>
+    `<li data-i="${i}" class="${a.tone === 'red' ? 'red' : ''}"><b></b><div><span class="t">${a.label}</span><span class="d">${a.note}</span></div></li>`
+  ).join('');
+  legend.querySelectorAll('li').forEach(li => {
+    const lite = on => { const g = hz.ar.querySelector(`g[data-i="${li.dataset.i}"]`); if (g) g.classList.toggle('lit', on); };
+    li.onmouseenter = () => lite(true);
+    li.onmouseleave = () => lite(false);
+  });
+  const right = el('div');
+  const concl = el('p', 'concl', `<b>Conclusion.</b> ${ex.annotationCaption}`);
+  right.append(legend, concl);
+  const hrow = el('div', 'prow');
+  hrow.append(hz.col, right);
+
+  p.append(section([el('h2', null, 'Hazard analysis'), hrow]));
+
+  // --- 3. the corrections, side by side
+  const corr = [el('h2', null, 'Proposed corrections'),
+    lede('Drag any handle to compare. Only the one marked <b>Required</b> is the inspector’s determination.'),
+    ...(window.JURIS ? [scopeNote(key)] : []),
+    corrections(ex),
+    el('div', 'disc', INFO + '<span>Right-hand images are AI visualisations of the proposed result — not photographs of completed work, and not proof of compliance.</span>')];
+
+  if (ex.notAcceptable) {
+    const st = el('div', 'stop');
+    st.style.marginTop = '22px';
+    st.innerHTML = `<h4>${ex.notAcceptable.title}</h4><p>${ex.notAcceptable.body}</p>`;
+    corr.push(st);
+  }
+  if (ex.extras && ex.extras.length) {
+    const ex2 = el('div', 'extras');
+    ex.extras.forEach(x => {
+      const c = el('div', 'card extra');
+      c.innerHTML = `<span class="pill grey">${x.badgeText}</span><div class="t">${x.title}</div>` +
+        `<p>${x.body}</p><p class="note" style="margin-top:8px"><b>Why.</b> ${x.why}</p>` +
+        (x.limit ? `<p class="note" style="margin-top:6px"><b>Limitation.</b> ${x.limit}</p>` : '');
+      ex2.append(c);
+    });
+    corr.push(ex2);
+  }
+  p.append(section(corr));
+
+  // --- 4. identification (sprinkler only)
+  if (ex.identification) {
+    p.append(section([el('h2', null, 'Equipment identification'), identification(ex.identification)]));
+  }
+
+  // --- 4b. the codes, which are a question about the address. The section
+  //         the inspector can actually write down depends on which side of a
+  //         town line the property sits, so the map comes with the table.
+  const codesSec = ex.analysis.find(s => s.codes);
+  if (codesSec && window.JURIS) {
+    const intro = key === 'ladder'
+      ? 'Three towns along one road, one fire department — and the rule changes at the line: ladder fuels cleared to <b>30 ft</b> in Ross and San Anselmo, <b>100 ft</b> in Fairfax, 30 ft again on unincorporated county land. Drag the pin, or pick a town, and the citations below follow it.'
+      : 'Three towns along one road, one fire department — and two different editions of the Fire Code in force between them, each with its own local amendments on where sprinklers are required at all. Drag the pin, or pick a town, and the citations below follow it.';
+    const jsec = section([
+      el('h2', null, 'Jurisdiction and applicable codes'),
+      lede(intro),
+      jurisdiction(key, codesSec.conclusion),
+    ]);
+    jsec.id = 'juris-' + key;          // the corrections note links down to it
+    jsec.style.scrollMarginTop = '64px';
+    p.append(jsec);
+  }
+
+  // --- 5. the record. The photograph's own description is already above, so
+  //        this picks up from the risk assessment.
+  const acc = el('div', 'acc');
+  ex.analysis.slice(1).filter(s => !s.codes).forEach(sec => {
+    // The codes section is no longer one of these — it has the map above, and
+    // is filtered out before this runs. What is left is the written record.
+    const d = el('details');
+    d.innerHTML = `<summary>${sec.h}${CHEV}</summary><div class="body">${blocks(sec.blocks)}</div>`;
+    acc.append(d);
+  });
+  const u = el('details');
+  u.innerHTML = `<summary>Uncertainty and inspector verification${CHEV}</summary><div class="body" style="max-width:none">` +
+    `<p>The evidence available does not settle the following. Each is the inspector’s to decide.</p>` +
+    `<table><thead><tr><th>Question</th><th>AI assessment</th><th>Inspector decision required</th></tr></thead><tbody>` +
+    ex.uncertainty.map(([q, a, d2]) => `<tr><td style="white-space:normal;max-width:220px">${q}</td><td>${a}</td><td>${d2}</td></tr>`).join('') +
+    `</tbody></table></div>`;
+  acc.append(u);
+  p.append(section([el('h2', null, 'Inspection record'), acc]));
+
+  // --- 6. what the owner is sent, in the same components as everything above
+  const o = ex.owner;
+  const pairW = Math.round(2 * 300 * ex.aspect + 14);
+  const pair = sn => `
+    <div class="opt">
+      <div class="oh"><b>${sn.title}</b></div>
+      <p>${sn.plain}</p>
+      <div class="sbs" style="max-width:${pairW}px">
+        <figure class="now"><img src="${ex.photo}" style="aspect-ratio:${ex.aspect}" alt="Your property now"><figcaption>Now</figcaption></figure>
+        <figure class="then"><img src="${sn.image}" style="aspect-ratio:${ex.aspect}" alt="After the work"><figcaption>After the work</figcaption></figure>
+      </div>
+    </div>`;
+  const rows = [['What to do', o.todo], ['What you keep', o.keep], ['By when', o.when]];
+  const letter = el('div', 'letter');
+  letter.innerHTML =
+    `<div class="lh"><h3>${o.title}</h3><div class="s">${o.sub}</div></div>` +
+    `<p>${o.intro}</p>` +
+    `<div class="opts" style="grid-template-columns:repeat(${Math.min(ex.solutions.length, 3)},minmax(0,1fr))">${ex.solutions.map(pair).join('')}</div>` +
+    `<p class="note" style="margin-top:14px">These are visualisations of the proposed result, not photographs of completed work.</p>` +
+    `<dl class="todo">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}` +
+    (o.dont ? `<div class="no"><dt>Do not</dt><dd>${o.dont}</dd></div>` : '') + `</dl>` +
+    `<details><summary>Read the full letter${CHEV}</summary><div class="full">` +
+    o.qa.map(q => `<h4>${q.q}</h4>${q.a.map(a => `<p>${a}</p>`).join('')}`).join('') +
+    `</div></details>`;
+  p.append(section(window.JURIS
+    ? [el('h2', null, 'Owner notice'), letter, ownerRider(key)]
+    : [el('h2', null, 'Owner notice'), letter]));
+
+  // --- 7. closing assessment
+  const f = el('dl', 'final');
+  f.innerHTML = ex.final.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  p.append(section([el('h2', null, 'Final assessment'), f]));
+
+  return p;
+}
+
+// ---------------------------------------------------------------------------
+// Boot: both tabs are built once and toggled, so switching never reloads.
+// ---------------------------------------------------------------------------
+const keys = Object.keys(C);
+const tabs = document.getElementById('tabs');
+const main = document.getElementById('main');
+const panels = {};
+
+keys.forEach((k, i) => {
+  const t = el('button', 'tab', C[k].tab);
+  t.type = 'button';
+  t.id = 'tab-' + k;
+  t.setAttribute('role', 'tab');
+  t.setAttribute('aria-controls', 'panel-' + k);
+  t.setAttribute('aria-selected', String(i === 0));
+  t.onclick = () => select(k);
+  tabs.append(t);
+
+  const p = panel(k, C[k]);
+  p.hidden = i !== 0;
+  panels[k] = p;
+  main.append(p);
+});
+
+function select(k) {
+  keys.forEach(x => {
+    panels[x].hidden = x !== k;
+    document.getElementById('tab-' + x).setAttribute('aria-selected', String(x === k));
+  });
+  window.scrollTo({ top: 0 });
+}
+
+// Arrow keys move between tabs, as a tablist is expected to.
+tabs.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const i = keys.indexOf(keys.find(k => document.getElementById('tab-' + k).getAttribute('aria-selected') === 'true'));
+  const n = (i + (e.key === 'ArrowRight' ? 1 : keys.length - 1)) % keys.length;
+  select(keys[n]);
+  document.getElementById('tab-' + keys[n]).focus();
+});
+})();
+</script>
+</body>
+</html>
