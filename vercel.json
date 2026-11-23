@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "public",
+  "buildCommand": "node tools/build-site.js",
+  "outputDirectory": "dist",
   "installCommand": "npm install --omit=dev",
   "functions": {
     "api/**/*.js": { "maxDuration": "max" }

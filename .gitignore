@@ -9,3 +9,5 @@ temp
 
 .vercel
 .env*
+
+dist/
