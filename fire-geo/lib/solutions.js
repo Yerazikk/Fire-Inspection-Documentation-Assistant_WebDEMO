@@ -32,7 +32,10 @@ function roomy(pts) {
 function nearest(points, to) { if (!points.length) return to; const mids = points.map((q, i) => { const r = points[(i + 1) % points.length]; return [(q[0] + r[0]) / 2, (q[1] + r[1]) / 2]; }); if (!to) return mids[0]; let best = mids[0], bd = Infinity; for (const q of mids) { const d = Math.hypot(q[0] - to[0], q[1] - to[1]); if (d < bd) { bd = d; best = q; } } return best; }
 'use strict';
 const C = root.CONTENT || {}, O = root.FIREGEO_OUTLINES || {};
-const AFTER = { 'assets/generated/ladder-a-remove-hedge.png': 'assets/after/ladder-a-remove-hedge.jpg', 'assets/generated/ladder-b-prune-separation.png': 'assets/after/ladder-b-prune-separation.jpg', 'assets/generated/ladder-c-low-fuel-redesign.png': 'assets/after/ladder-c-low-fuel-redesign.jpg', 'assets/generated/sprinkler-a-replacement.png': 'assets/after/sprinkler-a-replacement.jpg' };
+const AFTER = { 'assets/generated/ladder-a-remove-hedge.png': 'assets/after/ladder-a-remove-hedge.jpg', 'assets/generated/ladder-b-prune-separation.png': 'assets/after/ladder-b-prune-separation.jpg', 'assets/generated/ladder-c-low-fuel-redesign.png': 'assets/after/ladder-c-low-fuel-redesign.jpg', 'assets/generated/sprinkler-a-replacement.png': 'assets/after/sprinkler-a-replacement.jpg',
+  'assets/generated/daisy-a-direct.png': 'assets/after/daisy-a-direct.jpg',
+  'assets/generated/daisy-b-one-tap.png': 'assets/after/daisy-b-one-tap.jpg',
+  'assets/generated/daisy-c-receptacles.png': 'assets/after/daisy-c-receptacles.jpg' };
 const plain = s => String(s || '').replace(/\s+—\s+/g, ' · ').replace(/—/g, ' · ');     // no em dashes on screen
 
 function build(photo) {

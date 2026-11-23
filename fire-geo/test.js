@@ -54,6 +54,13 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
     ['ladder', 'san_rafael', 'unknown', 20, 'yellow', ['state-defensible', 'yellow']],
     ['sprinkler', 'ross', 'in', 20, 'red', ['maintenance', 'red'], ['required-system', 'yellow'], ['residential', 'yellow']], ['sprinkler', 'fairfax', 'in', 120, 'red', ['maintenance', 'red']],
     ['sprinkler', 'marin', 'unknown', 20, 'red', ['maintenance', 'red'], ['remodel-triggers', 'yellow']], ['sprinkler', 'san_rafael', 'unknown', 20, 'red', ['maintenance', 'red']],
+    // The daisy chain is statewide text: red everywhere from the same section, including where no local rows are
+    // carried. What moves with the place is the local layer under it.
+    ['daisy', 'ross', 'in', 20, 'red', ['tap-direct', 'red'], ['carries-ch6', 'green'], ['penalties', 'yellow'], ['tap-listing', 'yellow']],
+    ['daisy', 'san_anselmo', 'in', 20, 'red', ['tap-direct', 'red'], ['ch6-amend', 'yellow'], ['penalties', 'yellow']],
+    ['daisy', 'fairfax', 'out', 99, 'red', ['tap-direct', 'red'], ['carries-ch6', 'green']],
+    ['daisy', 'marin', 'unknown', 20, 'red', ['tap-direct', 'red'], ['penalties', 'yellow']],
+    ['daisy', 'san_rafael', 'unknown', 20, 'red', ['tap-direct', 'red']],
   ];
   const bad = T.filter(([photo, place, scope, d, overall, ...rows]) => { const e = V(photo, place, scope, d); return e.overall.verdict !== overall || rows.some(([k, v]) => !row(e, k) || row(e, k).verdict !== v); });
   ok(bad.length === 0, 'verdicts match the expected table: ' + T.length + ' cases (photo x place x zone x distance)' + (bad.length ? ' | wrong: ' + bad.map(b => b.slice(0, 4).join('/')).join(' ; ') : ''));
@@ -61,8 +68,10 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   const all4 = ['ross', 'san_anselmo', 'fairfax', 'marin'];
   ok(all4.every(p => row(V('ladder', p, 'in', 20), 'ladder-reach').value === 30) && row(V('ladder', 'fairfax', 'in', 20), 'ladder-reach').was.value === 100 && row(V('ladder', 'marin', 'in', 20), 'canopy').value === 6 && row(V('ladder', 'ross', 'in', 20), 'canopy').value === 8,
     'the law as adopted: ladder fuels 30 ft in all four, the data still knows Fairfax was 100 ft until 31 Dec 2025, canopy trees 8 in. in the towns and 6 in. in the county');
+  ok(['ross', 'san_anselmo', 'fairfax', 'marin'].every(p => row(V('daisy', p, 'in', 20), 'tap-direct').cite === '2025 California Fire Code \u00a7 603.5.2') && row(V('daisy', 'fairfax', 'in', 20), 'carries-ch6').was.value === '2022 California Fire Code' && row(V('daisy', 'ross', 'in', 20), 'carries-ch6').was === null && row(V('daisy', 'san_anselmo', 'in', 20), 'penalties').sec !== row(V('daisy', 'marin', 'in', 20), 'penalties').sec,
+    'the daisy chain is one statewide section in all four, and what changes is local: the edition Fairfax carried before 2026, and a penalty clause at a different section number in each town');
   ok(all4.every(p => LAW.places[p].fireCode.value === '2025 California Fire Code') && LAW.places.fairfax.fireCode.was.cite === 'Ord. 873' && LAW.places.marin.fireCode.was.cite === 'Ord. 3775', 'all four enforce the 2025 California Fire Code, and Fairfax and the county keep what they enforced before');
-  const everyRow = [], everyEval = []; for (const photo of ['ladder', 'sprinkler']) for (const p of all4) for (const d of [20, 60]) { const e = V(photo, p, 'in', d); everyEval.push(e); e.state.concat(e.local).forEach(r => everyRow.push(r)); }
+  const everyRow = [], everyEval = []; for (const photo of ['ladder', 'sprinkler', 'daisy']) for (const p of all4) for (const d of [20, 60]) { const e = V(photo, p, 'in', d); everyEval.push(e); e.state.concat(e.local).forEach(r => everyRow.push(r)); }
   ok(everyRow.every(r => r.key && r.label && r.cite && r.requires && r.applies && r.why && r.sec && r.source && ['read', 'blocked', 'repo'].includes(r.source.status) && ['red', 'yellow', 'green'].includes(r.verdict)), 'every row carries a key, a citation, the requirement, how it applies, a verdict with a reason, and its source (' + everyRow.length + ' rows)');
   ok(everyRow.filter(r => r.verdict === 'yellow').every(r => /Depends on|depends on|Turns on/.test(r.why)), 'every yellow row says what it depends on');
   ok(everyRow.every(r => r.why.length <= 70 && !/—/.test(r.why + r.requires + r.applies + r.label + r.cite)), 'reasons are short (70 characters at most) and nothing uses an em dash');
@@ -71,11 +80,18 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   const lines = everyEval.map(e => e.overall.line).concat([V('ladder', 'san_anselmo', 'out', 20).overall.line, V('ladder', 'marin', 'unknown', 20).overall.line, V('ladder', 'san_rafael', 'unknown', 20).overall.line]);
   ok(lines.every(l => l.split(/\s+/).length <= 6 && !/§|Ord\.|20\d\d/.test(l)), 'the reason under the verdict is six words at most, with no citation: ' + [...new Set(lines)].map(l => '"' + l + '"').join(' '));
   const D = (photo, a, b) => codes.diff({ photo, from: { place: a, scope: 'in' }, to: { place: b, scope: 'in' } });
-  const pairs = []; for (const photo of ['ladder', 'sprinkler']) for (const a of all4.concat('san_rafael')) for (const b of all4.concat('san_rafael')) if (a !== b) pairs.push(D(photo, a, b));
+  const pairs = []; for (const photo of ['ladder', 'sprinkler', 'daisy']) for (const a of all4.concat('san_rafael')) for (const b of all4.concat('san_rafael')) if (a !== b) pairs.push(D(photo, a, b));
   ok(pairs.every(s => s && s.length <= 52 && !/§|Ord\.|20\d\d|until|RMC|SAMC|FMC|MCC/.test(s) && (s.match(/[.!?](\s|$)/g) || []).filter((_, i, arr) => true).length >= 1 && !/\.\s+[A-Z]/.test(s.replace(/in\., /g, 'in, '))), 'the difference between two places is one short plain sentence with no citation and no history (' + pairs.length + ' pairs)');
   ok(D('ladder', 'san_anselmo', 'fairfax') === 'Fairfax adds a dry-brush rule.' && D('ladder', 'ross', 'san_anselmo') === 'Same rules, under San Anselmo’s own code.' && D('ladder', 'fairfax', 'marin') === 'The county’s tree limit is 6 in., not 8 in.' && D('sprinkler', 'fairfax', 'marin') === 'The county lists 5 exceptions, not 2.' && D('ladder', 'ross', 'san_rafael') === 'Only statewide rules for San Rafael.' && D('ladder', 'ross', 'ross') === '', 'difference sentences read as intended ("Fairfax adds a dry-brush rule.", "The county’s tree limit is 6 in., not 8 in.") and are empty inside one place');
   const sols = solutions.list('ladder').concat(solutions.list('sprinkler'));
+  const daisySols = solutions.list('daisy');
   ok(solutions.list('ladder').length === 3 && solutions.list('sprinkler').length === 1 && sols[0].standing === 'required' && sols[1].standing === 'alternative' && sols[2].standing === 'alternative' && sols.every(s => fs.existsSync(path.join(__dirname, s.before)) && fs.existsSync(path.join(__dirname, s.after))), 'three ladder corrections and one sprinkler correction, standing kept in the data, both images on disk');
+  ok(daisySols.length === 3 && daisySols[0].standing === 'required' && daisySols.slice(1).every(s => s.standing === 'alternative') && daisySols.every(s => fs.existsSync(path.join(__dirname, s.before)) && fs.existsSync(path.join(__dirname, s.after))), 'three daisy-chain corrections, the first of them required, with both pictures on disk');
+  // The daisy pictures were drawn by tools/daisy-after.js and never put through tools/register.js: correction C
+  // empties the frame, so there is no pair of matching patches to fit, and B removes one of the two subjects.
+  // They are shown with an identity registration and no contour, which is what "Show what changed" then has to
+  // cope with. This test pins that, so the day someone registers them it is a deliberate change and not a drift.
+  ok(daisySols.every(s => s.outline.length === 0 && s.align.sx === 1 && s.align.sy === 1 && s.align.dx === 0 && s.align.dy === 0), 'the daisy pictures are unregistered on purpose: no contour, identity alignment');
   ok(sols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && Math.abs(s.align.sx - 1) < 0.03 && Math.abs(s.align.sy - 1) < 0.03 && Math.abs(s.align.dx) < 0.02 && Math.abs(s.align.dy) < 0.02), 'every correction has a simple outline (6 to 16 points) and an image registration close to identity');
   ok(Object.values(w.FIREGEO_OUTLINES).every(o => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30), 'registration residual is under 0.6 px at working size for all four pairs');
 
@@ -144,7 +160,7 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
     const st4 = await Promise.all(['/data/city4/law.js', '/data/city4/boundary.js', '/data/city4/zones.js', '/data/city4/basemap.jpg'].map(p => fetch(BASE + p).then(r => r.status)));
     const redirect = await fetch(BASE + '/team/?a=1', { redirect: 'manual' });
     ok(st.join() === '200,200,200,200,200,200,404' && st4.join() === '200,200,200,200' && redirect.status === 302 && redirect.headers.get('location') === '/#inspectors?a=1' && (await fetch(BASE + '/team/?standalone=1', { redirect: 'manual' })).status !== 302, 'the server serves the page, the docs, the libraries and the images, and sends /team/ to the shell (/#inspectors) unless it is asked for embedded or standalone');
-    const { chromium } = require('/Users/andrewdong/Downloads/Timeline3D/node_modules/playwright');
+    const { chromium } = require('./tools/playwright')();
     br = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] });
     // errors that come from the Inspectors page (another agent's code, loaded in the iframe) are listed, not counted
     const look = page => (PLAIN ? page.addInitScript(() => { try { localStorage.setItem('fire-geo.gleb', '0'); } catch (_) {} }) : Promise.resolve());

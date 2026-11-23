@@ -15,7 +15,10 @@ const DISTANCE = { min: 0, max: 150, step: 1, default: 20, unit: 'ft' };
 const PHOTOS = [
   { id: 'ladder', tab: 'Ladder fuel', title: 'Ladder fuel under a canopy', finding: (CONTENT.ladder || {}).title || '', photo: 'assets/ladderfuel.jpg', aspect: 820 / 1474, usesDistance: true },
   { id: 'sprinkler', tab: 'Painted sprinkler', title: 'Painted sprinkler head', finding: (CONTENT.sprinkler || {}).title || '', photo: 'assets/sprinkler.png', aspect: 428 / 710, usesDistance: false },
+  { id: 'daisy', tab: 'Daisy chain', title: 'Power strip in a power strip', finding: (CONTENT.daisy || {}).title || '', photo: 'assets/daisychain.png', aspect: 517 / 377, usesDistance: false },
 ];
+// The photograph decides which set of rows is read. Anything unknown falls back to the first one.
+const photoId = id => (PHOTOS.some(p => p.id === id) ? id : PHOTOS[0].id);
 const place = id => LAW.places[id] || LAW.places.marin;
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -49,6 +52,13 @@ const RULES = {
   stateDefensible() { return { verdict: 'yellow', why: 'Depends on the parcel’s responsibility area and zone.' }; },
   // California Fire Code § 901.6: the inspector confirmed the painted head and specified replacement.
   maintenance() { return { verdict: 'red', why: 'Inspector confirmed the head is painted. It must be replaced.' }; },
+  // 2025 CFC § 603.5.2: a tap goes into a permanently installed receptacle, and another tap is not one. The
+  // photograph shows the connection itself, so this is as settled as the painted head — the two exceptions
+  // (a Group A or B meeting room, a 90-day test) are facts about the room, and they sit in the row's `open`.
+  tapDirect() { return { verdict: 'red', why: 'One power tap is plugged into another. Confirmed.' }; },
+  // Which ordinance carries the state chapter. It is carried in all five places, so the row is not a finding
+  // against the owner; it says which code the citation is written under, and what it was before 2026.
+  carried(row) { return { verdict: 'green', why: row.was ? 'Carried here. Before 2026, the ' + row.was.value + '.' : 'Carried here, chapter 6 included.' }; },
   // Any row whose answer depends on a fact or a judgement the photograph cannot settle: `turns` says which.
   judgement(row) { return { verdict: 'yellow', why: 'Depends on ' + row.turns + '.' }; },
 
@@ -119,6 +129,7 @@ function buildRow(def, layer, placeId, c) {
 // The reason under the verdict headline: five or six plain words, no citation.
 function overallLine(photo, P, c, verdict, tally, rows) {
   if (photo === 'sprinkler') return 'A painted head must be replaced.';
+  if (photo === 'daisy') return 'A tap fed from a tap.';
   if (!P.carried) return P.notCovered || (P.short + ' is not covered here.');
   if (P.zoneModel === 'berkeley') {                    // Zone 0 to 5 ft (mitigation areas), Zone 1 to 30 ft, Zone 2 to 100 ft, all in the Very High zone
     if (c.zone === 'mitigation' && c.d <= 5) return 'Inside Zone 0, within 5 ft.';
@@ -135,7 +146,7 @@ function overallLine(photo, P, c, verdict, tally, rows) {
 }
 
 function evaluate(q) {
-  const photo = q.photo === 'sprinkler' ? 'sprinkler' : 'ladder', P = place(q.place);
+  const photo = photoId(q.photo), P = place(q.place);
   const d = Math.max(DISTANCE.min, Math.min(DISTANCE.max, Math.round(q.distance == null ? DISTANCE.default : q.distance)));
   const scope = q.scope || 'unknown', zone = q.zone || null, c = { d, scope, zone, place: P.id }, defs = LAW.rows[photo];
   const state = defs.state.map(def => buildRow(def, 'state', null, { d, scope: 'unknown', zone: null, place: null }));
@@ -165,7 +176,7 @@ function evaluate(q) {
 // citation and no history in it. '' when the place is the same (a change of mapped zone is said by the headline reason).
 const fill = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (_, k) => (v[k] != null ? v[k] : ''));
 function diff(q) {
-  const photo = q.photo === 'sprinkler' ? 'sprinkler' : 'ladder', A = place(q.from.place), B = place(q.to.place);
+  const photo = photoId(q.photo), A = place(q.from.place), B = place(q.to.place);
   if (A.id === B.id) return '';
   if (!B.carried) return B.onlyState || ('Only statewide rules for ' + B.short + '.');
   const To = cap(B.inSentence), Poss = To + '’s';

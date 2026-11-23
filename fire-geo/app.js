@@ -23,12 +23,16 @@ const Q = new URLSearchParams(location.search);
 
 // ------------------------------------------------------------------ state
 const startPin = (() => { const p = Q.get('pin'); if (p && geo.pins[p]) return geo.pins[p]; if (p && /^-?[\d.]+,-?[\d.]+$/.test(p)) return p.split(',').map(Number); return geo.pins.ross; })();
+// ?photo= chooses the photograph and ?sol= the correction shown on it; an unknown id falls back to the first.
+const startPhoto = codes.PHOTOS.some(p => p.id === Q.get('photo')) ? Q.get('photo') : 'ladder';
+const startSol = codes.PHOTOS.reduce((o, p) => (o[p.id] = 'a', o), {});
+if (Q.get('sol')) startSol[startPhoto] = Q.get('sol');
 const S = {
-  photo: Q.get('photo') === 'sprinkler' ? 'sprinkler' : 'ladder',
+  photo: startPhoto,
   lon: startPin[0], lat: startPin[1], place: null, scope: null, classes: [], hazardLabel: '', zone: null, zoneName: '',
   region: geo.regionOf(startPin[0], startPin[1]),      // which of the two maps is on screen: 'rossvalley' | 'berkeley'
   distance: Q.has('d') ? Math.max(0, Math.min(150, Math.round(+Q.get('d') || 0))) : codes.DISTANCE.default,
-  sol: { ladder: Q.get('photo') !== 'sprinkler' && Q.get('sol') ? Q.get('sol') : 'a', sprinkler: 'a' },
+  sol: startSol,
   selected: Q.get('sel') || null, picked: Q.has('sel'),
   showChange: Q.get('change') === '1',                 // "Show what changed" on the photograph: off until asked for
 };
@@ -515,7 +519,14 @@ function paintMeasure() { const on = photoInfo(S.photo).usesDistance; $('#measur
 
 // ------------------------------------------------------------------ photograph and corrections
 const stageBox = $('#stageBox'), stageLayers = [...stageBox.children], dots = [], TOOLS = 0, changeSwitch = $('#changeSwitch');      // the switch row is outside the box now
-function paintSwitch() { changeSwitch.setAttribute('aria-pressed', String(S.showChange)); }
+// The switch has something to show only where the "after" picture was registered against the photograph and a
+// contour was found (tools/register.js, data/outlines.js). The daisy-chain pictures have no contour — one of
+// them empties the frame — so on that photograph the switch is hidden rather than left on screen doing nothing.
+function paintSwitch() {
+  const sol = currentSolution(), can = !!(sol && sol.outline && sol.outline.length);
+  changeSwitch.hidden = !can;
+  changeSwitch.setAttribute('aria-pressed', String(can && S.showChange));
+}
 let stageSlot = 0, BA = null, baPos = Q.has('pos') ? +Q.get('pos') : 0.42;      // a little more of the "after" side, so its tag has room
 function currentSolution() { return solutions.get(S.photo, S.sol[S.photo]) || solutions.list(S.photo)[0]; }
 function paintFix() {
@@ -540,7 +551,7 @@ function showStage(first) {
   next.replaceChildren(holder);
   if (!first) { next.classList.add('on'); cur.classList.remove('on'); stageSlot = 1 - stageSlot; setTimeout(() => { if (old) old.destroy(); if (!cur.classList.contains('on')) cur.replaceChildren(); }, 420); }
   holder.style.width = stageSize().w + 'px';
-  BA = beforeAfter(holder, { solution: currentSolution(), position: baPos, caption: false, tags: { before: 'Before', after: 'After · illustrative' }, outline: 'toggle', switch: false, shown: S.showChange });
+  BA = beforeAfter(holder, { solution: currentSolution(), position: baPos, caption: false, tags: { before: 'Before', after: 'After · illustrative' }, outline: 'toggle', switch: false, shown: S.showChange && !!(currentSolution() || {}).outline.length });
   paintSwitch();
   fitStage(first);
 }

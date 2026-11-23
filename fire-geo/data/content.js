@@ -548,4 +548,291 @@ sprinkler: {
     ['Final status', 'Noncompliant — sprinkler replacement required.'],
   ],
 },
+
+// ===========================================================================
+// DAISY CHAIN
+//
+// The third inspection, and the one with no .md analysis behind it: the
+// photograph came from the field, and every statement below is either read off
+// that photograph or taken from the code text quoted in data/law.js. Where the
+// photograph cannot settle something — the occupancy, what the cords feed, the
+// listing marks — it is tagged `verify` and left open, exactly as the other two
+// entries leave the distance to the structure and the sprinkler's model open.
+// ===========================================================================
+daisy: {
+  tab: 'Daisy Chain',
+  title: 'Relocatable Power Taps — Connected in Series',
+  status: 'Noncompliant — inspector confirmed',
+  meta: [
+    ['Inspection type', 'Fire and life safety inspection'],
+    ['Category', 'Electrical · relocatable power taps and cords'],
+    ['Location', 'Carpeted floor at the photographed location'],
+    ['Compliance deadline', 'To be established by the authority having jurisdiction'],
+  ],
+
+  photo: 'assets/daisychain.png',
+  aspect: 517 / 377,
+
+  note: 'one power strip plugged into another',
+  noteFix: 'Unplug the lower strip from the upper one and put it on a wall outlet of its own.',
+  noteWhy: 'A power tap is listed to be fed by a permanently installed receptacle. Feeding one from another puts the whole load of both through a single cord and a single set of contacts, and past the protection each was built around.',
+
+  summary: 'Two relocatable power taps lie on a carpeted floor. The lower cream-coloured six-outlet strip is not plugged into a wall: its supply cord runs up and to the right and ends in the last outlet of the white Belkin strip above it. The Belkin strip’s own cord leaves the frame to the left.',
+  primary: 'Unplug the lower strip from the upper strip and connect it directly to a permanently installed receptacle. Neither tap may be fed from the other.',
+
+  // Boxes are [left, top, width, height] as percentages of the displayed image.
+  // Located against the photograph itself — see the enlargements of the right-hand
+  // end, where the cream right-angle plug in the Belkin’s last outlet is legible.
+  annotations: [
+    { box: [62, 25, 8, 13], tone: 'red', label: 'Tap fed from a tap',
+      note: 'The cream right-angle plug in the last outlet of the white strip is the supply cord of the cream strip below. This single connection is the finding.' },
+    { box: [21, 31, 48, 15], tone: 'cyan', label: 'Upper strip — the Belkin',
+      note: 'A white Belkin tap carrying two cord-connected plugs, a plug-in USB supply and, at its right-hand end, the cord of the strip below. Its own supply cord leaves the frame to the left; where that ends is not shown.' },
+    { box: [15, 60.5, 73, 23], tone: 'cyan', label: 'Lower strip — six outlets and a switch',
+      note: 'A cream six-outlet tap with a lit rocker switch at its right end, carrying two black cord-connected plugs. It is the downstream device: its supply cord is the one in the Belkin above.' },
+  ],
+  annotationCaption: 'The finding is one plug in one outlet. Both strips are marked so the record is clear about which feeds which — the cream strip is downstream, and that is the direction that matters to the code.',
+
+  solutions: [
+    {
+      id: 'a',
+      badge: 'required', badgeText: 'Required correction · inspector confirmed',
+      title: 'Give the lower strip its own wall receptacle',
+      lede: 'The correction the code asks for, and the smallest one that answers it.',
+      plain: 'Unplug the cream strip from the white one and plug it into a wall socket instead.',
+      image: 'assets/generated/daisy-a-direct.png',
+      where: 'The cream right-angle plug occupying the last outlet of the white Belkin strip, at the right of the photograph.',
+      change: 'Withdraw that plug from the Belkin strip and connect the cream strip’s cord to a permanently installed receptacle.',
+      how: [
+        'Switch off and unplug both taps before moving anything.',
+        'Identify a permanently installed receptacle within reach of the cream strip’s own cord, without an extension cord between them.',
+        'Plug the cream strip directly into that receptacle.',
+        'Confirm that neither tap is now fed by the other, and that no extension cord stands between either tap and its receptacle.',
+        'Total the nameplate load on each tap and check it against the tap’s own rating.',
+        'Route both cords so they are not walked on, pinched by furniture, or run under a door or a floor covering.',
+      ],
+      keep: 'Both taps, if each is listed and undamaged, and everything currently plugged into them. Nothing here requires new equipment.',
+      why: 'A relocatable power tap is listed to be supplied by a permanently installed receptacle. Fed from another tap, the whole of both loads passes through one cord and one set of contacts, and the overcurrent protection in the upstream tap is no longer sized for what is behind it.',
+    },
+    {
+      id: 'b',
+      badge: 'alt', badgeText: 'Alternative — requires inspector approval',
+      title: 'Take the second strip out and use one',
+      lede: 'Fewer devices rather than more receptacles.',
+      plain: 'Remove one strip altogether and move everything onto the other, if it has the outlets and the rating for it.',
+      image: 'assets/generated/daisy-b-one-tap.png',
+      where: 'Both taps, and the four cord-connected loads between them.',
+      change: 'Remove one tap from service and move its loads onto the remaining tap, provided the total stays inside that tap’s rating.',
+      how: [
+        'Add up the nameplate load of everything presently plugged into both taps.',
+        'Compare the total against the rating marked on the tap that is to remain.',
+        'If the total fits, move the loads across and remove the second tap from the area.',
+        'If it does not fit, this option is closed: the load needs more than one supply, and that means correction A or C.',
+      ],
+      keep: 'Whichever tap is listed, undamaged and adequately rated. The loads themselves are unaffected.',
+      why: 'It removes the series connection by removing one of the two devices, so there is nothing left to plug wrongly.',
+      limit: 'It only works if one tap can carry everything. The photograph does not show the ratings or the nameplate loads, so whether this is available here is not established.',
+    },
+    {
+      id: 'c',
+      badge: 'alt', badgeText: 'Alternative — requires inspector approval',
+      title: 'Have receptacles installed where the load is',
+      lede: 'Treats the reason the strips were chained in the first place.',
+      plain: 'Have an electrician put more wall sockets in, so the strips are not needed.',
+      image: 'assets/generated/daisy-c-receptacles.png',
+      proposal: true,
+      where: 'The wall serving this area. It is outside the photograph.',
+      change: 'Have a licensed electrician add permanently installed receptacles on a circuit sized for the load, and retire the taps that were standing in for them.',
+      how: [
+        'Have the circuit and its existing load assessed by a licensed electrician.',
+        'Install additional receptacles under permit where the equipment actually sits.',
+        'Plug the equipment into the new receptacles and remove the taps that are no longer needed.',
+        'Keep any remaining tap directly on a receptacle of its own.',
+      ],
+      keep: 'Nothing is required to be discarded. A listed, undamaged tap can stay in use on its own receptacle.',
+      why: 'Taps get chained when there are fewer receptacles than things to plug in. Adding receptacles removes that pressure, and the fire code says plainly that cords are not a substitute for permanent wiring.',
+      limit: 'This is a proposal, not part of the inspection record, and it is the most expensive of the three. It needs a licensed electrician and in most cases a permit. It must never be presented as a condition of clearing the violation: correction A clears it on its own, at no cost.',
+      imageNote: 'The wall and its receptacles are not in the photograph. The visualisation shows the floor with the taps removed, not an installation drawing.',
+    },
+  ],
+
+  extras: [
+    {
+      title: 'Check the rest of the room for the same arrangement',
+      badgeText: 'Supplementary',
+      where: 'The photograph shows one corner of a floor. Cords leave the frame in three directions.',
+      body: 'Follow each cord that leaves the frame and establish what is on the far end of it. Look for further taps in series, taps fed by extension cords, and cords run under doors, under the carpet or through a wall. Record each one separately rather than as part of this finding.',
+      why: 'Where two taps have been chained, there are usually more: the cause is a shortage of receptacles, and that shortage is not confined to one corner.',
+      limit: 'Do not conclude from this photograph that other taps are chained. It shows two.',
+    },
+    {
+      title: 'Check both taps for listing marks and damage',
+      badgeText: 'Supplementary',
+      where: 'The body of each tap, and the full length of both cords.',
+      body: 'Establish that each tap carries a listing mark, that its cord and plug are undamaged, and that neither tap has been modified. Replace any tap that is unlisted, damaged or missing a ground pin.',
+      why: 'The series connection and the condition of the devices are separate requirements. Correcting the first does not answer the second.',
+      limit: 'No listing mark is legible in the photograph, and the cords are only partly in frame. Nothing here is established either way.',
+    },
+  ],
+
+  notAcceptable: {
+    title: 'Not acceptable as corrections',
+    body: 'Putting an extension cord between the two taps does not correct this: an extension cord is not a permanently installed receptacle either, and § 603.6 adds its own requirements on top. Nor does swapping one of the taps for a longer one, taping the joint, or moving the pair somewhere less visible. The violation is the series connection, and the only thing that clears it is a permanently installed receptacle at the end of each tap’s own cord.',
+  },
+
+  analysis: [
+    {
+      h: 'Inspector input — what the photograph shows',
+      blocks: [
+        { t: 'p', tag: 'observed', v: 'The photograph shows two relocatable power taps lying on a ribbed grey carpet, photographed from above and slightly to one side. A wooden edge, possibly a skirting or the foot of a cabinet, is visible at the top left corner.' },
+        { t: 'h', v: 'The upper tap' },
+        { t: 'p', v: 'A white moulded tap, marked BELKIN on its upper face, with six outlets in a single row. Four are occupied: a black right-angle cord cap, a white plug-in supply of the kind used for charging, a second black cord cap, and at the right-hand end a cream right-angle cord cap. Its own supply cord leaves the left-hand end of the body and runs out of the frame.' },
+        { t: 'h', v: 'The lower tap' },
+        { t: 'p', v: 'A cream-coloured tap with six outlets and an illuminated rocker switch at its right-hand end, showing surface marking and discolouration consistent with age. Two black cord caps are plugged into it. Its supply cord leaves the right-hand end of the body.' },
+        { t: 'h', v: 'The connection between them' },
+        { t: 'p', tag: 'observed', v: 'The cream supply cord leaving the lower tap curves up and to the right across the carpet and terminates in the cream right-angle cord cap occupying the last outlet of the upper tap. The lower tap is therefore supplied by the upper tap and not by a wall receptacle. This is the finding.' },
+        { t: 'h', v: 'Surroundings' },
+        { t: 'ul', v: [
+          'Both taps rest directly on carpet, unsecured.',
+          'A white cord passes across the lower tap without being connected to it, and runs down out of the frame.',
+          'Cords leave the frame at the top, the left and the right.',
+          'No wall, receptacle or equipment is visible in the photograph.',
+        ] },
+        { t: 'h', v: 'What the photograph does not establish' },
+        { t: 'ul', tag: 'verify', v: [
+          'The occupancy and the use of the room. Both matter: § 603.5.2 excepts a Group A occupancy and a Group B meeting room.',
+          'Whether the upper tap’s own cord ends in a permanently installed receptacle or in something else again.',
+          'What is on the far end of the other cords leaving the frame.',
+          'Whether either tap carries a listing mark. None is legible.',
+          'The rating of either tap, and the total load presently on them.',
+          'How long the arrangement has stood, which bears on the 90-day testing exception.',
+        ] },
+      ],
+    },
+    {
+      h: 'Fire behaviour and risk assessment',
+      blocks: [
+        { t: 'p', v: 'A relocatable power tap is listed on the understanding that it is fed by a permanently installed receptacle on a known branch circuit, and that its own overcurrent protection sits between that circuit and everything plugged into it. Chaining a second tap behind the first changes what that protection is protecting.' },
+        { t: 'h', v: '1 — The whole load through one cord and one pair of contacts' },
+        { t: 'p', v: 'Everything on the lower tap, plus everything on the upper tap, passes through the upper tap’s single cord and its single plug-and-outlet contact. Cord-cap contacts heat with load and with age, and a worn or loose contact heats faster. The heat appears at the connection rather than at the circuit breaker, which is not watching it.' },
+        { t: 'p', tag: 'verify', v: '<b>Photo-specific.</b> Six loads are visible across the two taps. Their nameplate ratings cannot be read from the photograph, so no statement about the actual current is made here.' },
+        { t: 'h', v: '2 — Protection that no longer matches what is behind it' },
+        { t: 'p', v: 'Where a tap carries overcurrent protection, it is sized for that tap. Behind a second tap, the two sets of protection are in series and the upstream one now stands in front of twice the outlets it was built for. A fault behind the second tap may be cleared late, or by the wrong device.' },
+        { t: 'p', tag: 'verify', v: '<b>Photo-specific.</b> The lower tap has a lit rocker switch, which commonly accompanies a protected device, but whether either tap is protected and to what rating is not established by the photograph.' },
+        { t: 'h', v: '3 — Where the heat would be if it happened' },
+        { t: 'p', v: 'Both taps and both cords lie directly on carpet. Carpet is combustible, it insulates a warm device rather than letting it shed heat, and a connection resting in pile is out of sight. Nothing here establishes that the arrangement is overloaded; it establishes that if it were, the heat would be in contact with a fuel and nobody would see it.' },
+        { t: 'p', tag: 'observed', v: '<b>Photo-specific.</b> The cords lie on top of the carpet, not beneath it. § 603.5.3 addresses cords run under a floor covering; that is not what this photograph shows.' },
+        { t: 'h', v: 'Overall fire and life-safety risk' },
+        { t: 'kv', v: [
+          ['Confirmed condition', 'One relocatable power tap supplied by another, as shown in the photograph.'],
+          ['Primary risk', 'Load and fault current concentrated at one cord and one contact, with the protection no longer matched to what is behind it.'],
+          ['Aggravating condition', 'Both devices and their connections lie on a combustible floor covering, where heat is contained and a fault is unseen.'],
+          ['What is not established', 'That the arrangement is overloaded, that either device is faulty, or that anything has already overheated. None of that can be read from a photograph, and none of it is needed: the series connection is itself the violation.'],
+        ] },
+      ],
+    },
+    {
+      h: 'Applicable fire codes',
+      framework: 'Framework: 2025 California Fire Code chapter 6 (Building Services and Systems), as adopted by each jurisdiction. Chapter 6 was reorganised in the 2025 edition — these sections carried § 605.x numbers in earlier editions, and § 605 now addresses fuel-fired appliances.',
+      codes: [
+        { cite: '2025 California Fire Code<br>§ 603.5.2',
+          requires: 'Relocatable power taps and current taps shall be directly connected to a permanently installed receptacle.',
+          applies: 'The direct basis for the finding. The lower tap is connected to the upper tap, which is not a permanently installed receptacle.',
+          open: 'Two exceptions: up to five taps may be connected together for temporary use supplying electronic equipment in a Group A occupancy or a Group B meeting room, and taps used for 90 days or less to test the performance of the devices. The photograph establishes neither the occupancy nor how long this has stood.' },
+        { cite: '2025 California Fire Code<br>§ 603.5.1',
+          requires: 'Relocatable power taps listed to UL 1363; current taps listed to UL 498A.',
+          applies: 'A separate requirement. An unlisted tap is its own finding, whatever it is plugged into.',
+          open: 'No listing mark is legible on either device in this photograph.' },
+        { cite: '2025 California Fire Code<br>§ 603.5.3',
+          requires: 'Tap cords not run through walls, ceilings or floors, under doors or floor coverings, nor subject to environmental or physical damage.',
+          applies: 'The cords cross an open floor. They are on the carpet rather than under it, so the question that remains is damage, not concealment.',
+          open: 'Whether the cords are open to physical damage where they cross, and where the cords leaving the frame go.' },
+        { cite: '2025 California Fire Code<br>§ 603.6',
+          requires: 'Extension cords are not a substitute for permanent wiring, are listed and labelled to UL 817, are not run through or under building elements, and serve only portable appliances.',
+          applies: 'Relevant if any cord in the frame is carrying a fixed load in place of a receptacle that should have been installed. That would be a second finding, not this one.',
+          open: 'What each cord leaving the frame is feeding.' },
+        { cite: '2025 California Fire Code<br>§ 603.2',
+          requires: 'Conditions that constitute an electrical shock or fire hazard shall be abated.',
+          applies: 'The general duty the correction is ordered under, once the official has found a hazard.',
+          open: 'Whether the official makes that finding here.' },
+      ],
+      conclusion: 'An inspector-confirmed series connection of two relocatable power taps. The section is state text and reads the same in every place on this map; the enforceable citation is that section as carried by the local adopting ordinance, and the penalty clause attached to it sits at a different section number in each town.',
+    },
+    {
+      h: 'Internal inspection record',
+      blocks: [
+        { t: 'h', v: 'Observed condition' },
+        { t: 'p', v: 'Two relocatable power taps are present on a carpeted floor. The supply cord of the lower six-outlet tap is connected to an outlet of the upper tap rather than to a permanently installed receptacle. Four cord caps and one plug-in supply are connected across the two devices. Both devices and their cords rest directly on a combustible floor covering.' },
+        { t: 'h', v: 'Hazard description' },
+        { t: 'p', v: 'Supplying one relocatable power tap from another concentrates the combined load of both devices at a single cord and a single plug-and-outlet contact, and places the upstream device’s overcurrent protection in front of more outlets than it was listed for. Heating at the shared contact, and any fault behind the downstream device, occur at a connection lying in carpet pile where heat is retained and the condition is not visible.' },
+        { t: 'h', v: 'Applicable codes' },
+        { t: 'ul', v: [
+          '2025 California Fire Code § 603.5.2 — direct connection to a permanently installed receptacle.',
+          '2025 California Fire Code § 603.5.1 — listing of taps.',
+          '2025 California Fire Code § 603.5.3 — installation and protection of tap cords.',
+          '2025 California Fire Code § 603.6 — extension cords.',
+          '2025 California Fire Code § 603.2 — abatement of electrical hazards.',
+          'The adopting ordinance of the jurisdiction, and its amended penalty section.',
+        ] },
+        { t: 'p', tag: 'verify', v: 'Final citations subject to jurisdiction and occupancy verification. § 603.5.2 carries two exceptions turning on the occupancy and on the duration of the arrangement, and the photograph establishes neither.' },
+        { t: 'h', v: 'Required corrective action' },
+        { t: 'p', v: 'Disconnect the lower relocatable power tap from the upper tap and connect it directly to a permanently installed receptacle. No extension cord shall be interposed between either tap and its receptacle. Confirm that the connected load on each tap is within the rating marked on that tap, and that both cords are routed clear of traffic, furniture, doors and floor coverings. Inspect both devices for listing marks and damage, and replace any device found unlisted, damaged or modified.' },
+        { t: 'h', v: 'Reinspection requirements' },
+        { t: 'p', v: 'The inspector shall verify that:' },
+        { t: 'ul', v: [
+          'Neither tap is supplied by the other, or by an extension cord.',
+          'Each tap in use is connected directly to a permanently installed receptacle.',
+          'The load on each tap is within its marked rating.',
+          'Both devices are listed, undamaged and unmodified.',
+          'The cords are not run under doors or floor coverings and are not open to damage.',
+          'No further taps in series are present in the same area.',
+        ] },
+      ],
+    },
+  ],
+
+  owner: {
+    title: 'Fire safety inspection — electrical correction required',
+    sub: 'Finding: one power strip plugged into another',
+    intro: 'Two power strips are connected one into the other. The lower strip is not plugged into the wall: its cord goes into the strip above it.',
+    todo: 'Unplug the lower strip from the upper one and plug it into a wall outlet instead.',
+    keep: 'You can keep both strips and everything plugged into them. Nothing needs to be thrown away.',
+    when: 'By the deadline specified in your official fire inspection report. This correction takes a minute and costs nothing.',
+    dont: 'Do not join the two strips with an extension cord instead. That is the same problem with one more part in it.',
+    qa: [
+      { q: 'What did we find?', a: ['Two power strips are plugged one into the other.', 'The lower cream-coloured strip does not go to a wall outlet. Its cord runs up to the strip above it and plugs into the last socket on that strip. This is sometimes called <b>daisy-chaining</b>.'] },
+      { q: 'Why is this dangerous?', a: ['A power strip is built and tested on the understanding that it is plugged into a wall outlet, and that it is protecting only the things plugged into it.', 'When a second strip hangs off the first, everything on both strips draws its power through one cord and one plug. That single plug carries all of it, and plugs warm up as they age and loosen. Both of these strips are lying on carpet, which holds the heat in and hides it.'] },
+      { q: 'What do you need to do?', a: ['<b>Unplug the lower strip from the upper strip, and plug it into a wall outlet instead.</b>', 'In your photograph this is the cream-coloured plug in the last socket on the right of the white strip. Pull it out, and put it into a wall socket that nothing else is using.', 'Switch both strips off before you move anything.'], image: true },
+      { q: 'Can you use an extension cord to reach the wall?', a: ['<b>No.</b>', 'An extension cord is not a wall outlet, so the same rule applies. If the strip will not reach a wall outlet where it is, move the strip, or have an electrician put an outlet where you need one.'] },
+      { q: 'Do you have to buy anything?', a: ['<b>No.</b>', 'The correction is to move one plug. You can keep both strips, as long as each one is undamaged and goes straight into a wall outlet of its own.', 'If the real problem is that there are not enough wall outlets in the room, a licensed electrician can add some. That is worth doing, but it is not required to clear this violation.'] },
+      { q: 'What happens next?', a: ['Once each strip is plugged directly into a wall outlet, the condition can be reviewed. Your inspector will determine whether the finding has been corrected.', 'While you are there, it is worth checking the rest of the room for the same arrangement — where there is one chained strip there are often others.'] },
+    ],
+  },
+
+  uncertainty: [
+    ['Is one tap plugged into another?', 'The photograph shows the lower tap’s supply cord ending in the last outlet of the upper tap. The inspector has confirmed the condition.', 'Confirm the official finding.'],
+    ['Where does the upper tap’s cord go?', 'It leaves the frame to the left. Whether it reaches a permanently installed receptacle is not shown.', 'Follow the cord and confirm what supplies the pair.'],
+    ['What occupancy is this?', 'Carpet, a skirting edge and office-type equipment are visible. Nothing establishes the occupancy classification.', 'Confirm the occupancy: § 603.5.2 excepts a Group A occupancy and a Group B meeting room.'],
+    ['Is this a meeting room?', 'The photograph shows a floor, not a room. The exception for connected taps applies in a Group B meeting room supplying electronic equipment, temporarily.', 'Determine the use of the room and whether the arrangement is temporary.'],
+    ['How long has this stood?', 'Not determinable. The second exception covers 90 days or less for performance testing of the devices.', 'Establish how long the arrangement has been in place and for what purpose.'],
+    ['Are the taps listed?', 'No listing mark is legible on either device.', 'Inspect both devices for a UL 1363 or UL 498A mark.'],
+    ['What is the load?', 'Six connected loads are visible. No nameplate rating can be read.', 'Total the connected load and compare it with the rating marked on each tap.'],
+    ['Are the cords damaged?', 'The visible lengths appear intact, but most of each cord is outside the frame.', 'Inspect the full length of both cords and both plugs.'],
+    ['Are the cords run under anything?', 'They lie on top of the carpet within the frame. Where they go after that is not shown.', 'Follow each cord and confirm none runs under a door, a covering or through a wall.'],
+    ['Are there other chained taps?', 'Cords leave the frame in three directions. The photograph shows two taps.', 'Inspect the rest of the area and record any further taps separately.'],
+    ['Which code edition applies?', 'All five places are on the 2025 edition from 1 Jan 2026. Fairfax, unincorporated Marin and Berkeley were on the 2022 edition before that.', 'Confirm the edition in force on the date of the observation, and the section number under it.'],
+    ['What does a violation carry?', 'Each town amends the penalty clause into chapter 1 at a different section number, and San Anselmo also runs an administrative citation route.', 'Confirm the enforcement route and the figures for the jurisdiction.'],
+    ['Is the violation resolved?', 'A follow-up photograph can show each tap on its own receptacle.', 'Verify the connection, the load and the condition of both devices, and approve closure.'],
+  ],
+
+  final: [
+    ['Primary finding', 'Two relocatable power taps connected in series — inspector-confirmed violation.'],
+    ['Primary cause', 'The lower tap is supplied from an outlet of the upper tap instead of from a permanently installed receptacle.'],
+    ['Primary risk', 'The combined load of both devices concentrated at one cord and one contact, with overcurrent protection no longer matched to what is behind it, on a combustible floor covering.'],
+    ['Required corrective action', 'Connect each tap directly to a permanently installed receptacle, with no extension cord interposed.'],
+    ['Supplementary recommendation', 'Check the area for further taps in series, and both devices for listing marks and damage.'],
+    ['Inspector discretion', 'Required for occupancy and the two § 603.5.2 exceptions, code applicability, enforcement route, compliance deadline and final approval.'],
+    ['Final status', 'Noncompliant — pending corrective action and inspector approval.'],
+  ],
+},
 };

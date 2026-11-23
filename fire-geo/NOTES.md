@@ -370,3 +370,85 @@ upright). `tools/sprinkler-swap.js` did the swap.
 - The old files are kept: `assets/sprinkler.old.png`, `assets/after/sprinkler-a-replacement.old.jpg`.
   `data/content.js` now differs from the repo snapshot in four lines: the picture's shape and the three boxes.
 
+## 13. The daisy chain, the third photograph
+
+Added 2026-11-23. A field photograph (`assets/daisychain.png`, 517 x 377) of two relocatable power taps on a
+carpeted floor. Unlike the other two it has **no `monday/*.md` analysis behind it**: there is no inspector's
+gold-standard write-up to reflow, so every statement in `data/content.js` under `daisy` is either read off the
+photograph or quoted from the code text below, and everything the photograph cannot settle is tagged `verify`.
+
+### What the photograph shows, and how that was established
+
+The direction of the chain is the one thing that had to be right, and it is not obvious at a glance. The
+photograph was enlarged in three places and read: the cream supply cord leaving the **right-hand end of the lower
+cream six-outlet tap** curves up across the carpet and ends in a cream right-angle cord cap occupying the
+**last outlet of the upper white BELKIN tap**. So the lower tap is the downstream device. The Belkin's own cord
+leaves its left-hand end and goes out of frame; where it ends is not shown and is not claimed.
+
+### Where the law comes from
+
+| Section | What it says | Read where |
+|---|---|---|
+| **CFC § 603.5.2** | "Relocatable power taps and current taps shall be directly connected to a permanently installed receptacle." Two exceptions: up to five taps connected together for temporary use supplying electronic equipment in a Group A occupancy or a Group B meeting room; and taps used for 90 days or less to test the performance of the devices. | up.codes, 2025 California Fire Code ch. 6, read 2026-11-23 (`SRC.cfc6`). The ICC site is still blocked (§ 3). |
+| **CFC § 603.5.1** | Relocatable power taps listed to UL 1363, current taps to UL 498A. | the same |
+| **CFC § 603.5.3** | Tap cords not run through walls, ceilings or floors, under doors or floor coverings, nor subject to environmental or physical damage. | the same |
+| **CFC § 603.6** | Extension cords are not a substitute for permanent wiring, listed to UL 817, used only with portable appliances. | the same, and transcribed independently in `../ai/codes.js` (`cfc-603-6`, read 2026-11-08) |
+| **CFC § 603.2** | "Conditions that constitute an electrical shock or fire hazard shall be abated." | `../ai/codes.js` (`cfc-603-4`) |
+
+**Chapter 6 was renumbered in the 2025 edition.** These sections carried § 605.x numbers before it, and § 605 is
+now Fuel-Fired Appliances. `../ai/codes.js` `meta.superseded.map` records the two that matter: § 605.3 (electrical
+working space) is now § 603.4, and § 605.4 (extension cords) is now § 603.6. The 2022 section number for the
+direct-connection rule was **not** read, so where Fairfax and the county were on the 2022 edition the row says so
+and stops there rather than guessing a number.
+
+### What changes at a town line, and what does not
+
+This is the first photograph where the rule itself is the same everywhere: it is state text, adopted whole. The
+local layer is therefore about *carriage and consequence*, not about the requirement:
+
+| | Carries chapter 6 | Amends chapter 6 | Penalty clause |
+|---|---|---|---|
+| Ross | RMC § 14.04.010 · Ord. 732 | no | CFC **§ 113.4** as amended by RMC § 14.04.140 |
+| San Anselmo | SAMC § 3-3.801 · Ord. 2025-1194 | **yes** — adds §§ 605.11.3–605.11.5 (PV conduit, disconnect, warning sign) | CFC **§§ 109.4, 111.4**, penalties at SAMC § 3-3.812 |
+| Fairfax | FMC § 8.04.010 · Ord. 899 (2022 CFC until 31 Dec 2025, Ord. 873) | no | CFC **§ 113.4** as amended by FMC § 8.04.100 |
+| Unincorporated | MCC § 16.16.010 · Ord. 3837 (2022 CFC until 31 Dec 2025, Ord. 3775) | no | CFC **§ 110.4** as amended by MCC § 16.16.040 |
+| Berkeley | BMC § 19.48.010 · Ord. 7,990-N.S. (2022 CFC until 31 Dec 2025) | not read | not read |
+
+Three different section numbers for the same penalty clause, and San Anselmo is different again on the figures:
+§ 109.4 is amended to [misdemeanor] [$500.00] [90 days] where the others say 180 days, § 111.4 fines are set at
+not less than $500.00 and not more than $1,500.00, and SAMC § 3-3.812 adds an administrative route — a first
+citation in any 12 months is a **$150 civil penalty** payable to Ross Valley Fire plus the actual cost of the
+inspections needed to gain compliance.
+
+**A defect in a source, recorded not corrected.** San Anselmo's ordinance numbers its photovoltaic amendments into
+§ 605.11, which in the 2025 edition is part of Fuel-Fired Appliances rather than the electrical section. It was
+read as introduced in the Council packet of 28 Oct 2025. The row says this and asks for the adopted ordinance to be
+checked; the numbering is not silently corrected here.
+
+### The verdict
+
+`tapDirect` in `lib/codes.js` returns **red** in every place, from the statewide row: the photograph shows the
+connection itself, so it is as settled as the painted head. The two § 603.5.2 exceptions turn on the occupancy and
+on how long the arrangement has stood, and the photograph establishes neither, so they sit in the row's `open` and
+in `uncertainty` rather than softening the verdict. The three local rows are the inspector's call except
+`carries-ch6`, which is green: it is not a finding against anyone, it says which code the citation is written
+under. The headline reason is "A tap fed from a tap." (six words, as the others).
+
+### The pictures
+
+`tools/daisy-after.js` draws the three "after" pictures through `../ai/visual.js` — the same Gemini path, model and
+key the app itself uses — and writes them to `tools/work/`. `tools/topack.js` re-encodes the ~2 MB PNG the model
+returns as a ~250 KB JPEG through the headless browser (there is no image library in this repo), and the result is
+installed in `assets/after/`. `lib/solutions.js` maps the generated names to them as it does for the other two
+photographs.
+
+**They are not registered.** `tools/register.js` fits an "after" image to the photograph by matching patches, and
+that cannot work here: correction C empties the frame and correction B removes one of the two subjects, so there is
+nothing to match. So there is no entry in `data/outlines.js` for them, the alignment is the identity, and there is
+no contour. Rather than leave "Show what changed" on screen doing nothing, `paintSwitch()` in `app.js` hides the
+switch on a correction with no contour. `test.js` pins both facts, so registering them later is a deliberate change
+and not a drift.
+
+The pictures are illustrations and are captioned "After · illustrative" on the page, like the others. The model
+garbles the BELKIN wordmark in correction A; that is left as it is, because touching it up would make a generated
+picture look more like a photograph of the property than it is.

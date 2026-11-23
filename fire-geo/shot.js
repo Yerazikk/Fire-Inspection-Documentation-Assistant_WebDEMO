@@ -1,6 +1,6 @@
 // node shot.js <out.png> [--path "/?photo=sprinkler"] [--w 1440] [--h 900] [--eval "js run in the page"] [--wait 700] [--reduce] [--full]
 // Headless screenshot of the running server (PORT env, default 8861). Never opens a window.
-const { chromium } = require('/Users/andrewdong/Downloads/Timeline3D/node_modules/playwright');
+const { chromium } = require('./tools/playwright')();
 const a = process.argv.slice(2), opt = n => { const i = a.indexOf('--' + n); return i >= 0 ? a[i + 1] : null; }, flag = n => a.includes('--' + n);
 const out = a[0]; if (!out || out.startsWith('--')) { console.log('usage: node shot.js <out.png> [--path /] [--w 1440] [--h 900] [--eval js] [--wait ms] [--reduce] [--full]'); process.exit(2); }
 const killer = setTimeout(() => { console.log('hard timeout'); process.exit(1); }, 60000);

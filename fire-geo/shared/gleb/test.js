@@ -8,7 +8,7 @@
 //   4. the pages' own files were not touched by this run
 // Screenshots (before / after, and a few states) go to shared/gleb/shots/.
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
-const { chromium } = require('/Users/andrewdong/Downloads/Timeline3D/node_modules/playwright');
+const { chromium } = require('../../tools/playwright')();
 
 const arg = n => { const i = process.argv.indexOf(n); return i > -1 ? (process.argv[i + 1] || true) : null; };
 const BASE = (typeof arg('--base') === 'string' && arg('--base')) || 'http://localhost:8861';
