@@ -18,7 +18,8 @@ async function open(browser, url, o) {
 }
 const screen = page => page.evaluate(() => document.getElementById('phone').dataset.screen);
 const waitScreen = (page, name) => page.waitForFunction(n => document.getElementById('phone').dataset.screen === n, name);
-const settle = (page, ms) => page.waitForTimeout(ms == null ? 420 : ms);
+/** wait, and then until nothing on the page is still moving (a slow machine draws few frames, and a move can end late). Moves that never end are left out. */
+const settle = async (page, ms) => { await page.waitForTimeout(ms == null ? 420 : ms); await page.evaluate(() => new Promise(res => { const t0 = performance.now(); (function wait() { const busy = document.getAnimations().some(a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations !== Infinity); if (!busy || performance.now() - t0 > 2000) res(); else setTimeout(wait, 30); })(); })).catch(() => {}); };
 const primary = page => page.locator(LAYER + ' .ph-primary');
 
 const phone = {

@@ -10,8 +10,14 @@
 .dk-bar b { font-weight: 650; }
 
 /* what was received: a narrow rail that is only there once there is more than one finding */
-.dk-panes { min-height: 0; display: grid; grid-template-columns: 0px minmax(0, 1fr); transition: grid-template-columns 250ms var(--flat); }
-.dk-panes[data-rail="on"] { grid-template-columns: 124px minmax(0, 1fr); }
+/* The sidebar (124 px) eases in when a second finding arrives. So that the open finding is not laid out again while it
+   does (every line re-wrapping, pictures resizing, size rules flipping: the whole screen appeared to flash), a finding
+   is always laid out in the width it has WITH the sidebar: while there is no sidebar the spare 124 px is shared as a
+   margin at each side (--dk-slack). When the sidebar comes the margin goes at the same rate, so the content keeps
+   its width and only glides 62 px to the right. --dk-slack is a registered length, so it animates in step. */
+@property --dk-slack { syntax: "<length>"; inherits: true; initial-value: 0px; }
+.dk-panes { min-height: 0; display: grid; grid-template-columns: 0px minmax(0, 1fr); --dk-slack: 62px; transition: grid-template-columns 250ms var(--flat), --dk-slack 250ms var(--flat); }
+.dk-panes[data-rail="on"] { grid-template-columns: 124px minmax(0, 1fr); --dk-slack: 0px; }
 .dk-rail { min-width: 0; overflow: hidden; opacity: 0; visibility: hidden; border-right: 1px solid transparent; transition: opacity 250ms var(--flat), border-color 250ms var(--flat), visibility 0s 250ms; }
 .dk-panes[data-rail="on"] .dk-rail { opacity: 1; visibility: visible; border-right-color: var(--line); transition: opacity 250ms var(--flat), border-color 250ms var(--flat); }
 .dk-rail-in { box-sizing: border-box; width: 124px; height: 100%; overflow-y: auto; scrollbar-width: none; padding: 16px 12px; }
@@ -36,7 +42,7 @@ html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
 .dk-empty p { font-size: 14.5px; font-weight: 550; color: var(--ink2); }
 
 /* one finding. When another takes its place the old one leaves first, then the new one arrives: never two in one spot. */
-.dk-view { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; container-type: inline-size; }
+.dk-view { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; container-type: inline-size; box-sizing: border-box; padding: 0 var(--dk-slack); }      /* size rules read the content box, which keeps one width (see --dk-slack) */
 .dk-view.is-on { opacity: 1; visibility: visible; transition: opacity 170ms var(--flat) 110ms, visibility 0s 110ms; }
 .dk-view.is-arriving .dk-photo-img, .dk-view.is-arriving .dk-enlarge, .dk-view.is-arriving [data-rise] { visibility: hidden; }
 
@@ -103,12 +109,13 @@ html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
 .dk-row:last-child { border-bottom: 1px solid var(--line); }
 .dk-row.lift { z-index: 2; }
 .dk-row-line { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: center; min-height: 50px; }
-.dk-verdict { all: unset; box-sizing: border-box; cursor: pointer; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px 0 6px; border-radius: 10px; font-size: 13.5px; transition: background-color 110ms var(--flat); }
-.dk-verdict:hover { background: var(--tm-wash); }
+.dk-verdict { all: unset; box-sizing: border-box; cursor: pointer; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px 0 9px; border-radius: var(--tm-radius-pill); font-size: 13.5px; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line2), 0 3px 8px -5px rgba(var(--shade), .4); transition: box-shadow 110ms var(--flat); }      /* every verdict can be pressed, so every one is the same raised capsule */
+.dk-verdict:hover { box-shadow: 0 0 0 1px var(--ink3), 0 3px 8px -5px rgba(var(--shade), .4); }
 /* a call that has not been made looks like what it is: something to press */
-.dk-row[data-verdict="yellow"] .dk-verdict { padding: 0 12px 0 9px; border-radius: var(--tm-radius-pill); background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line2), 0 3px 8px -5px rgba(var(--shade), .4); }
-.dk-row[data-verdict="yellow"] .dk-verdict:hover { box-shadow: 0 0 0 1px var(--ink3), 0 3px 8px -5px rgba(var(--shade), .4); }
-.dk-verdict:focus-visible, .dk-row-open:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 10px; }
+.dk-verdict:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+.dk-rows .dk-row .dk-row-open:focus-visible { outline: none; }      /* the ring is drawn on the whole row instead, not as a capsule through part of it */
+.dk-row:has(.dk-row-open:focus-visible) > .dk-row-line { outline: 2px solid var(--hi); outline-offset: 3px; border-radius: 12px; }
+html.gleb .dk-row:has(.dk-row-open:focus-visible) > .dk-row-line { outline-color: var(--gl-sky); }
 .dk-row-open { all: unset; box-sizing: border-box; cursor: pointer; position: relative; transition: margin-left 240ms var(--flat); display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 50px; padding: 0 6px 0 4px; border-radius: 10px; }   /* the name comes first; the citation takes what is left */
 .dk-row-name { position: relative; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dk-row-cite { position: relative; font-size: 12.5px; font-weight: 550; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
@@ -145,8 +152,6 @@ html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
 .dk-toggle.shell-seg > button.on { font-weight: 650; }
 .dk-toggle.shell-seg > button > span { display: inline-block; text-align: center; }
 .dk-toggle.shell-seg > button > span::after { content: attr(data-label); display: block; height: 0; overflow: hidden; visibility: hidden; font-weight: 650; }   /* the heavier word's width is kept, so choosing shifts nothing */
-.dk-toggle-from.verdict-mark { margin: 0 2px 0 7px; transition: opacity 180ms var(--flat); }
-.dk-toggle.is-chosen .dk-toggle-from { opacity: 0; }
 .dk-row.is-deciding { z-index: 3; }
 /* with the shared kit on, this switch keeps the raised white pill and ink words: no dark fill in a verdict */
 html.gleb .dk-toggle .shell-seg-ind { background: #fff; box-shadow: 0 1px 2px rgba(25, 34, 51, .10), 0 6px 14px -8px rgba(25, 34, 51, .35); }
@@ -157,7 +162,8 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 
 /* the one button */
 .dk-foot-slot { margin-right: auto; }
-.dk-foot { grid-row: 3; display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 40px; padding: 10px 26px 14px; border-top: 1px solid var(--line); }
+.dk-foot { position: relative; grid-row: 3; display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 40px; padding: 10px 26px 14px; }
+.dk-foot::before { content: ""; position: absolute; top: 0; left: calc(-1 * var(--dk-slack)); right: calc(-1 * var(--dk-slack)); border-top: 1px solid var(--line); }      /* the line above it runs the full width of the screen */
 .dk-primary { all: unset; box-sizing: border-box; cursor: pointer; position: relative; overflow: hidden; height: 40px; min-width: 0; padding: 0 22px; border-radius: var(--tm-radius-pill); background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 650; transition: transform 70ms var(--flat), opacity 140ms var(--flat); user-select: none; -webkit-user-select: none; }
 .dk-primary:active { transform: scale(.98); }
 .dk-primary:disabled { opacity: .3; cursor: default; }
@@ -173,6 +179,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-zoom > .dk-zoom-x.tm-sym { position: absolute; right: 16px; top: 14px; background: var(--tm-solid); }
 
 @media (max-width: 1179px) {
+  .dk-panes, .dk-panes[data-rail="on"] { --dk-slack: 0px; }
   .dk-app { border-radius: 0; }
   .dk-bar { display: none; }
   .dk-app { grid-template-rows: minmax(0, 1fr); }
@@ -182,12 +189,12 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
    A list on the left; beside it the correction being looked at, large. The pictures are the corrections. */
 .dk-view[data-step="fix"] .dk-context { display: none; }
 .dk-view[data-step="fix"] .dk-work { grid-template-columns: minmax(0, 1fr); }
-.dk-fix { min-height: 0; display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 28px; padding: 2px 4px 14px; }
+.dk-fix { min-height: 0; display: grid; grid-template-columns: minmax(210px, 248px) minmax(0, 1fr); gap: 26px; padding: 2px 4px 14px; }
 .dk-fix-list { min-height: 0; overflow-y: auto; scrollbar-width: none; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; padding: 2px 4px 16px; }
 .dk-fix-list::-webkit-scrollbar, .dk-side::-webkit-scrollbar { display: none; }
 .dk-fix-list > .dk-h { min-height: 30px; display: flex; align-items: center; }
 .dk-fix-rows { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.dk-fix-row { box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px; border-radius: 18px; border: 1.5px solid transparent; background: var(--tm-surface); outline: none; transition: border-color 140ms var(--flat), background-color 140ms var(--flat); }
+.dk-fix-row { box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 60px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px; border-radius: 18px; border: 1.5px solid transparent; background: var(--tm-surface); outline: none; transition: border-color 140ms var(--flat), background-color 140ms var(--flat); }
 /* looked at: the chosen surface (solid, lifted). Not a blue edge: blue here would read as ticked or as keyboard focus. */
 .dk-fix-row:hover { background: color-mix(in srgb, var(--tm-solid) 55%, var(--tm-surface)); }
 .dk-fix-row.is-on { background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line2), 0 10px 22px -16px rgba(var(--shade), .55); }
@@ -195,7 +202,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-fix-rows .dk-fix-row .dk-use > .tm-box { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--ink3); background: transparent; color: transparent; box-shadow: none; }
 .dk-fix-rows .dk-fix-row .dk-use[aria-checked="true"] > .tm-box { border-color: var(--ink); background: var(--ink); color: #fff; }
 .dk-fix-row:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: 18px; }
-.dk-fix-thumb { width: 72px; aspect-ratio: 1; border-radius: 12px; }
+.dk-fix-thumb { width: 60px; aspect-ratio: 1; border-radius: 12px; }
 .dk-fix-text { min-width: 0; display: grid; gap: 1px; }
 .dk-fix-name { position: relative; font-size: 14px; font-weight: 650; line-height: 1.25; }
 .dk-fix-stand { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
@@ -218,10 +225,10 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-card-title { position: relative; margin: 0; font-size: 18px; font-weight: 650; line-height: 1.25; letter-spacing: -.01em; }
 .dk-card-stand { font-size: 12.5px; font-weight: 600; color: var(--ink2); margin-top: -6px; }
 .dk-card-plain { position: relative; font-size: 14.5px; line-height: 1.5; font-weight: 550; }
-.dk-card-steps, .rp-steps { margin: 0; padding: 0 0 0 22px; list-style: decimal; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; font-size: 14px; line-height: 1.45; }
-.dk-card-steps li, .rp-steps li { position: relative; padding-left: 2px; }
-.dk-card-steps li::marker, .rp-steps li::marker { font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
-.dk-step, .rp-step { position: relative; display: inline; }
+.dk-card-steps { margin: 0; padding: 0 0 0 22px; list-style: decimal; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; font-size: 14px; line-height: 1.45; }
+.dk-card-steps li { position: relative; padding-left: 2px; }
+.dk-card-steps li::marker { font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.dk-step { position: relative; display: inline; }
 .is-editing [data-edit] { display: block; }
 .dk-card-stepshead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .dk-card-stepshead .tm-sym, .dk-ask-row .tm-sym, .dk-off-row .tm-sym, .dk-plan .tm-sym, .dk-side > .tm-btns > .tm-sym, .dk-rules-head .tm-sym { width: 30px; height: 30px; }
@@ -260,6 +267,8 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-view[data-step="file"] .dk-foot, .rp-act { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
 .dk-view[data-step="file"] .dk-foot-slot { margin-right: 0; }
 .dk-view[data-step="owner"] .dk-foot { display: none; }
+.dk-view[data-step="file"] .dk-foot::before { display: none; }
+.dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { margin: 0 calc(-1 * var(--dk-slack)); }      /* a draft has the whole screen, margins included */
 .rp-act { right: 14px; bottom: 12px; display: flex; align-items: center; }
 .rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
 /* after Publish the button is gone and a line at the foot of the window says what happened. It is part of the
@@ -280,10 +289,6 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-window.is-big, .doc-frame.is-big { position: fixed; z-index: 71; margin: 0; max-width: none; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .55); }
 .dk-big-btn.tm-sym { width: 26px; height: 26px; }
 /* words in a draft: click and type. A soft ground under the pointer and under the caret says so; nothing else does. */
-.tm-direct { outline: none; cursor: text; border-radius: 6px; white-space: pre-wrap; transition: background-color 120ms var(--flat), box-shadow 120ms var(--flat); }
-.tm-direct:hover { background: var(--tm-wash); box-shadow: 0 0 0 5px var(--tm-wash); }
-.tm-direct:focus, .tm-direct:focus-visible { background: rgba(104, 146, 248, .1); box-shadow: 0 0 0 5px rgba(104, 146, 248, .1); outline: none; border-radius: 6px; }
-/* step 3: the owner's page is a website, shown in a browser window at desktop width */
 .rp-window { position: relative; min-height: 0; justify-self: stretch; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 36px minmax(0, 1fr) auto; border-radius: 14px; overflow: hidden; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -38px rgba(var(--shade), .5); }
 /* Enlarge is the way to read the page properly, so it is a plain round button on the bar, not a faint mark */
 .rp-bar > .dk-big-btn.tm-sym { justify-self: end; width: 28px; height: 28px; border-radius: 50%; background: var(--tm-solid); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
@@ -294,56 +299,81 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
    the window's top bar is straight and its bottom corners are 14 px; the enlarged document's corners are 18 px. */
 .rp-scroll { --scroll-inset-top: 6px; --scroll-inset-bottom: 14px; }
 .doc-scroll { --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
-.rp-page { position: relative; box-sizing: border-box; max-width: 784px; margin: 0 auto; padding: 28px 32px 100px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 13px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating button */
-.rp-window.is-big .rp-page { max-width: 880px; font-size: 18px; gap: 16px; padding-top: 44px; }
-.rp-window.is-big .rp-title { font-size: 42px; }
-.rp-window.is-big .rp-page h2 { font-size: 25px; }
-.rp-window.is-big .rp-sol-title { font-size: 22px; }
-.rp-window.is-big .rp-steps { font-size: 17px; }
-.rp-agency { position: relative; font-size: 12.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); }
-.rp-title { margin: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.025em; font-weight: 650; }
-.rp-photo { width: 100%; aspect-ratio: 3 / 1; border-radius: 20px; margin: 6px 0 2px; }
-@container (max-height: 440px) { .rp-photo { aspect-ratio: 9 / 2; } .rp-page { padding-top: 18px; } .rp-title { font-size: 26px; } }      /* a short window: the top of the page is tighter and the photograph gives up height, so the first screenful still reaches "What is wrong" */
-.rp-page h2 { margin: 22px 0 0; font-size: 21px; font-weight: 650; letter-spacing: -.015em; }
-.rp-text { position: relative; margin: 0; max-width: 62ch; font-weight: 500; }
-/* an option: its heading, the picture across the column, its steps under it. No panel; a hairline and air between options. */
-.rp-sols { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
-.rp-sol { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 36px 0 4px; margin-top: 36px; border-top: 1px solid var(--line); }
-.rp-sol:first-child { margin-top: 10px; padding-top: 22px; border-top: 0; }
-html.gleb .rp-figwrap button.ba-toggle.shell-pill:not([aria-pressed="true"]) { background: var(--tm-wash); }      /* the kit's pale pill is invisible on a white page */
-.rp-figwrap { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 10px; }
-.rp-figwrap > .ba-tools { margin-top: 0; }      /* the switch belongs to the picture: 10 px under it */      /* on the same left edge as the heading above it and the steps below */
-.rp-fig { width: min(100%, 60cqh * 4 / 3); }      /* never taller than six tenths of what is visible */
-.rp-sol-head { display: grid; gap: 2px; justify-items: start; }
-.rp-sol-title { margin: 0; font-size: 18.5px; font-weight: 650; line-height: 1.3; }
-.rp-optn { position: relative; }
-.rp-opt { font-size: 13px; font-weight: 600; color: var(--ink2); }
+/* The owner's page is one document (doc.js): its blocks follow one another with ordinary paragraph spacing. */
+.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 100px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating button */
+.rp-page > * { margin: 0 0 12px; }
+.rp-window.is-big .rp-page { max-width: min(880px, 100cqw - 190px); font-size: 18px; padding-top: 44px; }
+.rp-window.is-big .rp-page > .rp-title { font-size: 42px; }
+.rp-window.is-big .rp-page > h2 { font-size: 25px; }
+.rp-window.is-big .rp-page > .rp-sol-title { font-size: 22px; }
+.rp-window.is-big .rp-page > .rp-steps { font-size: 17px; }
+.rp-page > .rp-agency { font-size: 12.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); }
+.rp-page > .rp-title { margin: 0 0 16px; font-size: 30px; line-height: 1.12; letter-spacing: -.025em; font-weight: 650; }
+/* the photograph: all of it, at its own shape, centred in the column. Never cropped, never stretched; no taller
+   than six tenths of what is visible, and the width follows from that. */
+.rp-page > .rp-photo { width: min(100%, 54cqh * var(--a, 1)); aspect-ratio: var(--a, 1); margin: 6px auto 20px; border-radius: 18px; }      /* a little under six tenths, so the first screenful still reaches "What is wrong" */
+@container (max-height: 440px) { .rp-page { padding-top: 18px; } .rp-page > .rp-title { font-size: 26px; } }      /* a short window: the top of the page is tighter */
+.rp-page > h2 { margin: 30px 0 12px; font-size: 21px; font-weight: 650; letter-spacing: -.015em; line-height: 1.25; }
+.rp-text { max-width: 62ch; font-weight: 500; }
 .rp-pick { color: var(--ink2); }
-.rp-steps { font-size: 15.5px; gap: 9px; }
-.rp-law { position: relative; margin-top: 10px; font-size: 12.5px; font-weight: 550; color: var(--ink2); line-height: 1.5; }
-@container (max-width: 640px) { .rp-page { padding: 22px 20px 96px; } .rp-title { font-size: 26px; } }
-/* step 4: the file document, a page */
-.doc-frame { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+/* an option: its heading, its standing, the picture, its steps. A hairline and air between one option and the next. */
+.rp-page > .rp-sol-title { margin: 36px 0 2px; padding-top: 36px; border-top: 1px solid var(--line); font-size: 18.5px; font-weight: 650; line-height: 1.3; }
+.rp-page > h2 + .rp-sol-title, .rp-page > .rp-pick + .rp-sol-title { margin-top: 18px; padding-top: 0; border-top: 0; }
+.rp-page > .rp-opt { margin: 0 0 14px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.rp-page > .rp-figwrap { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; margin: 0 0 16px; }
+.rp-figwrap > .ba-tools { margin-top: 0; }      /* the switch belongs to the picture: 10 px under it */
+.rp-fig { width: min(100%, 60cqh * var(--a, 1)); }      /* the whole picture at its own shape, no taller than six tenths of what is visible */
+html.gleb .rp-figwrap button.ba-toggle.shell-pill:not([aria-pressed="true"]) { background: var(--tm-wash); }      /* the kit's pale pill is invisible on a white page */
+.rp-page > .rp-steps { display: block; margin: 0 0 6px; padding: 0 0 0 24px; list-style: decimal; font-size: 15.5px; line-height: 1.45; }      /* a real list: the numbers renumber themselves */
+.rp-steps > li { margin: 0 0 9px; padding-left: 2px; }
+.rp-steps > li::marker { font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.rp-page > .rp-law { margin-top: 20px; font-size: 12.5px; font-weight: 550; color: var(--ink2); line-height: 1.5; }
+@container (max-width: 640px) { .rp-page { max-width: none; padding: 22px 20px 120px; } .rp-page > .rp-title { font-size: 26px; } }      /* too narrow for margins that clear the button: the full width, and more room at the foot instead */
+
+/* ================================================================ step 3: the file document, a plain office page
+   Deliberately NOT the app's look: a white Letter page on a grey desk, one ordinary typeface, black text, bold
+   headings, no ornaments. Everything inside .wd-sheet is set here and nowhere else, so that nothing of the app or
+   of the kit reaches into the page (the kit forces a weight on everything, which is why the weights below say
+   !important: there is no other way to answer it). Sizes are in em, and the em follows the page's width, so the
+   page is a true Letter page at any size, as when a document is zoomed to fit. */
+.doc-frame { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); background: #d6d8db; border-radius: 6px; overflow: hidden; }      /* the desk */
 .doc-frame > .dk-big-btn.tm-sym { position: absolute; right: 18px; top: 10px; z-index: 3; width: 30px; height: 30px; }
-.doc-frame.is-big { border-radius: 18px; overflow: hidden; background: var(--bg); }
-.doc-frame.is-big .doc-page { max-width: 900px; font-size: 16.5px; }
-.doc-scroll { min-height: 0; overflow-y: auto; padding: 14px 8px 96px; }
-.doc-page { position: relative; box-sizing: border-box; max-width: 740px; margin: 0 auto; padding: 46px 54px 56px; border-radius: 24px; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -40px rgba(var(--shade), .45); font-size: 14px; line-height: 1.6; }
-.doc-page::after { content: ""; display: block; clear: both; }
-.doc-page > * + * { margin-top: 8px; }
-.doc-photo { float: right; width: 200px; aspect-ratio: 4 / 3; border-radius: 14px; margin: 2px 0 14px 24px; }
-.doc-h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.22; }
-.doc-h3 { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
-.doc-page > .doc-h3 { margin-top: 22px; }
-.doc-h4 { margin: 14px 0 0; font-size: 14.5px; font-weight: 650; display: flex; align-items: baseline; gap: 8px; }
-.doc-page > .doc-h4 { margin-top: 16px; }
-.doc-h4 > .verdict-mark { transform: translateY(1px); }
-.doc-h2 > span, .doc-h3 > span, .doc-h4 > span { position: relative; }
-.doc-p { position: relative; margin: 0; }
-/* fixed lines (citations, what was recorded): quiet, and plainly not text to type into */
-.doc-p.is-fixed { color: var(--ink2); cursor: default; }
-.doc-p.doc-cite { display: table; padding: 1px 10px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--line2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.doc-rule { position: relative; margin: 0; color: var(--ink2); padding-left: 14px; border-left: 2px solid var(--line2); cursor: default; }
+.doc-frame.is-big { border-radius: 14px; }
+.doc-scroll { min-height: 0; overflow-y: auto; padding: 22px 0 110px; container-type: inline-size; --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
+.wd-sheet { --pw: min(816px, 100cqw - 56px); position: relative; width: var(--pw); margin: 0 auto; font-family: "Times New Roman", Times, serif; font-size: calc(var(--pw) * .0196); line-height: 1.38; color: #000; letter-spacing: normal; text-align: left; font-feature-settings: normal; }
+.doc-frame.is-big .wd-sheet { --pw: min(960px, 100cqw - 72px); }
+.wd-leaf { position: absolute; left: 0; width: 100%; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .14), 0 1px 5px rgba(0, 0, 0, .22); }      /* a sheet of paper: square corners, a thin edge */
+.wd-foot { position: absolute; left: 0; width: 100%; text-align: center; font-size: .85em; pointer-events: none; }
+.wd-body { position: relative; box-sizing: border-box; padding: calc(var(--pw) / 8.5); }      /* one inch all round */
+.wd-body > * { margin: 0 0 .62em; padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; text-transform: none; letter-spacing: normal; }
+.wd-body > .wd-letter { font-size: 1.15em; margin-bottom: .1em; }
+.wd-body > .wd-letter-line { margin-bottom: 1.5em; padding-bottom: .7em; border-bottom: 1px solid #000; }      /* the one rule on the page: under the letterhead */
+.wd-body > .wd-title { font-size: 1.35em; line-height: 1.2; margin: 0 0 .25em; }
+.wd-body > .wd-h { font-size: 1.08em; margin: 1.25em 0 .4em; }
+.wd-body > .wd-sub { margin: .9em 0 .25em; }
+.wd-body > .wd-quote { margin: .2em 0 .62em 2.4em; }      /* code as quoted: an indented paragraph */
+.wd-body > .wd-fig { margin: .9em 0 1.1em; }
+.wd-fig > img { display: block; width: calc(var(--pw) * 3 / 8.5); height: auto; border-radius: 0; }      /* about three inches wide, its own shape, square corners */
+.wd-fig > figcaption { margin-top: .4em; font-size: .92em; font-style: italic; }
+.wd-list { margin: 0; padding: 0 0 0 2.2em; list-style: decimal; }
+.wd-list > li { margin: 0 0 .2em; }
+.wd-sheet.wd-sheet, .wd-sheet.wd-sheet * { font-weight: 400 !important; }
+.wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-weight: 700 !important; }
+html.gleb .wd-sheet.wd-sheet, html.gleb .wd-sheet.wd-sheet * { font-weight: 400 !important; letter-spacing: normal; }
+html.gleb .wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-weight: 700 !important; }
+
+/* "Fix by", beside the button of "How to fix it": the date in words, a few usual choices, or any date from the calendar */
+.dk-due { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.dk-due-line { margin: 0; display: grid; grid-template-columns: auto; line-height: 1.2; min-width: 164px; }      /* as wide as its longest line, so the choices beside it stay put when the date changes */
+.dk-due-label { font-size: 11.5px; font-weight: 600; color: var(--ink2); }
+.dk-due-date { position: relative; font-size: 15px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+.dk-due-note { position: relative; font-size: 11.5px; font-weight: 550; color: var(--ink2); white-space: nowrap; }
+.dk-due .tm-btns { flex-wrap: nowrap; }
+.dk-due-chip.tm-btn.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.dk-due-pick { position: relative; display: inline-grid; }
+.dk-due-pick > .tm-sym { width: 30px; height: 30px; }
+.dk-due-input { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }      /* only its calendar is used */
+@container (max-width: 760px) { .dk-due-note { display: none; } .dk-due { gap: 10px; } .dk-due-line { min-width: 146px; } }
 
 /* ================================================================ small sizes
    These rules come last: several of them adjust rules written further up for the later steps, and a rule of equal
@@ -361,8 +391,6 @@ html.gleb .rp-figwrap button.ba-toggle.shell-pill:not([aria-pressed="true"]) { b
   .dk-fix { grid-template-columns: minmax(170px, 34%) minmax(0, 1fr); gap: 16px; }
   .dk-fix-row { grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px; }
   .dk-fix-thumb { width: 52px; }
-  .doc-page { padding: 26px 22px 30px; }
-  .doc-photo { width: 120px; margin-left: 14px; }
   .rp-window { border-radius: 14px; }
 }
 /* narrower still (the laptop on a real phone): one column that scrolls as a whole */
@@ -382,9 +410,26 @@ html.gleb .rp-figwrap button.ba-toggle.shell-pill:not([aria-pressed="true"]) { b
   .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { display: grid; grid-template-rows: minmax(0, 1fr); overflow: hidden; padding: 6px 6px 8px; }
   .dk-view[data-step="owner"] .dk-steps, .dk-view[data-step="file"] .dk-steps { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 }
+/* "Fix by" in a smaller foot. Too narrow for one line: the date sits over its choices, the two still beside the button. */
+@container (max-width: 720px) {
+  .dk-due { display: grid; grid-template-columns: auto; justify-items: start; gap: 6px; }
+  .dk-due-line { min-width: 0; grid-auto-flow: column; grid-template-columns: none; align-items: baseline; column-gap: 6px; }
+  .dk-due-label { font-size: 12.5px; }
+}
+/* narrower still: the button takes a line of its own under them, the full width */
+@container (max-width: 560px) {
+  .dk-view[data-step="fix"] .dk-foot { flex-wrap: wrap; row-gap: 10px; }
+  .dk-view[data-step="fix"] .dk-foot-slot { flex: 1 1 100%; margin-right: 0; }
+  .dk-view[data-step="fix"] .dk-foot > .dk-primary { flex: 1 1 100%; }
+}
+@container (max-width: 480px) {
+  .dk-due .tm-btns { flex-wrap: wrap; gap: 6px; }
+  .dk-view .dk-due-chip.tm-btn { padding: 0 9px; }
+}
 
 /* ================================================================ step 5: published */
 
 @media print {
-  #tmPrint .doc-page { box-shadow: none; border-radius: 0; padding: 0; margin: 0; max-width: none; font-size: 10pt; }
+  #tmPrint .wd-sheet { width: auto; font-size: 12pt; }
+  #tmPrint .wd-body { padding: 0; }
 }

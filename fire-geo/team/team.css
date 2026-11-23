@@ -23,6 +23,11 @@ button { -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 .tm-icon { flex: none; display: block; }
 .tm-ghost { pointer-events: none !important; }
+/* A focus ring is for the keyboard only. While the pointer is in use nothing draws one (TeamUI also lets go of the
+   focus after a click, which covers rings drawn as shadows); the first key pressed brings them back. */
+html.tm-pointer :focus-visible:not(input):not(textarea):not([contenteditable]):not([role="textbox"]) { outline: none; }
+/* With the kit on, a quiet button lost its ring altogether (the kit's rule for quiet buttons comes after its focus rule and clears the shadow the ring is drawn with). A keyboard user must see where they are: */
+html.gleb .tm-btn.is-quiet:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
 
 /* ================================================================ the stage: the phone and the laptop, centred as a pair
    Each device keeps its true shape at every window size. The phone is always 390 x 844, drawn at one scale for the
@@ -222,7 +227,7 @@ button { -webkit-tap-highlight-color: transparent; }
   html, body { height: auto; overflow: visible; background: #fff; display: block; }
   body > *:not(#tmPrint) { display: none !important; }
   #tmPrint { display: block; }
-  @page { margin: 16mm; }
+  @page { margin: 1in; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -241,3 +246,11 @@ button { -webkit-tap-highlight-color: transparent; }
 .tm-thinscroll::-webkit-scrollbar-track { background: transparent; margin-block: var(--scroll-inset-top, 0px) var(--scroll-inset-bottom, 0px); }
 .tm-thinscroll::-webkit-scrollbar-thumb { min-height: 40px; border: 2px solid transparent; border-radius: 99px; background: rgba(var(--ink-rgb), .24); background-clip: padding-box; }
 @supports not selector(::-webkit-scrollbar) { .tm-thinscroll { scrollbar-width: thin; scrollbar-color: rgba(38, 42, 49, .24) transparent; } }
+
+/* ---- A draft is one document (doc.js): one editing surface, like a page in a word processor. There are no boxes
+   round its parts: no hover block, no focus block. The caret is the only sign of where one is. Protected pieces
+   (islands) sit in the flow and look like the rest of the page; the pointer is an arrow over them, not a text bar. */
+.tm-doc { outline: none; cursor: text; white-space: pre-wrap; overflow-wrap: break-word; }
+.tm-doc:focus, .tm-doc:focus-visible { outline: none; }
+.tm-doc .tm-island { white-space: normal; cursor: default; user-select: none; -webkit-user-select: none; }
+.tm-doc .tm-island.is-text, .tm-doc .tm-lead { white-space: pre-wrap; user-select: text; -webkit-user-select: text; }      /* protected words can still be selected and copied */

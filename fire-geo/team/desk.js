@@ -146,7 +146,7 @@ window.TeamDesk = (function () {
     st.readTools = h('div', { class: 'tm-btns dk-read-tools' }, U.pencil(st.read, { onSave: t => { st.words = t; syncRow(V, st); changed(V); } }).btn, st.backBtn);
     st.confirmText = h('span'); st.confirm = h('p', { class: 'dk-confirm' }, h('i', { class: 'verdict-mark', 'data-verdict': 'yellow', 'aria-hidden': 'true' }), st.confirmText);
     st.was = h('p', { class: 'dk-was' });
-    st.body.append(h('h4', { class: 'shell-label', text: 'The rule says' }), st.rule, st.citeFull, h('h4', { class: 'shell-label', text: 'What the app thinks' }), h('div', { class: 'dk-read-row' }, st.read, st.readTools), st.confirm, st.was);
+    st.body.append(h('h4', { class: 'shell-label', text: 'The rule says' }), st.rule, st.citeFull, h('h4', { class: 'shell-label', text: 'Considerations' }), h('div', { class: 'dk-read-row' }, st.read, st.readTools), st.confirm, st.was);
     syncRow(V, st);
   }
   /** bring one row in line with its state. Only what differs is touched, so it is safe to call at any time. */
@@ -164,7 +164,22 @@ window.TeamDesk = (function () {
     const was = r.was ? 'Until ' + r.was.until + ': ' + r.was.value + (r.was.unit ? ' ' + r.was.unit : '') + (r.was.cite ? ' (' + D.tidy(r.was.cite) + ')' : '') + '.' : ''; st.was.hidden = !was; if (was && st.was.textContent !== was) st.was.textContent = was;
   }
   /** the inspector chooses a verdict */
-  function pick(V, st, v) { closeToggle(true); st.manual = v !== st.r.verdict; setVerdict(V, st, v); }
+  function pick(V, st, v) { closeToggle(true); st.manual = v !== st.r.verdict; setVerdict(V, st, v); if (v !== 'yellow') { const nx = advance(V, st); refocus(nx ? nx.openBtn : V.nextBtn); } }
+  /** the next rule that still needs a decision: the next undecided row below this one, else the first one above it */
+  function nextUndecided(V, st) {
+    const order = [...V.rowsEl.children].map(n => V.rows.get(n.dataset.key)).filter(Boolean), i = order.indexOf(st), need = x => x.verdict === 'yellow';
+    return order.slice(i + 1).find(need) || order.slice(0, i).find(need) || null;
+  }
+  /**
+   * A rule was decided: its row closes and the next one to decide opens, in the same move, so the senior can work
+   * straight down the list. When every rule is decided nothing opens. Rows never change places.
+   */
+  function advance(V, st) {
+    const nx = nextUndecided(V, st);
+    if (nx) { if (V.open !== nx.key) toggleRow(V, nx, true); }      // opening it closes whichever row was open
+    else if (V.open === st.key) toggleRow(V, st);
+    return nx;
+  }
   function setVerdict(V, st, v) { const was = st.verdict; st.verdict = v; syncRow(V, st); if (was !== v) tally(V); changed(V); }      // the row stays where it is
   /** keep a row that was opened in view: the list scrolls to it calmly */
   function follow(sc, node) {
@@ -182,18 +197,19 @@ window.TeamDesk = (function () {
     V.tally.querySelectorAll('.dk-tally-n').forEach(el => swapText(el.lastChild, String(n[el.dataset.v]), { size: false }));
     V.tally.setAttribute('aria-label', ORDER.map(v => n[v] + ' ' + word(v)).join(', ')); V.tally.hidden = !V.rows.size;
   }
-  function toggleRow(V, st) {
+  function toggleRow(V, st, guided) {
     const open = V.open !== st.key, was = V.open && V.open !== st.key ? V.rows.get(V.open) : null;
     if (was) { was.node.classList.remove('is-open'); was.openBtn.setAttribute('aria-expanded', 'false'); reveal(was.body, false); }
     if (open && !st.built) buildBody(V, st);
     V.open = open ? st.key : null;
     st.node.classList.toggle('is-open', open); st.openBtn.setAttribute('aria-expanded', String(open)); reveal(st.body, open);
-    if (open) setTimeout(() => { if (V.open === st.key) follow(V.scroll, st.node); }, 280);
+    // opened by hand, the whole row is brought into view; opened by the guided pass, only as far as its heading needs
+    if (open) setTimeout(() => { if (V.open === st.key) follow(V.scroll, guided ? st.node.firstChild : st.node); }, 280);
   }
   // ---- the verdict, pressed: it turns, where it stands, into the system's own two-part switch (the same sunken
   // capsule and raised pill as the tabs at the top, at a small size): Violation | Clear.
-  // Opened from "Inspector's call" neither side is chosen: there is no thumb, and the yellow mark stays quietly at
-  // the left until a side is picked. Opened from a decided row the pill is on its side. The name and the citation
+  // Opened from "Inspector's call" neither side is chosen and there is no thumb (the yellow mark belongs to the closed
+  // label and leaves with it). Opened from a decided row the pill is on its side. The name and the citation
   // move right to make room, so nothing is covered and the row keeps its height. Choosing a side puts the pill
   // there, the switch turns back into the plain verdict, and the row glides to its place. Escape or a press
   // elsewhere closes it unchanged, the way it opened.
@@ -203,8 +219,7 @@ window.TeamDesk = (function () {
     const opt = v => h('button', { class: v === cur ? 'on' : '', type: 'button', role: 'radio', 'data-value': v, 'aria-checked': String(v === cur), tabindex: '-1', onclick: () => choose(v) },
       h('i', { class: 'verdict-mark', 'data-verdict': v, 'aria-hidden': 'true' }), h('span', { 'data-label': word(v), text: word(v) }));
     const ind = h('span', { class: 'shell-seg-ind' });
-    const el = h('div', { class: 'shell-seg tm-seg dk-toggle', role: 'radiogroup', 'aria-label': 'Verdict: ' + st.r.label, tabindex: '0' }, ind,
-      cur ? null : h('i', { class: 'verdict-mark dk-toggle-from', 'data-verdict': 'yellow', 'aria-hidden': 'true' }), opt('red'), opt('green'));
+    const el = h('div', { class: 'shell-seg tm-seg dk-toggle', role: 'radiogroup', 'aria-label': 'Verdict: ' + st.r.label, tabindex: '0' }, ind, opt('red'), opt('green'));      // the two choices and nothing else
     Object.assign(el.style, { left: b.offsetLeft + 'px', top: (b.offsetTop + (b.offsetHeight - 32) / 2) + 'px' });
     line.append(el);
     const T = tog = { V, st, el, ind, at: cur, full: el.offsetWidth, busy: false };
@@ -230,9 +245,10 @@ window.TeamDesk = (function () {
     // pill lifts away and the row returns to the app's own verdict. That is the one way to undo a verdict.
     function choose(v) {
       if (T.busy || tog !== T) return; T.busy = true;
-      if (v === st.verdict) { if (st.manual) { ind.style.opacity = '0'; el.querySelectorAll('button').forEach(o => { o.classList.remove('on'); o.setAttribute('aria-checked', 'false'); }); el.classList.remove('is-chosen'); v = st.r.verdict; } else { closeToggle(); return; } }
+      let undo = false;
+      if (v === st.verdict) { if (st.manual) { ind.style.opacity = '0'; el.querySelectorAll('button').forEach(o => { o.classList.remove('on'); o.setAttribute('aria-checked', 'false'); }); el.classList.remove('is-chosen'); v = st.r.verdict; undo = true; } else { closeToggle(); return; } }
       else T.thumb(v);
-      setTimeout(() => commit(T, v), U.reduced() ? 0 : 290);
+      setTimeout(() => commit(T, v, undo), U.reduced() ? 0 : 290);
     }
     el.addEventListener('keydown', e => {
       e.stopPropagation(); if (T.busy) return;
@@ -258,12 +274,13 @@ window.TeamDesk = (function () {
     anim(el, [{ width: el.offsetWidth + 'px', opacity: 1 }, { width: b.offsetWidth + 'px', opacity: 1, offset: .6 }, { width: b.offsetWidth + 'px', opacity: 0 }], { duration: 250, easing: U.FLAT, fill: 'forwards' }).onfinish = done;
   }
   /** a side was chosen: the verdict changes under the switch and the switch closes. The row keeps its place. */
-  function commit(T, v) {
+  function commit(T, v, undo) {
     if (tog !== T) return;
-    const st = T.st, V = T.V, moved = st.verdict !== v;
+    const st = T.st, V = T.V, moved = st.verdict !== v, decided = !undo && v !== 'yellow';
     st.manual = v !== st.r.verdict;
     st.verdict = v; syncRow(V, st);
-    closeToggle(false, () => { if (moved) tally(V); changed(V); });
+    const nx = decided ? advance(V, st) : null;      // one move: the switch closes, this row closes, the next opens. An undo stays where it is.
+    closeToggle(false, () => { if (moved) tally(V); changed(V); if (decided) refocus(nx ? nx.openBtn : V.nextBtn); });
   }
   function findingPane(V) {
     V.heading = h('h2', { class: 'dk-h', text: heading(V) });
@@ -376,7 +393,7 @@ window.TeamDesk = (function () {
   /** a hook for tests and screenshots only, with nothing in the interface: a finding as the phone would send it */
   function seed(scene, place, o) {
     const opt = o || {}, sc = D.scene(scene), loc = typeof place === 'string' ? D.pin(place) : place, R = F.READING[scene];
-    const f = { id: 'seed' + (++seedN), at: new Date(), scene, loc, place: loc.place, title: sc.short, photo: { src: sc.photo, aspect: sc.aspect }, focus: F.FOCUS[scene], note: { text: opt.note || R.text, appText: R.text, changed: !!opt.note },
+    const f = { id: 'seed' + (++seedN), at: opt.at ? new Date(opt.at) : new Date(), scene, loc, place: loc.place, title: sc.short, photo: { src: sc.photo, aspect: sc.aspect }, focus: F.FOCUS[scene], note: { text: opt.note || R.text, appText: R.text, changed: !!opt.note },
       asked: F.asked(scene, opt.answers), readings: F.readings(scene, opt.changes), facts: F.facts(scene, opt.answers, opt.changes), state: 'sent' };
     reserve(f); land(f); return f;
   }

@@ -5,10 +5,12 @@
 //   For the owner    the owner's page as they will see it: a website, shown in a browser window at desktop width.
 //                    It is the last step and the thing that is published, so its Publish button sits on the window
 //                    and goes with it when the page is enlarged. Sending is not connected; it says so at that moment.
-// The two drafts are documents: click in the text and type. Citations, pictures and the before / after are fixed.
+// Each draft is ONE document (doc.js): the whole page is typed into as one piece, like a page in a word processor.
+// Pictures, citations, quoted code, generated numbering and the date are protected pieces inside it.
 // The first drafts are prepared from the source files (drafts.js). The model is only asked when the inspector asks
 // for a rewrite or writes a correction of their own (POST /api/team/draft); what comes back has already been
-// checked on the server against the sources. One set of words: a step edited here changes on the owner's page too.
+// checked on the server against the sources. One set of words: a step typed over on the owner's page is the same
+// step under "How to fix it" and in the file document.
 window.TeamDraft = (function () {
   'use strict';
   const U = window.TeamUI, { h, icon, btn, sym, swapText, reveal } = U, D = window.TeamData, F = window.TeamFlow, P = window.TeamPhoto, TD = window.TeamDrafts;
@@ -36,7 +38,17 @@ window.TeamDraft = (function () {
 
   function attach(V, api) {
     const f = V.f, scene = f.scene, binds = [], panes = {}, parts = {};
-    const M = { problem: ref(problemShort(scene)), deadline: ref(B.deadline(scene).resident), doc: {}, ownN: 0, open: null, pos: .5 };
+    const M = { problem: ref(problemShort(scene)), phone: ref('###-###-####'), ownN: 0, open: null, pos: .5 };      // phone: a slot, written as hash marks; the real product fills it from the agency's record
+    // The date the correction is due is the senior inspector's decision. It starts at the inspection date plus the
+    // days the source gives for this finding (30 for the hedge); where the source gives none (the sprinkler) it
+    // starts at 30 days too, which is this prototype's own starting value. Both drafts show the one date.
+    const DAY = 86400000, day0 = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()), CHOICES = [7, 14, 30, 60];
+    const srcDays = +(((B.deadline(scene).resident || '').match(/(\d+)\s*days?/) || [])[1] || 0);
+    M.due = { days: srcDays || 30, date: null, fromSource: !!srcDays };
+    const fmtDate = x => x.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dueDate = () => { if (M.due.date) return M.due.date; const s = day0(new Date(f.at)); return new Date(s.getFullYear(), s.getMonth(), s.getDate() + M.due.days); };      // counted on the calendar: a day is not always 24 hours (the clocks change)
+    const dueDays = () => Math.round((day0(dueDate()) - day0(new Date(f.at))) / DAY);
+    const daysText = n => n + (n === 1 ? ' day' : ' days');
     M.sols = D.solutions(scene).map(s => ({ id: s.id, kind: 'prepared', sol: s, standing: s.standing, use: s.standing === 'required', off: false, title: ref(s.title), plain: ref(s.plain), steps: B.ownerSteps(scene, s.id, V.ev.rows).map(x => ref(x.text)), regions: [], treat: 'remove', rewrites: 0 }));
     const chosen = () => M.sols.filter(s => s.use && !s.off).sort((a, b) => RANK[a.standing] - RANK[b.standing]);
     /** "Option 2": a correction's number among those included, the required one first. None when only one is included. The same number on the laptop's list, the owner's page and the file document. */
@@ -50,51 +62,6 @@ window.TeamDraft = (function () {
       const el = h(tag, { class: cls + ' tm-inplace', 'data-edit': '', text: val(r) });
       el.addEventListener('blur', () => { if (!el.isContentEditable) return; const t = clean(el.textContent); if (!t) el.textContent = val(r); else if (t !== val(r)) { el.textContent = t; r.cur = t === r.base ? null : t; touch(); } });
       el.addEventListener('keydown', e => { if (!el.isContentEditable) return; e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } else if (e.key === 'Escape') { e.preventDefault(); el.textContent = val(r); el.blur(); } else if ((e.metaKey || e.ctrlKey) && (e.key || '').toLowerCase() === 'z' && !e.shiftKey && clean(el.textContent) === val(r)) e.preventDefault(); });      // nothing of its own left to undo: the browser's undo would reach into another text
-      binds.push({ el, r, live: false });
-      return el;
-    }
-    /**
-     * In a document (the two drafts): click and type. It saves as you type; clicking away or Escape keeps the edit.
-     * Undo (Cmd or Ctrl + Z; with Shift, redo) steps back through what was typed into THIS text and nothing else, and
-     * the page keeps that history itself. The browser's own undo runs through every text on the page, including steps
-     * that are out of sight, and forgets a text once it has been moved (as Enlarge does), so it is not used here.
-     */
-    function direct(tag, cls, r, multi) {
-      const el = h(tag, { class: cls + ' tm-direct', contenteditable: 'plaintext-only', spellcheck: 'true', text: val(r) });
-      if (!el.isContentEditable) el.setAttribute('contenteditable', 'true');
-      const tidy = t => t.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
-      const keep = t => { r.cur = !t || t === r.base ? null : t; syncAll(el); api.changed(); };
-      const H = { past: [], future: [], now: val(r), kind: '', at: 0 };
-      /** step to another state of this text; the caret goes to where the change was */
-      const put = t => {
-        const a = H.now; let i = 0, j = 0;
-        while (i < a.length && i < t.length && a[i] === t[i]) i++;
-        while (j < a.length - i && j < t.length - i && a[a.length - 1 - j] === t[t.length - 1 - j]) j++;
-        el.textContent = t; H.now = t; H.at = 0;
-        const n = el.firstChild, s = getSelection(); if (n && s) { try { s.collapse(n, Math.min(n.length, t.length - j)); } catch (e) { /* no caret to place */ } }
-        keep(tidy(t));
-      };
-      const undo = () => { if (H.past.length) { H.future.push(H.now); put(H.past.pop()); } };
-      const redo = () => { if (H.future.length) { H.past.push(H.now); put(H.future.pop()); } };
-      el.addEventListener('focus', () => { const t = el.innerText; if (t !== H.now) { H.past = []; H.future = []; H.now = t; } H.at = 0; });      // changed from elsewhere since: its history starts again here
-      el.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo') { e.preventDefault(); undo(); } else if (e.inputType === 'historyRedo') { e.preventDefault(); redo(); } });
-      el.addEventListener('input', e => {
-        const t = el.innerText, kind = /^delete/.test(e.inputType || '') ? 'out' : /^insert(Text|CompositionText)$/.test(e.inputType || '') ? 'in' : 'other';
-        if (t !== H.now) {                                    // a run of typing is one step back; a pause, a paste or a change of direction starts the next
-          if (kind === 'other' || kind !== H.kind || Date.now() - H.at > 700) { H.past.push(H.now); if (H.past.length > 200) H.past.shift(); }
-          H.future = []; H.now = t; H.kind = kind; H.at = Date.now();
-        }
-        keep(tidy(t));
-      });
-      el.addEventListener('blur', () => { if (!clean(el.textContent)) { r.cur = null; el.textContent = val(r); H.now = el.innerText; H.at = 0; syncAll(); } });      // emptied: its own words come back
-      el.addEventListener('keydown', e => {
-        e.stopPropagation(); const key = (e.key || '').toLowerCase(), mod = (e.metaKey || e.ctrlKey) && !e.altKey;
-        if (mod && key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-        else if (mod && key === 'y') { e.preventDefault(); redo(); }
-        else if (e.key === 'Escape' || (e.key === 'Enter' && !multi)) { e.preventDefault(); el.blur(); }
-      });
-      el.addEventListener('paste', e => { e.preventDefault(); const t = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, multi ? t : t.replace(/\s+/g, ' ')); });
-      el.addEventListener('keyup', e => e.stopPropagation());
       binds.push({ el, r, live: false });
       return el;
     }
@@ -113,9 +80,9 @@ window.TeamDraft = (function () {
         if (x.el !== skip && document.activeElement !== x.el) swapText(x.el, val(x.r));
       }
     }
-    function fillSteps(ol, s, cls, how, most) {
+    function fillSteps(ol, s, cls) {
       if (ol.stepsOf === s.steps) return; ol.stepsOf = s.steps;
-      ol.replaceChildren(...s.steps.slice(0, most || 99).map(r => h('li', null, how === 'direct' ? direct('span', cls, r) : words('span', cls, r))));
+      ol.replaceChildren(...s.steps.map(r => h('li', null, words('span', cls, r))));
       const scope = ol.closest('.is-editing'); if (scope) editing(scope, true);
     }
 
@@ -268,7 +235,26 @@ window.TeamDraft = (function () {
       parts.fix = { list, offBox, offList, detail, newPane, mine };
       return h('section', { class: 'dk-pane', 'data-step': 'fix' }, h('div', { class: 'dk-fix' }, h('div', { class: 'dk-fix-list tm-softscroll' }, h('h2', { class: 'dk-h', text: 'How to fix it' }), list, mine, offBox), detail));
     }
+    /** "Fix by": the date in words, a few usual choices counted from the inspection, or any date from the calendar. It sits beside the step's button, always in view. */
+    function dueControl() {
+      if (parts.due) return parts.due.el;
+      const dueText = h('b', { class: 'dk-due-date' }), dueNote = h('span', { class: 'dk-due-note' });
+      const chips = CHOICES.map(n => { const b = btn(daysText(n), () => { M.due.days = n; M.due.date = null; touch(); }, 'dk-due-chip'); b.setAttribute('aria-pressed', 'false'); return b; });
+      const input = h('input', { class: 'dk-due-input', type: 'date', 'aria-label': 'Fix by: pick a date', tabindex: '-1' });
+      input.addEventListener('change', () => { const p = (input.value || '').split('-').map(Number); if (p.length !== 3 || !p[0]) return; const x = new Date(p[0], p[1] - 1, p[2]); if (x < day0(new Date(f.at))) { syncDue(); return; } M.due.date = x; M.due.days = null; touch(); });
+      const cal = sym('calendar', 'Pick a date', () => { try { input.showPicker(); } catch (e) { input.focus(); } }, '', 16);
+      const el = h('div', { class: 'dk-due', role: 'group', 'aria-label': 'Fix by' }, h('p', { class: 'dk-due-line' }, h('span', { class: 'dk-due-label', text: 'Fix by' }), dueText, dueNote), h('div', { class: 'tm-btns' }, chips, h('span', { class: 'dk-due-pick' }, cal, input)));
+      parts.due = { el, text: dueText, note: dueNote, chips, input }; syncDue();
+      return el;
+    }
+    function syncDue() {
+      const X = parts.due; if (!X) return; const x = dueDate(), n = dueDays(), two = v => String(v).padStart(2, '0'), s = day0(new Date(f.at));
+      swapText(X.text, fmtDate(x), { size: false }); swapText(X.note, daysText(n) + ' from the inspection', { size: false });
+      X.chips.forEach((b, i) => { const on = M.due.date == null && M.due.days === CHOICES[i]; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+      X.input.value = x.getFullYear() + '-' + two(x.getMonth() + 1) + '-' + two(x.getDate()); X.input.min = s.getFullYear() + '-' + two(s.getMonth() + 1) + '-' + two(s.getDate());
+    }
     function syncFix() {
+      syncDue();
       const X = parts.fix, on = M.sols.filter(s => !s.off), off = M.sols.filter(s => s.off);
       U.keyed(X.list, on, { key: s => s.id, create: rowNode, update: (n, s) => { const C = s.ui; C.use.setAttribute('aria-checked', String(s.use)); n.classList.toggle('is-used', s.use); swapText(C.name, prefix(s) + val(s.title), { size: false }); if (C.pane) { fillSteps(C.steps, s, 'dk-step'); C.backAll.hidden = s.kind === 'own' || !isChanged(s); } } });
       U.keyed(X.offList, off, { key: s => s.id, create: s => h('div', { class: 'dk-off-row' }, h('span', { text: val(s.title) }), sym('undo', 'Undo', () => { s.off = false; touch(); look(s.id); }, '', 16)) });
@@ -277,23 +263,76 @@ window.TeamDraft = (function () {
       markRows();
     }
 
+    // ---------------------------------------------------------------- reading a draft back into the data
+    // A draft is one document (doc.js). What is typed is read back from the page a moment after each change: the
+    // paragraphs of "What is wrong", each option's name and its list of steps, the contact number, a rule's
+    // considerations. The page itself is never rebuilt while it is being typed into.
+    const paras = t => String(t || '').split(/\n{2,}/).map(clean).filter(Boolean);
+    const shownCount = s => s.shown == null ? Math.min(4, s.steps.length) : Math.min(s.shown, s.steps.length);      // the owner's page gives the first four steps, and as many as the senior makes of them there; the file document has them all
+    function put(r, t) { const v = t === r.base ? null : t, was = r.cur == null ? null : r.cur; if (was === v) return false; r.cur = v; return true; }
+    /** the steps as they stand in the owner's list: the same references where the words are the same, new ones for what was added */
+    function stepsFrom(s, texts) {
+      const n = shownCount(s), head = s.steps.slice(0, n), tail = s.steps.slice(n);
+      if (texts.length === head.length) { let moved = false; head.forEach((r, i) => { if (texts[i] !== val(r) && put(r, texts[i])) moved = true; }); return moved; }
+      let a = 0; while (a < head.length && a < texts.length && val(head[a]) === texts[a]) a++;
+      let z = 0; while (z < head.length - a && z < texts.length - a && val(head[head.length - 1 - z]) === texts[texts.length - 1 - z]) z++;
+      s.steps = [...head.slice(0, a), ...texts.slice(a, texts.length - z).map(t => ref(t)), ...head.slice(head.length - z), ...tail]; s.shown = texts.length;
+      return true;
+    }
+
     // ---------------------------------------------------------------- step 4, the last: the owner's page, a website in a browser window.
     // It is what gets published, so the Publish button is on it (and stays on it when the page is enlarged).
-    function ownerSol(s) {
-      const fig = h('div', { class: 'rp-fig' }), ol = h('ol', { class: 'rp-steps' }); let under = null;
-      if (s.kind === 'own') s.plan = P.beforeAfter(fig, { before: f.photo.src, after: '', aspect: f.photo.aspect, frame: 4 / 3, view: { focus: f.focus }, regions: s.regions, position: .5, tags: { before: 'Now', after: 'Plan, not a photo' } });
-      else under = P.correctionView(fig, s.sol, { frame: 4 / 3 }).tools;                 // the "Show what changed" switch goes under the picture
-      const num = h('span', { class: 'rp-optn', text: prefix(s) });
-      const el = h('section', { class: 'rp-sol' }, h('div', { class: 'rp-sol-head' }, h('h3', { class: 'rp-sol-title' }, num, direct('span', 'rp-sol-name', s.title)), h('p', { class: 'rp-opt', text: cap(OWNER_STAND[s.standing]) })),
-        h('div', { class: 'rp-figwrap' }, fig, under), ol); el.steps = ol; el.num = num;
-      return el;
+    // Protected pieces: the photograph, each before and after, the "Option N:" numbering, the standing of a
+    // correction, the date, the label of the contact number and the rule line. Everything else is typed into.
+    /** a correction's picture: the whole photograph at its own shape, never cropped; its switch under it */
+    function figure(s) {
+      const a = s.kind === 'own' ? f.photo.aspect : s.sol.aspect, fig = h('div', { class: 'rp-fig' }); fig.style.setProperty('--a', String(a));
+      let under = null;
+      if (s.kind === 'own') s.plan = P.beforeAfter(fig, { before: f.photo.src, after: '', aspect: f.photo.aspect, frame: a, view: { contain: true }, regions: s.regions, position: .5, tags: { before: 'Now', after: 'Plan, not a photo' } });
+      else under = P.correctionView(fig, s.sol, { frame: a }).tools;
+      return fill(h('div', { class: 'rp-figwrap' }), fig, under);
+    }
+    function ownerBlocks() {
+      const pl = D.place(V.loc.place), list = chosen(), red = api.violations(), out = [], X = parts.owner;
+      out.push({ key: 'agency', tag: 'p', cls: 'rp-agency', text: pl.agency });
+      out.push({ key: 'title', tag: 'h1', cls: 'rp-title', text: 'From your fire inspection' });
+      out.push({ key: 'photo', island: true, sig: 'photo', build: () => X.photo });
+      out.push({ key: 'h-problem', tag: 'h2', text: 'What is wrong' });
+      paras(val(M.problem)).forEach(t => out.push({ key: 'problem', tag: 'p', cls: 'rp-text', text: t, bound: true }));
+      if (list.length || red.length) out.push({ key: 'h-fix', tag: 'h2', text: list.length > 1 ? 'Options for how to fix it' : 'How to fix it' });
+      if (list.length > 1) out.push({ key: 'pick', tag: 'p', cls: 'rp-text rp-pick', text: 'Pick one of these.' });
+      if (!list.length) out.push({ key: 'none', island: true, tag: 'p', cls: 'rp-text', text: red.length ? 'No correction has been chosen yet.' : 'The inspector did not record a violation.' });
+      list.forEach(s => {
+        const k = 'sol-' + s.id;
+        out.push({ key: k + '-head', tag: 'h3', cls: 'rp-sol-title', lead: prefix(s), leadCls: 'rp-optn', text: val(s.title), bound: true });
+        out.push({ key: k + '-stand', island: true, tag: 'p', cls: 'rp-opt', text: cap(OWNER_STAND[s.standing]) });
+        out.push({ key: k + '-fig', island: true, sig: s.kind === 'own' ? JSON.stringify(s.regions) : '', build: () => figure(s), patch: () => { if (s.plan) s.plan.update({ regions: s.regions }); } });
+        s.steps.slice(0, shownCount(s)).forEach(r => out.push({ key: k + '-steps', tag: 'li', list: 'ol', listCls: 'rp-steps', text: val(r), bound: true }));
+      });
+      if (list.length) {                                          // one definite date, said plainly; it is changed with the control under "How to fix it"
+        out.push({ key: 'h-when', island: true, tag: 'h2', text: 'Fix this by ' + fmtDate(dueDate()) });
+        out.push({ key: 'when', tag: 'p', cls: 'rp-text', text: 'That is ' + daysText(dueDays()) + ' from the inspection.' });
+      }
+      out.push({ key: 'contact', tag: 'p', cls: 'rp-text rp-contact', lead: 'Questions? Call ' + pl.agency + ' at ', text: val(M.phone) + '.', bound: true });
+      if (red.length) out.push({ key: 'law', island: true, tag: 'p', cls: 'rp-law', text: 'Required by ' + red.map(st => st.r.cite).join('; ') + '.' });
+      return out;
+    }
+    function ownerRead(blocks) {
+      const of = k => blocks.filter(b => !b.island && b.key === k); let moved = false;
+      if (put(M.problem, of('problem').map(b => clean(b.text)).filter(Boolean).join('\n\n'))) moved = true;
+      const tel = of('contact').map(b => clean(b.text)).join(' ').replace(/\.$/, ''); if (tel && put(M.phone, tel)) moved = true;
+      chosen().forEach(s => {
+        const head = of('sol-' + s.id + '-head')[0]; if (head && clean(head.text) && put(s.title, clean(head.text))) moved = true;
+        const items = of('sol-' + s.id + '-steps').filter(b => b.tag === 'li').map(b => clean(b.text));
+        if (blocks.some(b => b.key === 'sol-' + s.id + '-steps') && stepsFrom(s, items)) moved = true;
+      });
+      if (moved) { syncAll(); api.changed(); }
     }
     function ownerPane() {
       const page = h('div', { class: 'rp-page' }), X = parts.owner = { page };
-      const photo = P.photoBox(f.photo.src, f.photo.aspect, 'rp-photo'); photo.pct(3, { focus: f.focus });           // the photograph, clean. 3 : 1, the shape .rp-photo has in desk.css
-      X.agency = h('p', { class: 'rp-agency' }); X.fixHead = h('h2', { text: 'How to fix it' }); X.pick = h('p', { class: 'rp-text rp-pick', text: 'Pick one of these.', hidden: true }); X.addr = h('span', { class: 'rp-addr' }); X.sols = h('div', { class: 'rp-sols' }); X.none = h('p', { class: 'rp-text' }); X.contact = h('p', { class: 'rp-text' }); X.law = h('p', { class: 'rp-law' });
-      fill(page, X.agency, h('h1', { class: 'rp-title', text: 'From your fire inspection' }), photo.el, h('h2', { text: 'What is wrong' }), direct('p', 'rp-text', M.problem, true),
-        X.fixHead, X.pick, X.none, X.sols, h('h2', { text: 'Fix by' }), direct('p', 'rp-text', M.deadline, true), h('h2', { text: 'Questions' }), X.contact, X.law);
+      const photo = P.photoBox(f.photo.src, f.photo.aspect, 'rp-photo'); photo.pct(f.photo.aspect, { contain: true }); photo.el.style.setProperty('--a', String(f.photo.aspect)); X.photo = photo.el;      // the whole photograph, at its own shape
+      X.doc = window.TeamDoc.create(page, { pCls: 'rp-text', onChange: ownerRead, onSettle: settle });
+      X.addr = h('span', { class: 'rp-addr' });
       X.pubBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => api.publish(true) }, h('span', { class: 'dk-primary-label', text: 'Publish' }));
       X.act = h('div', { class: 'rp-act' }, X.pubBtn);                                      // floats at the bottom right of the window
       X.undo = sym('undo', 'Undo', () => api.publish(false), '', 16);
@@ -301,17 +340,12 @@ window.TeamDraft = (function () {
         h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' }), ' ', h('span', { text: 'Sending to the owner is not connected yet. Nothing has left this computer.' })), X.undo);
       const win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.act, X.done);
       win.firstChild.lastChild.replaceWith(enlarger(win));
-      return h('section', { class: 'dk-pane', 'data-step': 'owner' }, h('div', { class: 'dk-pane-fixed' }, win));      // nothing above it: the breadcrumb says which step this is, and the page is edited by clicking and typing
+      return h('section', { class: 'dk-pane', 'data-step': 'owner' }, h('div', { class: 'dk-pane-fixed' }, win));
     }
     function syncOwner() {
-      const X = parts.owner, pl = D.place(V.loc.place), list = chosen(), red = api.violations();
-      swapText(X.agency, pl.agency, { size: false }); swapText(X.addr, pl.agency + ' · your inspection', { size: false });
-      swapText(X.fixHead, list.length > 1 ? 'Options for how to fix it' : 'How to fix it', { size: false }); X.pick.hidden = list.length < 2;
-      U.keyed(X.sols, list, { key: s => s.id, create: ownerSol, update: (n, s) => { swapText(n.num, prefix(s), { size: false }); fillSteps(n.steps, s, 'rp-step', 'direct', 4); if (s.plan) s.plan.update({ regions: s.regions }); } });
-      const none = list.length ? '' : red.length ? 'No correction has been chosen yet.' : 'The inspector did not record a violation.';
-      X.none.hidden = !none; if (none) swapText(X.none, none);
-      swapText(X.contact, pl.agency + '. The phone number is not on file.');
-      const law = red.length ? 'Required by ' + red.map(st => st.r.cite).join('; ') + '.' : ''; X.law.hidden = !law; if (law) swapText(X.law, law);
+      const X = parts.owner, pl = D.place(V.loc.place);
+      swapText(X.addr, pl.agency + ' · your inspection', { size: false });
+      X.doc.update(ownerBlocks());                                                           // waits if the page is being typed into; settle() calls again
       syncPublish();
     }
     /**
@@ -334,90 +368,122 @@ window.TeamDraft = (function () {
       }
     }
 
-    // ---------------------------------------------------------------- step 3: the file document, a page
-    const rowRef = st => ({ get base() { return [st.r.lead, st.r.why, st.r.applies].filter(Boolean).join(' '); }, get cur() { return st.words; }, set cur(v) { st.words = v; api.syncRow(st); } });
-    function docBlocks() {
-      const pl = D.place(V.loc.place), rec = B.record(scene), rows = api.rows(), red = rows.filter(st => st.verdict === 'red'), out = [], when = B.deadline(scene);
-      const add = (key, tag, text, o) => { if (text || (o && (o.ref || o.photo))) out.push(Object.assign({ key, tag, text: text || '' }, o)); };
+    // ---------------------------------------------------------------- step 3: the file document
+    // A plain office document, the kind that is printed and filed: a white Letter page on a grey desk, one ordinary
+    // typeface, bold headings, "Label: value" lines, the photograph as a figure with a caption, a page number at the
+    // foot. Nothing of the app's own look is inside the page. Verdicts are written as words. Citations, quoted code,
+    // what the app read and the lines the app works out are protected, and look like the rest of the text.
+    const VW = { red: 'Violation', yellow: 'To be determined by the inspector', green: 'Compliant' };
+    const plainRead = st => [st.r.lead, st.r.why, st.r.applies].filter(Boolean).join(' ');
+    function stepList(s, box) { box = box || h('div', { class: 'wd-steps' }, h('ol', { class: 'wd-list' })); box.firstChild.replaceChildren(...s.steps.map(r => h('li', { text: val(r) }))); return box; }
+    function fileBlocks() {
+      const pl = D.place(V.loc.place), rec = B.record(scene), rows = api.rows(), red = rows.filter(st => st.verdict === 'red'), out = [], when = B.deadline(scene), list = chosen(), day = fmtDate(new Date(f.at));
       const text = x => x ? (Array.isArray(x.text) ? x.text.join(' ') : x.text) : '';
-      add('photo', 'p', '', { photo: true });
-      add('title', 'h2', rec.title);
-      add('status', 'p', (red.length ? 'Violation recorded' : 'No violation recorded') + ' · ' + new Date(f.at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), { fixed: true, cls: 'doc-status' });
-      add('h-place', 'h3', 'Place');
-      add('place', 'p', pl.name + '. ' + D.zoneText(V.loc) + '. Fire agency: ' + pl.agency + '.' + (pl.agencyNote ? ' ' + pl.agencyNote : ''));
-      (V.ev.adopted || []).filter(a => a.key !== 'agency').forEach(a => add('ad-' + a.key, 'p', a.label + ': ' + a.value + (a.cite ? ' (' + a.cite + ')' : '') + '.', { fixed: true, cls: 'doc-fact' }));
-      add('h-field', 'h3', 'From the field');
-      add('note', 'p', 'Note: ' + f.note.text + (f.note.changed && f.note.appText ? ' The field inspector wrote this. The app had read: ' + f.note.appText : ''));
-      f.asked.forEach(a => add('asked-' + a.id, 'p', a.ask + ' ' + (a.answered ? a.text + (a.estimate ? ' (estimated on site, not measured)' : '') + '.' : 'Not answered.'), { fixed: true, cls: 'doc-fact' }));
-      f.readings.forEach(r => add('read-' + r.id, 'p', r.label + ': ' + r.value + ' (read from the photo by the app).', { fixed: true, cls: 'doc-fact' }));
-      F.callouts(scene, f.facts, new Date().getFullYear()).forEach((c, i) => add('call-' + i, 'p', c.text));
-      add('h-rules', 'h3', 'Rules');
+      const T = (key, t, o) => { if (t) out.push(Object.assign({ key, tag: 'p', cls: 'wd-p', text: t }, o)); };                       // a paragraph that is typed into
+      const I = (key, t, cls, tag) => { if (t) out.push({ key, island: true, tag: tag || 'p', cls: cls || 'wd-p', text: t }); };       // protected text
+      const H = (key, t) => out.push({ key, tag: 'h2', cls: 'wd-h', text: t });
+      T('letter', pl.agency, { cls: 'wd-letter' });
+      out.push({ key: 'tel', tag: 'p', cls: 'wd-letter-line', lead: 'Telephone: ', text: val(M.phone), bound: true });
+      T('title', rec.title, { tag: 'h1', cls: 'wd-title' });
+      I('status', 'Inspection of ' + day + '. ' + (red.length ? 'Violation recorded.' : 'No violation recorded.'));
+      out.push({ key: 'fig1', island: true, sig: 'fig1', build: () => h('figure', { class: 'wd-fig' }, h('img', { src: f.photo.src, alt: '', draggable: 'false' }), h('figcaption', { text: 'Figure 1. ' + f.title + ', as photographed on ' + day + '.' })) });
+      H('h-place', 'Location');
+      T('place', pl.name + '. ' + D.zoneText(V.loc) + '. Fire agency: ' + pl.agency + '.' + (pl.agencyNote ? ' ' + pl.agencyNote : ''));
+      (V.ev.adopted || []).filter(a => a.key !== 'agency').forEach(a => I('ad-' + a.key, a.label + ': ' + a.value + (a.cite ? ' (' + a.cite + ')' : '') + '.'));
+      H('h-field', 'Field notes');
+      T('note', 'Note: ' + f.note.text + (f.note.changed && f.note.appText ? ' The field inspector wrote this. The app had read: ' + f.note.appText : ''));
+      f.asked.forEach(a => I('asked-' + a.id, a.ask + ' ' + (a.answered ? a.text + (a.estimate ? ' (estimated on site, not measured)' : '') + '.' : 'Not answered.')));
+      f.readings.forEach(r => I('read-' + r.id, r.label + ': ' + r.value + ' (read from the photo by the app).'));
+      F.callouts(scene, f.facts, new Date().getFullYear()).forEach((c, i) => T('call-' + i, c.text));
+      H('h-rules', 'Applicable code sections');
       rows.filter(st => st.verdict !== 'green').forEach(st => {
         const r = st.r, k = 'row-' + st.key;
-        add(k + '-t', 'h4', word(st.verdict) + ': ' + r.title + (r.value ? ' ' + r.value + (r.unit ? ' ' + r.unit : '') : ''), { verdict: st.verdict });
-        add(k + '-c', 'p', r.cite, { fixed: true, cls: 'doc-cite' });
-        add(k + '-r', 'p', r.requires, { rule: true });
-        add(k + '-a', 'p', '', { ref: st.docRef || (st.docRef = rowRef(st)) });
-        if (r.open) add(k + '-o', 'p', 'Still to confirm: ' + r.open);
-        if (st.manual && r.verdict !== st.verdict) add(k + '-m', 'p', 'Set by the senior inspector. The app read this as ' + word(r.verdict) + '.', { fixed: true, cls: 'doc-fact' });
+        I(k + '-t', r.title + (r.value ? ' ' + r.value + (r.unit ? ' ' + r.unit : '') : ''), 'wd-sub', 'h3');
+        I(k + '-v', 'Finding: ' + VW[st.verdict] + '.');
+        I(k + '-c', 'Citation: ' + r.cite + '.');
+        I(k + '-r', r.requires, 'wd-quote');
+        out.push({ key: k + '-a', tag: 'p', cls: 'wd-p', lead: 'Considerations: ', text: api.reading(st), bound: true });
+        if (r.open) T(k + '-o', 'Still to confirm: ' + r.open);
+        if (st.manual && r.verdict !== st.verdict) I(k + '-m', 'Set by the senior inspector. The app read this as: ' + VW[r.verdict] + '.');
       });
-      const greens = rows.filter(st => st.verdict === 'green'); if (greens.length) add('greens', 'p', 'Clear: ' + greens.map(st => st.r.label + ' (' + st.r.cite + ')').join('; ') + '.', { fixed: true, cls: 'doc-fact' });
-      add('h-fix', 'h3', 'Corrections');
-      const list = chosen();
+      const greens = rows.filter(st => st.verdict === 'green'); if (greens.length) I('greens', 'Compliant: ' + greens.map(st => st.r.label + ' (' + st.r.cite + ')').join('; ') + '.');
+      if (rec.observed || rec.hazard) { H('h-find', 'Findings'); T('rec-o', rec.observed ? 'Observed condition: ' + text(rec.observed) : ''); T('rec-h', rec.hazard ? 'Hazard: ' + text(rec.hazard) : ''); }
+      H('h-fix', 'Required corrections');
       list.forEach(s => {
         const k = 'sol-' + s.id, t = s.kind === 'prepared' ? B.technical(scene, s.id) : null;
-        add(k + '-t', 'h4', prefix(s) + val(s.title) + ' (' + (s.kind === 'own' ? 'the senior inspector’s own recommendation' : s.sol.standingText) + ')');
-        if (s.kind === 'prepared') add(k + '-o', 'p', 'The owner’s steps in full: ' + s.steps.map((r, i) => (i + 1) + '. ' + val(r)).join(' '), { fixed: true, cls: 'doc-fact' });
-        if (t) { add(k + '-w', 'p', 'Where: ' + t.where); add(k + '-c', 'p', 'Change: ' + t.change); add(k + '-h', 'p', 'Method: ' + t.how.join(' ')); add(k + '-k', 'p', 'Retain: ' + t.keep); add(k + '-y', 'p', 'Basis: ' + t.why); add(k + '-l', 'p', t.limit ? 'Limit: ' + t.limit : ''); }
-        else { add(k + '-s', 'p', 'Steps as written for the owner: ' + s.steps.map(val).join(' '), { fixed: true }); add(k + '-p', 'p', (s.regions.length ? s.regions.length + (s.regions.length > 1 ? ' areas' : ' area') + ' marked on the photograph (' + s.regions.map(r => P.TREAT[r.treat].toLowerCase()).join(', ') + ').' : 'No area was marked on the photograph.') + ' No picture was generated.', { fixed: true, cls: 'doc-fact' }); }
-        if (s.rewrites) add(k + '-v', 'p', 'The owner’s steps were rewritten at the senior inspector’s request.', { fixed: true, cls: 'doc-fact' });
+        I(k + '-t', prefix(s) + val(s.title) + ' (' + (s.kind === 'own' ? 'the senior inspector’s own recommendation' : s.sol.standingText) + ')', 'wd-sub', 'h3');
+        I(k + '-sl', 'Steps given to the owner:');
+        out.push({ key: k + '-steps', island: true, sig: JSON.stringify(s.steps.map(val)), build: () => stepList(s), patch: n => stepList(s, n) });
+        if (t) { T(k + '-w', 'Where: ' + t.where); T(k + '-c', 'Change: ' + t.change); T(k + '-h', 'Method: ' + t.how.join(' ')); T(k + '-k', 'Retain: ' + t.keep); T(k + '-y', 'Basis: ' + t.why); T(k + '-l', t.limit ? 'Limit: ' + t.limit : ''); }
+        else I(k + '-p', (s.regions.length ? s.regions.length + (s.regions.length > 1 ? ' areas' : ' area') + ' marked on the photograph (' + s.regions.map(r => P.TREAT[r.treat].toLowerCase()).join(', ') + ').' : 'No area was marked on the photograph.') + ' No picture was generated.');
+        if (s.rewrites) I(k + '-v', 'The owner’s steps were rewritten at the senior inspector’s request.');
       });
-      if (!list.length) add('sol-none', 'p', red.length ? 'No correction has been chosen.' : 'None. No violation recorded.', { fixed: true });
-      add('h-when', 'h3', 'Timeframe'); add('when', 'p', when.internal); add('when-owner', 'p', 'As told to the owner: ' + val(M.deadline), { fixed: true, cls: 'doc-fact' });
-      add('h-rec', 'h3', 'Record');
-      add('rec-o', 'p', rec.observed ? 'Observed condition: ' + text(rec.observed) : ''); add('rec-h', 'p', rec.hazard ? 'Hazard: ' + text(rec.hazard) : '');
-      add('rec-r', 'p', rec.reinspection || rec.reinspectionList.length ? 'Reinspection: ' + [text(rec.reinspection)].concat(rec.reinspectionList).filter(Boolean).join(' ') : '');
-      add('rec-n', 'p', rec.notAcceptable ? 'Not acceptable: ' + rec.notAcceptable : ''); add('rec-l', 'p', rec.limits.length ? 'Not established by the photograph: ' + rec.limits.join(' ') : '');
+      if (!list.length) I('sol-none', red.length ? 'No correction has been chosen.' : 'None. No violation recorded.');
+      if (list.length) {
+        I('due', 'Correction due: ' + fmtDate(dueDate()) + ' (' + daysText(dueDays()) + ' from the inspection).');
+        T('when', M.due.fromSource && when.internal ? 'Basis for the timeframe: ' + when.internal : 'The source material gives no timeframe for this finding. The date was set by the senior inspector.');
+      }
+      if (rec.reinspection || rec.reinspectionList.length) { H('h-rec', 'Reinspection'); T('rec-r', [text(rec.reinspection)].concat(rec.reinspectionList).filter(Boolean).join(' ')); }
+      if (rec.notAcceptable || rec.limits.length) { H('h-lim', 'Limits of this record'); T('rec-n', rec.notAcceptable ? 'Not acceptable: ' + rec.notAcceptable : ''); T('rec-l', rec.limits.length ? 'Not established by the photograph: ' + rec.limits.join(' ') : ''); }
       return out;
     }
-    function docNode(b) {
-      if (b.photo) { const ph = P.photoBox(f.photo.src, f.photo.aspect, 'doc-photo'); ph.pct(4 / 3, { focus: f.focus }); return ph.el; }
-      if (b.tag !== 'p') return h(b.tag, { class: 'doc-' + b.tag, 'data-verdict': b.verdict }, b.verdict ? h('i', { class: 'verdict-mark', 'data-verdict': b.verdict, 'aria-hidden': 'true' }) : null, h('span', { text: b.text }));
-      if (b.rule) { const p = h('p', { class: 'doc-rule' }); D.fillRule(p, b.text); p.said = b.text; return p; }
-      if (b.fixed) return h('p', { class: 'doc-p is-fixed ' + (b.cls || ''), text: b.text });
-      return direct('p', 'doc-p ' + (b.cls || ''), b.ref || (M.doc[b.key] = M.doc[b.key] || ref(b.text)), true);
+    function fileRead(blocks) {
+      const of = k => blocks.filter(b => !b.island && b.key === k); let moved = false;
+      api.rows().forEach(st => { const b = of('row-' + st.key + '-a'); if (!b.length) return; const t = b.map(x => clean(x.text)).filter(Boolean).join(' '), v = !t || t === plainRead(st) ? null : t; if ((st.words == null ? null : st.words) !== v) { st.words = v; api.syncRow(st); moved = true; } });
+      const tel = of('tel').map(b => clean(b.text)).join(' '); if (tel && put(M.phone, tel)) moved = true;
+      if (moved) { syncAll(); api.changed(); }
+      paginateSoon();
     }
-    function docUpdate(n, b) {
-      if (b.photo) return;
-      if (b.tag !== 'p') { n.dataset.verdict = b.verdict || ''; if (n.firstChild.dataset) n.firstChild.dataset.verdict = b.verdict; swapText(n.lastChild, b.text, { size: false }); }
-      else if (b.rule) { if (n.said !== b.text) { n.said = b.text; U.crossfade(n, () => D.fillRule(n, b.text)); } }
-      else if (b.fixed) swapText(n, b.text);
-      else if (!b.ref) M.doc[b.key].base = b.text;            // the words under an edit stay; Undo returns to these
+    // Pages. The sheet is drawn as Letter pages (8.5 x 11, one-inch margins) with a strip of desk between them. A block
+    // that would run over the foot of a page is moved to the top of the next one by space above it; the text stays one
+    // flow and is never split up, so the caret is not disturbed. Each page has its number at the foot.
+    let pageRaf = 0;
+    const paginateSoon = () => { if (!pageRaf) pageRaf = requestAnimationFrame(() => { pageRaf = 0; paginate(); }); };
+    function paginate() {
+      const X = parts.file; if (!X || !X.sheet.isConnected) return; const pw = X.sheet.clientWidth; if (!pw) return;
+      const H = pw * 11 / 8.5, m = pw / 8.5, gap = 18, room = H - 2 * m, blocks = X.doc.blocks();
+      for (const b of blocks) if (b.style.paddingTop) b.style.paddingTop = '';
+      let page = 0;
+      for (const b of blocks) {
+        const top = b.offsetTop, hgt = b.offsetHeight;
+        if (top + hgt <= page * (H + gap) + H - m + .5) continue;
+        if (hgt <= room) { page++; b.style.paddingTop = Math.max(0, page * (H + gap) + m - top) + 'px'; } else while (top + hgt > page * (H + gap) + H - m) page++;
+      }
+      const pages = page + 1; X.body.style.minHeight = (pages * H + (pages - 1) * gap) + 'px';
+      while (X.leaves.length < pages) { const leaf = h('div', { class: 'wd-leaf', 'aria-hidden': 'true' }), foot = h('div', { class: 'wd-foot', 'aria-hidden': 'true' }); X.leaves.push([leaf, foot]); X.sheet.prepend(leaf); X.sheet.append(foot); }
+      while (X.leaves.length > pages) X.leaves.pop().forEach(n => n.remove());
+      X.leaves.forEach((pair, i) => { pair[0].style.top = (i * (H + gap)) + 'px'; pair[0].style.height = H + 'px'; pair[1].style.top = (i * (H + gap) + H - m * .66) + 'px'; const t = 'Page ' + (i + 1) + ' of ' + pages; if (pair[1].textContent !== t) pair[1].textContent = t; });
+      X.pages = pages; U.soft();
     }
     function filePane() {
-      const doc = h('div', { class: 'doc-page' }), X = parts.file = { doc, first: true };
-      const plain = () => [...doc.children].filter(n => !n.classList.contains('doc-photo')).map(n => n.innerText.trim()).filter(Boolean).join('\n\n');
+      const body = h('div', { class: 'wd-body' }), X = parts.file = { body, leaves: [], pages: 1 };
+      X.sheet = h('div', { class: 'wd-sheet' }, body);
+      X.doc = window.TeamDoc.create(body, { pCls: 'wd-p', onChange: fileRead, onSettle: settle });
+      const plain = () => X.doc.blocks().map(b => (b.innerText || b.textContent).replace(/[ \t]*\n[ \t]*/g, '\n').trim()).filter(Boolean).join('\n\n');
       const copy = btn('Copy', async () => { const t = plain(); try { await navigator.clipboard.writeText(t); } catch (e) { const ta = h('textarea', { style: { position: 'fixed', opacity: '0' } }); ta.value = t; document.body.append(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) { /* nothing more to try */ } ta.remove(); } swapText(copy.lastChild, 'Copied', { size: false }); setTimeout(() => swapText(copy.lastChild, 'Copy', { size: false }), 1400); }, null, 'copy');
-      const print = btn('Print', () => { let p = document.getElementById('tmPrint'); if (!p) { p = h('div', { id: 'tmPrint' }); document.body.append(p); } const c = doc.cloneNode(true); c.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable')); p.replaceChildren(c); window.print(); }, null, 'print');
+      const print = btn('Print', () => { let p = document.getElementById('tmPrint'); if (!p) { p = h('div', { id: 'tmPrint' }); document.body.append(p); } const c = body.cloneNode(true); c.removeAttribute('contenteditable'); c.style.minHeight = ''; c.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable')); c.querySelectorAll('[style]').forEach(n => { n.style.paddingTop = ''; }); p.replaceChildren(h('div', { class: 'wd-sheet' }, c)); window.print(); }, null, 'print');
       X.tools = [copy, print];                              // Copy and Print sit beside the step's button at the bottom, not in a bar over the page
-      const frame = h('div', { class: 'doc-frame' }, h('div', { class: 'doc-scroll tm-softscroll tm-thinscroll' }, doc)); frame.prepend(enlarger(frame));
+      const frame = h('div', { class: 'doc-frame' }, h('div', { class: 'doc-scroll tm-softscroll tm-thinscroll' }, X.sheet)); frame.prepend(enlarger(frame));
+      if (window.ResizeObserver) new ResizeObserver(paginateSoon).observe(X.sheet);
       return h('section', { class: 'dk-pane', 'data-step': 'file' }, h('div', { class: 'dk-pane-fixed' }, frame));
     }
-    function syncFile() { const X = parts.file; U.keyed(X.doc, docBlocks(), { key: b => b.key, create: docNode, update: docUpdate, enter: !X.first }); X.first = false; }
+    function syncFile() { parts.file.doc.update(fileBlocks()); paginateSoon(); }
 
     const BUILD = { fix: fixPane, file: filePane, owner: ownerPane }, SYNC = { fix: syncFix, file: syncFile, owner: syncOwner };
     function syncAll(skip) { for (const id in panes) SYNC[id](); refresh(skip); U.soft(); }
+    /** a draft has been left: steps that were left empty go, and everything is brought up to date (a draft is not touched while it is being typed into) */
+    function settle() { let moved = false; M.sols.forEach(s => { const n = shownCount(s), keep = s.steps.filter((r, i) => i >= n || clean(val(r))); if (keep.length !== s.steps.length) { s.shown = n - (s.steps.length - keep.length); s.steps = keep; moved = true; } }); syncAll(); if (moved) api.changed(); }
     return {
-      model: M, chosen,
+      model: M, chosen, due: () => ({ date: dueDate(), days: dueDays(), text: fmtDate(dueDate()) }), setDue: n => { M.due.days = n; M.due.date = null; touch(); }, docs: () => ({ owner: parts.owner && parts.owner.doc, file: parts.file && parts.file.doc }),
       pane(step) { if (!panes[step]) { panes[step] = BUILD[step](); SYNC[step](); refresh(); } return panes[step]; },
-      shown(step) { bigs.forEach(c => c(true)); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); } },
+      shown(step) { bigs.forEach(c => c(true)); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); if (step === 'file') paginateSoon(); } },
       ready: step => step !== 'fix' || chosen().length > 0,
       sync: () => syncAll(),
       published() { syncPublish(); },
       /** put an enlarged draft back at once (the finding is being left) */
       shut() { bigs.forEach(c => c(true)); },
       /** what sits beside the step's button at the bottom (Copy and Print for the file document) */
-      tools: step => (step === 'file' && parts.file ? parts.file.tools : []),
+      tools: step => (step === 'file' && parts.file ? parts.file.tools : step === 'fix' ? [dueControl()] : []),
     };
   }
   return { attach };

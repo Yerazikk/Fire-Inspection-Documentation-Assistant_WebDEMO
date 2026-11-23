@@ -77,10 +77,13 @@ window.TeamPhone = (function () {
   const plainBtn = (label, fn, ic, cls) => h('button', { class: 'ph-btn ' + (cls || ''), type: 'button', onclick: fn }, ic ? icon(ic, 16) : null, h('span', { text: label }));
 
   // ---- 1. take the photo. The scene switch sits above the picture; the picture is clean; the controls are low.
+  /** Back at the camera after a send: it opens on the scene that has not been sent yet. A scene chosen by hand stands until the next send. */
+  function nextScene() { if (!S.auto) return; S.auto = false; const left = ['sprinkler', 'ladder'].find(id => !S.sent.some(f => f.scene === id)); if (left) S.scene = left; }
   function camera() {
+    nextScene();
     S.run++; S.custom = false; S.note = null; S.answers = {}; typeInto = null;
     endScan(true); usePhoto();
-    const lens = U.seg([{ id: 'sprinkler', label: 'Sprinkler' }, { id: 'ladder', label: 'Hedge' }], S.scene, v => { S.scene = v; usePhoto(); }, 'ph-lens');
+    const lens = U.seg([{ id: 'sprinkler', label: 'Sprinkler' }, { id: 'ladder', label: 'Hedge' }], S.scene, v => { S.scene = v; S.auto = false; usePhoto(); }, 'ph-lens');
     lens.setAttribute('aria-label', 'Which scene is in front of the camera');
     const actions = h('div', { class: 'ph-actions ph-actions-camera' },
       sym('image', 'Choose a photo', () => pick(ownPhoto), 'ph-round', 22),
@@ -210,12 +213,13 @@ window.TeamPhone = (function () {
     const cant = h('button', { class: 'ph-cant', type: 'button', 'aria-pressed': 'false', onclick: () => { if (a.pick === q.cant.id) delete a.pick; else { a.pick = q.cant.id; clear(); } openPad(false); sync(); } }, icon('check', 16), h('span', { text: q.cant.label }));
     const cam = q.photo ? sym('camera', q.photo.label, () => openPhoto(q, sync), 'ph-attach', 21) : null;
     const say = h('p', { class: 'ph-q-say' });
-    function clear() { typed = ''; a.typed = ''; delete a.value; }
+    function clear() { typed = ''; a.typed = ''; delete a.value; a.unlikely = false; }
     /** a key was pressed, on the screen or on a keyboard. The typed numbers always show in the entry display. */
     function press(k) {
       if (k === 'del') typed = typed.slice(0, -1); else if (typed.length < en.digits && !(year && !typed.length && k === '0')) typed += k; else return;
-      a.typed = typed; const n = +typed, ok = typed.length > 0 && (!year || typed.length === 4) && n >= en.min && n <= en.max();
-      if (ok) a.value = n; else delete a.value;
+      a.typed = typed; const n = +typed, full = typed.length > 0 && (!year || typed.length === 4), inside = n >= en.min && n <= en.max();
+      if (full && (inside || year)) a.value = n; else delete a.value;      // a year outside the likely range is asked about, and kept if the person leaves it
+      a.unlikely = !!(year && full && !inside);
       if (typed) delete a.pick;
       sync();
     }
@@ -230,9 +234,9 @@ window.TeamPhone = (function () {
       entry.classList.toggle('is-set', a.value != null); entry.classList.toggle('is-off', a.pick === q.cant.id);
       opts.forEach(b => { const on = a.pick === b.dataset.id; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
       cant.setAttribute('aria-pressed', String(a.pick === q.cant.id));
-      const line = a.value != null && q.say ? q.say(a.value) : year && full && a.value == null ? en.wrong : (en.help || '');
+      const line = year && a.unlikely ? en.wrong : a.value != null && q.say ? q.say(a.value) : (en.help || '');
       if (say.textContent !== line) { if (say.textContent && line) swapText(say, line, { size: false }); else say.textContent = line; }
-      say.classList.toggle('is-wrong', year && full && a.value == null);
+      say.classList.toggle('is-wrong', !!(year && a.unlikely));
       if (pic) pic.set({ digits: typed });
       if (cam) { const src = a.photo ? 'url("' + a.photo.src + '")' : ''; if (cam.style.backgroundImage !== src) cam.style.backgroundImage = src; cam.classList.toggle('is-done', !!a.photo); cam.setAttribute('aria-label', a.photo ? 'Photo added. Change it' : q.photo.label); cam.title = cam.getAttribute('aria-label'); }
     }
@@ -258,6 +262,7 @@ window.TeamPhone = (function () {
     if (blocks[0] && U.keys.on) blocks[0].entry.focus({ preventScroll: true });
   }
   function doSend() {
+    S.auto = true;                                                // the next time the camera opens it moves to the scene not sent yet
     if (S.screen !== 'questions') return;
     const custom = S.custom, sc = custom ? null : D.scene(S.scene), N = S.note, text = N.text();
     const finding = {
@@ -346,7 +351,7 @@ window.TeamPhone = (function () {
     camera();
   }
   /** "Start over": back to an empty phone, without reloading the page */
-  function reset() { S.run++; closeSheet(); S.sent = []; S.scene = 'sprinkler'; S.screen = ''; endScan(true); layers.replaceChildren(); St.el.classList.remove('gone'); camera(); }
+  function reset() { S.run++; closeSheet(); S.sent = []; S.auto = false; S.scene = 'sprinkler'; S.screen = ''; endScan(true); layers.replaceChildren(); St.el.classList.remove('gone'); camera(); }
 
   return {
     mount, reset, state: S, markReviewed, setLoc, moved, stage: St,

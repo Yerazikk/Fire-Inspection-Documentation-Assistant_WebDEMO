@@ -67,7 +67,7 @@ window.TeamFlow = (function () {
     sprinkler: [
       {
         id: 'year', ask: 'What year is stamped on the sprinkler?', picture: 'block',
-        entry: { name: 'Year, four numbers', digits: 4, min: 1850, max: () => new Date().getFullYear(), always: true, wrong: 'That is not a year a sprinkler can have. Check the numbers.' },
+        entry: { name: 'Year, four numbers', digits: 4, min: 1950, max: () => new Date().getFullYear(), always: true, wrong: 'That year looks unlikely. Check the four numbers.' },      // min..max is the range taken without a question (this app's own choice, not from the sources). Outside it the app asks once; the person may still keep the year.
         cant: { id: 'cant', label: 'I can’t see a year' },
         say: () => 'The senior inspector will check its age.',
         photo: { label: 'Add a close photo', prompt: 'Take a close photo of the sprinkler.', picture: 'closeup', callout: 'Fill the picture with the sprinkler', safety: 'Don’t touch the sprinkler.' },
@@ -114,7 +114,7 @@ window.TeamFlow = (function () {
       for (const k of ['touch', 'dry', 'beside', 'plant']) if (c[k] && c[k] !== seen('ladder').find(s => s.id === k).options[0].id) f[k] = c[k];
     } else if (scene === 'sprinkler') {
       const y = a.year || {};
-      if (y.value != null) f.year = y.value; else if (y.pick === 'cant') f.yearCant = true;
+      if (y.value != null) { f.year = y.value; if (y.unlikely) f.yearUnlikely = true; } else if (y.pick === 'cant') f.yearCant = true;
       for (const k of ['paint', 'plate']) if (c[k] && c[k] !== seen('sprinkler').find(s => s.id === k).options[0].id) f[k] = c[k];
     }
     return f;
@@ -127,7 +127,8 @@ window.TeamFlow = (function () {
   function callouts(scene, f, thisYear) {
     const out = [];
     if (scene === 'sprinkler') {
-      if (f.year) out.push({ short: 'Year on the sprinkler: ' + f.year + '.', text: 'Made in ' + f.year + ', about ' + (thisYear - f.year) + ' years ago. Check its age against the testing rules and the model against the recall list. The app has neither list.' });
+      if (f.year && f.yearUnlikely) out.push({ short: 'Year typed on site: ' + f.year + '. It looks unlikely; check the stamp.', text: 'The year typed on site is ' + f.year + '. That looks unlikely for a sprinkler in service. The app asked the field inspector to check the four numbers, and they kept them. Read the stamp again before relying on it.' });
+      else if (f.year) out.push({ short: 'Year on the sprinkler: ' + f.year + '.', text: 'Made in ' + f.year + ', about ' + (thisYear - f.year) + ' years ago. Check its age against the testing rules and the model against the recall list. The app has neither list.' });
       else if (f.yearCant) out.push({ short: 'Year not recorded: out of reach.', text: 'The year could not be read on site. Look for it in the building’s sprinkler records.' });
       else out.push({ short: 'Year not recorded.', text: 'The year was not given. The age of this sprinkler is not known.' });
       if (f.plate === 'painted' || f.paint === 'all') out.push({ short: 'More paint than the app saw.', text: 'The field inspector says the paint goes further than the app saw.' });
