@@ -106,7 +106,7 @@ const Q_TAP_LIST = 'Relocatable power taps shall be listed to UL 1363, and curre
 const Q_TAP_INSTALL = 'Relocatable power tap cords shall not extend through walls, ceilings or floors, under doors or floor coverings, nor be subject to environmental or physical damage.';
 const Q_CORD = '“Extension cords shall not be a substitute for permanent wiring and shall be listed and labeled in accordance with UL 817. Extension cords shall not be affixed to structures, extended through walls, ceilings or floors, or under doors or floor coverings, nor shall such cords be subject to environmental damage or physical impact. Extension cords shall be used only with portable appliances. Extension cords marked for indoor use shall not be used outdoors.”';
 const Q_ABATE = '“Conditions that constitute an electrical shock or fire hazard shall be abated.”';
-const Q_PENALTY = 'A person who violates the code is guilty of a misdemeanor, punishable by a fine of not more than $500 or imprisonment not exceeding 180 days, or both. Each day a violation continues after notice is a separate offence.';
+const Q_PENALTY = '“Persons who shall violate a provision of this code or shall fail to comply with any of the requirements thereof or who shall erect, install, alter repair or do work in violation of the approved construction documents or directive of the Fire Code Official, or of a permit or certificate used under provisions of this code, shall be guilty of a misdemeanor, punishable by a fine of not more than $500 dollars or by imprisonment not exceeding 180 days, or both such fine and imprisonment. Each day that a violation continues after due notice has been served shall be deemed a separate offense.”';
 
 const Q_9017 = '“Where a required fire protection system is out of service, the fire department and the fire code official shall be notified immediately and, where required by the fire code official, the building shall be either evacuated or an approved fire watch shall be provided … This section shall also apply to residential fire sprinkler systems.”';
 
@@ -261,24 +261,8 @@ const rows = {
     ],
     stateNote: 'The rule is state text and it reads the same in all five places. Chapter 6 was reorganised in the 2025 edition: these sections were numbered § 605.x before it, and § 605 now addresses fuel-fired appliances. What changes with the place is the ordinance that carries the chapter, the edition in force before 1 Jan 2026, and what a violation costs.',
     local: [
-      { key: 'carries-ch6', label: 'Carried by', title: 'Chapter 6 carried into local law', unit: '', rule: 'carried', value: null,
-        requires: 'The town adopts the California Fire Code by reference, chapter 6 with it, subject only to the amendments its own ordinance lists.',
-        applies: 'The enforceable citation is the state section as carried by this ordinance. Name both.',
-        say: '{Poss} own ordinance carries the chapter.',
-        sayWas: 'Until {until} {To} was on the {was}.',
-        by: {
-          ross:        { cite: 'RMC § 14.04.010 · Ord. 732', code: 'RMC § 14.04.010', source: SRC.rossPage,
-                         applies: 'Ross adopted the 2025 edition in 2025, so chapter 6 has read this way here throughout.' },
-          san_anselmo: { cite: 'SAMC § 3-3.801 · Ord. 2025-1194', code: 'SAMC § 3-3.801', source: SRC.saPacket },
-          fairfax:     { cite: 'FMC § 8.04.010 · Ord. 899', code: 'FMC § 8.04.010', source: SRC.ff899,
-                         was: { value: '2022 California Fire Code', until: '31 Dec 2025', cite: 'Ord. 873' },
-                         open: 'For anything observed before 1 Jan 2026, the section number under the 2022 edition. It was not read for this demonstration.' },
-          marin:       { cite: 'MCC § 16.16.010 · Ord. 3837', code: 'MCC § 16.16.010', source: SRC.marinOrd,
-                         was: { value: '2022 California Fire Code', until: '31 Dec 2025', cite: 'Ord. 3775' },
-                         open: 'For anything observed before 1 Jan 2026, the section number under the 2022 edition. It was not read for this demonstration.' },
-        } },
       { key: 'ch6-amend', label: 'Chapter 6 amendments', title: 'Local changes to chapter 6', diffName: 'chapter 6', unit: '', rule: 'judgement', value: null,
-        requires: 'San Anselmo is the only one of the four that writes anything into chapter 6: §§ 605.11.3 to 605.11.5, on conduit, the disconnect and the warning sign for a photovoltaic supply.',
+        requires: '§ 605.11.3 Required conduit. “All wiring that may contain electrical potential when the alternate service disconnect has been activated, (such as the wiring between the solar arrays and the DC electrical disconnect on a photovoltaic system) shall be completely contained in metal conduit.” § 605.11.4 Disconnect. “The electrical service disconnect for the alternative power supply shall be located within eight feet from the electrical service disconnect on the same or an adjacent exterior wall. The disconnect shall be accessible to emergency personnel from the exterior without the use of ladders or other special equipment.” § 605.11.5 adds a permanent red warning sign at the main disconnect. San Anselmo is the only one of the four that writes anything into chapter 6 at all.',
         applies: 'Nothing in it touches power taps. It is on screen because it is the one place in this valley where a chapter 6 citation may not be the state text as printed: read the local chapter before citing, not only the state one.',
         open: 'The ordinance numbers these into § 605.11, which in the 2025 edition is part of Fuel-Fired Appliances. Read as introduced in the Council packet of 28 Oct 2025; confirm the numbering against the adopted ordinance.',
         turns: 'nothing here; the amendment is about solar supply',
@@ -289,14 +273,18 @@ const rows = {
         open: 'Whether the official proceeds criminally or by administrative citation.',
         turns: 'whether the official cites criminally or administratively',
         by: {
-          ross:        { sec: '§ 113.4', cite: 'CFC § 113.4 as amended by RMC § 14.04.140', code: 'RMC § 14.04.140', source: SRC.rossPage },
+          ross:        { sec: '§ 113.4', cite: 'CFC § 113.4 as amended by RMC § 14.04.100 · Ord. 732', code: 'RMC § 14.04.140', source: SRC.rossPage,
+                         applies: 'Ross amends this into § 113.4 and prints the clause above word for word.' },
           san_anselmo: { sec: '§§ 109.4, 111.4', cite: 'CFC §§ 109.4, 111.4 as amended by SAMC § 3-3.810 · penalties at SAMC § 3-3.812', code: 'SAMC § 3-3.812', source: SRC.saPacket,
-                         requires: 'A misdemeanor at $500.00 and 90 days, with § 111.4 fines set at not less than $500.00 and not more than $1,500.00. San Anselmo also runs an administrative route: a first citation in any 12 months is a civil penalty of $150 payable to Ross Valley Fire, plus the actual cost of the inspections needed to gain compliance.',
+                         requires: '§ 109.4 is amended by specifying “[offense = misdemeanor] [amount $500.00] [Number of days =90]”, where the other three say 180 days. § 111.4 fines are set at “Not less than [$500.00] not more than [$1,500.00]”. SAMC § 3-3.812 adds an administrative route: “The first citation, within a 12-month period, for violations of the Fire Code and any amendments adopted herein shall be treated as a Civil Penalty payable directly to the Ross Valley Fire Department and is set at $150 plus the actual costs of all inspections required to gain compliance”.',
+                         applies: 'The one town of the four that does not simply reprint the clause: 90 days rather than 180, a fine range, and a $150 first citation.',
                          extra: 'an administrative citation at $150 for a first offence',
                          sayExtra: '{To} can take this administratively: $150 for a first citation in 12 months.',
                          open: 'Whether the first-citation route is used here, and what the inspection costs come to.' },
-          fairfax:     { sec: '§ 113.4', cite: 'CFC § 113.4 as amended by FMC § 8.04.100', code: 'FMC § 8.04.100', source: SRC.ff899 },
-          marin:       { sec: '§ 110.4', cite: 'CFC § 110.4 as amended by MCC § 16.16.040', code: 'MCC § 16.16.040', source: SRC.marinOrd },
+          fairfax:     { sec: '§ 113.4', cite: 'CFC § 113.4 as amended by FMC § 8.04.100 · Ord. 899', code: 'FMC § 8.04.100', source: SRC.ff899,
+                         applies: 'The same section number as Ross, and the same clause but for two words: Fairfax prints “Persons who violate” and “who erect”.' },
+          marin:       { sec: '§ 110.4', cite: 'CFC § 110.4 as amended by MCC § 16.16.040 · Ord. 3837', code: 'MCC § 16.16.040', source: SRC.marinOrd,
+                         applies: 'The clause above word for word, but the county amends it into § 110.4, not § 113.4. Cite the number this county uses.' },
         } },
     ],
   },
@@ -306,7 +294,6 @@ const rows = {
 // carries it (this is the part that changes at a town line). The full citation stays on each row as `cite`.
 const WUI = { ross: 'RMC ch. 14.16', san_anselmo: 'SAMC § 3-3.1002', fairfax: 'FMC § 8.06.011', marin: 'MCC § 16.16.060' };
 const FIRE = { ross: 'RMC § 14.04.100', san_anselmo: 'SAMC § 3-3.810', fairfax: 'FMC § 8.04.100', marin: 'MCC § 16.16.040' };
-const ADOPT = { ross: 'RMC § 14.04.010', san_anselmo: 'SAMC § 3-3.801', fairfax: 'FMC § 8.04.010', marin: 'MCC § 16.16.010', berkeley: 'BMC § 19.48.010' };
 const PEN = { ross: 'RMC § 14.04.140', san_anselmo: 'SAMC § 3-3.812', fairfax: 'FMC § 8.04.100', marin: 'MCC § 16.16.040' };
 const short = {
   'state-defensible': { sec: 'PRC § 4290', code: 'Gov. Code §§ 51175–51189' },
@@ -316,7 +303,7 @@ const short = {
   'required-system': { sec: '§ 903.2.1', code: FIRE },
   'tap-direct': { sec: '§ 603.5.2', code: 'California Fire Code' }, 'tap-listing': { sec: '§ 603.5.1', code: 'UL 1363 · UL 498A' },
   'tap-install': { sec: '§ 603.5.3', code: 'California Fire Code' }, 'cords': { sec: '§ 603.6', code: 'California Fire Code' },
-  'carries-ch6': { sec: 'ch. 6', code: ADOPT }, 'ch6-amend': { sec: '§§ 605.11.3–605.11.5', code: { san_anselmo: 'SAMC § 3-3.810' } },
+  'ch6-amend': { sec: '§§ 605.11.3–605.11.5', code: { san_anselmo: 'SAMC § 3-3.810' } },
   'penalties': { sec: '§ 113.4', code: PEN }, 'remodel-triggers': { sec: '§§ 903.2.2, 903.2.2.1', code: FIRE }, 'out-of-service': { sec: '§ 901.7', code: FIRE },
 };
 
@@ -396,16 +383,7 @@ if (C4) {
       def.by.berkeley = by;
     });
   }
-  // The daisy chain is statewide text, so Berkeley needs no row of its own for the rule. Only the ordinance that
-  // carries chapter 6 differs, and that was already read for the other two photographs. No Berkeley amendment to
-  // chapter 6 and no Berkeley penalty clause was read, so those two rows simply do not appear there.
-  const carry = rows.daisy.local.find(d => d.key === 'carries-ch6');
-  if (carry) carry.by.berkeley = {
-    cite: C4.fireCode.cite, code: 'BMC § 19.48.010', citeShort: 'BMC § 19.48.010',
-    was: C4.fireCode.was || null, source: (C4.sources || [])[0] || null,
-    applies: 'Berkeley adopts the same state chapter 6. The citation is the state section as carried by the city\u2019s own fire code chapter.',
-    open: 'Berkeley\u2019s own amendments to chapter 6, and its penalty clause, were not read for this demonstration.',
-  };
+
 }
 
 return { places, rows, short, sources: SRC, disclosure, across };

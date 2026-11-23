@@ -51,8 +51,9 @@ inspector decides.
 
 - No model or API keys are needed. Drafting on the Inspectors tab uses a local command-line model if one is installed
   and falls back to prepared text otherwise.
-- The "after" pictures are illustrations. The three daisy-chain ones are drawn by `tools/daisy-after.js` and are not
-  registered against the photograph, so that photograph has no "Show what changed" outline.
+- The "after" pictures are illustrations. So, in part, is the daisy-chain photograph: the inspector's frame stops
+  short of the wall, so it was extended upward to the receptacle the cord runs to (`tools/daisy-scene.js`). The
+  original is kept as `assets/daisychain-src.png` and `NOTES.md` § 13 says exactly what was done.
 - Map data © OpenStreetMap contributors. Zone polygons are simplified from the fire agencies' public maps: read the
   parcel on those maps before citing.
 - Regenerating the maps and pictures (`tools/`) needs the downloads that are not in the repository; the tools fetch

@@ -180,7 +180,10 @@ body { display: grid; grid-template-rows: var(--shell-bar, 64px) minmax(0, 1fr);
 .detail-why .verdict-mark { margin-right: 9px; position: relative; top: -1px; }
 .detail-why b { font-weight: 650; margin-right: 6px; }
 .detail-cite { font-size: var(--fs-s); font-weight: 600; color: var(--ink2); margin-top: clamp(8px, 1.2vh, 12px); line-height: 1.4; }
-.detail-quote { margin-top: 3px; font-weight: 500; line-height: 1.45; color: var(--ink2); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+/* The ordinance's own words, in full. This used to be clamped to five lines, which cut the text off mid-sentence on
+   the longer sections; an inspector reads the section, so nothing here may be lost. It scrolls instead, bounded so
+   the card still settles on a height and the view still fits one screen. shell.js softScroll() fades the edges. */
+.detail-quote { margin-top: 3px; font-weight: 500; line-height: 1.45; color: var(--ink2); max-height: calc(1.45em * 7); overflow-y: auto; overscroll-behavior: contain; }
 
 /* ---------------------------------------------------------------- Sources and notes: a bottom sheet */
 .notes-veil { position: fixed; inset: 0; z-index: 40; background: rgba(238, 240, 243, .62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); opacity: 0; pointer-events: none; transition: opacity 240ms var(--flat); }
@@ -248,7 +251,7 @@ html.gleb .notes-body { --scroll-inset-bottom: 44px; }       /* the sheet's scro
   .rows { margin-top: 2px; }
   .detail, html.gleb .detail { margin-top: 6px; }
   .detail-cite { margin-top: 4px; }
-  .detail-quote { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .detail-quote { max-height: calc(1.45em * 5); overflow-y: auto; }
   .chips, .measure { margin-top: 10px; }
   .measure { height: 38px; }
 }

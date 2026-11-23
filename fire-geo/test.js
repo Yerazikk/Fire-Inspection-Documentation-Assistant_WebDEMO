@@ -56,9 +56,9 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
     ['sprinkler', 'marin', 'unknown', 20, 'red', ['maintenance', 'red'], ['remodel-triggers', 'yellow']], ['sprinkler', 'san_rafael', 'unknown', 20, 'red', ['maintenance', 'red']],
     // The daisy chain is statewide text: red everywhere from the same section, including where no local rows are
     // carried. What moves with the place is the local layer under it.
-    ['daisy', 'ross', 'in', 20, 'red', ['tap-direct', 'red'], ['carries-ch6', 'green'], ['penalties', 'yellow'], ['tap-listing', 'yellow']],
+    ['daisy', 'ross', 'in', 20, 'red', ['tap-direct', 'red'], ['penalties', 'yellow'], ['tap-listing', 'yellow'], ['cords', 'yellow']],
     ['daisy', 'san_anselmo', 'in', 20, 'red', ['tap-direct', 'red'], ['ch6-amend', 'yellow'], ['penalties', 'yellow']],
-    ['daisy', 'fairfax', 'out', 99, 'red', ['tap-direct', 'red'], ['carries-ch6', 'green']],
+    ['daisy', 'fairfax', 'out', 99, 'red', ['tap-direct', 'red'], ['penalties', 'yellow']],
     ['daisy', 'marin', 'unknown', 20, 'red', ['tap-direct', 'red'], ['penalties', 'yellow']],
     ['daisy', 'san_rafael', 'unknown', 20, 'red', ['tap-direct', 'red']],
   ];
@@ -68,8 +68,13 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   const all4 = ['ross', 'san_anselmo', 'fairfax', 'marin'];
   ok(all4.every(p => row(V('ladder', p, 'in', 20), 'ladder-reach').value === 30) && row(V('ladder', 'fairfax', 'in', 20), 'ladder-reach').was.value === 100 && row(V('ladder', 'marin', 'in', 20), 'canopy').value === 6 && row(V('ladder', 'ross', 'in', 20), 'canopy').value === 8,
     'the law as adopted: ladder fuels 30 ft in all four, the data still knows Fairfax was 100 ft until 31 Dec 2025, canopy trees 8 in. in the towns and 6 in. in the county');
-  ok(['ross', 'san_anselmo', 'fairfax', 'marin'].every(p => row(V('daisy', p, 'in', 20), 'tap-direct').cite === '2025 California Fire Code \u00a7 603.5.2') && row(V('daisy', 'fairfax', 'in', 20), 'carries-ch6').was.value === '2022 California Fire Code' && row(V('daisy', 'ross', 'in', 20), 'carries-ch6').was === null && row(V('daisy', 'san_anselmo', 'in', 20), 'penalties').sec !== row(V('daisy', 'marin', 'in', 20), 'penalties').sec,
-    'the daisy chain is one statewide section in all four, and what changes is local: the edition Fairfax carried before 2026, and a penalty clause at a different section number in each town');
+  const pen = p => row(V('daisy', p, 'in', 20), 'penalties');
+  ok(['ross', 'san_anselmo', 'fairfax', 'marin'].every(p => row(V('daisy', p, 'in', 20), 'tap-direct').cite === '2025 California Fire Code § 603.5.2')
+    && pen('ross').sec === '§ 113.4' && pen('fairfax').sec === '§ 113.4' && pen('marin').sec === '§ 110.4' && pen('san_anselmo').sec === '§§ 109.4, 111.4'
+    && ['ross', 'fairfax', 'marin'].every(p => /Persons who shall violate a provision of this code/.test(pen(p).requires))
+    && /\$150/.test(pen('san_anselmo').requires) && !/\$150/.test(pen('ross').requires)
+    && ['ross', 'san_anselmo', 'fairfax', 'marin'].every(p => V('daisy', p, 'in', 20).local.every(r => r.requires.length > 80)),
+    'the daisy chain is one statewide section in all four, and every local row carries the ordinance’s own words: the same penalty clause at § 113.4, § 113.4 and § 110.4, and San Anselmo’s $150 first citation at §§ 109.4, 111.4');
   ok(all4.every(p => LAW.places[p].fireCode.value === '2025 California Fire Code') && LAW.places.fairfax.fireCode.was.cite === 'Ord. 873' && LAW.places.marin.fireCode.was.cite === 'Ord. 3775', 'all four enforce the 2025 California Fire Code, and Fairfax and the county keep what they enforced before');
   const everyRow = [], everyEval = []; for (const photo of ['ladder', 'sprinkler', 'daisy']) for (const p of all4) for (const d of [20, 60]) { const e = V(photo, p, 'in', d); everyEval.push(e); e.state.concat(e.local).forEach(r => everyRow.push(r)); }
   ok(everyRow.every(r => r.key && r.label && r.cite && r.requires && r.applies && r.why && r.sec && r.source && ['read', 'blocked', 'repo'].includes(r.source.status) && ['red', 'yellow', 'green'].includes(r.verdict)), 'every row carries a key, a citation, the requirement, how it applies, a verdict with a reason, and its source (' + everyRow.length + ' rows)');
@@ -87,13 +92,13 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   const daisySols = solutions.list('daisy');
   ok(solutions.list('ladder').length === 3 && solutions.list('sprinkler').length === 1 && sols[0].standing === 'required' && sols[1].standing === 'alternative' && sols[2].standing === 'alternative' && sols.every(s => fs.existsSync(path.join(__dirname, s.before)) && fs.existsSync(path.join(__dirname, s.after))), 'three ladder corrections and one sprinkler correction, standing kept in the data, both images on disk');
   ok(daisySols.length === 3 && daisySols[0].standing === 'required' && daisySols.slice(1).every(s => s.standing === 'alternative') && daisySols.every(s => fs.existsSync(path.join(__dirname, s.before)) && fs.existsSync(path.join(__dirname, s.after))), 'three daisy-chain corrections, the first of them required, with both pictures on disk');
-  // The daisy pictures were drawn by tools/daisy-after.js and never put through tools/register.js: correction C
-  // empties the frame, so there is no pair of matching patches to fit, and B removes one of the two subjects.
-  // They are shown with an identity registration and no contour, which is what "Show what changed" then has to
-  // cope with. This test pins that, so the day someone registers them it is a deliberate change and not a drift.
-  ok(daisySols.every(s => s.outline.length === 0 && s.align.sx === 1 && s.align.sy === 1 && s.align.dx === 0 && s.align.dy === 0), 'the daisy pictures are unregistered on purpose: no contour, identity alignment');
+  // The daisy pictures are drawn whole by the model from the same frame, so tools/register.js has no pair of
+  // matching patches to fit and the alignment is the identity by construction. The contour comes from
+  // tools/daisy-outline.js instead: a blurred difference, the largest blob, its convex hull. So the shape is
+  // real — it is where the two pictures actually differ — and "Show what changed" works on all three.
+  ok(daisySols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && s.align.sx === 1 && s.align.sy === 1 && s.align.dx === 0 && s.align.dy === 0), 'each daisy correction has a contour found by difference (6 to 16 points) on an identity alignment');
   ok(sols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && Math.abs(s.align.sx - 1) < 0.03 && Math.abs(s.align.sy - 1) < 0.03 && Math.abs(s.align.dx) < 0.02 && Math.abs(s.align.dy) < 0.02), 'every correction has a simple outline (6 to 16 points) and an image registration close to identity');
-  ok(Object.values(w.FIREGEO_OUTLINES).every(o => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30), 'registration residual is under 0.6 px at working size for all four pairs');
+  ok(Object.entries(w.FIREGEO_OUTLINES).filter(([k]) => !k.startsWith('daisy')).every(([, o]) => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30) && Object.entries(w.FIREGEO_OUTLINES).filter(([k]) => k.startsWith('daisy')).every(([, o]) => /difference/.test(o.fit.how || '')), 'registration residual is under 0.6 px at working size for the four registered pairs, and the three daisy contours say they came from a difference instead');
 
   // ---- the fifth place: Berkeley (data/city4, joined in data/law.js and lib/geo.js)
   console.log('Berkeley');

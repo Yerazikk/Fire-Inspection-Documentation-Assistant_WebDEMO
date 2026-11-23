@@ -570,8 +570,8 @@ daisy: {
     ['Compliance deadline', 'To be established by the authority having jurisdiction'],
   ],
 
-  photo: 'assets/daisychain.png',
-  aspect: 517 / 377,
+  photo: 'assets/daisychain.jpg',
+  aspect: 896 / 1200,
 
   note: 'one power strip plugged into another',
   noteFix: 'Unplug the lower strip from the upper one and put it on a wall outlet of its own.',

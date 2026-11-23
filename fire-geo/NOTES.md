@@ -434,21 +434,44 @@ in `uncertainty` rather than softening the verdict. The three local rows are the
 `carries-ch6`, which is green: it is not a finding against anyone, it says which code the citation is written
 under. The headline reason is "A tap fed from a tap." (six words, as the others).
 
-### The pictures
+### The pictures, and the frame they are in
 
-`tools/daisy-after.js` draws the three "after" pictures through `../ai/visual.js` — the same Gemini path, model and
-key the app itself uses — and writes them to `tools/work/`. `tools/topack.js` re-encodes the ~2 MB PNG the model
-returns as a ~250 KB JPEG through the headless browser (there is no image library in this repo), and the result is
-installed in `assets/after/`. `lib/solutions.js` maps the generated names to them as it does for the other two
-photographs.
+**The photograph on the page is an extended version of the inspector's.** The original is kept beside it as
+`assets/daisychain-src.png` (517 x 377) and nothing was taken out of it. It is shot straight down at the floor:
+both taps are in it and the chain between them is in it, but the thing the chain is finally plugged into is not —
+the Belkin's cord leaves the left of the frame and the picture never says where it goes. Read cold, it does not
+show the violation, only two power strips. It was also the wrong shape for the left card: the other two
+inspections are upright (820 x 1474 and 428 x 710) and a 1.37 landscape sat there as a squat band.
 
-**They are not registered.** `tools/register.js` fits an "after" image to the photograph by matching patches, and
-that cannot work here: correction C empties the frame and correction B removes one of the two subjects, so there is
-nothing to match. So there is no entry in `data/outlines.js` for them, the alignment is the identity, and there is
-no contour. Rather than leave "Show what changed" on screen doing nothing, `paintSwitch()` in `app.js` hides the
-switch on a correction with no contour. `test.js` pins both facts, so registering them later is a deliberate change
-and not a drift.
+So `tools/daisy-scene.js` asked the model to extend that same photograph upward into an upright frame
+(`assets/daisychain.jpg`, 896 x 1200), keeping the floor exactly as photographed and continuing the room above it
+to the skirting and the wall receptacle the cord runs to. The result reads in one look as **wall outlet ->
+Belkin -> cream strip**, which is the finding. This is outpainting and it is said plainly here, on the page (the
+picture is captioned as an illustration) and in the commit; the original stays in the repo so the two can always
+be compared. The model garbles the BELKIN wordmark; that is left alone, because touching it up would make a
+generated picture look more like a photograph than it is.
 
-The pictures are illustrations and are captioned "After · illustrative" on the page, like the others. The model
-garbles the BELKIN wordmark in correction A; that is left as it is, because touching it up would make a generated
-picture look more like a photograph of the property than it is.
+The three "after" pictures are drawn from that frame by the same tool, through `../ai/visual.js` — the same Gemini
+path, model and key the app itself uses. `tools/topack.js` re-encodes the ~2 MB PNG the model returns as a ~280 KB
+JPEG through the headless browser (there is no image library in this repo). `lib/solutions.js` maps the generated
+names to them as it does for the other two photographs.
+
+### Why the contours are found differently
+
+`tools/register.js` fits an "after" image onto the photograph by matching a few hundred small patches, which needs
+most of the frame to be unchanged pixel for pixel. These pictures are redrawn whole by the model from the same
+frame: they agree in composition but not pixel for pixel, and there is no sub-pixel transform to recover, so the
+alignment is the identity by construction.
+
+`tools/daisy-outline.js` finds the shape the other way instead. Both pictures are drawn into a canvas at 224 px
+wide, the luminance difference is blurred twice (which throws away the model's per-pixel noise and keeps whole
+objects that have appeared or gone), thresholded at the 88th percentile, and the largest connected blob is taken;
+its convex hull, simplified to at most 14 points, is the contour. A hull rather than the true boundary on purpose:
+the page draws a smooth closed curve through the midpoints of the points it is given, so a ragged boundary buys
+nothing. The three come out at 8.3%, 11.2% and 7.2% of the frame changed. `data/outlines.js` records
+`fit.how: 'difference, not registration'` on each, and `test.js` checks that, so the distinction cannot quietly
+disappear.
+
+`paintSwitch()` in `app.js` hides "Show what changed" on any correction that has no contour. All three daisy
+corrections have one, so the switch is there; the guard stays as the honest fallback for the next photograph that
+arrives without one.

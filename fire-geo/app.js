@@ -411,15 +411,18 @@ function patchRow(li, r, fresh) {                    // touch only what is diffe
 // Statewide: rendered when the photograph changes. Never when the pin moves.
 function renderState(ev, animate) { reconcile(stateRows, ev.state, makeRow, patchRow, animate); }
 // Here: the place's name, one quiet line, and its rules, patched in place.
-function placeLine(P) {
+function placeLine(P, ev) {
   if (!P.carried) return (P.agencyShort || P.agency) + ' · not covered here';
+  // Carried, but nothing of its own was read for this photograph (Berkeley on the daisy chain). Say that, rather
+  // than leaving a heading over an empty list and letting it read as "no local rule applies".
+  if (ev && !ev.local.length) return (P.agencyShort || P.agency) + ' · no local amendment read for this photograph';
   return [P.agencyShort || P.agency, P.fireCode.value.replace('California ', ''), P.wuiCode.value.replace('California ', '')].join(' · ');
 }
 // `say`: the one sentence about what changed (null = leave it as it is). It has a line of its own under the name, so it
 // is set inside the rows' measured window and they glide to make room for it.
 function renderLocal(ev, animate, say) {
   const P = ev.placeInfo;
-  reconcile(localRows, ev.local, makeRow, patchRow, animate, () => { setSwap($('#hereName'), P.short); setSwap($('#hereLine'), placeLine(P)); if (say != null) setSwap($('#diffLine'), say); });
+  reconcile(localRows, ev.local, makeRow, patchRow, animate, () => { setSwap($('#hereName'), P.short); setSwap($('#hereLine'), placeLine(P, ev)); if (say != null) setSwap($('#diffLine'), say); });
 }
 // A change of place can add or drop rules. The card's height travels to its new size and the chosen rule's text follows.
 function applyLocal(ev, animate, say) {
@@ -438,7 +441,9 @@ function detailContent(row) {
   const f = document.createDocumentFragment(); if (!row) return f;
   const why = h('p', 'detail-why'), mark = h('span', 'verdict-mark'); mark.dataset.verdict = row.verdict;
   why.append(mark, h('b', '', row.word + '.'), h('span', 'detail-reason', row.why));
-  f.append(why, h('p', 'detail-cite', row.citeShort || row.cite), emphasis.fill(h('p', 'detail-quote', ''), row.brief || row.requires));
+  const quote = emphasis.fill(h('p', 'detail-quote', ''), row.brief || row.requires);
+  f.append(why, h('p', 'detail-cite', row.citeShort || row.cite), quote);
+  window.Shell.softScroll(quote);          // the text is never cut: past seven lines the quote scrolls, with faded edges
   return f;
 }
 function chosenRow(ev) {
