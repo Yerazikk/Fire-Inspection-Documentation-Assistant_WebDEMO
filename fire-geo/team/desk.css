@@ -170,6 +170,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-primary:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; border-radius: var(--tm-radius-pill); }
 .dk-primary-label { position: relative; display: inline-block; white-space: nowrap; }
 .dk-view .dk-foot > .dk-primary { height: 40px; }      /* a normal-size button under either look */
+.dk-view .dk-foot > .dk-drop { width: 40px; height: 40px; }      /* the trash, as tall as the button beside it */
 
 /* the photograph, enlarged */
 .dk-zoom { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
@@ -220,7 +221,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-detail-pane.is-wide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 14px; }
 .dk-detail-pane.is-wide .dk-big { height: min(58cqh, 100cqw / var(--a, 1)); }
 .dk-detail-pane.is-wide .dk-big-wrap { justify-items: start; }
-.dk-detail-pane[data-kind="own"] .dk-big { height: min(100cqh - 110px, (100cqw - 280px) / var(--a, 1)); border-radius: 18px; }
+.dk-detail-pane[data-kind="own"] .dk-big { height: min(100cqh - 180px, (100cqw - 280px) / var(--a, 1)); border-radius: 18px; }      /* 180: under the picture sit the switch, the caption and the tools */
 .dk-side { min-height: 0; min-width: 0; overflow-y: auto; scrollbar-width: none; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; padding: 2px 4px 16px 4px; }      /* room at both sides for a focus ring */
 .dk-card-title { position: relative; margin: 0; font-size: 18px; font-weight: 650; line-height: 1.25; letter-spacing: -.01em; }
 .dk-card-stand { font-size: 12.5px; font-weight: 600; color: var(--ink2); margin-top: -6px; }
@@ -233,7 +234,8 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-card-stepshead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .dk-card-stepshead .tm-sym, .dk-ask-row .tm-sym, .dk-off-row .tm-sym, .dk-plan .tm-sym, .dk-side > .tm-btns > .tm-sym, .dk-rules-head .tm-sym { width: 30px; height: 30px; }
 .dk-plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.dk-plan-say { font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.dk-plan-say { font-size: 13.5px; font-weight: 600; color: var(--ink2); min-width: 0; }
+.dk-ownview.tm-seg { justify-self: start; }      /* the switch between the two views of an own correction: its own width, its own line */
 .dk-new { grid-column: 1 / -1; align-self: start; max-width: 560px; display: grid; gap: 12px; padding-top: 4px; }
 .dk-off { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 6px 2px 0; }
 .dk-off-list { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
@@ -374,6 +376,44 @@ html.gleb .wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-w
 .dk-due-pick > .tm-sym { width: 30px; height: 30px; }
 .dk-due-input { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }      /* only its calendar is used */
 @container (max-width: 760px) { .dk-due-note { display: none; } .dk-due { gap: 10px; } .dk-due-line { min-width: 146px; } }
+
+/* The calendar behind "Pick a date": one month, rising over the foot. The days are circles 32 across — a dense grid,
+   like a keyboard's keys, which is the one place the kit goes under the 48 px target (this is a mouse screen; the
+   phone keeps its own 44). The day in force is ink, today carries a hairline ring, and the four usual choices are
+   dotted, so the calendar and the chips beside it say the same thing. */
+.dk-cal { position: absolute; right: 0; bottom: calc(100% + 18px); z-index: 20; box-sizing: border-box; width: 268px; padding: 14px 16px 16px;
+  border-radius: var(--tm-radius-card); background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 18px 40px -16px rgba(var(--shade), .5); }
+.dk-cal-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.dk-cal-month { position: relative; flex: 1; min-width: 0; text-align: center; font-size: 14px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+.dk-cal-step.tm-sym { width: 32px; height: 32px; }
+.dk-cal-step[disabled] { opacity: .35; pointer-events: none; }
+.dk-cal-week { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+.dk-cal-week > span { text-align: center; font-size: 11px; font-weight: 600; color: var(--ink3); }
+.dk-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dk-cal-row { display: contents; }      /* a week is a row to a reader; the days still lie in the one grid */
+.dk-cal-day { all: unset; box-sizing: border-box; position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; max-height: 34px; cursor: pointer;
+  border-radius: 50%; font-size: 12.5px; font-weight: 550; color: var(--ink); transition: background-color 110ms var(--flat), color 110ms var(--flat), transform 70ms var(--flat); }
+.dk-cal-day:hover { background: var(--tm-wash); }
+.dk-cal-day:active { transform: scale(.94); }
+.dk-cal-day:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
+.dk-cal-day.is-today { box-shadow: inset 0 0 0 1.5px var(--line2); }
+.dk-cal-day.is-on, .dk-cal-day.is-on:hover { background: var(--ink); color: #fff; font-weight: 650; }
+.dk-cal-day[disabled] { cursor: default; opacity: .32; }      /* before the inspection: there to be read, not to be taken */
+.dk-cal-day[disabled]:hover { background: none; }
+.dk-cal-day.is-usual::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: var(--ink3); }
+.dk-cal-day.is-on.is-usual::after { background: rgba(255, 255, 255, .85); }
+.dk-cal-day[disabled].is-usual::after { display: none; }
+/* the kit: his sheet material and tile corner, the chosen day his ink capsule, hover his veil */
+html.gleb .dk-cal { border-radius: var(--gl-r-tile); background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35);
+  -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); }
+html.gleb .dk-cal-week > span { color: var(--gl-text-quiet); }
+html.gleb .dk-cal-day:hover { background: var(--gl-well); }
+html.gleb .dk-cal-day.is-today { box-shadow: inset 0 0 0 1.5px rgba(25, 34, 51, .22); }
+html.gleb .dk-cal-day.is-on, html.gleb .dk-cal-day.is-on:hover { background: var(--gl-ink); color: #fff; }
+html.gleb .dk-cal-day.is-usual::after { background: rgba(25, 34, 51, .45); }
+html.gleb .dk-cal-day.is-on.is-usual::after { background: rgba(255, 255, 255, .9); }
+/* in a narrow foot the choices wrap and the button is no longer at the right: the month opens the other way */
+@container (max-width: 560px) { .dk-cal { right: auto; left: 0; } }
 
 /* ================================================================ small sizes
    These rules come last: several of them adjust rules written further up for the later steps, and a rule of equal

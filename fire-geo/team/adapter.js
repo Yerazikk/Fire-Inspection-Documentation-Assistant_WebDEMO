@@ -143,7 +143,7 @@ window.TeamData = (function () {
           by['tap-direct'].open = 'Whether the room the field inspector describes is a Group A occupancy or a Group B meeting room, and whether the use is temporary.';
         }
       }
-      if (f.age === 'today' || f.age === 'weeks') lead('tap-direct', 'Set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + ', the field inspector says.');
+      if (f.temp === 'testing' || f.temp === 'temporary') lead('tap-direct', f.temp === 'testing' ? 'Temporary, for testing equipment, the field inspector says.' : 'Temporary, the field inspector says.');
       // A cord run under a door or a covering is the plain words of \u00a7 603.5.3, and the field inspector can see it.
       if (f.cords === 'under' && by['tap-install']) {
         lead('tap-install', 'The field inspector says a cord runs under a door or under the carpet.');

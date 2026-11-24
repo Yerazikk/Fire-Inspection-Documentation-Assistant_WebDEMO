@@ -326,7 +326,7 @@ const rows = {
         turns: 'whether the closer still works', source: SRC.cfc7 },
       { key: 'door-sign', label: 'Sign', title: 'A sign on or near the door', value: null, unit: '', rule: 'judgement',
         cite: '2025 California Fire Code § 705.2.2', requires: Q_DOOR_SIGN,
-        applies: 'The second correction, and the one that is not owed everywhere: the sign is owed where the fire code official requires it, and which of the two legends belongs here depends on whether the door is kept normally open or normally closed.',
+        applies: 'The half of the correction that is not owed everywhere: the sign is owed where the fire code official requires it, and which of the two legends belongs here depends on whether the door is kept normally open or normally closed.',
         open: 'Whether the official requires a sign on this door, and which legend it carries.',
         turns: 'whether the official requires a sign here', source: SRC.cfc7 },
     ],

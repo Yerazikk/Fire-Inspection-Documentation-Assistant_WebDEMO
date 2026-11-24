@@ -1,16 +1,16 @@
-// Draws the two "after" pictures for the fire-door inspection, from the inspector's own photograph.
+// Draws the "after" picture for the fire-door inspection, from the inspector's own photograph.
 //
-//   node tools/firedoor-scene.js            both corrections
-//   node tools/firedoor-scene.js a          one of them
+//   node tools/firedoor-scene.js            the one correction
 //
 // The photograph (assets/firedoor.png, 576 x 762) is used as it stands: unlike the daisy chain, the frame already
 // holds the whole story — the wedge, the door, the closer at the head and the exit sign opposite — so nothing is
 // outpainted here and the "before" the page shows is the inspector's own file.
 //
-// Each picture is the SAME frame with one thing changed, so the two can be laid over each other and the divider
-// pulled across them. The results land in tools/work/ to be looked at before they are installed as
-// assets/after/firedoor-*.jpg; the contour that the "Show what changed" switch draws is measured afterwards by
-// tools/daisy-outline.js, which works from the difference between the two pictures rather than from registration.
+// The wedge and the sign are one correction, so there is one picture: the same frame with the wedge gone, the
+// door shut and a sign on the leaf. It lays over the photograph and the divider is pulled across the pair.
+// The result lands in tools/work/ to be looked at before it is installed as
+// assets/after/firedoor-a-shut-and-signed.jpg; the contour that the "Show what changed" switch draws is
+// measured afterwards by tools/daisy-outline.js, from the difference between the pair rather than registration.
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 require(path.join(ROOT, 'ai', 'env'))();
@@ -35,8 +35,8 @@ const WHAT_IS_THERE = [
 
 const CORRECTIONS = {
   a: {
-    file: 'firedoor-a-closed',
-    title: 'Take the wedge out and let the door close',
+    file: 'firedoor-a-shut-and-signed',
+    title: 'Take the wedge out, and sign the door',
     text: [
       'Remove the WEDGE from under the door completely. The floor under the leading edge of the door is bare: just',
       'the dark grey carpet and the metal threshold strip, with nothing propped against the door and no debris.',
@@ -46,22 +46,6 @@ const CORRECTIONS = {
       'against the closed leaf. The closer arm at the head is now folded back along the door, as a closer sits when',
       'the door it serves is shut.',
       '',
-      'Change NOTHING else. The same corridor, the same camera position and the same lens. The dark brown janitor',
-      'door behind it stays exactly where it is with its small red sign. The white EXIT sign with the red arrow and',
-      'the red and brass hose valve on the right-hand wall stay exactly as they are, same size, same place. The red',
-      'pipe overhead stays. Same carpet, same threshold strip, same scuffs on the door, same light and shadows.',
-      '',
-      'No people, no text, no labels, no arrows, no numbers added to the picture. Photographic, not a diagram.',
-    ].join(' '),
-  },
-  b: {
-    file: 'firedoor-b-sign',
-    title: 'Put a sign on the door',
-    text: [
-      'Remove the WEDGE from under the door completely, and show the same cream door CLOSED flush in its dark steel',
-      'frame, exactly as it would hang when shut: no gap at the leading edge, the closer arm at the head folded back',
-      'along the door.',
-      '',
       'Then add ONE small permanent sign to the face of the closed door, at about eye height, a little above the',
       'lever handle and centred on the leaf. It is a plain rectangular white plate, roughly 9 inches wide and 3',
       'inches tall, screwed flat to the door, carrying two short lines of plain red capital letters:',
@@ -70,11 +54,12 @@ const CORRECTIONS = {
       '',
       'Change NOTHING else. The same corridor, the same camera position and the same lens. The dark brown janitor',
       'door behind it keeps its own small red sign unchanged. The white EXIT sign with the red arrow and the red and',
-      'brass hose valve on the right-hand wall stay exactly as they are. The red pipe overhead stays. Same carpet,',
-      'same threshold strip, same light and shadows.',
+      'brass hose valve on the right-hand wall stay exactly as they are, same size, same place. The red pipe overhead',
+      'stays. Same carpet, same threshold strip, same scuffs on the door, same light and shadows.',
       '',
       'The only two differences from the original photograph are the wedge being gone with the door shut, and this',
-      'one sign on the door. No people, no other text, no labels, no arrows. Photographic, not a diagram.',
+      'one sign on the door. No people, no other text, no labels, no arrows, no numbers added to the picture.',
+      'Photographic, not a diagram.',
     ].join(' '),
   },
 };
@@ -99,5 +84,5 @@ async function draw(rec, outName) {
     if (only && only !== id) continue;
     await draw(rec, rec.file);
   }
-  console.log('  look at tools/work/firedoor-*.png, then install them as assets/after/firedoor-*.jpg');
+  console.log('  look at tools/work/firedoor-a-shut-and-signed.png, then install it as assets/after/firedoor-a-shut-and-signed.jpg');
 })();

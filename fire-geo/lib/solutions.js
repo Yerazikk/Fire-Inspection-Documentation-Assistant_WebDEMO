@@ -36,8 +36,7 @@ const AFTER = { 'assets/generated/ladder-a-remove-hedge.png': 'assets/after/ladd
   'assets/generated/daisy-a-direct.png': 'assets/after/daisy-a-direct.jpg',
   'assets/generated/daisy-b-one-tap.png': 'assets/after/daisy-b-one-tap.jpg',
   'assets/generated/daisy-c-receptacles.png': 'assets/after/daisy-c-receptacles.jpg',
-  'assets/generated/firedoor-a-closed.png': 'assets/after/firedoor-a-closed.jpg',
-  'assets/generated/firedoor-b-sign.png': 'assets/after/firedoor-b-sign.jpg' };
+  'assets/generated/firedoor-a-shut-and-signed.png': 'assets/after/firedoor-a-shut-and-signed.jpg' };
 const plain = s => String(s || '').replace(/\s+—\s+/g, ' · ').replace(/—/g, ' · ');     // no em dashes on screen
 
 function build(photo) {

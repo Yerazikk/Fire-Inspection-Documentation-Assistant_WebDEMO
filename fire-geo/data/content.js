@@ -794,15 +794,6 @@ daisy: {
   ],
 
   owner: {
-    // A diagram, not a photograph of this property: it shows why a chain is the problem rather than the number of
-    // sockets. Everything on both strips is drawn back through one cord and one wall socket, with the devices
-    // coloured by how much they draw. It was supplied for this demonstration and its origin is not established,
-    // so it is captioned as a general diagram and never as a reading of this room.
-    diagram: {
-      src: 'assets/daisychain-load.jpg',
-      alt: 'Diagram: several power strips chained together, with the devices on them coloured green for low-draw, yellow for higher and red for the highest. Every one of them leads back through a single wall outlet.',
-      caption: 'Why chaining is the problem. Everything plugged into either strip draws through the one cord and the one wall socket at the end of the chain. A general diagram, not a picture of your room.',
-    },
     title: 'Fire safety inspection — electrical correction required',
     sub: 'Finding: one power strip plugged into another',
     intro: 'Two power strips are connected one into the other. The lower strip is not plugged into the wall: its cord goes into the strip above it.',
@@ -890,44 +881,35 @@ firedoor: {
   ],
   annotationCaption: 'The finding is the wedge. The closer, the hinge edge and the exit sign are marked because each decides something the wedge alone does not: whether the door will shut, what it is rated for, and what it is protecting.',
 
+  // One correction, not two. The wedge and the sign are the same piece of work: taking the wedge out answers
+  // § 705.2 today, and the sign is what keeps it answered once the inspector has gone. They are shown in one
+  // picture because that is how the door ends up: shut, with a sign on it. Whether the sign is owed here is still
+  // the fire code official’s to decide, and the limit below says so.
   solutions: [
     {
       id: 'a',
       badge: 'required', badgeText: 'Required correction · inspector confirmed',
-      title: 'Take the wedge out and let the door close',
-      lede: 'The correction the code asks for, and it is owed immediately. Nothing is bought and nothing is installed.',
-      plain: 'Pull the wedge out from under the door and let it swing shut.',
-      image: 'assets/generated/firedoor-a-closed.png',
-      where: 'The block under the leading edge of the door leaf, at floor level.',
-      change: 'Remove the wedge. Let the door close and check that the latch engages.',
+      title: 'Take the wedge out, and sign the door',
+      lede: 'The correction the code asks for. The wedge comes out today; whether the door also carries a sign is the fire code official’s to decide.',
+      plain: 'Pull the wedge out from under the door, let it swing shut, and fix a sign to the leaf saying it is a fire door and must be kept closed.',
+      image: 'assets/generated/firedoor-a-shut-and-signed.png',
+      imageNote: 'The sign in the visualisation carries the KEEP CLOSED legend and is drawn to show where it goes. Whether this door carries a sign at all, and which of the two legends it takes, is the fire code official’s decision.',
+      where: 'The block under the leading edge of the door leaf, at floor level; and the face of the leaf at about eye height, where someone about to prop it open will read the sign.',
+      change: 'Remove the wedge, let the door close and check that the latch engages. Add a permanent sign in letters not less than 1 inch high.',
       how: [
         'Take the wedge away from the opening altogether, so it cannot be put back.',
         'Let the door close on its own from the full-open position. Watch it the whole way.',
         'Listen for the latch. A fire door that rests against the frame without latching has not closed.',
         'Where it does not close or does not latch, report the closer as out of service: until it is repaired the door is to be kept in the closed position.',
-        'Ask why the door was wedged. If it is propped for a reason that will come back, see the third correction.',
-      ],
-      keep: 'The door, the frame, the closer and the hardware, all of which are serviceable as far as the photograph shows. Nothing here needs a contractor.',
-      why: 'A fire door is rated on the understanding that it is shut. Wedged open it is a hole in a rated assembly, and the smoke that the wall was built to hold back crosses it freely.',
-    },
-    {
-      id: 'b',
-      badge: 'alternative', badgeText: 'Second correction · where the official requires it',
-      title: 'Put a sign on the door',
-      lede: 'Not owed everywhere. The fire code official decides whether this door carries one, and which of the two legends it takes.',
-      plain: 'Fix a permanent sign to the door saying it is a fire door and must be kept closed.',
-      image: 'assets/generated/firedoor-b-sign.png',
-      where: 'On the face of the leaf or the wall beside it, where someone about to prop it open will read it.',
-      change: 'Add a permanent sign, letters at least one inch high.',
-      how: [
+        'Ask why the door was wedged. A door propped for a reason that will come back is the reason the sign belongs to this correction and not to a later visit.',
         'Ask the fire code official whether a sign is required on this door.',
         'Settle which legend belongs here: a door designed to be kept normally closed takes KEEP CLOSED, one designed to be kept normally open takes DO NOT BLOCK.',
         'Use letters not less than 1 inch high, and fix the sign permanently.',
         'Put it where it is read from the side the door is propped from.',
       ],
-      keep: 'Everything else. The sign is added to the door, not instead of anything.',
-      why: 'The wedge comes back when nobody at the door knows what the door is for. A sign is what the code offers against that, and it is the only part of this finding that outlasts the inspection.',
-      limit: 'A sign is not a substitute for the first correction. The wedge comes out whether or not a sign is required here.',
+      keep: 'The door, the frame, the closer and the hardware, all of which are serviceable as far as the photograph shows. The sign is added to the door, not instead of anything, and nothing here needs a contractor.',
+      why: 'A fire door is rated on the understanding that it is shut. Wedged open it is a hole in a rated assembly, and the smoke that the wall was built to hold back crosses it freely. The wedge comes back when nobody at the door knows what the door is for, which is what the sign is against: it is the only part of this finding that outlasts the inspection.',
+      limit: 'The wedge comes out whether or not a sign is required here. § 705.2.2 leaves the sign to the fire code official, so the second half of this correction is confirmed on site, not from the photograph.',
     },
   ],
 
@@ -976,14 +958,14 @@ firedoor: {
     title: 'Fire safety inspection — correction required',
     sub: 'Finding: a wedge holding a fire door open',
     intro: 'A fire door on your property is being held open with a wedge. A fire door only works when it is shut, so this has to come out.',
-    todo: 'Take the wedge out from under the door and let the door close on its own. Check that it latches.',
-    keep: 'Nothing has to be bought or replaced. The door, the frame and the arm at the top of it all stay as they are.',
+    todo: 'Take the wedge out from under the door and let the door close on its own. Check that it latches, and ask your inspector whether the door also needs a sign.',
+    keep: 'Nothing has to be replaced. The door, the frame and the arm at the top of it all stay as they are. The only thing that might have to be bought is the sign, and only where your inspector requires one.',
     when: 'Now. Of all the things an inspection turns up, this is the one that takes a second and matters most while it is still propped.',
     dont: 'Do not swap the wedge for a hook, a chair or a bin. Anything that holds the door open is the same finding.',
     qa: [
       { q: 'What did we find?', a: ['A fire door propped open with a wedge under it.', 'The door in the photograph is held off its frame by a block pushed under its leading edge. The arm across the top of the door is a <b>closer</b>: it is there to shut the door on its own, and the wedge is defeating it.'] },
       { q: 'Why does it matter?', a: ['A fire door is a piece of the wall. The wall is built to hold smoke and fire on one side of it for a set time, and the door is rated to do the same — as long as it is shut.', 'Propped open it is simply a hole. Smoke goes through an open doorway in seconds, and the corridor on the other side of this one is a way out: the sign on the opposite wall says so.'] },
-      { q: 'What do you need to do?', a: ['<b>Take the wedge away and let the door close.</b>', 'Then watch it shut from fully open and listen for the latch. A door resting against the frame without latching has not closed.', 'Take the wedge out of the building, or it will be back under the door by the afternoon.'] },
+      { q: 'What do you need to do?', a: ['<b>Take the wedge away and let the door close.</b>', 'Then watch it shut from fully open and listen for the latch. A door resting against the frame without latching has not closed.', 'Take the wedge out of the building, or it will be back under the door by the afternoon.', 'Then ask your inspector whether this door also needs a sign saying it is a fire door and must be kept closed. Not every door does; where yours does, the sign goes on the face of it in letters at least an inch high.'] },
       { q: 'The door does not close properly. Now what?', a: ['Then the closer needs repair, and that is a second thing to fix.', 'In the meantime the rule is plain: while the closer is out of service, the door is kept closed. Not propped, not left ajar.'] },
       { q: 'What happens next?', a: ['Once the wedge is out and the door closes and latches on its own, the condition can be reviewed. Your inspector decides whether the finding has been corrected.', 'While you are there, look at the other rated doors on the same corridor. Where one is wedged, others usually are.'] },
     ],

@@ -506,8 +506,9 @@ and both are things only the person standing in the room knows:
 
 - **"What is this room used for?"** An office or work room, a meeting room, a hall or function room. The exception
   covers a Group A occupancy or a Group B meeting room.
-- **"How long has it been plugged in like this?"** The other exception covers 90 days, and only for testing the
-  performance of the devices themselves. The callout says so, so a recent setup is never read as a free pass.
+- **"Is this a temporary setup?"** Both exceptions turn on that one word, so that is the question. Testing is
+  offered apart from plain temporary use, because only testing carries the 90 days, and only for the performance
+  of the devices themselves. The callout says so, so a temporary setup is never read as a free pass.
 
 **The answer moves the verdict.** In `team/adapter.js`, a meeting or function room turns the `tap-direct` row from
 red to yellow — not cleared, but the inspector's reading rather than a settled fact, which is what yellow means
@@ -532,13 +533,15 @@ Neither question carries a photo prompt: there is nothing a second picture of th
 
 ### The diagram on the owner's page
 
-`assets/daisychain-load.jpg`, supplied 2026-11-23. It shows several taps chained together with the devices on them
-coloured by how much they draw, every one of them leading back through a single wall socket. It explains the
-**mechanism**, which a photograph of a floor cannot: the problem is not the number of sockets, it is that the whole
-load returns through one cord and one pair of contacts.
+`assets/daisychain-load.jpg`, supplied 2026-11-23, showed several taps chained together with the devices on them
+coloured by how much they draw, every one leading back through a single wall socket. It explained the
+**mechanism**, which a photograph of a floor cannot.
 
-It sits under "What is wrong" on the owner's page (`team/desk-draft.js` `ownerBlocks`), as an island block with its
-own caption, and it is captioned as a general diagram and never as a picture of the owner's room. Its origin is not
-established — it was supplied for this demonstration — so it carries no source line and makes no claim to be one.
-Any finding can take one: `owner.diagram` in `data/content.js` is `{ src, alt, caption }` and the owner's page adds
-the block when it is there.
+It is off the daisy-chain page now: the owner is told what to do and why it matters in words, and a general
+diagram of somebody else's room earned less than the space it took. The asset stays in `assets/` and the
+mechanism stays in the owner's own words under "Why is this dangerous?".
+
+The block itself is not gone from the app. Any finding can take one: `owner.diagram` in `data/content.js` is
+`{ src, alt, caption }`, and the owner's page (`team/desk-draft.js` `ownerBlocks`) adds it under "What is wrong"
+as an island block with its own caption whenever it is there, captioned as a general diagram and never as a
+picture of the owner's room.

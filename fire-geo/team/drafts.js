@@ -57,22 +57,18 @@
         ['Keep the contractor’s paperwork and give it to your inspector if asked.', 'solutions[a].how[6]; owner.qa "What happens next?"'],
       ],
     },
+    // One correction now, so one list. The owner’s page shows the first four steps, so the sign is in them:
+    // the wedge and the sign are what this finding ends as, and the owner should not have to scroll for half of it.
     firedoor: {
       a: [
-        ['Take the wedge out from under the door.', 'solutions[a].change; owner.todo'],
-        ['Take it out of the building, or it will be back under the door by the afternoon.', 'solutions[a].how[0]; owner.qa “What do you need to do?”'],
-        ['Let the door close on its own from fully open, and watch it the whole way.', 'solutions[a].how[1], [2]'],
-        ['Listen for the latch. A door resting against the frame without latching has not closed.', 'solutions[a].how[2]; owner.qa “What do you need to do?”'],
-        ['If it does not close or does not latch, say so: the door is then kept closed until the closer is repaired.', 'solutions[a].how[3]; owner.qa “The door does not close properly. Now what?”'],
+        ['Take the wedge out from under the door, and take it out of the building: left beside the door it will be back under it by the afternoon.', 'solutions[a].change, .how[0]; owner.todo'],
+        ['Let the door close on its own from fully open, and listen for the latch. A door resting against the frame without latching has not closed.', 'solutions[a].how[1], [2]; owner.qa “What do you need to do?”'],
+        ['Ask your inspector whether this door also needs a sign. Not every one does.', 'solutions[a].how[5]; solutions[a].lede, .limit'],
+        ['Where it does, fix a permanent sign to the face of the door in letters at least an inch high, where someone about to prop it open will read it.', 'solutions[a].how[7], [8]; solutions[a].where'],
+        ['Settle which words it takes: KEEP CLOSED for a door meant to stay shut, DO NOT BLOCK for one meant to stand open.', 'solutions[a].how[6]'],
+        ['If the door does not close or does not latch, say so: the door is then kept closed until the closer is repaired.', 'solutions[a].how[3]; owner.qa “The door does not close properly. Now what?”'],
         ['Do not swap the wedge for a hook, a chair or a bin. Anything holding it open is the same problem.', 'owner.dont'],
-        ['Nothing has to be bought. The door, the frame and the arm at the top all stay as they are.', 'solutions[a].keep; owner.keep'],
-      ],
-      b: [
-        ['Ask your inspector whether this door needs a sign. Not every one does.', 'solutions[b].how[0]; solutions[b].lede'],
-        ['Settle which words it takes: KEEP CLOSED for a door meant to stay shut, DO NOT BLOCK for one meant to stand open.', 'solutions[b].how[1]'],
-        ['Use letters at least one inch high and fix the sign permanently.', 'solutions[b].how[2]'],
-        ['Put it where someone about to prop the door open will read it.', 'solutions[b].how[3]; solutions[b].where'],
-        ['A sign does not replace the first correction. The wedge comes out either way.', 'solutions[b].limit'],
+        ['Apart from the sign, nothing has to be bought. The door, the frame and the arm at the top all stay as they are.', 'solutions[a].keep; owner.keep'],
       ],
     },
     daisy: {

@@ -317,6 +317,7 @@ window.TeamDesk = (function () {
     const text = s === 'finding' ? (!V.approved ? 'Approve' : single ? 'Reviewed' : violations(V).length ? 'Next: how to fix it' : 'Next: for the file') : s === 'fix' ? 'Next: for the file' : 'Next: for the owner';
     if (V.nextBtn.hidden) { if (!last) V.nextBtn.lastChild.textContent = text; }      // out of sight: nothing to swap
     else if (!last) swapText(V.nextBtn.lastChild, text, { size: false });
+    if (s === 'finding') { if (!V.dropBtn.isConnected) V.nextBtn.before(V.dropBtn); } else V.dropBtn.remove();      // the trash is the finding's, beside Approve
     V.nextBtn.hidden = last;
     V.nextBtn.disabled = (single && V.approved) || (V.draft && !V.draft.ready(s));
     setItem(V);
@@ -345,6 +346,20 @@ window.TeamDesk = (function () {
   /** something the later steps depend on changed (a verdict, wording, the place) */
   function changed(V) { if (V.draft) V.draft.sync(); syncFlow(V); }
 
+  /** thrown away: the finding leaves the inbox, its draft with it, and whichever one is left opens in its place */
+  function discard(V) {
+    const id = V.f.id, item = itemOf(id);
+    closeToggle(true);
+    if (V.draft) V.draft.shut();
+    views.delete(id); if (current === id) current = null;
+    V.el.remove();
+    if (item) { const rest = [...listEl.children].filter(n => n !== item), first = U.tops(rest); item.remove(); U.glide(rest, first); }
+    syncRail();
+    const top = listEl.querySelector('.dk-item');                                           // the one at the top of the inbox, as it is seen, not as it arrived
+    if (top) select(top.dataset.key);
+    else emptyEl.classList.add('is-on');
+  }
+
   function buildView(f) {
     const V = { f, loc: Object.assign({}, f.loc), rows: new Map(), step: 'finding', reached: 0, approved: false, published: false, open: null, state: 'review', panes: {} };
     V.ev = f.scene === 'custom' ? { rows: [], carried: true, missing: false } : D.evaluate(f.scene, V.loc, f.facts);
@@ -353,6 +368,9 @@ window.TeamDesk = (function () {
     V.panes.finding = findingPane(V);
     V.stepsEl = h('div', { class: 'dk-steps' }, V.panes.finding);
     // one click; the breadcrumb leads back. The button stays in one place from step to step, so the second click of a double click is not taken as the next step's.
+    // and the trash beside it, on the finding only: the senior inspector is not obliged to carry every one of them
+    // through. Nothing is asked first, and Start over brings the demonstration back.
+    V.dropBtn = sym('trash', 'Delete this finding', () => discard(V), 'dk-drop', 17);
     V.nextBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => { if (performance.now() - (V.movedAt || -1e9) > 360) forward(V); } }, h('span', { class: 'dk-primary-label', text: 'Approve' }));
     V.el = h('article', { class: 'dk-view', 'aria-label': f.title }, crumbs(V), h('div', { class: 'dk-work tm-softscroll' }, context(V), V.stepsEl), h('div', { class: 'dk-foot', 'data-rise': '' }, V.footSlot = h('div', { class: 'dk-foot-slot tm-btns' }), V.nextBtn));
     V.el.inert = true; V.el.dataset.step = 'finding';

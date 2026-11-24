@@ -193,7 +193,7 @@ window.TeamDraft = (function () {
     function paneNode(s) {
       const C = s.ui, big = h('div', { class: 'dk-big' }); let extra = null;
       big.style.setProperty('--a', String(s.sol ? s.sol.aspect : f.photo.aspect));      // the large picture keeps the photograph's own shape
-      if (s.kind === 'own') extra = ownPlan(s, big);
+      if (s.kind === 'own') extra = ownPicture(s, big);
       else { const FG = window.FireGeo, fsol = FG && FG.beforeAfter && FG.solutions.get ? FG.solutions.get(s.sol.photo, s.id) : null; if (fsol && fsol.after) { C.ba = FG.beforeAfter(big, { solution: fsol, base: D.ROOT, position: M.pos, caption: false }); big.addEventListener('ba:change', e => { if (e.detail && e.detail.position != null) M.pos = e.detail.position; }); } else P.correctionView(big, s.sol, { frame: s.sol.aspect, position: M.pos }); }
       C.steps = h('ol', { class: 'dk-card-steps' }); C.ask = h('div', { class: 'dk-ask', hidden: true });
       C.pane = h('div', { class: 'dk-detail-pane' + ((s.sol ? s.sol.aspect : f.photo.aspect) > 1.1 ? ' is-wide' : ''), 'data-kind': s.kind });
@@ -217,13 +217,61 @@ window.TeamDraft = (function () {
       if (out) out.onfinish = () => { out.cancel(); put(); }; else put();
     }
     function markRows() { M.sols.forEach(s => { if (s.ui && s.ui.row) { const on = s.id === M.open; s.ui.row.classList.toggle('is-on', on); s.ui.row.setAttribute('aria-selected', String(on)); } }); if (parts.fix) parts.fix.mine.classList.toggle('is-on', M.open === 'new'); }
-    /** the inspector's own correction has no picture: the area is marked on the photograph instead, as a plan */
-    function ownPlan(s, view) {
-      const mk = P.markup(view, { photo: f.photo.src, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, regions: s.regions, treat: s.treat, onChange: r => { s.regions = r; touch(); } });
-      const seg = U.seg(Object.keys(P.TREAT).map(id => ({ id, label: P.TREAT[id] })), s.treat, v => { s.treat = v; mk.setTreat(v); }, 'dk-treat');
-      const fa = (D.scene(scene).annotations.find(a => a.finding) || {}).box;
-      return h('div', { class: 'dk-plan' }, h('p', { class: 'dk-plan-say', text: 'No picture can be made for this one.' }),
-        h('div', { class: 'tm-btns' }, seg, fa ? btn('Mark where the problem is', () => mk.add(fa.slice(), s.treat)) : null, sym('undo', 'Undo', () => mk.undo(), '', 16)));
+    /** The inspector's own correction, drawn carried out. A prepared correction's "after" picture is made offline and
+        registered against the photograph (tools/register.js), which is what lets "Show what changed" draw a measured
+        contour. This one is drawn from the senior's own sentence while they work, so it has no contour: it goes under
+        the same divider with no switch, and it is tagged a proposal rather than a photograph. Until it lands, and if
+        it cannot be drawn at all, the area is marked on the photograph instead, as a plan. */
+    function ownPicture(s, view) {
+      const C = s.ui, extra = h('div', { class: 'dk-plan' });
+      const wait = U.steps(['Reading your correction', 'Drawing the result', 'Placing it on the photograph'], 'dk-ask-steps');
+      // once there is a picture there are two views of the one correction, and one switch between them: the drawn
+      // result, or the photograph to mark the area on. Marking stays what it always was; the picture is the new part.
+      const which = () => U.seg([{ id: 'result', label: 'Result' }, { id: 'mark', label: 'Mark up' }], s.show, v => { s.show = v; U.frame().then(paint); }, 'dk-ownview');
+      // the switch takes a line of its own: this column is as narrow as the photograph, and beside the caption it
+      // squeezed the words into four lines
+      const head = text => [s.after ? which() : null, h('p', { class: 'dk-plan-say', text })];
+      const paint = () => { draw(); U.syncAllSegs(extra); };      // the pill is placed after every repaint
+      view.addEventListener('ba:change', e => { if (e.detail && e.detail.position != null) M.pos = e.detail.position; });
+      function draw() {
+        // both components dress this same element, so what the last one put on it comes off first
+        view.replaceChildren(); extra.replaceChildren(); C.ba = null;
+        view.classList.remove('tm-ba', 'tm-markup', 'dragging');
+        view.style.removeProperty('aspect-ratio'); view.style.removeProperty('--p');
+        if (s.after && s.show !== 'mark') {
+          C.ba = P.beforeAfter(view, { before: f.photo.src, after: s.after, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, outline: [], position: M.pos, tags: { before: 'Before', after: 'After · proposed' } });
+          fill(extra, head('Drawn from your sentence to show the result. It is not a photograph of the property.'),
+            h('div', { class: 'tm-btns' }, btn('Draw it again', () => drawAfter(s), 'is-quiet')));
+          return;
+        }
+        // the photograph itself, to mark the area on
+        const mk = P.markup(view, { photo: f.photo.src, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, regions: s.regions, treat: s.treat, onChange: r => { s.regions = r; touch(); } });
+        if (s.drawing) { fill(extra, head('Drawing the result of your correction.'), wait.el); wait.run(1); return; }
+        const seg = U.seg(Object.keys(P.TREAT).map(id => ({ id, label: P.TREAT[id] })), s.treat, v => { s.treat = v; mk.setTreat(v); }, 'dk-treat');
+        const fa = (D.scene(scene).annotations.find(a => a.finding) || {}).box;
+        fill(extra, head(s.drawNote || (s.after ? 'The photograph, to mark the area on.' : 'No picture of this one yet.')),
+          h('div', { class: 'tm-btns' }, s.after ? null : btn(s.drawNote ? 'Try again' : 'Draw the result', () => drawAfter(s), 'is-quiet'), seg,
+            fa ? btn('Mark where the problem is', () => mk.add(fa.slice(), s.treat)) : null, sym('undo', 'Undo', () => mk.undo(), '', 16)));
+      }
+      C.repaint = paint; paint();
+      return extra;
+    }
+    /** Ask the server to draw it (POST /api/team/visual -> ../ai/visual.js, the image model). Nothing waits on it:
+        the senior carries on with the steps and the picture arrives in the card when it is ready. */
+    async function drawAfter(s) {
+      if (s.drawing) return;
+      s.drawing = true; s.drawNote = ''; if (s.ui && s.ui.repaint) s.ui.repaint();
+      const body = { scene, title: val(s.title), text: s.steps.map(val).join(' '), finding: val(M.problem) };
+      let got = null, why = '';
+      try {
+        const r = await fetch('/api/team/visual', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+        const j = await r.json();
+        if (r.ok && j && j.ok && j.data) got = 'data:' + (j.mimeType || 'image/jpeg') + ';base64,' + j.data;
+        else why = (j && j.error) || 'it could not be drawn';
+      } catch (e) { why = 'the drawing service could not be reached'; }
+      s.drawing = false; s.after = got; s.drawNote = got ? '' : 'No picture: ' + why + '. Mark the area on the photograph instead.';
+      if (s.ui && s.ui.repaint) s.ui.repaint();
+      touch();
     }
     function fixPane() {
       const list = h('div', { class: 'dk-fix-rows', role: 'listbox', 'aria-label': 'Corrections' }), offList = h('div', { class: 'dk-off-list' }), detail = h('div', { class: 'dk-detail' });
@@ -231,24 +279,138 @@ window.TeamDraft = (function () {
       const ask = h('div', { class: 'dk-ask' }), newPane = h('div', { class: 'dk-detail-pane', 'data-kind': 'new' }, h('div', { class: 'dk-new' }, h('h3', { class: 'dk-card-title', text: 'Your own correction' }), ask));
       const mine = btn('Write my own', () => { look('new'); if (ask.hidden || !ask.firstChild) { ask.hidden = true; askForm(ask, { placeholder: 'Your correction, in one sentence', go: 'Write it up', steps: ['Reading your sentence', 'Writing the steps', 'Checking against the sources'],
         body: text => ({ target: 'own', instruction: text, current: {} }),
-        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0 }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); } }); } }, 'dk-mine', 'plus');
+        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0, after: null, drawing: false, drawNote: '', show: 'result' }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); drawAfter(s); } }); } }, 'dk-mine', 'plus');
       parts.fix = { list, offBox, offList, detail, newPane, mine };
       return h('section', { class: 'dk-pane', 'data-step': 'fix' }, h('div', { class: 'dk-fix' }, h('div', { class: 'dk-fix-list tm-softscroll' }, h('h2', { class: 'dk-h', text: 'How to fix it' }), list, mine, offBox), detail));
     }
+    let calOpen = null;      // the calendar while it is open: { el, at, focus, first }. Closed, it is not in the page at all.
     /** "Fix by": the date in words, a few usual choices counted from the inspection, or any date from the calendar. It sits beside the step's button, always in view. */
     function dueControl() {
       if (parts.due) return parts.due.el;
       const dueText = h('b', { class: 'dk-due-date' }), dueNote = h('span', { class: 'dk-due-note' });
       const chips = CHOICES.map(n => { const b = btn(daysText(n), () => { M.due.days = n; M.due.date = null; touch(); }, 'dk-due-chip'); b.setAttribute('aria-pressed', 'false'); return b; });
+      // the plain field is kept: it is where the date is read from and written back in the page's own form, and a date
+      // set in it comes through the same door as a day picked on the calendar
       const input = h('input', { class: 'dk-due-input', type: 'date', 'aria-label': 'Fix by: pick a date', tabindex: '-1' });
-      input.addEventListener('change', () => { const p = (input.value || '').split('-').map(Number); if (p.length !== 3 || !p[0]) return; const x = new Date(p[0], p[1] - 1, p[2]); if (x < day0(new Date(f.at))) { syncDue(); return; } M.due.date = x; M.due.days = null; touch(); });
-      const cal = sym('calendar', 'Pick a date', () => { try { input.showPicker(); } catch (e) { input.focus(); } }, '', 16);
-      const el = h('div', { class: 'dk-due', role: 'group', 'aria-label': 'Fix by' }, h('p', { class: 'dk-due-line' }, h('span', { class: 'dk-due-label', text: 'Fix by' }), dueText, dueNote), h('div', { class: 'tm-btns' }, chips, h('span', { class: 'dk-due-pick' }, cal, input)));
-      parts.due = { el, text: dueText, note: dueNote, chips, input }; syncDue();
+      input.addEventListener('change', () => { const p = (input.value || '').split('-').map(Number); if (p.length !== 3 || !p[0]) return; takeDate(new Date(p[0], p[1] - 1, p[2])); });
+      const cal = sym('calendar', 'Pick a date', () => (calOpen ? closeCal(true) : openCal()), 'dk-due-cal', 16);
+      cal.setAttribute('aria-haspopup', 'dialog'); cal.setAttribute('aria-expanded', 'false');
+      const pick = h('span', { class: 'dk-due-pick' }, cal, input);
+      const el = h('div', { class: 'dk-due', role: 'group', 'aria-label': 'Fix by' }, h('p', { class: 'dk-due-line' }, h('span', { class: 'dk-due-label', text: 'Fix by' }), dueText, dueNote), h('div', { class: 'tm-btns' }, chips, pick));
+      parts.due = { el, text: dueText, note: dueNote, chips, input, cal, pick }; syncDue();
       return el;
     }
+    /** a date set by hand, from the calendar or from the plain field: the day of the inspection or any day after it. An earlier one is not taken. */
+    function takeDate(x) {
+      const d = x == null ? null : day0(x);
+      if (!d || isNaN(d.getTime()) || d < day0(new Date(f.at))) { syncDue(); return false; }
+      M.due.date = d; M.due.days = null; touch(); return true;
+    }
+
+    // ---- The calendar, for any date that is not one of the four usual ones. One month at a time: its name and year
+    // between two steps, the weekdays as initials, and the days as circles -- the one in force is ink, today carries a
+    // hairline ring, and the four usual choices are dotted, so the calendar and the chips beside it say the same thing.
+    // Days before the inspection are there but cannot be taken. It opens upward over the foot and closes the moment a
+    // day is picked; the date beside it crossfades to the new one. Arrow keys walk the days, PageUp and PageDown the
+    // months, Escape closes it and gives the button back the focus.
+    const WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    const sameMonth = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+
+    function openCal() {
+      const X = parts.due; if (!X || calOpen) return;
+      const on = day0(dueDate());
+      const C = calOpen = { at: new Date(on.getFullYear(), on.getMonth(), 1), focus: on, first: day0(new Date(f.at)) };
+      C.title = h('b', { class: 'dk-cal-month' });
+      C.back = sym('chevL', 'Earlier month', () => month(-1), 'dk-cal-step is-small', 16);
+      C.fwd = sym('chevR', 'Later month', () => month(1), 'dk-cal-step is-small', 16);
+      C.grid = h('div', { class: 'dk-cal-grid', role: 'grid', 'aria-label': 'Fix by' });
+      C.el = h('div', { class: 'dk-cal gl-scope', role: 'dialog', 'aria-label': 'Fix by: pick a date' },
+        h('div', { class: 'dk-cal-head' }, C.back, C.title, C.fwd),
+        h('div', { class: 'dk-cal-week', 'aria-hidden': 'true', role: 'presentation' }, WEEK.map(w => h('span', { text: w.charAt(0) }))),
+        C.grid);
+      fillCal(false);
+      X.pick.append(C.el);
+      X.cal.setAttribute('aria-expanded', 'true');
+      U.anim(C.el, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: U.FLAT });
+      C.away = e => { if (!C.el.contains(e.target) && !X.cal.contains(e.target)) closeCal(); };
+      // the keys are taken while the panel is open, wherever the focus is: opened with the mouse, nothing inside it
+      // holds the focus (a ring is for the keyboard only), and the arrows should still walk the month
+      C.keys = e => { if (calOpen !== C) return; if (e.key === 'Escape') { e.stopPropagation(); closeCal(true); return; } onKeys(e); };
+      setTimeout(() => { if (calOpen === C) document.addEventListener('pointerdown', C.away, true); }, 0);
+      document.addEventListener('keydown', C.keys, true);
+      focusDay();
+      /** another month. The focus goes with it, so walking back and forth lands where it left. */
+      function month(d) {
+        const at = new Date(C.at.getFullYear(), C.at.getMonth() + d, 1);
+        if (at < new Date(C.first.getFullYear(), C.first.getMonth(), 1)) return;
+        C.at = at; fillCal(true); focusDay();
+      }
+      function onKeys(e) {
+        if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); month(e.key === 'PageUp' ? -1 : 1); return; }
+        const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+        const d = step != null ? step : e.key === 'Home' ? -C.focus.getDay() : e.key === 'End' ? 6 - C.focus.getDay() : null;
+        if (d == null) return;
+        e.preventDefault();
+        const next = new Date(C.focus.getFullYear(), C.focus.getMonth(), C.focus.getDate() + d);
+        if (next < C.first) return;                                   // the inspection is the floor: there is nothing to walk back to
+        const moved = !sameMonth(next, C.at);
+        C.focus = next; if (moved) C.at = new Date(next.getFullYear(), next.getMonth(), 1);
+        fillCal(moved); focusDay(true);
+      }
+      function focusDay(always) {
+        const n = C.grid.querySelector('[tabindex="0"]');
+        if (n && (always || U.keys.on)) n.focus({ preventScroll: true });
+      }
+    }
+
+    /** the month in the panel. Rebuilt whole, because every day in it can change at once (a chip was pressed, or the month stepped). */
+    function fillCal(moved) {
+      const C = calOpen; if (!C) return;
+      const y = C.at.getFullYear(), m = C.at.getMonth(), on = day0(dueDate()), today = day0(new Date());
+      const lead = new Date(y, m, 1).getDay(), len = new Date(y, m + 1, 0).getDate();
+      const usual = {};      // the four usual choices, where they fall in this month
+      CHOICES.forEach(n => { const d = new Date(C.first.getFullYear(), C.first.getMonth(), C.first.getDate() + n); if (sameMonth(d, C.at)) usual[d.getDate()] = n; });
+      if (!sameMonth(C.focus, C.at)) C.focus = sameMonth(on, C.at) ? on : new Date(y, m, 1);
+      swapText(C.title, C.at.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), { size: false });
+      C.back.disabled = new Date(y, m, 1) <= new Date(C.first.getFullYear(), C.first.getMonth(), 1);
+      const cells = [];
+      for (let i = 0; i < lead; i++) cells.push(h('span', { class: 'dk-cal-pad', role: 'presentation' }));
+      for (let d = 1; d <= len; d++) {
+        const date = new Date(y, m, d), early = date < C.first, is = sameDay(date, on), n = usual[d];
+        cells.push(h('button', {
+          class: 'dk-cal-day' + (is ? ' is-on' : '') + (sameDay(date, today) ? ' is-today' : '') + (n ? ' is-usual' : ''),
+          type: 'button', role: 'gridcell', tabindex: sameDay(date, C.focus) ? '0' : '-1', disabled: early || null,
+          'aria-selected': String(is),
+          'aria-label': date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + (n ? ', ' + daysText(n) + ' from the inspection' : ''),
+          onclick: () => { if (takeDate(date)) closeCal(); }
+        }, h('span', { text: String(d) })));
+      }
+      // seven to a row, each row a row of the grid: the days lie in a week for a reader as well as on the screen
+      const rows = [];
+      for (let i = 0; i < cells.length; i += 7) rows.push(h('div', { class: 'dk-cal-row', role: 'row' }, cells.slice(i, i + 7)));
+      C.grid.replaceChildren(...rows);
+      if (!C.grid.querySelector('[tabindex="0"]')) { const n = C.grid.querySelector('.dk-cal-day:not([disabled])'); if (n) n.tabIndex = 0; }
+      if (moved) U.anim(C.grid, [{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+    }
+
+    function closeCal(back, now) {
+      const C = calOpen; if (!C) return; calOpen = null;
+      const X = parts.due, el = C.el, had = el.contains(document.activeElement);
+      document.removeEventListener('pointerdown', C.away, true);
+      document.removeEventListener('keydown', C.keys, true);
+      if (X) X.cal.setAttribute('aria-expanded', 'false');
+      if ((back || had) && X) U.refocus(X.cal);
+      const done = () => el.remove();
+      if (now || U.reduced() || !el.isConnected) { done(); return; }
+      el.inert = true;
+      const a = U.anim(el, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(4px)' }], { duration: 120, easing: 'ease-in', fill: 'forwards' });
+      if (a) a.onfinish = done; else done();
+    }
+
     function syncDue() {
       const X = parts.due; if (!X) return; const x = dueDate(), n = dueDays(), two = v => String(v).padStart(2, '0'), s = day0(new Date(f.at));
+      if (calOpen) fillCal(false);
       swapText(X.text, fmtDate(x), { size: false }); swapText(X.note, daysText(n) + ' from the inspection', { size: false });
       X.chips.forEach((b, i) => { const on = M.due.date == null && M.due.days === CHOICES[i]; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
       X.input.value = x.getFullYear() + '-' + two(x.getMonth() + 1) + '-' + two(x.getDate()); X.input.min = s.getFullYear() + '-' + two(s.getMonth() + 1) + '-' + two(s.getDate());
@@ -345,7 +507,7 @@ window.TeamDraft = (function () {
       X.act = h('div', { class: 'rp-act' }, X.pubBtn);                                      // floats at the bottom right of the window
       X.undo = sym('undo', 'Undo', () => api.publish(false), '', 16);
       X.done = h('div', { class: 'rp-done', role: 'status', hidden: true }, h('i', { class: 'rp-done-mark', 'aria-hidden': 'true' }, icon('check', 13)),      // the line at the foot of the window, once published
-        h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' }), ' ', h('span', { text: 'Sending to the owner is not connected yet. Nothing has left this computer.' })), X.undo);
+        h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' })), X.undo);
       const win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.act, X.done);
       win.firstChild.lastChild.replaceWith(enlarger(win));
       return h('section', { class: 'dk-pane', 'data-step': 'owner' }, h('div', { class: 'dk-pane-fixed' }, win));
@@ -423,7 +585,7 @@ window.TeamDraft = (function () {
         I(k + '-sl', 'Steps given to the owner:');
         out.push({ key: k + '-steps', island: true, sig: JSON.stringify(s.steps.map(val)), build: () => stepList(s), patch: n => stepList(s, n) });
         if (t) { T(k + '-w', 'Where: ' + t.where); T(k + '-c', 'Change: ' + t.change); T(k + '-h', 'Method: ' + t.how.join(' ')); T(k + '-k', 'Retain: ' + t.keep); T(k + '-y', 'Basis: ' + t.why); T(k + '-l', t.limit ? 'Limit: ' + t.limit : ''); }
-        else I(k + '-p', (s.regions.length ? s.regions.length + (s.regions.length > 1 ? ' areas' : ' area') + ' marked on the photograph (' + s.regions.map(r => P.TREAT[r.treat].toLowerCase()).join(', ') + ').' : 'No area was marked on the photograph.') + ' No picture was generated.');
+        else I(k + '-p', s.after ? 'A picture of the proposed result was drawn from the senior inspector’s own sentence. It is illustrative, not a photograph of the property.' : (s.regions.length ? s.regions.length + (s.regions.length > 1 ? ' areas' : ' area') + ' marked on the photograph (' + s.regions.map(r => P.TREAT[r.treat].toLowerCase()).join(', ') + ').' : 'No area was marked on the photograph.') + ' No picture was generated.');
         if (s.rewrites) I(k + '-v', 'The owner’s steps were rewritten at the senior inspector’s request.');
       });
       if (!list.length) I('sol-none', red.length ? 'No correction has been chosen.' : 'None. No violation recorded.');
@@ -491,7 +653,7 @@ window.TeamDraft = (function () {
       /** put an enlarged draft back at once (the finding is being left) */
       shut() { bigs.forEach(c => c(true)); },
       /** what sits beside the step's button at the bottom (Copy and Print for the file document) */
-      tools: step => (step === 'file' && parts.file ? parts.file.tools : step === 'fix' ? [dueControl()] : []),
+      tools: step => { if (calOpen) closeCal(false, true); return step === 'file' && parts.file ? parts.file.tools : step === 'fix' ? [dueControl()] : []; },
     };
   }
   return { attach };

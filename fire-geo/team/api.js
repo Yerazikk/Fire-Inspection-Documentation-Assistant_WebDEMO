@@ -17,6 +17,15 @@
 // If the CLI cannot be reached the built-in rewrite answers instead and says so.
 //   TEAM_DRAFT_FAKE=1   no model call at all (tests and screenshots)
 //   TEAM_DRAFT_MODEL    model id (default claude-opus-5-5)      CLAUDE_BIN  path to the CLI
+//
+//   POST /api/team/visual  -> the picture of the inspector's own correction carried out
+//     body  { scene, title, text?, finding? }
+//     reply { ok, source: 'model' | 'fake', mimeType, data (base64), model?, ms? }
+//   A prepared correction's "after" picture is drawn offline and registered against the photograph
+//   (tools/register.js), which is what lets "Show what changed" draw a measured contour. The inspector's own
+//   correction has no such picture, so this draws one while they wait: the inspection photograph and their one
+//   sentence go to the image model (../ai/visual.js, Gemini), and the same frame comes back with the work done.
+//   It carries no contour, so the page shows it under the divider with the switch left off.
 const { spawn, spawnSync } = require('child_process'), fs = require('fs'), path = require('path'), os = require('os'), vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 const MODEL = process.env.TEAM_DRAFT_MODEL || 'claude-opus-5-5';
@@ -174,14 +183,53 @@ async function draft(raw) {
   } finally { busy--; }
 }
 
+// ---------------------------------------------------------------- the picture of an own correction
+// Slow (fifteen to twenty seconds) and rate-limited, so one at a time and nothing else waits on it.
+let drawing = 0;
+async function visual(raw) {
+  let b; try { b = JSON.parse(raw); } catch { return { code: 400, body: { error: 'bad JSON' } }; }
+  let sb; try { sb = world(); } catch (e) { return { code: 500, body: { error: String(e.message).slice(0, 200) } }; }
+  const scene = b && b.scene, c = scene && sb.CONTENT[scene];
+  if (!c || !c.photo) return { code: 400, body: { error: 'unknown scene' } };
+  const title = clean(b.title, 160), text = clean(b.text, 900), finding = clean(b.finding, 600);
+  if (title.length < 2) return { code: 400, body: { error: 'say what the correction is' } };
+
+  const mime = f => (/\.png$/i.test(f) ? 'image/png' : 'image/jpeg');
+  let photo;
+  try { photo = { mimeType: mime(c.photo), data: fs.readFileSync(path.join(ROOT, c.photo)).toString('base64') }; }
+  catch { return { code: 500, body: { error: 'the inspection photograph could not be read' } }; }
+
+  // the test switch: a prepared "after" for this scene stands in, so the page's own path runs without a model call
+  if (process.env.TEAM_DRAFT_FAKE) {
+    const dir = path.join(ROOT, 'assets', 'after');
+    let f = null;
+    try { f = fs.readdirSync(dir).filter(n => n.indexOf(scene + '-') === 0).sort()[0]; } catch { }
+    if (!f) return { code: 200, body: { ok: true, source: 'fake', mimeType: photo.mimeType, data: photo.data } };
+    return { code: 200, body: { ok: true, source: 'fake', mimeType: mime(f), data: fs.readFileSync(path.join(dir, f)).toString('base64') } };
+  }
+
+  let V;
+  try { require(path.join(ROOT, '..', 'ai', 'env'))(); V = require(path.join(ROOT, '..', 'ai', 'visual')); }
+  catch (e) { return { code: 503, body: { error: 'no image model is configured here', kind: 'no_model' } }; }
+  if (drawing >= 1) return { code: 429, body: { error: 'one picture at a time', kind: 'busy' } };
+  drawing++;
+  try {
+    const out = await V.illustrate(photo, { title, text }, { finding });
+    return { code: 200, body: { ok: true, source: 'model', model: V.model(), mimeType: out.mimeType, data: out.data, ms: out.ms } };
+  } catch (e) {
+    return { code: 502, body: { error: clean(e.message, 300) || 'the image model could not be reached', kind: e.kind || 'upstream' } };
+  } finally { drawing--; }
+}
+
 function handle(req, res) {
   const url = String(req.url || '').split('?')[0];
-  if (url !== '/api/team/draft') return false;
+  if (url !== '/api/team/draft' && url !== '/api/team/visual') return false;
   const json = (code, body) => { if (res.headersSent) return; res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); };
   if (req.method === 'GET' || req.method === 'HEAD') { json(200, { ok: true, fake: !!process.env.TEAM_DRAFT_FAKE }); return true; }
   if (req.method !== 'POST') { json(405, { error: 'POST only' }); return true; }
+  const run = url === '/api/team/visual' ? visual : draft;
   let raw = ''; req.on('data', d => { if (raw.length < 40000) raw += d; });
-  req.on('end', () => { draft(raw).then(r => json(r.code, r.body), e => json(500, { error: String((e && e.message) || e).slice(0, 200) })); });
+  req.on('end', () => { run(raw).then(r => json(r.code, r.body), e => json(500, { error: String((e && e.message) || e).slice(0, 200) })); });
   return true;
 }
-module.exports = { handle, draft, prompt, parse, world, MODEL };
+module.exports = { handle, draft, visual, prompt, parse, world, MODEL };

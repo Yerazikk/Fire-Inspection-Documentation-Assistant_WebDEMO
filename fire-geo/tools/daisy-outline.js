@@ -53,13 +53,13 @@ const SCENES = {
       { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'new outlet' },
     ],
   },
-  // The fire door. Both pictures close the door, so the difference is the whole leaf and not only the wedge;
-  // that is the right thing to circle here, because the door being shut IS the correction.
+  // The fire door. One picture: the wedge gone, the door shut and a sign on the leaf. The largest blob the
+  // difference finds is the sign, so that is what gets circled — which is the mark worth having, because the
+  // door being shut is plain as soon as the divider moves and the sign is the half that is easy to miss.
   firedoor: {
     before: 'assets/firedoor.png',
     jobs: [
-      { key: 'firedoor-a', after: 'assets/after/firedoor-a-closed.jpg', label: 'the door, shut' },
-      { key: 'firedoor-b', after: 'assets/after/firedoor-b-sign.jpg',   label: 'shut, and a sign on it' },
+      { key: 'firedoor-a', after: 'assets/after/firedoor-a-shut-and-signed.jpg', label: 'shut, and a sign on it' },
     ],
   },
 };

@@ -127,12 +127,14 @@ window.TeamFlow = (function () {
         source: 'code row "tap-direct" (CFC \u00a7 603.5.2, read on up.codes 2026-11-23): the exception covers a Group A occupancy or a Group B meeting room. The plain words for the three options are this prototype\u2019s; the occupancy groups themselves are the inspector\u2019s to decide.',
       },
       {
-        id: 'age', ask: 'How long has it been plugged in like this?',
-        options: [{ id: 'today', label: 'Set up today' }, { id: 'weeks', label: 'A few weeks' }, { id: 'months', label: 'Months or longer' }],
+        // Both exceptions turn on the same thing \u2014 whether the arrangement is temporary \u2014 so that is what is asked,
+        // in those words. Testing is kept apart from plain temporary use, because only testing carries the 90 days.
+        id: 'temp', ask: 'Is this a temporary setup?',
+        options: [{ id: 'testing', label: 'Yes, testing equipment' }, { id: 'temporary', label: 'Yes, temporary' }, { id: 'permanent', label: 'No, it stays like this' }],
         cant: { id: 'unsure', label: 'Not sure' },
-        write: { label: 'How long it has been like this', placeholder: 'Or write how long' },
-        say: () => 'The other exception only covers 90 days of testing.',
-        source: 'code row "tap-direct" (CFC \u00a7 603.5.2): taps \u201cused for 90 days or less for the purpose of testing the performance of such devices\u201d. content.js daisy.uncertainty "How long has this stood?"',
+        write: { label: 'What the setup is for', placeholder: 'Or write what it is for' },
+        say: () => 'One exception covers temporary use, the other only 90 days of testing.',
+        source: 'code row "tap-direct" (CFC \u00a7 603.5.2): up to five taps \u201cfor temporary use supplying electronic equipment\u201d, and taps \u201cused for 90 days or less for the purpose of testing the performance of such devices\u201d. content.js daisy.uncertainty "How long has this stood?"',
       },
     ],
     // Two questions, and both are things only someone at the door can answer. The first is a reading, not a
@@ -192,8 +194,8 @@ window.TeamFlow = (function () {
     } else if (scene === 'daisy') {
       if ((a.room || {}).pick) f.room = a.room.pick;
       else if (((a.room || {}).text || '').trim()) { f.room = 'written'; f.roomText = a.room.text.trim(); }
-      if ((a.age || {}).pick) f.age = a.age.pick;
-      else if (((a.age || {}).text || '').trim()) { f.age = 'written'; f.ageText = a.age.text.trim(); }
+      if ((a.temp || {}).pick) f.temp = a.temp.pick;
+      else if (((a.temp || {}).text || '').trim()) { f.temp = 'written'; f.tempText = a.temp.text.trim(); }
       for (const k of ['chain', 'upper', 'cords', 'count']) if (c[k] && c[k] !== seen('daisy').find(s => s.id === k).options[0].id) f[k] = c[k];
     } else if (scene === 'firedoor') {
       if ((a.label || {}).pick) f.label = a.label.pick;
@@ -230,8 +232,10 @@ window.TeamFlow = (function () {
       } else if (f.room === 'work') out.push({ short: 'An ordinary work room: no exception in play.', text: 'The field inspector calls this an office or work room, so neither exception in \u00a7 603.5.2 is in play and the finding stands as read.' });
       else if (f.room === 'written') out.push({ short: 'Room, in the field inspector\u2019s words: \u201c' + f.roomText + '\u201d.', text: 'The field inspector wrote the room in rather than choosing one of the three: \u201c' + f.roomText + '\u201d. Decide from that whether \u00a7 603.5.2 excepts it, as a Group A occupancy or a Group B meeting room.' });
       else out.push({ short: 'Room use not recorded.', text: 'What the room is used for was not given, and \u00a7 603.5.2 excepts a Group A occupancy and a Group B meeting room. Settle the occupancy before citing.' });
-      if (f.age === 'written') out.push({ short: 'How long, in the field inspector\u2019s words: \u201c' + f.ageText + '\u201d.', text: 'The field inspector wrote how long rather than choosing: \u201c' + f.ageText + '\u201d. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general.' });
-      else if (f.age === 'today' || f.age === 'weeks') out.push({ short: 'Recently set up, the field inspector says.', text: 'The field inspector says this was set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + '. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general. Ask what it is for.' });
+      if (f.temp === 'written') out.push({ short: 'What it is for, in the field inspector\u2019s words: \u201c' + f.tempText + '\u201d.', text: 'The field inspector wrote what the setup is for rather than choosing: \u201c' + f.tempText + '\u201d. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general.' });
+      else if (f.temp === 'testing') out.push({ short: 'Temporary, for testing equipment, the field inspector says.', text: 'The field inspector says this is temporary and set up to test equipment. The 90-day exception covers testing the performance of the taps themselves, not whatever is plugged into them. Establish what is being tested, and for how long.' });
+      else if (f.temp === 'temporary') out.push({ short: 'Temporary, the field inspector says.', text: 'The field inspector calls this temporary. \u00a7 603.5.2 excepts temporary use only in a Group A occupancy or a Group B meeting room, and only for electronic equipment; the other exception is 90 days of testing the devices themselves. Ask what it is for.' });
+      else if (f.temp === 'permanent') out.push({ short: 'Not temporary: neither exception in play.', text: 'The field inspector says the arrangement stays as it is, so neither exception in \u00a7 603.5.2 is in play on this point and the finding stands as read.' });
       if (f.cords === 'under') out.push({ short: 'A cord runs under something, out of the frame.', text: 'The field inspector says a cord runs under a door or under the carpet. That is a second finding under \u00a7 603.5.3, separate from the chained taps.' });
       if (f.count === 'more') out.push({ short: 'More than two strips, the field inspector says.', text: 'The field inspector counts more than the two taps in the photograph. Record each one: the exception in \u00a7 603.5.2 stops at five, and only for the uses it names.' });
     } else if (scene === 'firedoor') {
