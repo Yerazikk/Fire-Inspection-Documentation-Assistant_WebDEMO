@@ -1,5 +1,5 @@
 // team/drive.js: drives the phone and the laptop for test.js and shot.js. Headless only.
-const { chromium } = require('/Users/andrewdong/Downloads/Timeline3D/node_modules/playwright');
+const { chromium } = require('../tools/playwright')();
 const LAYER = '.ph-layer:not(.leaving)';
 
 /** headless Chrome. bars: true draws scrollbars in pictures (a headless browser leaves them out by default; the layout is the same either way) */

@@ -20,7 +20,9 @@ does not run from a sub-path of another server or straight from the file system.
   Fairfax, unincorporated Marin) with a pill that flies to Berkeley, and the rules that apply where the pin is. The
   first two turn on vegetation and sprinkler ordinances that differ town by town; the third is statewide text, where
   what changes with the place is which ordinance carries it and what a violation costs (`NOTES.md` § 13).
-- **Inspectors** (`team/`): the product itself, a field inspector's phone and a senior inspector's laptop.
+- **Inspectors** (`team/`): the product itself, a field inspector's phone and a senior inspector's laptop. All
+  three findings are here too; on the daisy chain the field inspector's answer about the room moves the senior's
+  verdict, because the exception in CFC § 603.5.2 turns on what the room is used for (`NOTES.md` § 13).
 
 Shared pieces: `shared/shell.*` (top bar, tabs, soft scroll edges), `lib/` (place lookup, the rules and verdicts, the
 before / after divider, the pin), `data/` (the rules with their sources, map polygons), `shared/gleb/` (a second look).

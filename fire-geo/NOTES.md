@@ -456,6 +456,24 @@ path, model and key the app itself uses. `tools/topack.js` re-encodes the ~2 MB 
 JPEG through the headless browser (there is no image library in this repo). `lib/solutions.js` maps the generated
 names to them as it does for the other two photographs.
 
+### What the corrections actually are
+
+The first pass got this wrong and it is worth recording why. Correction A was drawn with a **second wall
+receptacle appearing in the wall**, as though the answer to a daisy chain were an electrician. It is not. The
+receptacle in the photograph is a **duplex**: two sockets on one faceplate, and only the lower one is in use. The
+correction is to put the second tap in the socket that is already there. Nothing is bought, nothing is installed,
+and the picture now shows one faceplate with both of its sockets occupied.
+
+The three follow the order the published guidance gives, which was checked rather than assumed
+([NFPA](https://www.nfpa.org/news-blogs-and-articles/blogs/2018/04/20/nfpa-1-electrical-fire-safety-and-relocatable-power-taps-power-strips-firecodefridays),
+[Office of Compliance](https://www.ocwr.gov/wp-content/uploads/2016/09/fastfacts_power_strips.pdf)):
+
+1. **Move the plug to the socket already there.** Each tap directly on a permanently installed receptacle. Free.
+2. **One strip of adequate rating in place of the two.** The guidance puts it as one bigger tap on a sufficient
+   circuit rather than two in a row. Needs the ratings, which the photograph does not give.
+3. **Receptacles added where the equipment is.** The permanent fix, and the only one needing an electrician. It is
+   tagged a proposal and says in terms that it is not required to clear the violation.
+
 ### Why the contours are found differently
 
 `tools/register.js` fits an "after" image onto the photograph by matching a few hundred small patches, which needs
@@ -475,3 +493,29 @@ disappear.
 `paintSwitch()` in `app.js` hides "Show what changed" on any correction that has no contour. All three daisy
 corrections have one, so the switch is there; the guard stays as the honest fallback for the next photograph that
 arrives without one.
+
+### On the Inspectors tab
+
+`team/flow.js` says a third finding type needs one more entry in `READING`, `SCAN`, `SEEN` and `QUESTIONS` and
+nothing else, and that held. The phone carries a third lens, **Strips**.
+
+The two questions are chosen the way the others were: the app answers what it can see, and the person is asked
+only what the photograph cannot tell. For a daisy chain the rule needs no measurement at all — a tap fed from a
+tap is the violation and the picture shows it — so the only open facts are **the two exceptions in § 603.5.2**,
+and both are things only the person standing in the room knows:
+
+- **"What is this room used for?"** An office or work room, a meeting room, a hall or function room. The exception
+  covers a Group A occupancy or a Group B meeting room.
+- **"How long has it been plugged in like this?"** The other exception covers 90 days, and only for testing the
+  performance of the devices themselves. The callout says so, so a recent setup is never read as a free pass.
+
+**The answer moves the verdict.** In `team/adapter.js`, a meeting or function room turns the `tap-direct` row from
+red to yellow — not cleared, but the inspector's reading rather than a settled fact, which is what yellow means
+everywhere else on this page. An office or work room leaves it red and says why. A cord reported running under a
+door or the carpet turns `tap-install` red, because that is the plain words of § 603.5.3 and the field inspector
+can see it where the camera could not. Sent from the phone as a work room the senior's screen reads **Violation,
+1 red and 4 of the inspector's call**; as a meeting room, **Inspector's call, 0 red and 5**.
+
+One fix fell out of this. The question screen assumed every question carried a number to type (`q.entry`) and
+threw on one answered by tapping alone, although `flow.js` lists `entry` as one control among several. `phone.js`
+now builds the display, the keypad and the number keys only when there is something to type.

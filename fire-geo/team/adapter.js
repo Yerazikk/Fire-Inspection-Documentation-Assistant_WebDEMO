@@ -39,7 +39,7 @@ window.TeamData = (function () {
     const fb = (c.annotations.find(x => x.tone === 'red') || { box: [25, 25, 50, 50] }).box;
     return {
       id, title: tidy(c.title), status: tidy(c.status), focus: [fb[0] + fb[2] / 2, fb[1] + fb[3] / 2],
-      short: id === 'sprinkler' ? 'Painted sprinkler' : 'Bushes under tall plants',
+      short: { sprinkler: 'Painted sprinkler', ladder: 'Bushes under tall plants', daisy: 'One strip plugged into another' }[id] || tidy(c.title),
       photo: ROOT + ((P && P.photo) || c.photo), aspect: (P && P.aspect) || c.aspect,
       annotations: c.annotations.map((a, i) => ({ ix: i, box: a.box, finding: a.tone === 'red', label: tidy(a.label), note: tidy(a.note) })),
       meta: c.meta.map(m => [m[0], tidy(m[1])]), owner: c.owner,
@@ -113,6 +113,29 @@ window.TeamData = (function () {
         lead('roadside', 'The field inspector says there is no road or driveway next to it.');
         if (by.roadside) { by.roadside.verdict = 'green'; by.roadside.why = 'No road or driveway next to it, by the field inspector’s report.'; by.roadside.open = ''; }
       } else if (f.beside === 'driveway') lead('roadside', 'The field inspector says it is a driveway, not a road.');
+    } else if (photo === 'daisy') {
+      // The two answers the phone asks for are the two exceptions in CFC \u00a7 603.5.2, so they land on that row.
+      // A meeting or function room does not clear the finding; it turns a confirmed violation into a reading the
+      // inspector has to make, which is what yellow means everywhere else on this page.
+      if (f.room === 'meeting' || f.room === 'assembly') {
+        const where = f.room === 'meeting' ? 'a meeting room' : 'a hall or function room';
+        lead('tap-direct', 'The field inspector calls this ' + where + '.');
+        if (by['tap-direct']) {
+          by['tap-direct'].verdict = 'yellow';
+          by['tap-direct'].why = 'Depends on whether the meeting-room exception covers this.';
+          by['tap-direct'].open = 'Whether the room is a Group A occupancy or a Group B meeting room, whether the use is temporary, and whether the load is electronic equipment.';
+        }
+      } else if (f.room === 'work') lead('tap-direct', 'The field inspector calls this an office or work room, so neither exception is in play.');
+      if (f.age === 'today' || f.age === 'weeks') lead('tap-direct', 'Set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + ', the field inspector says.');
+      // A cord run under a door or a covering is the plain words of \u00a7 603.5.3, and the field inspector can see it.
+      if (f.cords === 'under' && by['tap-install']) {
+        lead('tap-install', 'The field inspector says a cord runs under a door or under the carpet.');
+        by['tap-install'].verdict = 'red';
+        by['tap-install'].why = 'A cord runs under a door or a covering. Confirmed on site.';
+        by['tap-install'].open = '';
+      }
+      if (f.count === 'more') lead('tap-direct', 'The field inspector counts more than the two taps in the photograph.');
+      if (f.upper === 'other') lead('cords', 'The field inspector says the upper strip is not plugged into a wall socket either.');
     } else {
       if (f.paint === 'all') lead('maintenance', 'The field inspector says the paint is all over the sprinkler.');
       else if (f.paint === 'ring') lead('maintenance', 'The field inspector says the paint is only on the ring around the sprinkler.');

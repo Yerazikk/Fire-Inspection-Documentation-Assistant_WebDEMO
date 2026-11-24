@@ -210,7 +210,21 @@ window.TeamPhoto = (function () {
       svg('text', { x: 92, y: 174, class: 'dw-label', 'text-anchor': 'middle', text: 'bushes' }), svg('text', { x: 227, y: 174, class: 'dw-label', 'text-anchor': 'middle', text: 'building' }));
     return { el: root, set() { } };
   }
-  const DRAW = { block, gap, closeup, both };
+  /** what the extra daisy-chain photo should show: the wall socket, with the cord that is in it */
+  function wallshot() {
+    const root = svg('svg', { class: 'tm-draw', viewBox: '0 0 300 190', role: 'img', 'aria-label': 'Drawing: the wall socket and the cord plugged into it are both in the picture.' });
+    root.append(svg('rect', { x: 6, y: 6, width: 288, height: 178, rx: 18, class: 'dw-frame' }),
+      svg('line', { x1: 22, y1: 138, x2: 278, y2: 138, class: 'dw-line' }),                                  // where the wall meets the floor
+      svg('rect', { x: 120, y: 44, width: 60, height: 84, rx: 8, class: 'dw-shape is-on' }),                 // the faceplate
+      svg('ellipse', { cx: 150, cy: 70, rx: 9, ry: 11, class: 'dw-thin dw-nofill' }), svg('ellipse', { cx: 150, cy: 102, rx: 9, ry: 11, class: 'dw-thin dw-nofill' }),
+      svg('rect', { x: 142, y: 95, width: 16, height: 22, rx: 4, class: 'dw-dark' }),                        // the plug in the lower socket
+      svg('path', { d: 'M150 117c0 26 34 16 34 34', class: 'dw-arm' }),                                      // its cord, down to the floor
+      svg('rect', { x: 176, y: 146, width: 86, height: 16, rx: 7, class: 'dw-shape' }),                      // the strip it goes to
+      svg('text', { x: 150, y: 30, class: 'dw-label is-big', 'text-anchor': 'middle', text: 'the wall socket' }),
+      svg('text', { x: 219, y: 178, class: 'dw-note', 'text-anchor': 'middle', text: 'and the cord in it' }));
+    return { el: root, set() { } };
+  }
+  const DRAW = { block, gap, closeup, both, wallshot };
   const drawing = name => (DRAW[name] || closeup)();
 
   return { fit, photoBox, mark, beforeAfter, correctionView, markup, drawing, TREAT };

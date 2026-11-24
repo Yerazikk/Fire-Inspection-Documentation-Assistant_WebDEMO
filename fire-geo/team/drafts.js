@@ -57,6 +57,32 @@
         ['Keep the contractor’s paperwork and give it to your inspector if asked.', 'solutions[a].how[6]; owner.qa "What happens next?"'],
       ],
     },
+    daisy: {
+      a: [
+        ['Switch both power strips off before you move anything.', 'solutions[a].how[0]; owner.qa "What do you need to do?"'],
+        ['Find the cream-coloured plug in the last socket on the right of the white strip. That is the lower strip’s cord.', 'solutions[a].where; owner.qa "What do you need to do?"'],
+        ['Pull it out and plug the lower strip straight into a wall socket instead.', 'solutions[a].change, .how[2]; owner.todo'],
+        ['Do not put an extension lead between the strip and the wall. That is the same problem with one more part in it.', 'notAcceptable.body; owner.dont'],
+        ['Check that neither strip is now fed by the other, and that each one goes straight to a wall socket.', 'solutions[a].how[3]'],
+        ['Move the cords so they are not walked on, trapped under furniture, or run under a door or the carpet.', 'solutions[a].how[5]'],
+        ['You can keep both strips and everything plugged into them. Nothing has to be thrown away.', 'solutions[a].keep; owner.keep'],
+      ],
+      b: [
+        ['Ask your inspector first. This option only counts if the inspector approves it.', 'solutions[b].limit'],
+        ['Add up what is plugged into both strips, and check the total against the rating printed on the strip you want to keep.', 'solutions[b].how[0], [1]'],
+        ['If it all fits, move everything onto that one strip and take the other one out of the room.', 'solutions[b].how[2]; solutions[b].plain'],
+        ['Plug the strip you kept straight into a wall socket.', 'solutions[b].change'],
+        ['If it does not all fit, this option is closed: use the required correction, or have more sockets installed.', 'solutions[b].how[3]'],
+      ],
+      c: [
+        ['Ask your inspector first, and use a licensed electrician. This usually needs a permit.', 'solutions[c].limit; solutions[c].how[0], [1]'],
+        ['Have the electrician check the circuit and what is already on it.', 'solutions[c].how[0]'],
+        ['Have new wall sockets installed where the equipment actually sits.', 'solutions[c].how[1]; solutions[c].plain'],
+        ['Plug the equipment into the new sockets and take away the strips you no longer need.', 'solutions[c].how[2]'],
+        ['Any strip you keep goes straight into a wall socket of its own.', 'solutions[c].how[3]; solutions[c].keep'],
+        ['This is not required to clear the violation. Moving one plug does that, at no cost.', 'solutions[c].limit'],
+      ],
+    },
   };
 
   function build(C, tidy) {

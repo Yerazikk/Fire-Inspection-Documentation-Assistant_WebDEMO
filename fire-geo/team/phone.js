@@ -78,12 +78,12 @@ window.TeamPhone = (function () {
 
   // ---- 1. take the photo. The scene switch sits above the picture; the picture is clean; the controls are low.
   /** Back at the camera after a send: it opens on the scene that has not been sent yet. A scene chosen by hand stands until the next send. */
-  function nextScene() { if (!S.auto) return; S.auto = false; const left = ['sprinkler', 'ladder'].find(id => !S.sent.some(f => f.scene === id)); if (left) S.scene = left; }
+  function nextScene() { if (!S.auto) return; S.auto = false; const left = ['sprinkler', 'ladder', 'daisy'].find(id => !S.sent.some(f => f.scene === id)); if (left) S.scene = left; }
   function camera() {
     nextScene();
     S.run++; S.custom = false; S.note = null; S.answers = {}; typeInto = null;
     endScan(true); usePhoto();
-    const lens = U.seg([{ id: 'sprinkler', label: 'Sprinkler' }, { id: 'ladder', label: 'Hedge' }], S.scene, v => { S.scene = v; S.auto = false; usePhoto(); }, 'ph-lens');
+    const lens = U.seg([{ id: 'sprinkler', label: 'Sprinkler' }, { id: 'ladder', label: 'Hedge' }, { id: 'daisy', label: 'Strips' }], S.scene, v => { S.scene = v; S.auto = false; usePhoto(); }, 'ph-lens');
     lens.setAttribute('aria-label', 'Which scene is in front of the camera');
     const actions = h('div', { class: 'ph-actions ph-actions-camera' },
       sym('image', 'Choose a photo', () => pick(ownPhoto), 'ph-round', 22),
@@ -190,7 +190,7 @@ window.TeamPhone = (function () {
     }
     const head = h('div', { class: 'ph-head' }, backBtn(camera), h('h1', { text: 'Add a note' }));
     const body = h('div', { class: 'ph-body tm-softscroll' }, custom ? h('p', { class: 'ph-plain', text: F.UNKNOWN_PHOTO }) : null, list, own);
-    St.view = custom ? { focus: [50, 50] } : { region: grow(D.scene(S.scene).annotations.find(a => a.finding).box, S.scene === 'sprinkler' ? 15 : 12) };
+    St.view = custom ? { focus: [50, 50] } : { region: grow(D.scene(S.scene).annotations.find(a => a.finding).box, { sprinkler: 15, daisy: 16, ladder: 12 }[S.scene] || 12) };
     show('note', { head, body, actions: h('div', { class: 'ph-actions' }, use), layout: 'note', view: St.view });
     sync();
     if (custom) requestAnimationFrame(() => own.focus({ preventScroll: true }));
@@ -203,12 +203,12 @@ window.TeamPhone = (function () {
     return h('div', { class: 'ph-keys' }, '123456789'.split('').map(d => key(d, d)), h('span'), key('0', '0'), key('', 'del', 'Delete'));
   }
   function question(q) {
-    const a = S.answers[q.id] || (S.answers[q.id] = {}), en = q.entry, year = en.digits === 4 && !en.unit;
+    const a = S.answers[q.id] || (S.answers[q.id] = {}), en = q.entry || null, year = !!en && en.digits === 4 && !en.unit;
     let typed = a.typed || '';
     const pic = q.picture ? P.drawing(q.picture) : null;
-    const boxes = year ? [0, 1, 2, 3].map(() => h('span', { class: 'ph-digit shell-num' })) : null, value = year ? null : h('span', { class: 'ph-entry-value shell-num' });
-    const entry = h('div', { class: 'ph-entry ' + (year ? 'is-boxes' : 'is-field'), tabindex: '0', role: 'textbox', 'aria-label': en.name }, boxes || [value, h('span', { class: 'ph-entry-unit', text: en.unit })]);
-    const padWrap = h('div', { class: 'ph-padwrap', hidden: !en.always }, keypad(press));
+    const boxes = year ? [0, 1, 2, 3].map(() => h('span', { class: 'ph-digit shell-num' })) : null, value = !en || year ? null : h('span', { class: 'ph-entry-value shell-num' });
+    const entry = !en ? null : h('div', { class: 'ph-entry ' + (year ? 'is-boxes' : 'is-field'), tabindex: '0', role: 'textbox', 'aria-label': en.name }, boxes || [value, h('span', { class: 'ph-entry-unit', text: en.unit })]);
+    const padWrap = !en ? null : h('div', { class: 'ph-padwrap', hidden: !en.always }, keypad(press));
     const opts = (q.options || []).map(o => h('button', { class: 'ph-pick', type: 'button', 'data-id': o.id, 'aria-pressed': 'false', onclick: () => { if (a.pick === o.id) delete a.pick; else { a.pick = o.id; clear(); } openPad(false); sync(); } }, h('span', { class: 'ph-pick-text', text: o.label })));
     const cant = h('button', { class: 'ph-cant', type: 'button', 'aria-pressed': 'false', onclick: () => { if (a.pick === q.cant.id) delete a.pick; else { a.pick = q.cant.id; clear(); } openPad(false); sync(); } }, icon('check', 16), h('span', { text: q.cant.label }));
     const cam = q.photo ? sym('camera', q.photo.label, () => openPhoto(q, sync), 'ph-attach', 21) : null;
@@ -216,6 +216,7 @@ window.TeamPhone = (function () {
     function clear() { typed = ''; a.typed = ''; delete a.value; a.unlikely = false; }
     /** a key was pressed, on the screen or on a keyboard. The typed numbers always show in the entry display. */
     function press(k) {
+      if (!en) return;
       if (k === 'del') typed = typed.slice(0, -1); else if (typed.length < en.digits && !(year && !typed.length && k === '0')) typed += k; else return;
       a.typed = typed; const n = +typed, full = typed.length > 0 && (!year || typed.length === 4), inside = n >= en.min && n <= en.max();
       if (full && (inside || year)) a.value = n; else delete a.value;      // a year outside the likely range is asked about, and kept if the person leaves it
@@ -223,18 +224,21 @@ window.TeamPhone = (function () {
       if (typed) delete a.pick;
       sync();
     }
-    function openPad(on) { if (en.always || padWrap.hidden === !on) return; U.reveal(padWrap, on); el.classList.toggle('is-typing', on);      // while the keys are out the drawing is smaller, so the whole screen still fits
+    function openPad(on) { if (!en || en.always || padWrap.hidden === !on) return; U.reveal(padWrap, on); el.classList.toggle('is-typing', on);      // while the keys are out the drawing is smaller, so the whole screen still fits
       if (on) setTimeout(() => { if (padWrap.isConnected) padWrap.scrollIntoView({ block: 'nearest', behavior: U.reduced() ? 'auto' : 'smooth' }); }, 270); }
-    entry.addEventListener('click', () => openPad(true));
-    entry.addEventListener('focus', () => { if (U.keys.on) openPad(true); });
+    if (entry) {
+      entry.addEventListener('click', () => openPad(true));
+      entry.addEventListener('focus', () => { if (U.keys.on) openPad(true); });
+    }
     function sync() {                                              // only what changed is touched
-      const active = !!en.always || !padWrap.hidden, full = typed.length === en.digits;
+      const active = !!en && (!!en.always || !padWrap.hidden), full = !!en && typed.length === en.digits;
       if (boxes) boxes.forEach((b, i) => { const t = typed[i] || ''; if (b.textContent !== t) b.textContent = t; b.classList.toggle('is-caret', active && i === Math.min(typed.length, 3) && a.pick !== q.cant.id && !(full && i === 3 && a.value != null)); });
-      else { const t = typed || en.open; if (value.textContent !== t) value.textContent = t; entry.classList.toggle('is-empty', !typed); entry.classList.toggle('is-active', active); }
-      entry.classList.toggle('is-set', a.value != null); entry.classList.toggle('is-off', a.pick === q.cant.id);
+      else if (entry) { const t = typed || en.open; if (value.textContent !== t) value.textContent = t; entry.classList.toggle('is-empty', !typed); entry.classList.toggle('is-active', active); }
+      if (entry) { entry.classList.toggle('is-set', a.value != null); entry.classList.toggle('is-off', a.pick === q.cant.id); }
       opts.forEach(b => { const on = a.pick === b.dataset.id; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
       cant.setAttribute('aria-pressed', String(a.pick === q.cant.id));
-      const line = year && a.unlikely ? en.wrong : a.value != null && q.say ? q.say(a.value) : (en.help || '');
+      const line = !en ? (a.pick && a.pick !== q.cant.id && q.say ? q.say(a.pick) : '')
+        : year && a.unlikely ? en.wrong : a.value != null && q.say ? q.say(a.value) : (en.help || '');
       if (say.textContent !== line) { if (say.textContent && line) swapText(say, line, { size: false }); else say.textContent = line; }
       say.classList.toggle('is-wrong', !!(year && a.unlikely));
       if (pic) pic.set({ digits: typed });
@@ -244,6 +248,7 @@ window.TeamPhone = (function () {
       opts.length ? h('div', { class: 'ph-q-opts' }, opts) : null, entry, say, padWrap, h('div', { class: 'ph-q-foot' }, cant, cam));
     const onKey = e => {                                           // a real keyboard types into the same display
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!en) return;
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); openPad(true); press(e.key); } else if (e.key === 'Backspace') { e.preventDefault(); press('del'); }
       else if (e.key === 'Enter' && e.target === entry) { e.preventDefault(); openPad(false); const send = layers.querySelector('.ph-layer:not(.leaving) .ph-primary'); if (send) send.focus(); }
     };

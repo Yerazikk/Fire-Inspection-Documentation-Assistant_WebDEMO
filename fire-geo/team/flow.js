@@ -27,6 +27,12 @@ window.TeamFlow = (function () {
       alternatives: ['There are dead leaves and dry plants along the wall.', 'The plants grow right next to the road.'],
       source: 'content.js ladder.summary, owner.intro, annotations[2]; ladderfuel.md "Risk to evacuation and emergency access"',
     },
+
+    daisy: {
+      text: 'One power strip is plugged into another one, instead of into the wall.',
+      alternatives: ['Both strips are plugged into the wall.', 'The cords are lying across the floor where people walk.'],
+      source: 'content.js daisy.summary, annotations[0], owner.intro',
+    },
   };
 
   // ---- what the scan lights up, in plain words: the finding, and at most one thing beside it that matters.
@@ -35,6 +41,7 @@ window.TeamFlow = (function () {
   const SCAN = {
     sprinkler: [{ ix: 2, label: 'Stains on the ring' }, { ix: 0, label: 'Paint on the sprinkler', finding: true }],
     ladder: [{ ix: 0, label: 'Tall plants' }, { ix: 1, label: 'Bushes reach the tall plants', finding: true }],
+    daisy: [{ ix: 1, label: 'Upper strip' }, { ix: 0, label: 'The lower strip feeds off it', finding: true }],
   };
   const SCAN_STEPS = ['Reading the photo', 'Finding what is wrong', 'Checking what else is needed'];
   const SCAN_NONE = 'Nothing was marked.';
@@ -54,6 +61,12 @@ window.TeamFlow = (function () {
       { id: 'plant', label: 'Tall plants', options: [{ id: 'oleander', label: 'Look like oleander' }, { id: 'other', label: 'Something else' }, { id: 'unsure', label: 'Not sure' }], source: 'ladderfuel.md "Upper vegetation" (consistent with oleander, not confirmed)' },
       { id: 'dry', label: 'Dry leaves', options: [{ id: 'some', label: 'Some, along the wall' }, { id: 'lots', label: 'A lot' }, { id: 'none', label: 'None' }], source: 'content.js ladder.annotations[2]; ladderfuel.md "Ground-level vegetation"' },
       { id: 'beside', label: 'Next to it', options: [{ id: 'road', label: 'A road' }, { id: 'driveway', label: 'A driveway' }, { id: 'neither', label: 'Neither' }], source: 'ladderfuel.md "Surrounding environment" (a paved roadway runs directly beside it)' },
+    ],
+    daisy: [
+      { id: 'chain', label: 'Lower strip', options: [{ id: 'intostrip', label: 'Plugged into the strip above' }, { id: 'intowall', label: 'Plugged into the wall' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.summary, annotations[0]' },
+      { id: 'upper', label: 'Upper strip', options: [{ id: 'wall', label: 'Plugged into a wall socket' }, { id: 'other', label: 'Plugged into something else' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.annotations[1]; uncertainty "Where does the upper tap\u2019s cord go?"' },
+      { id: 'cords', label: 'Cords', options: [{ id: 'loose', label: 'Loose on the carpet' }, { id: 'under', label: 'Run under a door or the carpet' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.annotations[2]; code row "tap-install" (CFC \u00a7 603.5.3)' },
+      { id: 'count', label: 'Strips', options: [{ id: 'two', label: 'Two, chained together' }, { id: 'more', label: 'More than two' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.extras[0]; code row "tap-direct" (the exception counts up to five)' },
     ],
   };
 
@@ -82,6 +95,26 @@ window.TeamFlow = (function () {
         cant: { id: 'unsure', label: 'Not sure' },
         photo: { label: 'Add a photo with the building', prompt: 'Take a photo of the bushes and the building.', picture: 'both', callout: 'Bushes and building, both in the picture' },
         source: 'FireGeo code row "ladder-reach" (data/law.js); content.js ladder.uncertainty "Is the vegetation within 30 feet of a structure?"; ladderfuel.md "Surrounding environment". The step length is a rule of thumb written for this prototype, not from the sources.',
+      },
+    ],
+    // The rule itself needs no measurement: a strip fed from a strip is the violation, and the photograph shows it.
+    // What the photograph cannot show is whether either exception in CFC \u00a7 603.5.2 is in play, and both turn on
+    // something only the person standing in the room knows. So the two questions are exactly those two exceptions.
+    daisy: [
+      {
+        id: 'room', ask: 'What is this room used for?',
+        options: [{ id: 'work', label: 'An office or work room' }, { id: 'meeting', label: 'A meeting room' }, { id: 'assembly', label: 'A hall or function room' }],
+        cant: { id: 'unsure', label: 'Not sure' },
+        say: () => 'The rule has an exception for meeting and function rooms.',
+        photo: { label: 'Add a photo of the wall socket', prompt: 'Take a photo of the wall socket the first strip is plugged into.', picture: 'wallshot', callout: 'The wall socket and the cord in it' },
+        source: 'code row "tap-direct" (CFC \u00a7 603.5.2, read on up.codes 2026-11-23): the exception covers a Group A occupancy or a Group B meeting room. The plain words for the three options are this prototype\u2019s; the occupancy groups themselves are the inspector\u2019s to decide.',
+      },
+      {
+        id: 'age', ask: 'How long has it been plugged in like this?',
+        options: [{ id: 'today', label: 'Set up today' }, { id: 'weeks', label: 'A few weeks' }, { id: 'months', label: 'Months or longer' }],
+        cant: { id: 'unsure', label: 'Not sure' },
+        say: () => 'The other exception only covers 90 days of testing.',
+        source: 'code row "tap-direct" (CFC \u00a7 603.5.2): taps \u201cused for 90 days or less for the purpose of testing the performance of such devices\u201d. content.js daisy.uncertainty "How long has this stood?"',
       },
     ],
   };
@@ -116,6 +149,10 @@ window.TeamFlow = (function () {
       const y = a.year || {};
       if (y.value != null) { f.year = y.value; if (y.unlikely) f.yearUnlikely = true; } else if (y.pick === 'cant') f.yearCant = true;
       for (const k of ['paint', 'plate']) if (c[k] && c[k] !== seen('sprinkler').find(s => s.id === k).options[0].id) f[k] = c[k];
+    } else if (scene === 'daisy') {
+      if ((a.room || {}).pick) f.room = a.room.pick;
+      if ((a.age || {}).pick) f.age = a.age.pick;
+      for (const k of ['chain', 'upper', 'cords', 'count']) if (c[k] && c[k] !== seen('daisy').find(s => s.id === k).options[0].id) f[k] = c[k];
     }
     return f;
   }
@@ -138,6 +175,16 @@ window.TeamFlow = (function () {
       else if (d.kind === 'estimate') out.push({ short: 'Bushes ' + d.label.toLowerCase() + ' from the building, estimated.', text: 'The distance is an estimate (' + d.label.toLowerCase() + '). Measure it before citing the distance rule.' });
       else out.push({ short: 'Bushes ' + d.feet + ' ft from the building.', text: 'The field inspector gives the distance as ' + d.feet + ' ft.' });
       if (f.touch === 'gap') out.push({ short: 'A gap between the two layers, the field inspector says.', text: 'The field inspector says there is a gap between the two layers. The app saw none.' });
+    } else if (scene === 'daisy') {
+      // Neither answer clears the finding on its own. Each says which exception has to be settled, and by whom.
+      if (f.room === 'meeting' || f.room === 'assembly') {
+        const where = f.room === 'meeting' ? 'a meeting room' : 'a hall or function room';
+        out.push({ short: 'The field inspector calls this ' + where + '.', text: 'The field inspector calls this ' + where + '. The exception in \u00a7 603.5.2 covers up to five taps connected together for temporary use supplying electronic equipment in a Group A occupancy or a Group B meeting room. Whether this room is one, and whether this use is temporary, is yours to decide.' });
+      } else if (f.room === 'work') out.push({ short: 'An ordinary work room: no exception in play.', text: 'The field inspector calls this an office or work room, so neither exception in \u00a7 603.5.2 is in play and the finding stands as read.' });
+      else out.push({ short: 'Room use not recorded.', text: 'What the room is used for was not given, and \u00a7 603.5.2 excepts a Group A occupancy and a Group B meeting room. Settle the occupancy before citing.' });
+      if (f.age === 'today' || f.age === 'weeks') out.push({ short: 'Recently set up, the field inspector says.', text: 'The field inspector says this was set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + '. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general. Ask what it is for.' });
+      if (f.cords === 'under') out.push({ short: 'A cord runs under something, out of the frame.', text: 'The field inspector says a cord runs under a door or under the carpet. That is a second finding under \u00a7 603.5.3, separate from the chained taps.' });
+      if (f.count === 'more') out.push({ short: 'More than two strips, the field inspector says.', text: 'The field inspector counts more than the two taps in the photograph. Record each one: the exception in \u00a7 603.5.2 stops at five, and only for the uses it names.' });
     }
     return out;
   }
