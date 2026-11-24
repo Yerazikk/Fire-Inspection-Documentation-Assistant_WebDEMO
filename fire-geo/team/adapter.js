@@ -39,11 +39,20 @@ window.TeamData = (function () {
     const fb = (c.annotations.find(x => x.tone === 'red') || { box: [25, 25, 50, 50] }).box;
     return {
       id, title: tidy(c.title), status: tidy(c.status), focus: [fb[0] + fb[2] / 2, fb[1] + fb[3] / 2],
-      short: { sprinkler: 'Painted sprinkler', ladder: 'Bushes under tall plants', daisy: 'One strip plugged into another' }[id] || tidy(c.title),
+      short: (P && P.tab) || tidy(c.tab) || tidy(c.title),       // the same name the Technology tab's switch uses
       photo: ROOT + ((P && P.photo) || c.photo), aspect: (P && P.aspect) || c.aspect,
       annotations: c.annotations.map((a, i) => ({ ix: i, box: a.box, finding: a.tone === 'red', label: tidy(a.label), note: tidy(a.note) })),
       meta: c.meta.map(m => [m[0], tidy(m[1])]), owner: c.owner,
     };
+  }
+
+  /** The photographs the field app can take, in the order the shared list gives them (lib/codes.js PHOTOS).
+   *  One reaches the phone when the field flow knows it: its questions and what the app reads off it are in
+   *  team/flow.js. So a new violation is added to the shared list first and shows up here once those are written. */
+  function scenes() {
+    const g = fg(), F = W.TeamFlow;
+    const ids = g && g.codes.PHOTOS ? g.codes.PHOTOS.map(p => p.id) : Object.keys(C);
+    return ids.filter(id => C[id] && (!F || (F.QUESTIONS[id] && F.SEEN[id])));
   }
 
   // ---------------------------------------------------------------- places
@@ -126,6 +135,14 @@ window.TeamData = (function () {
           by['tap-direct'].open = 'Whether the room is a Group A occupancy or a Group B meeting room, whether the use is temporary, and whether the load is electronic equipment.';
         }
       } else if (f.room === 'work') lead('tap-direct', 'The field inspector calls this an office or work room, so neither exception is in play.');
+      else if (f.room === 'written') {
+        lead('tap-direct', 'The field inspector wrote the room in: \u201c' + f.roomText + '\u201d.');
+        if (by['tap-direct']) {
+          by['tap-direct'].verdict = 'yellow';
+          by['tap-direct'].why = 'Depends on whether that room is one the exception covers.';
+          by['tap-direct'].open = 'Whether the room the field inspector describes is a Group A occupancy or a Group B meeting room, and whether the use is temporary.';
+        }
+      }
       if (f.age === 'today' || f.age === 'weeks') lead('tap-direct', 'Set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + ', the field inspector says.');
       // A cord run under a door or a covering is the plain words of \u00a7 603.5.3, and the field inspector can see it.
       if (f.cords === 'under' && by['tap-install']) {
@@ -172,5 +189,5 @@ window.TeamData = (function () {
   function fillRule(el, text) { const g = W.FireGeo; if (g && g.emphasis && g.emphasis.fill) g.emphasis.fill(el, text); else el.textContent = text; }
   const disclosure = () => tidy((fg() && fg().codes.disclosure) || '');
 
-  return { ROOT, PLACES, tidy, VERDICT, RANK, scene, place, at, pin, zoneText, evaluate, reach, solutions, fillRule, disclosure, usesFireGeo: () => !!fg() };
+  return { ROOT, PLACES, tidy, VERDICT, RANK, scene, scenes, place, at, pin, zoneText, evaluate, reach, solutions, fillRule, disclosure, usesFireGeo: () => !!fg() };
 })();

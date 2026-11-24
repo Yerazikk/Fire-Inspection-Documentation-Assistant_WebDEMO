@@ -198,3 +198,17 @@
   .ph-status { display: none; }
   .ph-view { inset: 0; }
 }
+
+/* A question answered by tapping alone has no number display and no keypad, so the reserved space for them closed
+   up but the empty reply line and the foot did not: the taps and "Not sure" sat a band apart for no reason. */
+.ph-q.is-tap { gap: 8px; }
+.ph-q.is-tap .ph-q-say:empty { min-height: 0; }
+.ph-q.is-tap .ph-q-foot { min-height: 40px; }
+
+/* A written answer, where the three taps do not cover it. */
+.ph-write { box-sizing: border-box; width: 100%; height: 46px; margin: 0; padding: 0 14px; font: inherit; font-size: 15px; font-weight: 600;
+  color: var(--ink); background: var(--tm-solid); border: 1.5px solid var(--line2); border-radius: var(--tm-radius-ctl); outline: none;
+  transition: border-color 140ms var(--flat), box-shadow 140ms var(--flat); }
+.ph-write::placeholder { color: var(--ink3); font-weight: 600; }
+.ph-write:focus { border-color: var(--hi); box-shadow: inset 0 0 0 .75px var(--hi); }
+.ph-write:not(:placeholder-shown) { border-color: var(--hi); box-shadow: inset 0 0 0 .75px var(--hi); }

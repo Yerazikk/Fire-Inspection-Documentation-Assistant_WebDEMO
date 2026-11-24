@@ -299,6 +299,7 @@ window.TeamDraft = (function () {
       out.push({ key: 'photo', island: true, sig: 'photo', build: () => X.photo });
       out.push({ key: 'h-problem', tag: 'h2', text: 'What is wrong' });
       paras(val(M.problem)).forEach(t => out.push({ key: 'problem', tag: 'p', cls: 'rp-text', text: t, bound: true }));
+      if (X.diagram) out.push({ key: 'diagram', island: true, sig: 'diagram', build: () => X.diagram });
       if (list.length || red.length) out.push({ key: 'h-fix', tag: 'h2', text: list.length > 1 ? 'Options for how to fix it' : 'How to fix it' });
       if (list.length > 1) out.push({ key: 'pick', tag: 'p', cls: 'rp-text rp-pick', text: 'Pick one of these.' });
       if (!list.length) out.push({ key: 'none', island: true, tag: 'p', cls: 'rp-text', text: red.length ? 'No correction has been chosen yet.' : 'The inspector did not record a violation.' });
@@ -331,6 +332,13 @@ window.TeamDraft = (function () {
     function ownerPane() {
       const page = h('div', { class: 'rp-page' }), X = parts.owner = { page };
       const photo = P.photoBox(f.photo.src, f.photo.aspect, 'rp-photo'); photo.pct(f.photo.aspect, { contain: true }); photo.el.style.setProperty('--a', String(f.photo.aspect)); X.photo = photo.el;      // the whole photograph, at its own shape
+      // Some findings carry a diagram that explains the mechanism, where the photograph can only show the state of
+      // it. It goes under "What is wrong", captioned as a diagram so it is never read as a picture of the property.
+      const dia = (((window.CONTENT || {})[scene] || {}).owner || {}).diagram;
+      if (dia) {
+        const img = h('img', { class: 'rp-dia-img', src: D.ROOT + dia.src, alt: dia.alt || '', loading: 'lazy' });
+        X.diagram = h('figure', { class: 'rp-dia' }, img, h('figcaption', { class: 'rp-dia-cap', text: dia.caption || '' }));
+      }
       X.doc = window.TeamDoc.create(page, { pCls: 'rp-text', onChange: ownerRead, onSettle: settle });
       X.addr = h('span', { class: 'rp-addr' });
       X.pubBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => api.publish(true) }, h('span', { class: 'dk-primary-label', text: 'Publish' }));

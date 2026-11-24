@@ -254,3 +254,9 @@ html.gleb .tm-btn.is-quiet:focus-visible { box-shadow: 0 0 0 2px rgba(255, 255, 
 .tm-doc:focus, .tm-doc:focus-visible { outline: none; }
 .tm-doc .tm-island { white-space: normal; cursor: default; user-select: none; -webkit-user-select: none; }
 .tm-doc .tm-island.is-text, .tm-doc .tm-lead { white-space: pre-wrap; user-select: text; -webkit-user-select: text; }      /* protected words can still be selected and copied */
+
+/* A diagram on the owner's page: the mechanism, where the photograph can only show the state of things. It is
+   captioned as a diagram, and sized well below the photograph above it so it never reads as the evidence. */
+.rp-dia { margin: 14px 0 4px; padding: 0; }
+.rp-dia-img { display: block; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 10px; background: #fff; border: 1px solid rgba(var(--ink-rgb, 38, 42, 49), .1); }
+.rp-dia-cap { margin: 8px auto 0; max-width: 420px; font-size: 12.5px; line-height: 1.45; color: var(--ink2, #5b6170); text-align: left; }

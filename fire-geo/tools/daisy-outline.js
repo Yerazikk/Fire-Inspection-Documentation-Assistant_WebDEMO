@@ -21,10 +21,31 @@ const PLAYWRIGHT = path.join(GEO, '..', 'node_modules', 'playwright');
 const WRITE = process.argv.includes('--write');
 const W = 224;                              // working width; the blur radius below is in these pixels
 
+// Two of the three are marked by hand, because the thing worth circling is not the biggest thing that changed.
+// In correction A the plug also leaves the grey strip in the middle of the frame, and in C both strips vanish from
+// the floor; a difference finds those, and they are not the point. What the inspector and the owner need to see is
+// WHERE THE POWER NOW COMES FROM: the free socket of the receptacle that was always there, and the new receptacle.
+//
+// `ellipse` is in fractions of the frame and is the shape BEFORE lib/solutions.js simpleShape() opens it out. That
+// function enlarges any shape narrower than 0.42 by up to 2.4x about its centre, so the radii here are the ones
+// wanted on screen divided by 2.4. `reveal` is where the before/after divider has to sit for the circle to be on
+// the after side at all: the outline is drawn inside the clip, so a mark near the left edge is invisible until the
+// divider moves there. Measured off the pictures by cropping them, like the annotation boxes in content.js.
+const MANUAL = {
+  'daisy-a': { ellipse: { cx: 0.105, cy: 0.0875, rx: 0.025, ry: 0.026 }, labelAt: [0.30, 0.175], reveal: 0.02,
+               note: 'the free socket of the receptacle that was already there' },
+  'daisy-c': { ellipse: { cx: 0.895, cy: 0.1125, rx: 0.027, ry: 0.023 }, labelAt: [0.66, 0.225],
+               note: 'the receptacle the electrician added' },
+};
+const ring = (e, n) => Array.from({ length: n }, (_, i) => {
+  const t = i / n * Math.PI * 2;
+  return [+(e.cx + e.rx * Math.cos(t)).toFixed(4), +(e.cy + e.ry * Math.sin(t)).toFixed(4)];
+});
+
 const JOBS = [
-  { key: 'daisy-a', after: 'assets/after/daisy-a-direct.jpg',      label: 'its own receptacle' },
-  { key: 'daisy-b', after: 'assets/after/daisy-b-one-tap.jpg',     label: 'second strip gone' },
-  { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'receptacles added' },
+  { key: 'daisy-a', after: 'assets/after/daisy-a-direct.jpg',      label: 'same outlet' },
+  { key: 'daisy-b', after: 'assets/after/daisy-b-one-tap.jpg',     label: 'one strip' },
+  { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'new outlet' },
 ];
 const BEFORE = 'assets/daisychain.jpg';
 
@@ -110,6 +131,7 @@ function findContour([beforeUrl, afterUrl, W]) {
       centre: [+(cx / W).toFixed(4), +(cy / H).toFixed(4)],
       share: +(best.length / (W * H)).toFixed(4),
       size: [W, H],
+      beforeSize: [A.naturalWidth, A.naturalHeight], afterSize: [B.naturalWidth, B.naturalHeight],
     };
   });
 }
@@ -120,15 +142,29 @@ function findContour([beforeUrl, afterUrl, W]) {
   const page = await browser.newPage();
   const out = {};
   for (const job of JOBS) {
+    const m = MANUAL[job.key];
     const r = await page.evaluate(findContour, [dataUrl(BEFORE), dataUrl(job.after), W]);
-    if (r.error) { console.error(job.key + ': ' + r.error); continue; }
+    if (r.error && !m) { console.error(job.key + ': ' + r.error); continue; }
+    if (m) {
+      out[job.key] = {
+        align: { sx: 1, sy: 1, dx: 0, dy: 0 },
+        fit: { size: r.size || [W, 0], matches: 0, inliersX: 0, inliersY: 0, rmsPx: 0, how: 'marked by hand (tools/daisy-outline.js MANUAL): ' + m.note },
+        beforeSize: r.beforeSize, afterSize: r.afterSize,
+        reveal: m.reveal != null ? m.reveal : null,
+        contours: [{ label: job.label, labelAt: m.labelAt, areaShare: +(Math.PI * m.ellipse.rx * m.ellipse.ry * 5.76).toFixed(4), points: ring(m.ellipse, 12) }],
+      };
+      console.log(job.key + ': marked by hand, ' + m.note);
+      continue;
+    }
     // the label sits inside the picture, clear of the shape's own centre
     const [cx, cy] = r.centre;
-    const labelAt = [Math.min(0.62, Math.max(0.38, cx)), cy < 0.5 ? Math.min(0.88, cy + 0.17) : Math.max(0.12, cy - 0.17)];
+    // The outline and its label are drawn on the AFTER side only, clipped at the divider, which rests at 42%.
+    // A label centred left of about 60% has its first words cut off by that edge, so it is kept to the right of it.
+    const labelAt = [Math.min(0.80, Math.max(0.62, cx)), cy < 0.5 ? Math.min(0.88, cy + 0.17) : Math.max(0.12, cy - 0.17)];
     out[job.key] = {
       align: { sx: 1, sy: 1, dx: 0, dy: 0 },
       fit: { size: r.size, matches: 0, inliersX: 0, inliersY: 0, rmsPx: 0, how: 'difference, not registration (tools/daisy-outline.js)' },
-      beforeSize: [896, 1200], afterSize: [896, 1200],
+      beforeSize: r.beforeSize, afterSize: r.afterSize,
       contours: [{ label: job.label, labelAt, areaShare: r.share, points: r.points }],
     };
     console.log(job.key + ': ' + r.points.length + ' points, ' + (r.share * 100).toFixed(1) + '% of the frame changed');

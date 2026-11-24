@@ -41,7 +41,7 @@ window.TeamFlow = (function () {
   const SCAN = {
     sprinkler: [{ ix: 2, label: 'Stains on the ring' }, { ix: 0, label: 'Paint on the sprinkler', finding: true }],
     ladder: [{ ix: 0, label: 'Tall plants' }, { ix: 1, label: 'Bushes reach the tall plants', finding: true }],
-    daisy: [{ ix: 1, label: 'Upper strip' }, { ix: 0, label: 'The lower strip feeds off it', finding: true }],
+    daisy: [{ ix: 2, label: 'Upper strip, on the wall' }, { ix: 0, label: 'The lower strip feeds off it', finding: true }],
   };
   const SCAN_STEPS = ['Reading the photo', 'Finding what is wrong', 'Checking what else is needed'];
   const SCAN_NONE = 'Nothing was marked.';
@@ -102,17 +102,20 @@ window.TeamFlow = (function () {
     // something only the person standing in the room knows. So the two questions are exactly those two exceptions.
     daisy: [
       {
+        // Nothing to photograph here: the three taps are the common answers, anything else is written in, and
+        // "Not sure" stays, because a visitor to a building may genuinely not know what a room is used for.
         id: 'room', ask: 'What is this room used for?',
         options: [{ id: 'work', label: 'An office or work room' }, { id: 'meeting', label: 'A meeting room' }, { id: 'assembly', label: 'A hall or function room' }],
+        write: { label: 'What the room is used for', placeholder: 'Or write what it is' },
         cant: { id: 'unsure', label: 'Not sure' },
         say: () => 'The rule has an exception for meeting and function rooms.',
-        photo: { label: 'Add a photo of the wall socket', prompt: 'Take a photo of the wall socket the first strip is plugged into.', picture: 'wallshot', callout: 'The wall socket and the cord in it' },
         source: 'code row "tap-direct" (CFC \u00a7 603.5.2, read on up.codes 2026-11-23): the exception covers a Group A occupancy or a Group B meeting room. The plain words for the three options are this prototype\u2019s; the occupancy groups themselves are the inspector\u2019s to decide.',
       },
       {
         id: 'age', ask: 'How long has it been plugged in like this?',
         options: [{ id: 'today', label: 'Set up today' }, { id: 'weeks', label: 'A few weeks' }, { id: 'months', label: 'Months or longer' }],
         cant: { id: 'unsure', label: 'Not sure' },
+        write: { label: 'How long it has been like this', placeholder: 'Or write how long' },
         say: () => 'The other exception only covers 90 days of testing.',
         source: 'code row "tap-direct" (CFC \u00a7 603.5.2): taps \u201cused for 90 days or less for the purpose of testing the performance of such devices\u201d. content.js daisy.uncertainty "How long has this stood?"',
       },
@@ -128,8 +131,9 @@ window.TeamFlow = (function () {
   function asked(scene, answers) {
     return questions(scene).map(q => {
       const a = (answers || {})[q.id] || {}, typed = a.value != null;
-      const text = typed ? a.value + (q.entry && q.entry.unit ? ' ' + q.entry.unit : '') : a.pick ? optLabel((q.options || []).concat(q.cant ? [q.cant] : []), a.pick) : '';
-      return { id: q.id, ask: q.ask, text: text || 'Not answered', answered: !!text, typed, pick: a.pick || null, value: typed ? a.value : null, photo: a.photo || null, estimate: q.id === 'distance' && !!DISTANCE[a.pick] };
+      const written = (a.text || '').trim();
+      const text = typed ? a.value + (q.entry && q.entry.unit ? ' ' + q.entry.unit : '') : a.pick ? optLabel((q.options || []).concat(q.cant ? [q.cant] : []), a.pick) : written;
+      return { id: q.id, ask: q.ask, text: text || 'Not answered', answered: !!text, typed, written: written || null, pick: a.pick || null, value: typed ? a.value : null, photo: a.photo || null, estimate: q.id === 'distance' && !!DISTANCE[a.pick] };
     });
   }
   /** the app's readings, with any the field inspector corrected */
@@ -151,7 +155,9 @@ window.TeamFlow = (function () {
       for (const k of ['paint', 'plate']) if (c[k] && c[k] !== seen('sprinkler').find(s => s.id === k).options[0].id) f[k] = c[k];
     } else if (scene === 'daisy') {
       if ((a.room || {}).pick) f.room = a.room.pick;
+      else if (((a.room || {}).text || '').trim()) { f.room = 'written'; f.roomText = a.room.text.trim(); }
       if ((a.age || {}).pick) f.age = a.age.pick;
+      else if (((a.age || {}).text || '').trim()) { f.age = 'written'; f.ageText = a.age.text.trim(); }
       for (const k of ['chain', 'upper', 'cords', 'count']) if (c[k] && c[k] !== seen('daisy').find(s => s.id === k).options[0].id) f[k] = c[k];
     }
     return f;
@@ -181,8 +187,10 @@ window.TeamFlow = (function () {
         const where = f.room === 'meeting' ? 'a meeting room' : 'a hall or function room';
         out.push({ short: 'The field inspector calls this ' + where + '.', text: 'The field inspector calls this ' + where + '. The exception in \u00a7 603.5.2 covers up to five taps connected together for temporary use supplying electronic equipment in a Group A occupancy or a Group B meeting room. Whether this room is one, and whether this use is temporary, is yours to decide.' });
       } else if (f.room === 'work') out.push({ short: 'An ordinary work room: no exception in play.', text: 'The field inspector calls this an office or work room, so neither exception in \u00a7 603.5.2 is in play and the finding stands as read.' });
+      else if (f.room === 'written') out.push({ short: 'Room, in the field inspector\u2019s words: \u201c' + f.roomText + '\u201d.', text: 'The field inspector wrote the room in rather than choosing one of the three: \u201c' + f.roomText + '\u201d. Decide from that whether \u00a7 603.5.2 excepts it, as a Group A occupancy or a Group B meeting room.' });
       else out.push({ short: 'Room use not recorded.', text: 'What the room is used for was not given, and \u00a7 603.5.2 excepts a Group A occupancy and a Group B meeting room. Settle the occupancy before citing.' });
-      if (f.age === 'today' || f.age === 'weeks') out.push({ short: 'Recently set up, the field inspector says.', text: 'The field inspector says this was set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + '. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general. Ask what it is for.' });
+      if (f.age === 'written') out.push({ short: 'How long, in the field inspector\u2019s words: \u201c' + f.ageText + '\u201d.', text: 'The field inspector wrote how long rather than choosing: \u201c' + f.ageText + '\u201d. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general.' });
+      else if (f.age === 'today' || f.age === 'weeks') out.push({ short: 'Recently set up, the field inspector says.', text: 'The field inspector says this was set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + '. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general. Ask what it is for.' });
       if (f.cords === 'under') out.push({ short: 'A cord runs under something, out of the frame.', text: 'The field inspector says a cord runs under a door or under the carpet. That is a second finding under \u00a7 603.5.3, separate from the chained taps.' });
       if (f.count === 'more') out.push({ short: 'More than two strips, the field inspector says.', text: 'The field inspector counts more than the two taps in the photograph. Record each one: the exception in \u00a7 603.5.2 stops at five, and only for the uses it names.' });
     }

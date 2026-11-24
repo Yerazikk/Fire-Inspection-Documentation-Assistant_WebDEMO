@@ -20,7 +20,7 @@ window.CONTENT = {
 // LADDER FUEL
 // ===========================================================================
 ladder: {
-  tab: 'Ladder Fuel',
+  tab: 'Ladder fuel',
   title: 'Ladder Fuel — Inadequate Vertical Separation',
   status: 'Noncompliant — inspector confirmed',
   meta: [
@@ -275,7 +275,7 @@ ladder: {
 // PAINTED SPRINKLER
 // ===========================================================================
 sprinkler: {
-  tab: 'Painted Sprinkler',
+  tab: 'Sprinkler',
   title: 'Fire Sprinkler Head — Paint Contamination',
   status: 'Failed — inspector confirmed',
   meta: [
@@ -560,7 +560,7 @@ sprinkler: {
 // entries leave the distance to the structure and the sprinkler's model open.
 // ===========================================================================
 daisy: {
-  tab: 'Daisy Chain',
+  tab: 'Wires',
   title: 'Relocatable Power Taps — Connected in Series',
   status: 'Noncompliant — inspector confirmed',
   meta: [
@@ -571,45 +571,47 @@ daisy: {
   ],
 
   photo: 'assets/daisychain.jpg',
-  aspect: 896 / 1200,
+  aspect: 1086 / 1448,
 
   note: 'one power strip plugged into another',
-  noteFix: 'Unplug the lower strip from the upper one and put it on a wall outlet of its own.',
+  noteFix: 'Unplug the pale strip from the grey one and put it in the free socket of the same wall outlet.',
   noteWhy: 'A power tap is listed to be fed by a permanently installed receptacle. Feeding one from another puts the whole load of both through a single cord and a single set of contacts, and past the protection each was built around.',
 
-  summary: 'Two relocatable power taps lie on a carpeted floor. The lower cream-coloured six-outlet strip is not plugged into a wall: its supply cord runs up and to the right and ends in the last outlet of the white Belkin strip above it. The Belkin strip’s own cord leaves the frame to the left.',
-  primary: 'Unplug the lower strip from the upper strip and connect it directly to a permanently installed receptacle. Neither tap may be fed from the other.',
+  summary: 'Two relocatable power taps lie on a carpeted floor below a run of cabinets. The grey tap against the plinth is correctly supplied: its cord runs up to the wall receptacle at the left of the frame. The pale tap in the foreground is not. Its cord runs up the carpet and ends in a socket of the grey tap, so it is fed from another tap rather than from the wall.',
+  primary: 'Unplug the pale tap from the grey one and connect it directly to a permanently installed receptacle. The wall receptacle in the photograph has a free socket. Neither tap may be fed from the other.',
 
-  // Boxes are [left, top, width, height] as percentages of the displayed image.
-  // Located against the photograph itself — see the enlargements of the right-hand
-  // end, where the cream right-angle plug in the Belkin’s last outlet is legible.
+  // Boxes are [left, top, width, height] as percentages of the displayed image. Measured off the photograph by
+  // cropping and enlarging it, not guessed and not placed by a model: an earlier pass took a model's boxes for the
+  // older frame and they sat about four per cent too high.
   annotations: [
-    { box: [62, 25, 8, 13], tone: 'red', label: 'Tap fed from a tap',
-      note: 'The cream right-angle plug in the last outlet of the white strip is the supply cord of the cream strip below. This single connection is the finding.' },
-    { box: [21, 31, 48, 15], tone: 'cyan', label: 'Upper strip — the Belkin',
-      note: 'A white Belkin tap carrying two cord-connected plugs, a plug-in USB supply and, at its right-hand end, the cord of the strip below. Its own supply cord leaves the frame to the left; where that ends is not shown.' },
-    { box: [15, 60.5, 73, 23], tone: 'cyan', label: 'Lower strip — six outlets and a switch',
-      note: 'A cream six-outlet tap with a lit rocker switch at its right end, carrying two black cord-connected plugs. It is the downstream device: its supply cord is the one in the Belkin above.' },
+    { box: [59, 34.5, 5, 5], tone: 'red', label: 'Tap fed from a tap',
+      note: 'The pale plug in the near socket of the grey strip is the lower strip’s supply cord. This one connection is the finding.' },
+    { box: [5, 3, 7, 10], tone: 'cyan', label: 'The wall receptacle',
+      note: 'The only permanently installed receptacle in the photograph. It is a duplex, and only the lower socket is in use: the grey strip’s cord is in it and the upper socket is free.' },
+    { box: [38, 30.5, 39, 9], tone: 'cyan', label: 'Upper strip, fed from the wall',
+      note: 'A grey tap lying against the cabinet plinth. Its own cord runs up to the wall receptacle, so this one is correctly supplied. It is what the lower strip is plugged into.' },
+    { box: [26, 64, 13, 31], tone: 'cyan', label: 'Lower strip, fed from the upper',
+      note: 'A pale tap with a lit red switch and a plug-in transformer in it. Its cord runs up the carpet to the grey tap above, not to a wall socket. It is the downstream device.' },
   ],
-  annotationCaption: 'The finding is one plug in one outlet. Both strips are marked so the record is clear about which feeds which — the cream strip is downstream, and that is the direction that matters to the code.',
+  annotationCaption: 'The finding is one plug in one socket. The wall receptacle and both strips are marked so the record is clear about which feeds which: the grey strip is correctly on the wall, the pale one hangs off it, and that direction is what the code is about.',
 
   solutions: [
     {
       id: 'a',
       badge: 'required', badgeText: 'Required correction · inspector confirmed',
-      title: 'Move the plug to the socket already there',
+      title: 'Plug both power strips directly into the same wall outlet',
       lede: 'The correction the code asks for. Nothing is bought and nothing is installed.',
-      plain: 'Unplug the cream strip from the white one and put it in the free socket of the wall outlet.',
+      plain: 'Unplug the pale strip from the grey one and put it in the free socket of the same wall outlet.',
       image: 'assets/generated/daisy-a-direct.png',
-      where: 'The cream right-angle plug occupying the last outlet of the white Belkin strip, at the right of the photograph.',
-      change: 'Withdraw that plug from the Belkin strip and put the cream strip’s cord into the free half of the wall receptacle the Belkin already uses.',
+      where: 'The pale plug in the near socket of the grey strip, and the wall receptacle at the left of the photograph.',
+      change: 'Withdraw that plug from the grey strip and put the pale strip’s own cord into the free socket of the wall receptacle, beside the grey strip’s cord.',
       how: [
         'Switch off and unplug both taps before moving anything.',
-        'The receptacle on the wall is a duplex: the Belkin uses the lower socket and the upper one is free. Put the cream strip’s own cord into it.',
+        'The receptacle on the wall is a duplex: the grey strip uses the lower socket and the upper one is free. Put the pale strip’s own cord into it.',
         'Where no socket is free, move the tap to one that is, or use a tap whose own cord reaches. Never an extension cord between the two.',
-        'Confirm that neither tap is now fed by the other, and that no extension cord stands between either tap and its receptacle.',
-        'Total the nameplate load on each tap and check it against the tap’s own rating.',
-        'Route both cords so they are not walked on, pinched by furniture, or run under a door or a floor covering.',
+        'Confirm that neither tap is now fed by the other.',
+        'Total the nameplate load on each tap and check it against the tap’s own rating, and both against the circuit.',
+        'Route both cords so they are not walked on, pinched by the cabinet, or run under a door or a floor covering.',
       ],
       keep: 'Both taps, if each is listed and undamaged, and everything currently plugged into them. Nothing here requires new equipment, new wiring or an electrician.',
       why: 'A relocatable power tap is listed to be supplied by a permanently installed receptacle. Fed from another tap, the whole of both loads passes through one cord and one set of contacts, and the overcurrent protection in the upstream tap is no longer sized for what is behind it.',
@@ -617,42 +619,42 @@ daisy: {
     {
       id: 'b',
       badge: 'alt', badgeText: 'Alternative — requires inspector approval',
-      title: 'One strip of adequate rating in place of the two',
-      lede: 'One bigger tap on a sufficient circuit, rather than two in a row.',
-      plain: 'Take one strip away and move everything onto the other, if it has the sockets and the rating for it.',
+      title: 'Replace both strips with one longer power strip',
+      lede: 'One tap of adequate rating and reach, rather than two in a row.',
+      plain: 'Take both strips away and put in one longer one that reaches the wall on its own.',
       image: 'assets/generated/daisy-b-one-tap.png',
-      where: 'Both taps, and the four cord-connected loads between them.',
-      change: 'Remove one tap from service and move its loads onto the remaining tap, provided the total stays inside that tap’s rating.',
+      where: 'Both taps, the cord between them, and everything presently plugged into either.',
+      change: 'Remove both taps and fit a single listed tap whose own cord reaches the wall receptacle and whose rating covers the whole load.',
       how: [
         'Add up the nameplate load of everything presently plugged into both taps.',
-        'Compare the total against the rating marked on the tap that is to remain.',
-        'If the total fits, move the loads across and remove the second tap from the area.',
-        'If it does not fit, this option is closed: the load needs more than one supply, and that means correction A or C.',
+        'Choose one listed tap with enough sockets for all of it, a rating above that total, and a cord long enough to reach the receptacle without an extension cord.',
+        'Fit it, plug it straight into the wall receptacle, and take both old taps out of the area.',
+        'If no single tap covers the load, this option is closed: the load needs more than one supply, and that is correction A or C.',
       ],
-      keep: 'Whichever tap is listed, undamaged and adequately rated. The loads themselves are unaffected.',
-      why: 'It removes the series connection by removing one of the two devices, so there is nothing left to plug wrongly.',
-      limit: 'It only works if one tap can carry everything. The photograph does not show the ratings or the nameplate loads, so whether this is available here is not established.',
+      keep: 'The loads themselves are unaffected. Either old tap can be kept for use elsewhere if it is listed and undamaged.',
+      why: 'It removes the series connection by removing the reason for it. One tap on one cord is what the listing assumes, and a longer cord answers the distance that led to the chain in the first place.',
+      limit: 'It needs the ratings and the total load, and the photograph gives neither. Whether one tap can carry everything here is not established.',
     },
     {
       id: 'c',
       badge: 'alt', badgeText: 'Alternative — requires inspector approval',
-      title: 'Have receptacles added where the equipment is',
+      title: 'Install an additional permanent electrical outlet',
       lede: 'The long-term fix, and the only one that needs an electrician.',
-      plain: 'Have an electrician put more wall sockets in, so the strips are not needed.',
+      plain: 'Have an electrician put another wall socket in, near where the equipment actually is.',
       image: 'assets/generated/daisy-c-receptacles.png',
       proposal: true,
-      where: 'The wall serving this area. It is outside the photograph.',
-      change: 'Have a licensed electrician add permanently installed receptacles on a circuit sized for the load, and retire the taps that were standing in for them.',
+      where: 'The wall and plinth at the left of the photograph, where the one receptacle is.',
+      change: 'Have a licensed electrician add a permanently installed receptacle on a circuit sized for the load, near the equipment, and retire the taps that were standing in for it.',
       how: [
         'Have the circuit and its existing load assessed by a licensed electrician.',
-        'Install additional receptacles under permit where the equipment actually sits.',
-        'Plug the equipment into the new receptacles and remove the taps that are no longer needed.',
+        'Install the additional receptacle under permit, near where the equipment sits.',
+        'Plug the equipment into the new receptacle and take away the taps that are no longer needed.',
         'Keep any remaining tap directly on a receptacle of its own.',
       ],
       keep: 'Nothing is required to be discarded. A listed, undamaged tap can stay in use on its own receptacle.',
-      why: 'Taps get chained when there are fewer receptacles than things to plug in. Adding receptacles removes that pressure, and the fire code says plainly that cords are not a substitute for permanent wiring.',
+      why: 'Taps get chained when there are fewer receptacles than things to plug in. Adding one removes that pressure, and the fire code says plainly that cords are not a substitute for permanent wiring.',
       limit: 'This is a proposal, not part of the inspection record, and it is the most expensive of the three. It needs a licensed electrician and in most cases a permit. It must never be presented as a condition of clearing the violation: moving one plug to the free socket clears it, at no cost.',
-      imageNote: 'The second receptacle in the visualisation is proposed, not existing. Only the one the Belkin uses is in the photograph.',
+      imageNote: 'The second receptacle in the visualisation is proposed, not existing. Only the one at the left of the photograph is there today.',
     },
   ],
 
@@ -792,6 +794,15 @@ daisy: {
   ],
 
   owner: {
+    // A diagram, not a photograph of this property: it shows why a chain is the problem rather than the number of
+    // sockets. Everything on both strips is drawn back through one cord and one wall socket, with the devices
+    // coloured by how much they draw. It was supplied for this demonstration and its origin is not established,
+    // so it is captioned as a general diagram and never as a reading of this room.
+    diagram: {
+      src: 'assets/daisychain-load.jpg',
+      alt: 'Diagram: several power strips chained together, with the devices on them coloured green for low-draw, yellow for higher and red for the highest. Every one of them leads back through a single wall outlet.',
+      caption: 'Why chaining is the problem. Everything plugged into either strip draws through the one cord and the one wall socket at the end of the chain. A general diagram, not a picture of your room.',
+    },
     title: 'Fire safety inspection — electrical correction required',
     sub: 'Finding: one power strip plugged into another',
     intro: 'Two power strips are connected one into the other. The lower strip is not plugged into the wall: its cord goes into the strip above it.',

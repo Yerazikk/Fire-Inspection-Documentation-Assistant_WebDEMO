@@ -434,65 +434,65 @@ in `uncertainty` rather than softening the verdict. The three local rows are the
 `carries-ch6`, which is green: it is not a finding against anyone, it says which code the citation is written
 under. The headline reason is "A tap fed from a tap." (six words, as the others).
 
-### The pictures, and the frame they are in
+### The photograph
 
-**The photograph on the page is an extended version of the inspector's.** The original is kept beside it as
-`assets/daisychain-src.png` (517 x 377) and nothing was taken out of it. It is shot straight down at the floor:
-both taps are in it and the chain between them is in it, but the thing the chain is finally plugged into is not —
-the Belkin's cord leaves the left of the frame and the picture never says where it goes. Read cold, it does not
-show the violation, only two power strips. It was also the wrong shape for the left card: the other two
-inspections are upright (820 x 1474 and 428 x 710) and a 1.37 landscape sat there as a squat band.
+`assets/daisychain.jpg` (1086 x 1448), supplied 2026-11-23, with the untouched original beside it as
+`assets/daisychain-src.png`. It replaced two earlier attempts and is better than either: upright like the other two
+inspections, and it carries the whole chain in one frame, which is the thing the first photograph could not do.
 
-So `tools/daisy-scene.js` asked the model to extend that same photograph upward into an upright frame
-(`assets/daisychain.jpg`, 896 x 1200), keeping the floor exactly as photographed and continuing the room above it
-to the skirting and the wall receptacle the cord runs to. The result reads in one look as **wall outlet ->
-Belkin -> cream strip**, which is the finding. This is outpainting and it is said plainly here, on the page (the
-picture is captioned as an illustration) and in the commit; the original stays in the repo so the two can always
-be compared. The model garbles the BELKIN wordmark; that is left alone, because touching it up would make a
-generated picture look more like a photograph than it is.
+Read off it: a wall receptacle at the top left, a **duplex**, with a thick grey cord in its **lower** socket and the
+**upper socket empty**. That grey cord runs down to a dark grey tap lying against the cabinet plinth, so that tap is
+correctly supplied. A pale cord is plugged into one of the grey tap's sockets and runs down the carpet to a pale
+tap in the foreground, with a lit red switch and a plug-in transformer in it. So the pale tap is fed by the grey
+tap rather than by the wall, and that one connection is the finding.
 
-The three "after" pictures are drawn from that frame by the same tool, through `../ai/visual.js` — the same Gemini
-path, model and key the app itself uses. `tools/topack.js` re-encodes the ~2 MB PNG the model returns as a ~280 KB
-JPEG through the headless browser (there is no image library in this repo). `lib/solutions.js` maps the generated
-names to them as it does for the other two photographs.
+**An earlier pass extended a different photograph by outpainting, and that is gone.** It was recorded here as such
+while it stood; it is recorded here as removed now. No generated frame stands in for the inspector's photograph.
+
+The annotation boxes in `data/content.js` were measured by cropping and enlarging this photograph, not placed by a
+model: a model's boxes for the earlier frame sat about four per cent too high, and that is why they are measured.
 
 ### What the corrections actually are
 
-The first pass got this wrong and it is worth recording why. Correction A was drawn with a **second wall
-receptacle appearing in the wall**, as though the answer to a daisy chain were an electrician. It is not. The
-receptacle in the photograph is a **duplex**: two sockets on one faceplate, and only the lower one is in use. The
-correction is to put the second tap in the socket that is already there. Nothing is bought, nothing is installed,
-and the picture now shows one faceplate with both of its sockets occupied.
+Two earlier passes got this wrong. The first drew a **second wall receptacle appearing in the wall** for the
+required correction, as though the answer to a daisy chain were an electrician. It is not. The receptacle in the
+photograph is a duplex and its upper socket is empty, so the correction is to use the socket that is already there.
 
-The three follow the order the published guidance gives, which was checked rather than assumed
+The three are now named as the inspector asked for them, and they follow the order the published guidance gives,
+which was checked rather than assumed
 ([NFPA](https://www.nfpa.org/news-blogs-and-articles/blogs/2018/04/20/nfpa-1-electrical-fire-safety-and-relocatable-power-taps-power-strips-firecodefridays),
 [Office of Compliance](https://www.ocwr.gov/wp-content/uploads/2016/09/fastfacts_power_strips.pdf)):
 
-1. **Move the plug to the socket already there.** Each tap directly on a permanently installed receptacle. Free.
-2. **One strip of adequate rating in place of the two.** The guidance puts it as one bigger tap on a sufficient
-   circuit rather than two in a row. Needs the ratings, which the photograph does not give.
-3. **Receptacles added where the equipment is.** The permanent fix, and the only one needing an electrician. It is
-   tagged a proposal and says in terms that it is not required to clear the violation.
+1. **Plug both power strips directly into the same wall outlet.** Required. Free, and needs nothing but a minute.
+2. **Replace both strips with one longer power strip.** The guidance puts it as one bigger tap of adequate rating
+   and reach rather than two in a row. Needs the ratings, which the photograph does not give.
+3. **Install an additional permanent electrical outlet.** The permanent fix, and the only one needing an
+   electrician. Tagged a proposal, and it says in terms that it is not required to clear the violation.
 
-### Why the contours are found differently
+Pictures 1 and 2 are drawn by `tools/daisy-scene.js` through `../ai/visual.js` (the app's own Gemini path, model
+and key) and packed by `tools/topack.js`. Picture 3 was supplied rather than generated.
+
+### Why the contours are found differently, and why two are drawn by hand
 
 `tools/register.js` fits an "after" image onto the photograph by matching a few hundred small patches, which needs
-most of the frame to be unchanged pixel for pixel. These pictures are redrawn whole by the model from the same
-frame: they agree in composition but not pixel for pixel, and there is no sub-pixel transform to recover, so the
-alignment is the identity by construction.
+most of the frame unchanged pixel for pixel. These pictures are redrawn whole from the same frame: they agree in
+composition but not pixel for pixel, and there is no sub-pixel transform to recover, so the alignment is the
+identity by construction. `tools/daisy-outline.js` finds the shape by difference instead: both pictures into a
+canvas at 224 px wide, the luminance difference blurred twice, thresholded at the 88th percentile, largest
+connected blob, convex hull simplified to at most 14 points.
 
-`tools/daisy-outline.js` finds the shape the other way instead. Both pictures are drawn into a canvas at 224 px
-wide, the luminance difference is blurred twice (which throws away the model's per-pixel noise and keeps whole
-objects that have appeared or gone), thresholded at the 88th percentile, and the largest connected blob is taken;
-its convex hull, simplified to at most 14 points, is the contour. A hull rather than the true boundary on purpose:
-the page draws a smooth closed curve through the midpoints of the points it is given, so a ragged boundary buys
-nothing. The three come out at 8.3%, 11.2% and 7.2% of the frame changed. `data/outlines.js` records
-`fit.how: 'difference, not registration'` on each, and `test.js` checks that, so the distinction cannot quietly
-disappear.
+That is right for correction 2, where what changed is the floor. It is **wrong** for 1 and 3, because the biggest
+difference is not the thing worth looking at: in 1 the plug also leaves the grey strip in the middle of the frame,
+and in 3 both strips vanish from the carpet. What the inspector and the owner need to see is where the power now
+comes from. So those two are marked by hand in the tool's `MANUAL` table, as a small ellipse on the free socket of
+the receptacle that was always there, and on the receptacle the electrician added.
 
-`paintSwitch()` in `app.js` hides "Show what changed" on any correction that has no contour. All three daisy
-corrections have one, so the switch is there; the guard stays as the honest fallback for the next photograph that
-arrives without one.
+Two mechanics matter when marking by hand. `lib/solutions.js` `simpleShape()` opens out any shape narrower than
+0.42 of the frame by up to 2.4x about its centre, so the radii in `MANUAL` are the ones wanted on screen divided by
+2.4. And the outline is drawn **inside the clip**, on the after side only, so a mark near the left edge is
+invisible at the divider's resting position of 42%. `MANUAL` therefore carries `reveal`, a divider position the
+switch travels to when it is turned on; correction 1 uses 0.02, and `app.js` moves the divider before drawing.
+`data/outlines.js` records on each entry whether it came from a difference or was marked by hand.
 
 ### On the Inspectors tab
 
@@ -516,6 +516,29 @@ door or the carpet turns `tap-install` red, because that is the plain words of �
 can see it where the camera could not. Sent from the phone as a work room the senior's screen reads **Violation,
 1 red and 4 of the inspector's call**; as a meeting room, **Inspector's call, 0 red and 5**.
 
-One fix fell out of this. The question screen assumed every question carried a number to type (`q.entry`) and
-threw on one answered by tapping alone, although `flow.js` lists `entry` as one control among several. `phone.js`
-now builds the display, the keypad and the number keys only when there is something to type.
+Three fixes fell out of this.
+
+- The question screen **assumed every question carried a number to type** (`q.entry`) and threw on one answered by
+  tapping alone, although `flow.js` lists `entry` as one control among several. `phone.js` now builds the display,
+  the keypad and the number keys only where there is something to type.
+- With those gone the layout did not close up: the empty reply line and the foot still reserved their height, so
+  the taps and "Not sure" sat a band apart for no reason. `.ph-q.is-tap` collapses both.
+- Neither question is always answerable from the three taps, so both carry a **written answer** (`q.write`). Typing
+  clears the taps and tapping clears what was typed, so there is only ever one answer. A written room is carried
+  through as `room: 'written'` with the words, and it turns the finding yellow in the same way a meeting room does,
+  because it is then the inspector's reading of what was written.
+
+Neither question carries a photo prompt: there is nothing a second picture of this would add.
+
+### The diagram on the owner's page
+
+`assets/daisychain-load.jpg`, supplied 2026-11-23. It shows several taps chained together with the devices on them
+coloured by how much they draw, every one of them leading back through a single wall socket. It explains the
+**mechanism**, which a photograph of a floor cannot: the problem is not the number of sockets, it is that the whole
+load returns through one cord and one pair of contacts.
+
+It sits under "What is wrong" on the owner's page (`team/desk-draft.js` `ownerBlocks`), as an island block with its
+own caption, and it is captioned as a general diagram and never as a picture of the owner's room. Its origin is not
+established — it was supplied for this demonstration — so it carries no source line and makes no claim to be one.
+Any finding can take one: `owner.diagram` in `data/content.js` is `{ src, alt, caption }` and the owner's page adds
+the block when it is there.

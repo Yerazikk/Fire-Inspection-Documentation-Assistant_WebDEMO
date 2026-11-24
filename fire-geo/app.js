@@ -631,7 +631,10 @@ function start() {
   // the photo card
   makeSwap($('#findingName'), photoInfo(S.photo).title, true); makeSwap($('#fixTitle'), '', true);
   for (let i = 0; i < 3; i++) { const d = h('button', 'fix-dot is-off'); d.type = 'button'; d.addEventListener('click', () => { const s = solutions.list(S.photo)[i]; if (s) setSolution(s.id); }); $('#fixDots').append(d); dots.push(d); }
-  const tabsEl = $('#photoTabs'); tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.value === S.photo));
+  // one tab per photograph in codes.PHOTOS, in that order. Adding a photograph there adds its tab here.
+  const tabsEl = $('#photoTabs');
+  codes.PHOTOS.forEach(p => { const b = h('button', p.id === S.photo ? 'on' : '', p.tab); b.type = 'button'; b.dataset.value = p.id; tabsEl.append(b); });
+  window.Shell.rail(tabsEl);                            // a row that scrolls sideways once the tabs no longer fit
   const tabs = window.Shell.tabs(tabsEl, setPhoto); window.Shell.watch(tabsEl);
   paintMeasure();
 
@@ -643,7 +646,15 @@ function start() {
 
   // every scroll area fades out softly where there is more to scroll
   window.Shell.softScroll($('#notesBody')); window.Shell.softScroll($('.shell-view[data-view="technology"]'));
-  changeSwitch.addEventListener('click', () => { S.showChange = !S.showChange; paintSwitch(); if (BA) BA.outline(S.showChange); });
+  // Turning the switch on reveals the marked region. Where that region sits near the left edge the divider has
+  // to travel to it first, or the outline is drawn entirely inside the clipped-away half and nothing appears.
+  changeSwitch.addEventListener('click', () => {
+    S.showChange = !S.showChange; paintSwitch();
+    if (!BA) return;
+    const sol = currentSolution();
+    if (S.showChange && sol && sol.reveal != null && BA.get() > sol.reveal) { baPos = sol.reveal; BA.set(baPos); }
+    BA.outline(S.showChange);
+  });
   // Sources and notes
   [$('#notesLink'), $('#notesLinkFoot')].forEach(b => { if (b) b.addEventListener('click', () => openNotes(b)); });
   $('#notesClose').addEventListener('click', closeNotes); veil.addEventListener('click', closeNotes);

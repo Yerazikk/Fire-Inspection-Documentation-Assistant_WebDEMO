@@ -14,8 +14,8 @@ const RANK = { green: 0, yellow: 1, red: 2 };
 const DISTANCE = { min: 0, max: 150, step: 1, default: 20, unit: 'ft' };
 const PHOTOS = [
   { id: 'ladder', tab: 'Ladder fuel', title: 'Ladder fuel under a canopy', finding: (CONTENT.ladder || {}).title || '', photo: 'assets/ladderfuel.jpg', aspect: 820 / 1474, usesDistance: true },
-  { id: 'sprinkler', tab: 'Painted sprinkler', title: 'Painted sprinkler head', finding: (CONTENT.sprinkler || {}).title || '', photo: 'assets/sprinkler.png', aspect: 428 / 710, usesDistance: false },
-  { id: 'daisy', tab: 'Daisy chain', title: 'Power strip in a power strip', finding: (CONTENT.daisy || {}).title || '', photo: 'assets/daisychain.jpg', aspect: 896 / 1200, usesDistance: false },
+  { id: 'sprinkler', tab: 'Sprinkler', title: 'Painted sprinkler head', finding: (CONTENT.sprinkler || {}).title || '', photo: 'assets/sprinkler.png', aspect: 428 / 710, usesDistance: false },
+  { id: 'daisy', tab: 'Wires', title: 'Power strip in a power strip', finding: (CONTENT.daisy || {}).title || '', photo: 'assets/daisychain.jpg', aspect: 1086 / 1448, usesDistance: false },
 ];
 // The photograph decides which set of rows is read. Anything unknown falls back to the first one.
 const photoId = id => (PHOTOS.some(p => p.id === id) ? id : PHOTOS[0].id);

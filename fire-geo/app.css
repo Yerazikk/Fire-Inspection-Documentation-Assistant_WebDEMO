@@ -138,11 +138,16 @@ body { display: grid; grid-template-rows: var(--shell-bar, 64px) minmax(0, 1fr);
 /* the highlight under the chosen rule: one element that glides, kept outside the statewide block */
 .row-select { position: absolute; left: calc(var(--pad) - 10px); right: calc(var(--pad) - 10px); top: 0; height: 0; border-radius: var(--r-row); background: var(--hi-soft); pointer-events: none; will-change: transform;
   transition: transform 250ms var(--flat), height 250ms var(--flat), opacity 180ms var(--flat); }
+/* Two rows: the mark and the verdict's name, then the one sentence with the three counts at its right.
+   The name has the whole width beside the mark and holds one line at the headline size - it is never broken,
+   squeezed or run under anything, and "Inspector's call here" is wider than the card leaves beside the counts.
+   The counts are a line of their own height, so they ride in the sentence's row and the head is no taller for it. */
 .verdict-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
-.verdict-word { font-size: var(--fs-xl); font-weight: 650; letter-spacing: -.03em; line-height: 1.12; white-space: nowrap; }
-.verdict-tally { display: flex; gap: 12px; align-items: center; }
+.verdict-mark.is-large { grid-area: 1 / 1; }
+.verdict-word { grid-area: 1 / 2 / 2 / -1; font-size: var(--fs-xl); font-weight: 650; letter-spacing: -.03em; line-height: 1.12; white-space: nowrap; }
+.verdict-tally { grid-area: 2 / 3; display: flex; gap: 12px; align-items: center; margin-top: 3px; }
 .tally-item { display: inline-flex; gap: 6px; align-items: center; font-size: var(--fs-m); font-weight: 650; color: var(--ink2); }
-.verdict-line { grid-column: 2 / -1; font-size: var(--fs-m); font-weight: 550; color: var(--ink2); margin-top: 3px; min-height: 1.4em; line-height: 1.4; }
+.verdict-line { grid-area: 2 / 2; font-size: var(--fs-m); font-weight: 550; color: var(--ink2); margin-top: 3px; min-height: 1.4em; line-height: 1.4; }
 
 .layer { margin-top: clamp(18px, 3vh, 36px); position: relative; }
 .layer-title { font-size: var(--fs-l); font-weight: 650; letter-spacing: -.02em; line-height: 1.25; min-height: 1.25em; }
@@ -182,8 +187,9 @@ body { display: grid; grid-template-rows: var(--shell-bar, 64px) minmax(0, 1fr);
 .detail-cite { font-size: var(--fs-s); font-weight: 600; color: var(--ink2); margin-top: clamp(8px, 1.2vh, 12px); line-height: 1.4; }
 /* The ordinance's own words, in full. This used to be clamped to five lines, which cut the text off mid-sentence on
    the longer sections; an inspector reads the section, so nothing here may be lost. It scrolls instead, bounded so
-   the card still settles on a height and the view still fits one screen. shell.js softScroll() fades the edges. */
-.detail-quote { margin-top: 3px; font-weight: 500; line-height: 1.45; color: var(--ink2); max-height: calc(1.45em * 7); overflow-y: auto; overscroll-behavior: contain; }
+   the card still settles on a height and the view still fits one screen: five lines is what the clamp allowed, and
+   going past it made Berkeley's seven-rule card too tall for 1280 x 720. shell.js softScroll() fades the edges. */
+.detail-quote { margin-top: 3px; font-weight: 500; line-height: 1.45; color: var(--ink2); max-height: calc(1.45em * 5 - 14px); overflow-y: auto; overscroll-behavior: contain; }
 
 /* ---------------------------------------------------------------- Sources and notes: a bottom sheet */
 .notes-veil { position: fixed; inset: 0; z-index: 40; background: rgba(238, 240, 243, .62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); opacity: 0; pointer-events: none; transition: opacity 240ms var(--flat); }
@@ -210,7 +216,7 @@ body { display: grid; grid-template-rows: var(--shell-bar, 64px) minmax(0, 1fr);
   .board { grid-template-columns: minmax(0, 1fr); max-width: 560px; padding: 6px 12px 24px; gap: 12px; }
   .card { padding: 14px; }
   .board-foot { display: flex; justify-content: center; padding: 0 12px 96px; margin: 0; }
-  .verdict-head { grid-template-columns: auto minmax(0, 1fr); } .verdict-tally { grid-column: 1 / -1; margin-top: 8px; }
+  .verdict-head { grid-template-columns: auto minmax(0, 1fr); } .verdict-tally { grid-area: 3 / 1 / 4 / -1; margin-top: 8px; }      /* stacked: the counts take a line of their own under the sentence */
   .place-head { flex-wrap: wrap; } .diff-line { text-align: left; justify-items: start; flex-basis: 100%; }
   .notes-kv { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .notes-kv dd { margin-bottom: 8px; }
 }
@@ -251,7 +257,7 @@ html.gleb .notes-body { --scroll-inset-bottom: 44px; }       /* the sheet's scro
   .rows { margin-top: 2px; }
   .detail, html.gleb .detail { margin-top: 6px; }
   .detail-cite { margin-top: 4px; }
-  .detail-quote { max-height: calc(1.45em * 5); overflow-y: auto; }
+  .detail-quote { max-height: calc(1.45em * 3); overflow-y: auto; }
   .chips, .measure { margin-top: 10px; }
   .measure { height: 38px; }
 }

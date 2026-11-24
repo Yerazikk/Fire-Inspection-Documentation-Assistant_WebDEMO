@@ -155,6 +155,7 @@ window.TeamUI = (function () {
   function segSync(el) {
     if (!window.Shell || !el.offsetWidth) return;
     const first = !el.dataset.tmPlaced; el.dataset.tmPlaced = '1';
+    if (el.__railSync) el.__railSync(true);        // a rail measures itself once it is on screen, before the pill is placed
     window.Shell.seg(el, first);
   }
   function seg(options, value, onChange, cls) {

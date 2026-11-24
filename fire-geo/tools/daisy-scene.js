@@ -22,17 +22,20 @@ const visual = require(path.join(ROOT, 'ai', 'visual'));
 const { backend, keyPresent } = require(path.join(ROOT, 'ai', 'draft'));
 
 const ASSETS = path.join(__dirname, '..', 'assets');
-const SRC = path.join(ASSETS, 'daisychain-src.png');     // the inspector's frame, kept
+const SRC = path.join(ASSETS, 'daisychain-src.png');     // the inspector's frame as supplied, kept
 const SCENE = path.join(ASSETS, 'daisychain.jpg');       // the upright frame the page shows
 const WORK = path.join(__dirname, 'work');
 
 const WHAT_IS_THERE = [
-  'In the photograph, two power strips lie on grey ribbed carpet.',
-  'UPPER STRIP: white, marked BELKIN, six outlets. Occupied left to right by a black right-angle plug, a white USB',
-  'charger, a second black plug, and at the far right a CREAM right-angle plug. Its own cord leaves its LEFT end.',
-  'LOWER STRIP: cream, worn, six outlets, a lit red rocker switch at the right end, two black plugs in it.',
-  'Its cord leaves its RIGHT end, curves up and right, and ends in that CREAM plug in the white strip.',
-  'So the cream strip is fed by the white strip. That is the violation.',
+  'The photograph looks down at a carpeted floor below a run of pale cabinets.',
+  'TOP LEFT: a white wall receptacle on the wall. It is a DUPLEX, two sockets on one faceplate. Only the LOWER',
+  'socket is in use: a thick grey cord is plugged into it. The UPPER socket is empty.',
+  'That grey cord runs down and right across the carpet to the UPPER STRIP: a dark grey power strip lying against',
+  'the cabinet plinth. So the grey strip is correctly supplied, from the wall.',
+  'A pale cord is plugged into one of the grey strip\u2019s sockets. It runs down and left across the carpet to the',
+  'LOWER STRIP: a pale cream power strip in the foreground, with a lit red rocker switch at its near end and a',
+  'large black plug-in transformer in it.',
+  'So the pale strip is fed by the grey strip instead of by the wall. That single connection is the violation.',
 ].join(' ');
 
 const BEFORE = [
@@ -54,60 +57,59 @@ const BEFORE = [
 ].join(' ');
 
 const CORRECTIONS = {
-  // The receptacle in the picture is a duplex: two sockets on one faceplate, and only the lower one is in use.
-  // The correction is to use the socket that is already there. Nothing is installed, nothing is bought, and no
-  // outlet appears that was not in the photograph — an earlier pass drew a second receptacle into the wall, which
-  // is not what an inspector would ask for and not what the code asks for either.
+  // The wall receptacle is a duplex and its upper socket is empty, so the correction is to use it. No receptacle
+  // is installed, nothing is bought, and the wall is left exactly as photographed.
   a: {
     file: 'daisy-a-direct',
-    title: 'Both strips plugged straight into the receptacle that is already there',
+    title: 'Plug both power strips directly into the same wall outlet',
     text: [
-      'Take the CREAM right-angle plug out of the far-right outlet of the white BELKIN strip, so that outlet on the',
-      'strip is visibly EMPTY.',
+      'Take the PALE PLUG out of the dark grey strip, so the socket it was in is visibly EMPTY and no cord runs',
+      'between the two power strips any more.',
       '',
-      'The wall receptacle in this picture is a duplex: two sockets on one white faceplate, and only the LOWER',
-      'socket is in use (the white Belkin strip’s cord is in it). Plug the cream strip’s cord into the UPPER socket',
-      'of that SAME receptacle. Its cord runs up from the cream strip, across the carpet, to that upper socket.',
+      'Run that pale cord instead to the wall receptacle at the TOP LEFT and plug it into the UPPER socket of that',
+      'same receptacle \u2014 the empty one, directly above the grey cord that is already there. Both cords now come out',
+      'of the one faceplate, side by side.',
       '',
       'Do NOT add a second receptacle, a second faceplate, or any new wiring. The wall must look exactly as it does',
-      'now: one faceplate, in the same place, the same size — only now both of its sockets are occupied.',
+      'now: ONE faceplate, same place, same size, only now both of its sockets are occupied.',
       '',
-      'Both strips stay where they are on the carpet, at the same angles, with every other plug unchanged: the two',
-      'black plugs and the white USB charger stay in the white strip, the two black plugs stay in the cream strip.',
-      'Same camera, same light, same skirting, same wooden edge, same carpet. No text, labels or arrows.',
+      'Both power strips stay exactly where they are on the carpet, at the same angles, with everything else',
+      'plugged into them unchanged \u2014 the black transformer stays in the pale strip, the grey strip keeps its own',
+      'cord to the lower socket. Same camera, same light, same cabinets, same carpet. No text, labels or arrows.',
     ].join(' '),
   },
   b: {
     file: 'daisy-b-one-tap',
-    title: 'One strip of adequate rating in place of the two',
+    title: 'Replace both strips with one longer power strip',
     text: [
-      'Remove the UPPER white BELKIN strip from the scene entirely, with its cord and everything plugged into it.',
-      'Where it was there is only the same empty grey carpet.',
+      'Remove BOTH power strips and the cord that ran between them. Where the pale strip was in the foreground',
+      'there is only empty carpet.',
       '',
-      'The LOWER cream strip stays exactly where it is, at the same angle, with its lit red rocker switch and its',
-      'two black plugs, and takes on the loads the white strip was carrying: show FOUR plugs in it now, spread',
-      'along its length. Its cord runs up across the carpet and plugs into the LOWER socket of the wall receptacle',
-      'that is already in the picture — the same single faceplate, unchanged, in the same place.',
+      'In their place put ONE single longer power strip, white, lying against the cabinet plinth roughly where the',
+      'grey strip was, with its own long cord running up to the wall receptacle at the top left and plugged into',
+      'the LOWER socket of it \u2014 the same single faceplate, unchanged, in the same place.',
       '',
-      'Do not add a receptacle or a faceplate. Same camera, same light, same wall, same skirting, same wooden edge.',
+      'The black plug-in transformer that was in the pale strip is now plugged into this one strip, along with two',
+      'other ordinary plugs, spread along its length. One strip, one cord, one wall socket.',
+      '',
+      'Do not add a receptacle or a faceplate. Same camera, same light, same cabinets, same carpet, same plinth.',
       'No text, labels or arrows.',
     ].join(' '),
   },
   c: {
     file: 'daisy-c-receptacles',
-    title: 'The strips retired after receptacles were added where the equipment is',
+    title: 'Install an additional permanent electrical outlet',
     text: [
-      'Remove BOTH power strips from the floor.',
+      'Keep the wall receptacle at the top left exactly as it is, one white faceplate in the same place.',
       '',
-      'Keep the wall receptacle that is already in the picture exactly as it is, one white faceplate in the same',
-      'place. Beside it, further along the same skirting, show ONE additional matching white duplex receptacle as a',
-      'licensed electrician would have installed it.',
+      'Add ONE more matching white duplex receptacle on the same wall, lower down and further right, close to the',
+      'cabinet plinth where the equipment actually sits \u2014 as a licensed electrician would have installed it.',
       '',
-      'Four ordinary appliance cords now run to those two receptacles directly — two into each — and lead away',
-      'across the carpet and out of the frame, as cords from desks and equipment would. No power strip anywhere in',
-      'the picture, and no cord plugged into another cord.',
+      'Remove BOTH power strips and all the cord between them from the floor. Instead, four ordinary appliance',
+      'cords run directly to the two wall receptacles, two into each, and lead away across the carpet and out of',
+      'the frame. No power strip anywhere in the picture, and no cord plugged into another cord.',
       '',
-      'Same camera, same light, same wall, same skirting, same wooden edge, same carpet texture.',
+      'Same camera, same light, same cabinets, same plinth, same carpet texture.',
       'No people, no furniture, no text, no labels, no arrows.',
     ].join(' '),
   },

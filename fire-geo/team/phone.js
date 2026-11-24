@@ -11,6 +11,9 @@ window.TeamPhone = (function () {
   'use strict';
   const U = window.TeamUI, { h, icon, rise, anim, swapText, crossfade, sym } = U;
   const D = window.TeamData, F = window.TeamFlow, P = window.TeamPhoto;
+  // The photographs this app can take, in the order the shared list gives them (team/adapter.js scenes, from
+  // lib/codes.js PHOTOS). The camera opens on the sprinkler: that is where the demonstration begins.
+  const SCENES = () => { const list = D.scenes ? D.scenes() : []; return list.length ? list : ['sprinkler', 'ladder', 'daisy']; };
   const S = { scene: 'sprinkler', loc: null, screen: '', photo: null, custom: false, note: null, answers: {}, sent: [], run: 0 };
   const hooks = { send: null, screen: null };
   let root, view, layers, file, sheetEl, sheetIn, veilEl, onPicked = null, typeInto = null;
@@ -78,13 +81,14 @@ window.TeamPhone = (function () {
 
   // ---- 1. take the photo. The scene switch sits above the picture; the picture is clean; the controls are low.
   /** Back at the camera after a send: it opens on the scene that has not been sent yet. A scene chosen by hand stands until the next send. */
-  function nextScene() { if (!S.auto) return; S.auto = false; const left = ['sprinkler', 'ladder', 'daisy'].find(id => !S.sent.some(f => f.scene === id)); if (left) S.scene = left; }
+  function nextScene() { if (!S.auto) return; S.auto = false; const left = SCENES().find(id => !S.sent.some(f => f.scene === id)); if (left) S.scene = left; }
   function camera() {
     nextScene();
     S.run++; S.custom = false; S.note = null; S.answers = {}; typeInto = null;
     endScan(true); usePhoto();
-    const lens = U.seg([{ id: 'sprinkler', label: 'Sprinkler' }, { id: 'ladder', label: 'Hedge' }, { id: 'daisy', label: 'Strips' }], S.scene, v => { S.scene = v; S.auto = false; usePhoto(); }, 'ph-lens');
+    const lens = U.seg(SCENES().map(id => ({ id, label: D.scene(id).short })), S.scene, v => { S.scene = v; S.auto = false; usePhoto(); }, 'ph-lens');
     lens.setAttribute('aria-label', 'Which scene is in front of the camera');
+    if (window.Shell && window.Shell.rail) window.Shell.rail(lens);      // more scenes than the switch is wide: it becomes a rail
     const actions = h('div', { class: 'ph-actions ph-actions-camera' },
       sym('image', 'Choose a photo', () => pick(ownPhoto), 'ph-round', 22),
       h('button', { class: 'ph-shutter', type: 'button', 'aria-label': 'Take the photo', onclick: scan }, h('i')),
@@ -209,11 +213,16 @@ window.TeamPhone = (function () {
     const boxes = year ? [0, 1, 2, 3].map(() => h('span', { class: 'ph-digit shell-num' })) : null, value = !en || year ? null : h('span', { class: 'ph-entry-value shell-num' });
     const entry = !en ? null : h('div', { class: 'ph-entry ' + (year ? 'is-boxes' : 'is-field'), tabindex: '0', role: 'textbox', 'aria-label': en.name }, boxes || [value, h('span', { class: 'ph-entry-unit', text: en.unit })]);
     const padWrap = !en ? null : h('div', { class: 'ph-padwrap', hidden: !en.always }, keypad(press));
-    const opts = (q.options || []).map(o => h('button', { class: 'ph-pick', type: 'button', 'data-id': o.id, 'aria-pressed': 'false', onclick: () => { if (a.pick === o.id) delete a.pick; else { a.pick = o.id; clear(); } openPad(false); sync(); } }, h('span', { class: 'ph-pick-text', text: o.label })));
-    const cant = h('button', { class: 'ph-cant', type: 'button', 'aria-pressed': 'false', onclick: () => { if (a.pick === q.cant.id) delete a.pick; else { a.pick = q.cant.id; clear(); } openPad(false); sync(); } }, icon('check', 16), h('span', { text: q.cant.label }));
+    const opts = (q.options || []).map(o => h('button', { class: 'ph-pick', type: 'button', 'data-id': o.id, 'aria-pressed': 'false', onclick: () => { if (a.pick === o.id) delete a.pick; else { a.pick = o.id; clear(); clearText(); } openPad(false); sync(); } }, h('span', { class: 'ph-pick-text', text: o.label })));
+    const cant = !q.cant ? null : h('button', { class: 'ph-cant', type: 'button', 'aria-pressed': 'false', onclick: () => { if (a.pick === q.cant.id) delete a.pick; else { a.pick = q.cant.id; clear(); } openPad(false); sync(); } }, icon('check', 16), h('span', { text: q.cant.label }));
     const cam = q.photo ? sym('camera', q.photo.label, () => openPhoto(q, sync), 'ph-attach', 21) : null;
+    // Some answers are not on the list. `write` gives the question a line to type into: taking it clears the taps,
+    // and tapping an option clears what was written, so there is only ever one answer.
+    const wr = q.write ? h('input', { class: 'ph-write', type: 'text', value: a.text || '', placeholder: q.write.placeholder || 'Write an answer', 'aria-label': q.write.label || q.ask, maxlength: '80',
+      oninput: e => { a.text = e.target.value; if (a.text) { delete a.pick; clear(); } sync(); } }) : null;
     const say = h('p', { class: 'ph-q-say' });
     function clear() { typed = ''; a.typed = ''; delete a.value; a.unlikely = false; }
+    function clearText() { if (a.text) { delete a.text; if (wr) wr.value = ''; } }
     /** a key was pressed, on the screen or on a keyboard. The typed numbers always show in the entry display. */
     function press(k) {
       if (!en) return;
@@ -236,16 +245,18 @@ window.TeamPhone = (function () {
       else if (entry) { const t = typed || en.open; if (value.textContent !== t) value.textContent = t; entry.classList.toggle('is-empty', !typed); entry.classList.toggle('is-active', active); }
       if (entry) { entry.classList.toggle('is-set', a.value != null); entry.classList.toggle('is-off', a.pick === q.cant.id); }
       opts.forEach(b => { const on = a.pick === b.dataset.id; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
-      cant.setAttribute('aria-pressed', String(a.pick === q.cant.id));
-      const line = !en ? (a.pick && a.pick !== q.cant.id && q.say ? q.say(a.pick) : '')
+      if (cant) cant.setAttribute('aria-pressed', String(a.pick === q.cant.id));
+      const line = !en ? ((a.pick && (!q.cant || a.pick !== q.cant.id) && q.say) ? q.say(a.pick) : '')
         : year && a.unlikely ? en.wrong : a.value != null && q.say ? q.say(a.value) : (en.help || '');
       if (say.textContent !== line) { if (say.textContent && line) swapText(say, line, { size: false }); else say.textContent = line; }
       say.classList.toggle('is-wrong', !!(year && a.unlikely));
       if (pic) pic.set({ digits: typed });
       if (cam) { const src = a.photo ? 'url("' + a.photo.src + '")' : ''; if (cam.style.backgroundImage !== src) cam.style.backgroundImage = src; cam.classList.toggle('is-done', !!a.photo); cam.setAttribute('aria-label', a.photo ? 'Photo added. Change it' : q.photo.label); cam.title = cam.getAttribute('aria-label'); }
     }
-    const el = h('section', { class: 'ph-q', 'data-q': q.id }, pic ? h('div', { class: 'ph-q-pic' }, pic.el) : null, h('h2', { class: 'ph-q-ask', text: q.ask }),
-      opts.length ? h('div', { class: 'ph-q-opts' }, opts) : null, entry, say, padWrap, h('div', { class: 'ph-q-foot' }, cant, cam));
+    const el = h('section', { class: 'ph-q' + (en ? '' : ' is-tap') + (q.write ? ' has-write' : ''), 'data-q': q.id },
+      pic ? h('div', { class: 'ph-q-pic' }, pic.el) : null, h('h2', { class: 'ph-q-ask', text: q.ask }),
+      opts.length ? h('div', { class: 'ph-q-opts' }, opts) : null, wr, entry, say, padWrap,
+      cant || cam ? h('div', { class: 'ph-q-foot' }, cant, cam) : null);
     const onKey = e => {                                           // a real keyboard types into the same display
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (!en) return;
@@ -258,7 +269,7 @@ window.TeamPhone = (function () {
   function questions() {
     const custom = S.custom, qs = custom ? [] : F.questions(S.scene), noteText = S.note.text();
     const blocks = qs.map(question);
-    const head = h('div', { class: 'ph-head ph-head-q' }, backBtn(note), h('h1', { text: !qs.length ? 'Ready to send' : qs.length === 1 ? 'One quick question' : 'A few quick questions' }));
+    const head = h('div', { class: 'ph-head ph-head-q' }, backBtn(note), h('h1', { text: !qs.length ? 'Ready to send' : qs.length === 1 ? 'One question' : 'A few questions' }));
     const body = h('div', { class: 'ph-body ph-body-q tm-softscroll' }, !qs.length ? h('p', { class: 'ph-note-plain', text: noteText }) : null, blocks.map(b => b.el));
     const send = primaryBtn('Send to the senior inspector', doSend, 'send');      // one tap sends; the item is then in the Sent list
     St.view = { focus: custom ? [50, 50] : F.FOCUS[S.scene] };

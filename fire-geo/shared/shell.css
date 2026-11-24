@@ -59,6 +59,19 @@ body:has(> .shell-bar:first-child) { grid-template-rows: var(--shell-bar) minmax
 .shell-seg > button:focus-visible, .shell-seg > a:focus-visible { outline: 2px solid var(--hi); outline-offset: -2px; border-radius: 99px; }
 .shell-seg.is-wide { display: flex; } .shell-seg.is-wide > button { flex: 1; }
 
+/* A RAIL: the same control with more tabs than the track is wide (Shell.rail). The track keeps its pill shape and
+   clips to it; the row of tabs scrolls inside. Nothing about a tab changes - no wrapping, no shrinking, no second
+   row - and the thumb and its copy of the labels are laid out against the row, so they travel with it for free.
+   While every tab fits, this is the control exactly as it was: .is-over is what a rail that has run out of room
+   wears, and only then does each tab fall back to its own width. --seg-peek, measured by Shell.rail, holds the
+   track to about three tabs and a half, so the next one is always part way in view: there is more along here. */
+.shell-seg.is-rail { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain; }
+.shell-seg.is-rail::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.shell-seg.is-rail.is-over { max-width: min(var(--seg-peek, 100%), 100%); cursor: grab; }
+.shell-seg.is-rail.is-over > button, .shell-seg.is-rail.is-over > a { flex: 0 0 auto; }
+.shell-seg.is-rail.is-dragging { cursor: grabbing; }
+.shell-seg.is-rail.is-dragging > button, .shell-seg.is-rail.is-dragging > a { pointer-events: none; }
+
 /* The two tabs are separate pages. The browser slides the pill between them on the compositor and crossfades the rest. */
 .shell-nav .shell-seg-ind { view-transition-name: shell-pill; }
 .shell-bar { view-transition-name: shell-bar; }

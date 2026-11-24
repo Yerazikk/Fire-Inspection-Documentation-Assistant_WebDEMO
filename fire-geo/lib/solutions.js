@@ -50,6 +50,8 @@ function build(photo) {
       before: ex.photo, after: AFTER[sn.image] || sn.image,
       aspect: ex.aspect,
       align: m.align || { sx: 1, sy: 1, dx: 0, dy: 0 },
+      reveal: m.reveal != null ? m.reveal : null,      // where the divider must sit for the mark to be on the after side
+
       outline: (m.contours || []).map(c => { const points = simpleShape(c.points); return { points, label: c.label, labelAt: c.labelAt, anchor: nearest(points, c.labelAt || c.anchor) }; }),
     };
   });
