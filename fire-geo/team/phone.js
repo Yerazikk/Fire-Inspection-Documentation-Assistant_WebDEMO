@@ -194,7 +194,7 @@ window.TeamPhone = (function () {
     }
     const head = h('div', { class: 'ph-head' }, backBtn(camera), h('h1', { text: 'Add a note' }));
     const body = h('div', { class: 'ph-body tm-softscroll' }, custom ? h('p', { class: 'ph-plain', text: F.UNKNOWN_PHOTO }) : null, list, own);
-    St.view = custom ? { focus: [50, 50] } : { region: grow(D.scene(S.scene).annotations.find(a => a.finding).box, { sprinkler: 15, daisy: 16, ladder: 12 }[S.scene] || 12) };
+    St.view = custom ? { focus: [50, 50] } : { region: grow(D.scene(S.scene).annotations.find(a => a.finding).box, { sprinkler: 15, daisy: 16, ladder: 12, firedoor: 18 }[S.scene] || 12) };
     show('note', { head, body, actions: h('div', { class: 'ph-actions' }, use), layout: 'note', view: St.view });
     sync();
     if (custom) requestAnimationFrame(() => own.focus({ preventScroll: true }));

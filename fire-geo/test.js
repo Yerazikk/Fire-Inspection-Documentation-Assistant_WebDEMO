@@ -98,15 +98,18 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   // real — it is where the two pictures actually differ — and "Show what changed" works on all three.
   ok(daisySols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && s.align.sx === 1 && s.align.sy === 1 && s.align.dx === 0 && s.align.dy === 0), 'each daisy correction has a contour found by difference (6 to 16 points) on an identity alignment');
   ok(sols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && Math.abs(s.align.sx - 1) < 0.03 && Math.abs(s.align.sy - 1) < 0.03 && Math.abs(s.align.dx) < 0.02 && Math.abs(s.align.dy) < 0.02), 'every correction has a simple outline (6 to 16 points) and an image registration close to identity');
-  // The daisy contours are not registrations and must not be read as ones: each says in the data how it was
-  // arrived at. Two are marked by hand (the receptacle the power now comes from, which is not the biggest
-  // difference in either picture) and the third is the difference between the pair.
-  const daisyFit = Object.entries(w.FIREGEO_OUTLINES).filter(([k]) => k.startsWith('daisy'));
-  ok(Object.entries(w.FIREGEO_OUTLINES).filter(([k]) => !k.startsWith('daisy')).every(([, o]) => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30)
-    && daisyFit.every(([, o]) => /difference|marked by hand/.test(o.fit.how || ''))
-    && daisyFit.filter(([, o]) => /marked by hand/.test(o.fit.how)).length === 2
+  // A contour that is not a registration must not be read as one: it says in the data how it was arrived at, in
+  // `fit.how`, and the ones with no `how` are registrations and are held to the residual. Two of the daisy
+  // contours are marked by hand (the receptacle the power now comes from, which is not the biggest difference in
+  // either picture); the rest of the unregistered ones, the daisy's third and both of the fire door's, are the
+  // difference between the pair.
+  const told = Object.entries(w.FIREGEO_OUTLINES).filter(([, o]) => (o.fit.how || '') !== '');
+  const fitted = Object.entries(w.FIREGEO_OUTLINES).filter(([, o]) => (o.fit.how || '') === '');
+  ok(fitted.length >= 4 && fitted.every(([, o]) => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30)
+    && told.every(([, o]) => /difference|marked by hand/.test(o.fit.how))
+    && told.filter(([, o]) => /marked by hand/.test(o.fit.how)).length === 2
     && w.FIREGEO_OUTLINES['daisy-a'].reveal === 0.02,
-    'registration residual is under 0.6 px for the four registered pairs; the three daisy contours each say how they were arrived at (two marked by hand, one by difference) and the one at the frame edge carries the divider position that reveals it');
+    'registration residual is under 0.6 px for the ' + fitted.length + ' registered pairs; the ' + told.length + ' contours that are not registrations each say how they were arrived at (two marked by hand, the rest by difference) and the one at the frame edge carries the divider position that reveals it');
 
   // ---- the fifth place: Berkeley (data/city4, joined in data/law.js and lib/geo.js)
   console.log('Berkeley');

@@ -32,11 +32,16 @@ const SRC = {
 const WUI = 'BMC § 19.49.070 · Ord. 7,991-N.S.';
 const FIRE9 = 'BMC § 19.48.060 · Ord. 7,990-N.S.';
 const FIRE11 = 'BMC § 19.48.080 · Ord. 7,990-N.S.';
+const FIRE7 = 'BMC § 19.48.050 · Ord. 7,990-N.S.';
 
 // ------------------------------------------------------------------ the ordinance's own words
 const Q_Z0 = '“Maintain all areas within five (5) horizonal [sic] feet of any structure, outbuildings, attached deck or stairs, and the area under attached decks and stairs free of vegetative and non-vegetative combustible material.” “This includes but is not limited to shrubs, vegetative ground cover, climbing vines …”';
 const Q_Z0_WHERE = '“Effective January 1, 2026 the Grizzly Peak Mitigation Area and Panoramic Mitigation Area shall be subject to 604.3.2 in addition to 604.3.1”';
 const Q_Z0_TREES = '“Existing trees and shrubs are permitted in Zone Zero if” they are “Maintained free of dead material” and the crown keeps “Five feet (5’) of horizontal clearance from the sides of any Building”.';
+// § 19.48.050 adopts chapter 7 in part. The only section it sets out is § 705.2.5, and its last sentence is
+// Berkeley's own: the state text stops after the fusible-link temperature. Read in the second-reading packet.
+const Q_SMOKE_DOORS = '“Smoke-activated doors shall be maintained to self-close or automatically close upon detection of smoke.” “Doors required for fire and smoke separation for interior exit stairways and floor separation in R-1 or R-2 occupancies shall not be maintained in an open position with fusible links.”';
+
 const Q_LADDER = '“Maintain trees to remove Ladder Fuels so that foliage, twigs, or branches are greater than 6’ feet above the ground or surface fuels.” “Where shrubs or small trees are located below or within a tree\'s drip line, the lowest tree branch shall be a minimum of three times the height of the understory shrubs or 6 feet, whichever is greater.”';
 const Q_WHO = '“Within the locally designated Very High Fire Hazard Severity Zone a person who owns, leases, controls, operates, or maintains lands shall at all times:”';
 const Q_VERT = '“Vertical Spacing: Limb trees by removing hanging bark, debris and branches that are within six feet (6 ft.) of the ground.” “Create horizontal and vertical spacing among shrubs and trees using the “Fuel Separation” method, the “Continuous Tree Canopy” method or a combination of both to achieve defensible space clearance requirements.”';
@@ -105,6 +110,17 @@ const rows = {
       applies: 'In Berkeley a first finding leads to a written plan with dates, and the penalty follows only if the plan is missed.',
       open: 'The plan and dates agreed for this property.', turns: 'the compliance plan agreed with the inspector',
       source: SRC.guide, status: 'read' },
+  ],
+  firedoor: [
+    { key: 'smoke-doors', isNew: true, label: 'Smoke-activated doors', title: 'Doors held open on a fusible link', value: null, unit: '', rule: 'judgement', zone: 'city', words: 'quote',
+      requires: Q_SMOKE_DOORS,
+      cite: 'Berkeley Fire Code § 705.2.5 · ' + FIRE7, sec: '§ 705.2.5', code: 'BMC § 19.48.050',
+      applies: 'Berkeley is the one place of the five that writes anything into chapter 7. It adopts the chapter in part and sets out this one section, with a last sentence the state text does not have: in R-1 and R-2 buildings the doors that separate an interior exit stairway or a floor may not be held open on a fusible link at all.',
+      open: 'The occupancy of this building, and whether this door is one of the two the sentence names.',
+      turns: 'whether this is an R-1 or R-2 stairway door',
+      extra: 'no fusible-link hold-open on R-1 and R-2 stairway doors',
+      sayExtra: 'In {toName} a stairway or floor-separation door in an R-1 or R-2 building may not be held open on a fusible link at all.',
+      source: SRC.fireOrd, status: 'read' },
   ],
   sprinkler: [
     { key: 'required-system', label: 'Required in new buildings', title: 'Sprinklers required in new buildings', value: null, unit: '', rule: 'judgement', zone: 'city', words: 'quote+paraphrase',
@@ -232,6 +248,7 @@ const city = {
   differsBy: {
     ladder: 'Berkeley bans anything that burns within 5 ft of a structure and asks for spacing out to 100 ft. The Ross Valley rule is ladder fuels within 30 ft.',
     sprinkler: 'Berkeley has no local rule for all new buildings. It orders retrofits by building type: older hotels, dormitories and every high-rise.',
+    firedoor: 'Berkeley adds a sentence to the smoke-door section: in R-1 and R-2 buildings a stairway or floor-separation door may not be held open on a fusible link.',
   },
   pending: {
     text: 'The state’s own Zone 0 rule is not in force for existing homes. The Board of Forestry is reported to have adopted an emergency regulation on 19 Aug 2026. Its approval and effective date were not verified.',

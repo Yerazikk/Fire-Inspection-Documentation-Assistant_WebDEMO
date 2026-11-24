@@ -27,6 +27,7 @@ const SRC = {
   marinStaff: { short: 'County staff report', label: 'Marin County staff report, 4 Nov 2025', url: 'https://marin.granicus.com/MetaViewer.php?view_id=33&event_id=4089&meta_id=1405090', status: 'read' },
   rvfdMap:    { short: 'Ross Valley Fire map', label: 'Ross Valley Fire Department: WUI and fire hazard maps', url: 'https://www.rossvalleyfire.gov/wildland-urban-interface-maps', status: 'read' },
   cfc:        { short: 'California Fire Code', label: '2025 California Fire Code (ICC)', url: 'https://codes.iccsafe.org/content/CAFC2025P1', status: 'blocked' },
+  cfc7:       { short: 'CFC ch. 7, up.codes', label: '2025 California Fire Code ch. 7 (Fire and Smoke Protection Features), read on up.codes', url: 'https://up.codes/viewer/california/ca-fire-code-2025/chapter/7/fire-and-smoke-protection-features', status: 'read' },
   cfc6:       { short: 'CFC ch. 6, up.codes', label: '2025 California Fire Code ch. 6 (Building Services and Systems), read on up.codes', url: 'https://up.codes/viewer/california/ca-fire-code-2025/chapter/6/building-services-and-systems', status: 'read' },
   cwuic:      { short: 'California WUI Code', label: '2025 California Wildland-Urban Interface Code (ICC)', url: 'https://codes.iccsafe.org/content/CAWUIC2025P1', status: 'blocked' },
   repo:       { short: 'Repo data', label: 'Repo data (monday/jurisdictions.js, sprinkler.md)', url: '', status: 'repo' },
@@ -107,6 +108,17 @@ const Q_TAP_INSTALL = 'Relocatable power tap cords shall not extend through wall
 const Q_CORD = '“Extension cords shall not be a substitute for permanent wiring and shall be listed and labeled in accordance with UL 817. Extension cords shall not be affixed to structures, extended through walls, ceilings or floors, or under doors or floor coverings, nor shall such cords be subject to environmental damage or physical impact. Extension cords shall be used only with portable appliances. Extension cords marked for indoor use shall not be used outdoors.”';
 const Q_ABATE = '“Conditions that constitute an electrical shock or fire hazard shall be abated.”';
 const Q_PENALTY = '“Persons who shall violate a provision of this code or shall fail to comply with any of the requirements thereof or who shall erect, install, alter repair or do work in violation of the approved construction documents or directive of the Fire Code Official, or of a permit or certificate used under provisions of this code, shall be guilty of a misdemeanor, punishable by a fine of not more than $500 dollars or by imprisonment not exceeding 180 days, or both such fine and imprisonment. Each day that a violation continues after due notice has been served shall be deemed a separate offense.”';
+
+// ---- the fire door. 2025 CFC ch. 7, read on up.codes 2026-11-23; the ICC site is blocked. § 705 is Door and
+// Window Openings: how an opening protective is kept once it is in. None of the four Ross Valley ordinances
+// writes anything into chapter 7, so these four sections are the state text as printed, carried by each town's
+// own code. Berkeley is the exception and adds a sentence to § 705.2.5 (data/city4/law.js).
+// The two legends in § 705.2.2 are set with an em dash in the code. Nothing on this page uses one, so the legend
+// words are given without it; the sentence they sit in is quoted as it stands.
+const Q_DOOR_BLOCK = '“Opening protectives in fire-resistance-rated assemblies shall be inspected and maintained in accordance with NFPA 80.” “Fire doors and smoke and draft control doors shall not be blocked, obstructed, or otherwise made inoperable.” “Fusible links shall be replaced promptly whenever fused or damaged. Opening protectives and smoke and draft control doors shall not be modified.”';
+const Q_DOOR_LATCH = '“Swinging fire doors shall close from the full-open position and latch automatically.”';
+const Q_DOOR_HOLD = '“Hold-open devices and automatic door closers, where provided, shall be maintained. During the period that such device is out of service for repairs, the door it operates shall remain in the closed position.”';
+const Q_DOOR_SIGN = '“Where required by the fire code official, a sign shall be permanently displayed on or near each fire door in letters not less than 1 inch (25 mm) high”. The legend is “FIRE DOOR” and then “DO NOT BLOCK” on a door designed to be kept normally open, or “KEEP CLOSED” on one designed to be kept normally closed.';
 
 const Q_9017 = '“Where a required fire protection system is out of service, the fire department and the fire code official shall be notified immediately and, where required by the fire code official, the building shall be either evacuated or an approved fire watch shall be provided … This section shall also apply to residential fire sprinkler systems.”';
 
@@ -288,7 +300,46 @@ const rows = {
         } },
     ],
   },
+  // =========================================================================
+  // FIRE DOOR — held open by a wedge
+  //
+  // Like the power taps, the rule is statewide text adopted whole, and it reads the same in the four Ross Valley
+  // places: none of their ordinances touches chapter 7. The photograph settles the first section by itself (the
+  // wedge is in it). The other three are about what the door does, and only someone standing at it can say.
+  // =========================================================================
+  firedoor: {
+    state: [
+      { key: 'door-blocked', label: 'Fire doors', title: 'Not blocked, obstructed or made inoperable', value: null, unit: '', rule: 'doorBlocked',
+        cite: '2025 California Fire Code § 705.2', requires: Q_DOOR_BLOCK,
+        applies: 'The direct basis for the finding. A wedge driven under the leaf holds the door off its latch, and a fire door that cannot swing shut has been made inoperable.',
+        open: 'The door’s rating and the assembly it protects. Both are on the label, and no label is legible in the photograph.',
+        source: SRC.cfc7 },
+      { key: 'door-latch', label: 'Closing and latching', title: 'Closes from full open and latches', value: null, unit: '', rule: 'judgement',
+        cite: '2025 California Fire Code § 705.2.4', requires: Q_DOOR_LATCH,
+        applies: 'What the door must do once the wedge is gone. Taking the wedge out answers § 705.2 only if the door then travels the whole way and the latch engages on its own.',
+        open: 'Whether it closes from the full-open position and latches without a hand on it. Only someone at the door can try it.',
+        turns: 'whether the door closes and latches on its own', source: SRC.cfc7 },
+      { key: 'door-closer', label: 'Closer', title: 'The closer kept in working order', value: null, unit: '', rule: 'judgement',
+        cite: '2025 California Fire Code § 705.2.3', requires: Q_DOOR_HOLD,
+        applies: 'A closer arm is fitted at the head of this door. If it has failed, the wedge may be standing in for it, and the section says the door is to be kept closed until it is repaired.',
+        open: 'Whether the closer still works, and whether the wedge is there because it does not.',
+        turns: 'whether the closer still works', source: SRC.cfc7 },
+      { key: 'door-sign', label: 'Sign', title: 'A sign on or near the door', value: null, unit: '', rule: 'judgement',
+        cite: '2025 California Fire Code § 705.2.2', requires: Q_DOOR_SIGN,
+        applies: 'The second correction, and the one that is not owed everywhere: the sign is owed where the fire code official requires it, and which of the two legends belongs here depends on whether the door is kept normally open or normally closed.',
+        open: 'Whether the official requires a sign on this door, and which legend it carries.',
+        turns: 'whether the official requires a sign here', source: SRC.cfc7 },
+    ],
+    stateNote: 'The rule is state text and it reads the same in the four Ross Valley places: not one of their ordinances writes anything into chapter 7. Berkeley does, and adds a sentence to § 705.2.5 about doors held open on fusible links. What else changes with the place is the ordinance that carries the chapter and what a violation costs.',
+    local: [],
+  },
 };
+
+// The same penalty clause stands behind any fire code citation, so the fire-door photograph carries the row the
+// power-tap one defines. The row and its map of places are copied rather than shared, because the Berkeley join
+// below writes a by.berkeley into the row of whichever photograph it is joining.
+const penaltiesRow = rows.daisy.local.find(r => r.key === 'penalties');
+rows.firedoor.local.push(Object.assign({}, penaltiesRow, { by: Object.assign({}, penaltiesRow.by) }));
 
 // Short citations for the one-line rows: the section number (the same in every town) and the local code that
 // carries it (this is the part that changes at a town line). The full citation stays on each row as `cite`.
@@ -304,6 +355,9 @@ const short = {
   'tap-direct': { sec: '§ 603.5.2', code: 'California Fire Code' }, 'tap-listing': { sec: '§ 603.5.1', code: 'UL 1363 · UL 498A' },
   'tap-install': { sec: '§ 603.5.3', code: 'California Fire Code' }, 'cords': { sec: '§ 603.6', code: 'California Fire Code' },
   'ch6-amend': { sec: '§§ 605.11.3–605.11.5', code: { san_anselmo: 'SAMC § 3-3.810' } },
+  'door-blocked': { sec: '§ 705.2', code: 'California Fire Code' }, 'door-latch': { sec: '§ 705.2.4', code: 'California Fire Code' },
+  'door-closer': { sec: '§ 705.2.3', code: 'California Fire Code' }, 'door-sign': { sec: '§ 705.2.2', code: 'California Fire Code' },
+  'smoke-doors': { sec: '§ 705.2.5', code: { berkeley: 'BMC § 19.48.050' } },
   'penalties': { sec: '§ 113.4', code: PEN }, 'remodel-triggers': { sec: '§§ 903.2.2, 903.2.2.1', code: FIRE }, 'out-of-service': { sec: '§ 901.7', code: FIRE },
 };
 
@@ -321,7 +375,7 @@ const disclosure = 'A demonstration. Each verdict is this app’s reading of the
 // There is no canopy row for Berkeley: its text has no trunk-diameter rule.
 const C4 = (typeof window !== 'undefined' ? window : globalThis).FIREGEO_CITY4;
 // Answers when the map moves between the two regions: one plain sentence about the place arrived in.
-const across = { ladder: 'In {toName} the rule is ladder fuels within {reach} ft.', sprinkler: '{To} requires sprinklers in every new building.', daisy: 'In {toName} the same state chapter 6 applies, under its own ordinance.' };
+const across = { ladder: 'In {toName} the rule is ladder fuels within {reach} ft.', sprinkler: '{To} requires sprinklers in every new building.', daisy: 'In {toName} the same state chapter 6 applies, under its own ordinance.', firedoor: 'In {toName} the same state chapter 7 applies, under its own ordinance.' };
 if (C4) {
   places.berkeley = {
     id: 'berkeley', name: C4.name, short: C4.short, inSentence: C4.inSentence, kind: C4.kind, carried: true, region: 'berkeley', zoneModel: 'berkeley',
@@ -332,6 +386,7 @@ if (C4) {
       ladder: 'In parts of Berkeley’s hills nothing that burns may stand within 5 ft of the house.',
       sprinkler: 'In Berkeley sprinkler retrofits go by building type.',
       daisy: 'Berkeley carries the same state chapter 6, under its own fire code.',
+      firedoor: 'Berkeley is the one place here that writes into chapter 7.',
     },
   };
   // The Berkeley picture also shows land past the city limit (Albany, Kensington, Oakland, the regional park).
@@ -359,10 +414,11 @@ if (C4) {
     'remodel-triggers': { label: 'Required in existing buildings', title: 'Sprinklers required in existing buildings', brief: ['No trigger by floor area added.', 'by building type.'] },
     'out-of-service':   { brief: ['Not amended in Berkeley.', 'applies as written.'] },
     'replacement-head': { turns: 'whether this is a sleeping room in a retrofitted hotel', diffName: 'replacement-head', brief: ['“In the sleeping units', 'shall be used.”'] },
+    'smoke-doors':      { diffName: 'smoke-door', sec: '§ 705.2.5', brief: ['“Doors required for fire and smoke separation', 'with fusible links.”'] },
   };
   const cut = (text, ends) => { if (!ends) return null; const i = text.indexOf(ends[0]), j = i < 0 ? -1 : text.indexOf(ends[1], i); return j < 0 ? null : text.slice(i, j + ends[1].length); };
   const AFTER = { 'vertical-spacing': 'ladder-reach', 'shrub-spacing': 'vertical-spacing' };   // new rows that sit after a named row; zone-zero goes first, the rest last
-  for (const photo of ['ladder', 'sprinkler']) {
+  for (const photo of ['ladder', 'sprinkler', 'firedoor']) {
     const defs = rows[photo].local;
     C4.rows[photo].forEach(r => {
       const show = SHOW[r.key] || {};

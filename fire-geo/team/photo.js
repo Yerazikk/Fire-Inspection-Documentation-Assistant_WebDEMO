@@ -210,7 +210,32 @@ window.TeamPhoto = (function () {
       svg('text', { x: 92, y: 174, class: 'dw-label', 'text-anchor': 'middle', text: 'bushes' }), svg('text', { x: 227, y: 174, class: 'dw-label', 'text-anchor': 'middle', text: 'building' }));
     return { el: root, set() { } };
   }
-  const DRAW = { block, gap, closeup, both };
+  /** where the rating label is: along the hinge edge of the leaf, and a second one on the frame */
+  function doorlabel() {
+    const root = svg('svg', { class: 'tm-draw', viewBox: '0 0 330 140', role: 'img', 'aria-label': 'Drawing of a door in its frame. The rating label is on the hinge edge of the door, and a second one on the metal it hangs in.' });
+    root.append(
+      svg('rect', { x: 18, y: 10, width: 104, height: 120, rx: 3, class: 'dw-shape' }),                 // the leaf
+      svg('rect', { x: 18, y: 10, width: 9, height: 120, class: 'dw-shape is-on' }),                    // the hinge edge, lit
+      svg('rect', { x: 10, y: 10, width: 8, height: 120, rx: 2, class: 'dw-thin dw-nofill' }),          // the frame
+      svg('circle', { cx: 108, cy: 74, r: 4.5, class: 'dw-dot' }),                                      // the handle
+      svg('path', { d: 'M27 44L166 52', class: 'dw-lead' }), svg('circle', { cx: 27, cy: 44, r: 3.5, class: 'dw-dot' }),
+      svg('rect', { x: 166, y: 32, width: 140, height: 44, rx: 9, class: 'dw-plate' }),
+      svg('text', { x: 236, y: 62, class: 'dw-stamp', 'text-anchor': 'middle', text: '90 MIN' }),
+      svg('text', { x: 236, y: 24, class: 'dw-note', 'text-anchor': 'middle', text: 'for example' }),
+      svg('text', { x: 236, y: 102, class: 'dw-label is-big', 'text-anchor': 'middle', text: 'on the hinge edge' }),
+      svg('text', { x: 236, y: 120, class: 'dw-label is-big', 'text-anchor': 'middle', text: 'and on the metal' }));
+    return { el: root, set() { } };
+  }
+  /** what the close photo of the label should look like: the label fills the picture */
+  function doorshot() {
+    const root = svg('svg', { class: 'tm-draw', viewBox: '0 0 200 236', role: 'img', 'aria-label': 'Drawing: the rating label fills the picture, edge to edge.' });
+    root.append(svg('rect', { x: 6, y: 6, width: 188, height: 224, rx: 18, class: 'dw-frame' }),
+      svg('rect', { x: 34, y: 74, width: 132, height: 88, rx: 8, class: 'dw-plate' }),
+      svg('text', { x: 100, y: 112, class: 'dw-stamp', 'text-anchor': 'middle', text: '90 MIN' }),
+      svg('text', { x: 100, y: 140, class: 'dw-note', 'text-anchor': 'middle', text: 'fire door' }));
+    return { el: root, set() { } };
+  }
+  const DRAW = { block, gap, closeup, both, doorlabel, doorshot };
   const drawing = name => (DRAW[name] || closeup)();
 
   return { fit, photoBox, mark, beforeAfter, correctionView, markup, drawing, TREAT };

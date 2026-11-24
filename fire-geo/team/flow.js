@@ -33,6 +33,12 @@ window.TeamFlow = (function () {
       alternatives: ['Both strips are plugged into the wall.', 'The cords are lying across the floor where people walk.'],
       source: 'content.js daisy.summary, annotations[0], owner.intro',
     },
+
+    firedoor: {
+      text: 'A wedge is holding this fire door open.',
+      alternatives: ['The door is held open by something else.', 'The door is shut; nothing is holding it.'],
+      source: 'content.js firedoor.summary, annotations[0], owner.intro',
+    },
   };
 
   // ---- what the scan lights up, in plain words: the finding, and at most one thing beside it that matters.
@@ -42,6 +48,7 @@ window.TeamFlow = (function () {
     sprinkler: [{ ix: 2, label: 'Stains on the ring' }, { ix: 0, label: 'Paint on the sprinkler', finding: true }],
     ladder: [{ ix: 0, label: 'Tall plants' }, { ix: 1, label: 'Bushes reach the tall plants', finding: true }],
     daisy: [{ ix: 2, label: 'Upper strip, on the wall' }, { ix: 0, label: 'The lower strip feeds off it', finding: true }],
+    firedoor: [{ ix: 1, label: 'Closer, at the top' }, { ix: 0, label: 'A wedge under the door', finding: true }],
   };
   const SCAN_STEPS = ['Reading the photo', 'Finding what is wrong', 'Checking what else is needed'];
   const SCAN_NONE = 'Nothing was marked.';
@@ -67,6 +74,14 @@ window.TeamFlow = (function () {
       { id: 'upper', label: 'Upper strip', options: [{ id: 'wall', label: 'Plugged into a wall socket' }, { id: 'other', label: 'Plugged into something else' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.annotations[1]; uncertainty "Where does the upper tap\u2019s cord go?"' },
       { id: 'cords', label: 'Cords', options: [{ id: 'loose', label: 'Loose on the carpet' }, { id: 'under', label: 'Run under a door or the carpet' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.annotations[2]; code row "tap-install" (CFC \u00a7 603.5.3)' },
       { id: 'count', label: 'Strips', options: [{ id: 'two', label: 'Two, chained together' }, { id: 'more', label: 'More than two' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js daisy.extras[0]; code row "tap-direct" (the exception counts up to five)' },
+    ],
+    // The first of these is the one the inspector already knows and the app is only confirming: it is a fire door.
+    // Everything the code asks of this door follows from that, so it is the reading to correct if it is wrong.
+    firedoor: [
+      { id: 'door', label: 'The door', options: [{ id: 'fire', label: 'A fire door' }, { id: 'notfire', label: 'Not a fire door' }, { id: 'unsure', label: 'Not sure' }], source: 'the inspector\u2019s identification; content.js firedoor.uncertainty "Is this a fire door?"' },
+      { id: 'held', label: 'Held open by', options: [{ id: 'wedge', label: 'A wedge under it' }, { id: 'other', label: 'Something else' }, { id: 'nothing', label: 'Nothing; it is shut' }], source: 'content.js firedoor.summary, annotations[0]' },
+      { id: 'closer', label: 'Closer', options: [{ id: 'fitted', label: 'Fitted at the top' }, { id: 'none', label: 'None fitted' }, { id: 'unsure', label: 'Not sure' }], source: 'content.js firedoor.annotations[1]; code row "door-closer" (CFC \u00a7 705.2.3)' },
+      { id: 'sign', label: 'Sign on it', options: [{ id: 'none', label: 'No sign on the door' }, { id: 'some', label: 'There is a sign' }, { id: 'unsure', label: 'Not sure' }], source: 'the photograph shows no sign; code row "door-sign" (CFC \u00a7 705.2.2)' },
     ],
   };
 
@@ -120,6 +135,27 @@ window.TeamFlow = (function () {
         source: 'code row "tap-direct" (CFC \u00a7 603.5.2): taps \u201cused for 90 days or less for the purpose of testing the performance of such devices\u201d. content.js daisy.uncertainty "How long has this stood?"',
       },
     ],
+    // Two questions, and both are things only someone at the door can answer. The first is a reading, not a
+    // judgement: the label is there or it is not, and a close photograph of it settles the rating for good. The
+    // drawing beside it says where to look, the way the sprinkler question says where the year is stamped.
+    firedoor: [
+      {
+        id: 'label', ask: 'What does the door\u2019s rating label say?', picture: 'doorlabel',
+        options: [{ id: '20', label: '20 minutes' }, { id: '45', label: '45 minutes' }, { id: '60', label: '60 minutes' }],
+        write: { label: 'What the label says', placeholder: 'Or write what it says' },
+        cant: { id: 'cant', label: 'I can\u2019t find a label' },
+        say: () => 'Look along the hinge edge of the door, and on the metal it hangs in.',
+        photo: { label: 'Add a photo of the label', prompt: 'Take a close photo of the label.', picture: 'doorshot', callout: 'Fill the picture with the label', safety: 'Mind the door: it is not latched.' },
+        source: 'content.js firedoor.annotations[2], uncertainty "Is this a fire door?"; code row "door-blocked" (CFC \u00a7 705.2, which sends maintenance to NFPA 80). The ratings offered are the common ones; where the label is, is written for this prototype from the labelling sections of the Building Code (\u00a7\u00a7 716.2.9, 716.2.9.4), not quoted here.',
+      },
+      {
+        id: 'latch', ask: 'With the wedge out, does it close and latch by itself?',
+        options: [{ id: 'yes', label: 'Yes, it shuts and latches' }, { id: 'slow', label: 'It shuts but does not latch' }, { id: 'no', label: 'It does not shut on its own' }],
+        cant: { id: 'cant', label: 'I did not try it' },
+        say: () => 'This is what decides whether taking the wedge out is enough.',
+        source: 'code row "door-latch" (CFC \u00a7 705.2.4, read on up.codes 2026-11-23): \u201cSwinging fire doors shall close from the full-open position and latch automatically.\u201d Also code row "door-closer" (\u00a7 705.2.3).',
+      },
+    ],
   };
   const DISTANCE = { under10: { label: 'Under 10 ft', feet: 5 }, '10to30': { label: '10 to 30 ft', feet: 20 }, over30: { label: 'Over 30 ft', feet: 40 } };
 
@@ -159,6 +195,11 @@ window.TeamFlow = (function () {
       if ((a.age || {}).pick) f.age = a.age.pick;
       else if (((a.age || {}).text || '').trim()) { f.age = 'written'; f.ageText = a.age.text.trim(); }
       for (const k of ['chain', 'upper', 'cords', 'count']) if (c[k] && c[k] !== seen('daisy').find(s => s.id === k).options[0].id) f[k] = c[k];
+    } else if (scene === 'firedoor') {
+      if ((a.label || {}).pick) f.label = a.label.pick;
+      else if (((a.label || {}).text || '').trim()) { f.label = 'written'; f.labelText = a.label.text.trim(); }
+      if ((a.latch || {}).pick) f.latch = a.latch.pick;
+      for (const k of ['door', 'held', 'closer', 'sign']) if (c[k] && c[k] !== seen('firedoor').find(s => s.id === k).options[0].id) f[k] = c[k];
     }
     return f;
   }
@@ -193,6 +234,19 @@ window.TeamFlow = (function () {
       else if (f.age === 'today' || f.age === 'weeks') out.push({ short: 'Recently set up, the field inspector says.', text: 'The field inspector says this was set up ' + (f.age === 'today' ? 'today' : 'within the last few weeks') + '. The 90-day exception covers testing the performance of the devices themselves, not a temporary arrangement in general. Ask what it is for.' });
       if (f.cords === 'under') out.push({ short: 'A cord runs under something, out of the frame.', text: 'The field inspector says a cord runs under a door or under the carpet. That is a second finding under \u00a7 603.5.3, separate from the chained taps.' });
       if (f.count === 'more') out.push({ short: 'More than two strips, the field inspector says.', text: 'The field inspector counts more than the two taps in the photograph. Record each one: the exception in \u00a7 603.5.2 stops at five, and only for the uses it names.' });
+    } else if (scene === 'firedoor') {
+      // What the door does once the wedge is out is the whole question. Nothing here clears the finding: the
+      // wedge was there and \u00a7 705.2 is answered by taking it out. These say what else has to be written up.
+      if (f.latch === 'yes') out.push({ short: 'It shuts and latches on its own.', text: 'With the wedge out the door closes from the full-open position and latches, which is what \u00a7 705.2.4 asks. The finding is the wedge, and taking it out answers it.' });
+      else if (f.latch === 'slow') out.push({ short: 'It shuts but does not latch.', text: 'The field inspector says the door closes but the latch does not engage. \u00a7 705.2.4 asks that it latch automatically, so this is a second finding and the door is not made good by removing the wedge alone.' });
+      else if (f.latch === 'no') out.push({ short: 'It does not shut on its own: the closer has failed.', text: 'The field inspector says the door does not close on its own. Under \u00a7 705.2.3 the closer is to be maintained, and while it is out of service for repairs the door is to be kept in the closed position. That is an instruction to give today, not at the next visit.' });
+      else out.push({ short: 'Closing not tried on site.', text: 'Whether the door closes and latches by itself was not tried. \u00a7 705.2.4 turns on it, so it has to be tried before the finding is closed.' });
+      if (f.label === 'cant' || !f.label) out.push({ short: 'No rating label found.', text: 'No rating label was found on the door or the frame. The rating is not established, and an opening protective that cannot be identified is a question for the inspector before this is signed off.' });
+      else if (f.label === 'written') out.push({ short: 'Label, in the field inspector\u2019s words: \u201c' + f.labelText + '\u201d.', text: 'The field inspector wrote the label in rather than choosing: \u201c' + f.labelText + '\u201d. Record it against the assembly this door protects.' });
+      else out.push({ short: 'Label read: ' + f.label + ' minutes.', text: 'The label on the door reads ' + f.label + ' minutes. Check that against the rating the assembly it sits in requires.' });
+      if (f.closer === 'none') out.push({ short: 'No closer fitted, the field inspector says.', text: 'The field inspector says no closer is fitted. Then nothing shuts this door but a hand, and how it is ever closed is the question to put to the owner.' });
+      if (f.door === 'notfire' || f.door === 'unsure') out.push({ short: 'The field inspector is not calling it a fire door.', text: 'The field inspector has corrected or doubted the app\u2019s reading that this is a fire door. Settle that first: every section cited here is about an opening protective.' });
+      if (f.held === 'other') out.push({ short: 'Held open by something other than a wedge.', text: 'The field inspector says something other than a wedge is holding it. It makes no difference to \u00a7 705.2 \u2014 blocked is blocked \u2014 but record what it was.' });
     }
     return out;
   }

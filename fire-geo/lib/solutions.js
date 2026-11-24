@@ -35,7 +35,9 @@ const C = root.CONTENT || {}, O = root.FIREGEO_OUTLINES || {};
 const AFTER = { 'assets/generated/ladder-a-remove-hedge.png': 'assets/after/ladder-a-remove-hedge.jpg', 'assets/generated/ladder-b-prune-separation.png': 'assets/after/ladder-b-prune-separation.jpg', 'assets/generated/ladder-c-low-fuel-redesign.png': 'assets/after/ladder-c-low-fuel-redesign.jpg', 'assets/generated/sprinkler-a-replacement.png': 'assets/after/sprinkler-a-replacement.jpg',
   'assets/generated/daisy-a-direct.png': 'assets/after/daisy-a-direct.jpg',
   'assets/generated/daisy-b-one-tap.png': 'assets/after/daisy-b-one-tap.jpg',
-  'assets/generated/daisy-c-receptacles.png': 'assets/after/daisy-c-receptacles.jpg' };
+  'assets/generated/daisy-c-receptacles.png': 'assets/after/daisy-c-receptacles.jpg',
+  'assets/generated/firedoor-a-closed.png': 'assets/after/firedoor-a-closed.jpg',
+  'assets/generated/firedoor-b-sign.png': 'assets/after/firedoor-b-sign.jpg' };
 const plain = s => String(s || '').replace(/\s+—\s+/g, ' · ').replace(/—/g, ' · ');     // no em dashes on screen
 
 function build(photo) {
@@ -47,7 +49,9 @@ function build(photo) {
       standing: sn.badge === 'required' ? 'required' : 'alternative',
       standingText: plain(sn.badgeText),
       limit: sn.limit || null, imageNote: sn.imageNote || null,
-      before: ex.photo, after: AFTER[sn.image] || sn.image,
+      // A correction with no registered "after" picture (the fire-door ones) stands on the photograph itself.
+      // Nothing shows it: with no contour in data/outlines.js the "Show what changed" switch is hidden (app.js).
+      before: ex.photo, after: AFTER[sn.image] || sn.image || ex.photo,
       aspect: ex.aspect,
       align: m.align || { sx: 1, sy: 1, dx: 0, dy: 0 },
       reveal: m.reveal != null ? m.reveal : null,      // where the divider must sit for the mark to be on the after side

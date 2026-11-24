@@ -9,7 +9,7 @@ const inRing = (p, r) => { let c = false; for (let i = 0, j = r.length - 1; i < 
 const inRings = (p, rs) => rs.some(r => inRing(p, r));
 const zoneOf = p => { for (const cls of ['mitigation', 'very-high', 'high']) for (const z of Z.zones) if (z.cls === cls && inRings(p, z.rings) && !(z.holes && inRings(p, z.holes))) return cls; return 'none'; };
 // shapes
-ok(C.id === 'berkeley' && C.name && C.short && C.kind && C.agency && Array.isArray(C.adopted) && C.source && Array.isArray(C.pin) && C.rows.ladder.length && C.rows.sprinkler.length && C.verdictRules && typeof C.differs === 'string', 'city object shape');
+ok(C.id === 'berkeley' && C.name && C.short && C.kind && C.agency && Array.isArray(C.adopted) && C.source && Array.isArray(C.pin) && C.rows.ladder.length && C.rows.sprinkler.length && C.rows.firedoor.length && C.verdictRules && typeof C.differs === 'string', 'city object shape');
 ok(globalThis.FIREGEO_CITY4 === C, 'global export');
 const A = B.area; ok(A.id === 'berkeley' && A.kind === 'town' && Array.isArray(A.labelAt) && A.rings.length >= 1 && A.rings.every(r => r.length > 20 && r.every(p => p.length === 2)), 'boundary shape');
 ok(Z.source && Z.zones.every(z => z.town === 'berkeley' && ['mitigation', 'very-high', 'high'].includes(z.cls) && z.rings.length), 'zones shape');
@@ -27,7 +27,7 @@ const norm = s => s.replace(/^(?:(?:[a-z]|i{1,3}|iv|v|\d{1,2})\.[ \t]+)+/gm, '')
 const corpus = norm(['item41-2025-12-02.txt', 'item40-2025-12-02.txt', 'landscape-guide-2026.txt'].map(f => fs.readFileSync(path.join(DIR, 'sources', f), 'utf8')).join('\n'));
 const quotesOf = s => { const out = []; let depth = 0, start = -1; for (let i = 0; i < s.length; i++) { if (s[i] === '“') { if (!depth) start = i + 1; depth++; } else if (s[i] === '”') { depth--; if (!depth) out.push(s.slice(start, i)); } } return out; };
 let q = 0, qbad = 0;
-for (const photo of ['ladder', 'sprinkler']) for (const r of C.rows[photo]) {
+for (const photo of ['ladder', 'sprinkler', 'firedoor']) for (const r of C.rows[photo]) {
   ok(r.key && r.label && r.title && r.rule && r.cite && r.requires && r.applies && r.open != null && r.source && /^https:\/\//.test(r.source.url) && r.status === 'read' && ['quote', 'quote+paraphrase', 'paraphrase'].includes(r.words), 'row fields ' + r.key);
   ok(typeof C.verdictRules[r.rule] === 'function', 'rule exists ' + r.rule); if (r.rule === 'judgement' || r.rule === 'shrubSpacing') ok(!!r.turns, 'turns on ' + r.key);
   if (r.words !== 'paraphrase') ok(quotesOf(r.requires).length > 0, 'has a quote ' + r.key);

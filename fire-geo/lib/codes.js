@@ -16,6 +16,7 @@ const PHOTOS = [
   { id: 'ladder', tab: 'Ladder fuel', title: 'Ladder fuel under a canopy', finding: (CONTENT.ladder || {}).title || '', photo: 'assets/ladderfuel.jpg', aspect: 820 / 1474, usesDistance: true },
   { id: 'sprinkler', tab: 'Sprinkler', title: 'Painted sprinkler head', finding: (CONTENT.sprinkler || {}).title || '', photo: 'assets/sprinkler.png', aspect: 428 / 710, usesDistance: false },
   { id: 'daisy', tab: 'Wires', title: 'Power strip in a power strip', finding: (CONTENT.daisy || {}).title || '', photo: 'assets/daisychain.jpg', aspect: 1086 / 1448, usesDistance: false },
+  { id: 'firedoor', tab: 'Fire door', title: 'Fire door held open by a wedge', finding: (CONTENT.firedoor || {}).title || '', photo: 'assets/firedoor.png', aspect: 576 / 762, usesDistance: false },
 ];
 // The photograph decides which set of rows is read. Anything unknown falls back to the first one.
 const photoId = id => (PHOTOS.some(p => p.id === id) ? id : PHOTOS[0].id);
@@ -56,6 +57,10 @@ const RULES = {
   // photograph shows the connection itself, so this is as settled as the painted head — the two exceptions
   // (a Group A or B meeting room, a 90-day test) are facts about the room, and they sit in the row's `open`.
   tapDirect() { return { verdict: 'red', why: 'One power tap is plugged into another. Confirmed.' }; },
+  // 2025 CFC § 705.2: a fire door is not to be blocked, obstructed or otherwise made inoperable. The wedge under
+  // the leaf is in the photograph, so this is as settled as the painted head and the chained taps. What the door
+  // does once the wedge is out is a different section, and that row is a judgement.
+  doorBlocked() { return { verdict: 'red', why: 'A wedge holds this fire door open. Confirmed.' }; },
   // Which ordinance carries the state chapter. It is carried in all five places, so the row is not a finding
   // against the owner; it says which code the citation is written under, and what it was before 2026.
   carried(row) { return { verdict: 'green', why: row.was ? 'Carried here. Before 2026, the ' + row.was.value + '.' : 'Carried here, chapter 6 included.' }; },
@@ -130,6 +135,7 @@ function buildRow(def, layer, placeId, c) {
 function overallLine(photo, P, c, verdict, tally, rows) {
   if (photo === 'sprinkler') return 'A painted head must be replaced.';
   if (photo === 'daisy') return 'A tap fed from a tap.';
+  if (photo === 'firedoor') return 'A fire door wedged open.';
   if (!P.carried) return P.notCovered || (P.short + ' is not covered here.');
   if (P.zoneModel === 'berkeley') {                    // Zone 0 to 5 ft (mitigation areas), Zone 1 to 30 ft, Zone 2 to 100 ft, all in the Very High zone
     if (c.zone === 'mitigation' && c.d <= 5) return 'Inside Zone 0, within 5 ft.';

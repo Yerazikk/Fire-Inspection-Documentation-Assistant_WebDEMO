@@ -1,8 +1,10 @@
-// Finds what changed between the daisy-chain photograph and each "after" picture, and writes the contours that
-// "Show what changed" draws.
+// Finds what changed between a photograph and each of its "after" pictures, and writes the contours that
+// "Show what changed" draws. Written for the daisy chain; the fire door is drawn the same way, so it takes the
+// scene as its first argument.
 //
-//   node tools/daisy-outline.js            > data/outlines-daisy.json
-//   node tools/daisy-outline.js --write    merges the result into data/outlines.js
+//   node tools/daisy-outline.js                     the daisy chain  > data/outlines-daisy.json
+//   node tools/daisy-outline.js firedoor            the fire door
+//   node tools/daisy-outline.js firedoor --write    merges the result into data/outlines.js
 //
 // tools/register.js cannot be used here. It fits an "after" image onto the photograph by matching a few hundred
 // small patches between them, and that needs most of the frame to be unchanged. These pictures are redrawn whole
@@ -42,12 +44,28 @@ const ring = (e, n) => Array.from({ length: n }, (_, i) => {
   return [+(e.cx + e.rx * Math.cos(t)).toFixed(4), +(e.cy + e.ry * Math.sin(t)).toFixed(4)];
 });
 
-const JOBS = [
-  { key: 'daisy-a', after: 'assets/after/daisy-a-direct.jpg',      label: 'same outlet' },
-  { key: 'daisy-b', after: 'assets/after/daisy-b-one-tap.jpg',     label: 'one strip' },
-  { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'new outlet' },
-];
-const BEFORE = 'assets/daisychain.jpg';
+const SCENES = {
+  daisy: {
+    before: 'assets/daisychain.jpg',
+    jobs: [
+      { key: 'daisy-a', after: 'assets/after/daisy-a-direct.jpg',      label: 'same outlet' },
+      { key: 'daisy-b', after: 'assets/after/daisy-b-one-tap.jpg',     label: 'one strip' },
+      { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'new outlet' },
+    ],
+  },
+  // The fire door. Both pictures close the door, so the difference is the whole leaf and not only the wedge;
+  // that is the right thing to circle here, because the door being shut IS the correction.
+  firedoor: {
+    before: 'assets/firedoor.png',
+    jobs: [
+      { key: 'firedoor-a', after: 'assets/after/firedoor-a-closed.jpg', label: 'the door, shut' },
+      { key: 'firedoor-b', after: 'assets/after/firedoor-b-sign.jpg',   label: 'shut, and a sign on it' },
+    ],
+  },
+};
+const SCENE = SCENES[process.argv[2]] ? process.argv[2] : 'daisy';
+const JOBS = SCENES[SCENE].jobs;
+const BEFORE = SCENES[SCENE].before;
 
 const dataUrl = rel => {
   const b = fs.readFileSync(path.join(GEO, rel));

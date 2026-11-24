@@ -846,4 +846,158 @@ daisy: {
     ['Final status', 'Noncompliant — pending corrective action and inspector approval.'],
   ],
 },
+// ===========================================================================
+// FIRE DOOR
+//
+// The fourth inspection. Like the power taps it has no .md analysis behind it:
+// the photograph came from the field, and every statement below is either read
+// off that photograph or taken from the code text quoted in data/law.js.
+// Where the photograph cannot settle something — the door's rating, whether it
+// still closes and latches, whether the closer has failed — it is left open in
+// `uncertainty`, and the field inspector is asked in team/flow.js.
+// ===========================================================================
+firedoor: {
+  tab: 'Fire door',
+  title: 'Fire Door — Held Open by a Wedge',
+  status: 'Noncompliant — inspector confirmed',
+  meta: [
+    ['Inspection type', 'Fire and life safety inspection'],
+    ['Category', 'Fire and smoke protection features · opening protectives'],
+    ['Location', 'Rated door opening at the photographed location'],
+    ['Compliance deadline', 'To be established by the authority having jurisdiction'],
+  ],
+
+  photo: 'assets/firedoor.png',
+  aspect: 576 / 762,
+
+  note: 'a wedge holds the fire door open',
+  noteFix: 'Take the wedge out from under the door and let it close.',
+  noteWhy: 'A fire door earns its rating by being shut when there is a fire. Held off its latch it is an open hole in a rated wall, and the corridor it is meant to protect is the way out.',
+
+  summary: 'A cream-painted door stands open against its frame, held there by a wedge driven under the leading edge of the leaf. A closer arm is fitted across the head of the door. The wall opposite carries a directional EXIT sign and a hose valve, so the opening is on a protected route. Nothing holds the door except the wedge: take it away and the closer is what decides whether the door shuts.',
+  primary: 'Remove the wedge and let the door close. If the door has to stand open for the work going on, it may only be held by a device that releases it on detection — never by a wedge, a hook or anything propped against it.',
+
+  // Boxes are [left, top, width, height] as percentages of the displayed image, measured off the photograph.
+  annotations: [
+    { box: [50.7, 92.3, 12, 5.4], tone: 'red', label: 'The wedge',
+      note: 'A block driven under the leading edge of the leaf. It is the only thing holding this door open, and it is the finding.' },
+    { box: [5.7, 7, 23.5, 4.5], tone: 'cyan', label: 'Closer arm, at the head',
+      note: 'A door closer is fitted across the top of the opening. Whether it still works is what decides if the door shuts once the wedge is gone. The photograph cannot say.' },
+    { box: [18.6, 12.3, 5, 10.5], tone: 'cyan', label: 'Hinge edge — where the label is',
+      note: 'The rating label is fixed to the hinge edge of the leaf, and a second one to the frame. Neither is legible here, so the door’s rating is not established by this photograph.' },
+    { box: [70, 20, 23, 12], tone: 'cyan', label: 'EXIT sign, opposite',
+      note: 'A directional exit sign on the far wall. It places this opening on a route people are meant to use to get out, which is what the door is there to protect.' },
+  ],
+  annotationCaption: 'The finding is the wedge. The closer, the hinge edge and the exit sign are marked because each decides something the wedge alone does not: whether the door will shut, what it is rated for, and what it is protecting.',
+
+  solutions: [
+    {
+      id: 'a',
+      badge: 'required', badgeText: 'Required correction · inspector confirmed',
+      title: 'Take the wedge out and let the door close',
+      lede: 'The correction the code asks for, and it is owed immediately. Nothing is bought and nothing is installed.',
+      plain: 'Pull the wedge out from under the door and let it swing shut.',
+      image: 'assets/generated/firedoor-a-closed.png',
+      where: 'The block under the leading edge of the door leaf, at floor level.',
+      change: 'Remove the wedge. Let the door close and check that the latch engages.',
+      how: [
+        'Take the wedge away from the opening altogether, so it cannot be put back.',
+        'Let the door close on its own from the full-open position. Watch it the whole way.',
+        'Listen for the latch. A fire door that rests against the frame without latching has not closed.',
+        'Where it does not close or does not latch, report the closer as out of service: until it is repaired the door is to be kept in the closed position.',
+        'Ask why the door was wedged. If it is propped for a reason that will come back, see the third correction.',
+      ],
+      keep: 'The door, the frame, the closer and the hardware, all of which are serviceable as far as the photograph shows. Nothing here needs a contractor.',
+      why: 'A fire door is rated on the understanding that it is shut. Wedged open it is a hole in a rated assembly, and the smoke that the wall was built to hold back crosses it freely.',
+    },
+    {
+      id: 'b',
+      badge: 'alternative', badgeText: 'Second correction · where the official requires it',
+      title: 'Put a sign on the door',
+      lede: 'Not owed everywhere. The fire code official decides whether this door carries one, and which of the two legends it takes.',
+      plain: 'Fix a permanent sign to the door saying it is a fire door and must be kept closed.',
+      image: 'assets/generated/firedoor-b-sign.png',
+      where: 'On the face of the leaf or the wall beside it, where someone about to prop it open will read it.',
+      change: 'Add a permanent sign, letters at least one inch high.',
+      how: [
+        'Ask the fire code official whether a sign is required on this door.',
+        'Settle which legend belongs here: a door designed to be kept normally closed takes KEEP CLOSED, one designed to be kept normally open takes DO NOT BLOCK.',
+        'Use letters not less than 1 inch high, and fix the sign permanently.',
+        'Put it where it is read from the side the door is propped from.',
+      ],
+      keep: 'Everything else. The sign is added to the door, not instead of anything.',
+      why: 'The wedge comes back when nobody at the door knows what the door is for. A sign is what the code offers against that, and it is the only part of this finding that outlasts the inspection.',
+      limit: 'A sign is not a substitute for the first correction. The wedge comes out whether or not a sign is required here.',
+    },
+  ],
+
+  // The file document is assembled from these blocks (team/drafts.js record()): the headings it looks for are
+  // "Observed condition", "Hazard description", "Compliance deadline" and "Reinspection requirements", and the
+  // first section's `verify` list is what the record carries as its limits.
+  analysis: [
+    {
+      h: 'Inspector input — what the photograph shows',
+      blocks: [
+        { t: 'p', tag: 'observed', v: 'A flush door in a steel frame stands open against the frame and is held there by a wedge driven under the leading edge of the leaf. A closer arm is fitted across the head of the opening. The wall opposite carries a directional exit sign and a hose valve.' },
+        { t: 'h', v: 'Observed condition' },
+        { t: 'p', tag: 'observed', v: 'The door is held in the open position by a wedge. Nothing else restrains it. No rating label is legible in the photograph, and no sign is visible on the leaf or on the wall beside it.' },
+        { t: 'h', v: 'The closer' },
+        { t: 'p', v: 'A door closer is fitted at the head of the opening. Whether it is still in working order cannot be determined from a photograph, and whether the wedge is standing in for a failed closer is the first thing to establish on site.' },
+        { t: 'h', v: 'What the photograph does not settle' },
+        { t: 'ul', tag: 'verify', v: [
+          'The fire-protection rating of the door and of the assembly it is set in. Both are on labels that are not legible here.',
+          'Whether the door closes from the full-open position and latches automatically once the wedge is removed.',
+          'Whether the closer is in service.',
+          'Whether the fire code official requires a sign on this door, and which of the two legends applies.',
+          'The occupancy group, which decides whether Berkeley’s added sentence about fusible-link hold-opens reaches this door.',
+        ] },
+      ],
+    },
+    {
+      h: 'Analysis',
+      blocks: [
+        { t: 'h', v: 'Hazard description' },
+        { t: 'p', tag: 'hazard', v: 'An opening protective earns its rating on the understanding that it is closed. Held off its latch, the opening is a gap in a rated assembly, and smoke crosses it at once. The exit sign on the opposite wall places this opening on a route people are meant to use to leave the building, so the assembly the door belongs to is protecting the way out.' },
+        { t: 'h', v: 'Compliance deadline' },
+        { t: 'p', tag: 'verify', v: 'To be established by the authority having jurisdiction. The removal of the wedge itself is immediate: it takes a moment and the condition persists for as long as the wedge is in place.' },
+        { t: 'h', v: 'Reinspection requirements' },
+        { t: 'ul', v: [
+          'The wedge removed from the opening.',
+          'The door observed closing from the full-open position and latching without assistance.',
+          'The closer in working order, or reported out of service with the door kept closed until it is repaired.',
+          'Where the fire code official requires one, a permanent sign on or near the door in letters not less than 1 inch high.',
+          'The door’s rating label read and recorded against the assembly it protects.',
+        ] },
+      ],
+    },
+  ],
+
+  owner: {
+    title: 'Fire safety inspection — correction required',
+    sub: 'Finding: a wedge holding a fire door open',
+    intro: 'A fire door on your property is being held open with a wedge. A fire door only works when it is shut, so this has to come out.',
+    todo: 'Take the wedge out from under the door and let the door close on its own. Check that it latches.',
+    keep: 'Nothing has to be bought or replaced. The door, the frame and the arm at the top of it all stay as they are.',
+    when: 'Now. Of all the things an inspection turns up, this is the one that takes a second and matters most while it is still propped.',
+    dont: 'Do not swap the wedge for a hook, a chair or a bin. Anything that holds the door open is the same finding.',
+    qa: [
+      { q: 'What did we find?', a: ['A fire door propped open with a wedge under it.', 'The door in the photograph is held off its frame by a block pushed under its leading edge. The arm across the top of the door is a <b>closer</b>: it is there to shut the door on its own, and the wedge is defeating it.'] },
+      { q: 'Why does it matter?', a: ['A fire door is a piece of the wall. The wall is built to hold smoke and fire on one side of it for a set time, and the door is rated to do the same — as long as it is shut.', 'Propped open it is simply a hole. Smoke goes through an open doorway in seconds, and the corridor on the other side of this one is a way out: the sign on the opposite wall says so.'] },
+      { q: 'What do you need to do?', a: ['<b>Take the wedge away and let the door close.</b>', 'Then watch it shut from fully open and listen for the latch. A door resting against the frame without latching has not closed.', 'Take the wedge out of the building, or it will be back under the door by the afternoon.'] },
+      { q: 'The door does not close properly. Now what?', a: ['Then the closer needs repair, and that is a second thing to fix.', 'In the meantime the rule is plain: while the closer is out of service, the door is kept closed. Not propped, not left ajar.'] },
+      { q: 'What happens next?', a: ['Once the wedge is out and the door closes and latches on its own, the condition can be reviewed. Your inspector decides whether the finding has been corrected.', 'While you are there, look at the other rated doors on the same corridor. Where one is wedged, others usually are.'] },
+    ],
+  },
+
+  uncertainty: [
+    ['Is this a fire door?', 'The inspector has identified it as one. The photograph shows a flush door in a steel frame with a closer, which is consistent, but a rating label is not legible in it.', 'Read the label on the hinge edge of the leaf and on the frame, and record the rating.'],
+    ['Is the door held open by anything else?', 'Only the wedge is visible. Whether a hook or a hold-open is fitted out of frame is not shown.', 'Check the head and the wall behind the door.'],
+    ['Does it close and latch?', 'Not determinable from a photograph. § 705.2.4 asks that it close from the full-open position and latch automatically.', 'Take the wedge out and watch the door close. Listen for the latch.'],
+    ['Is the closer in service?', 'A closer arm is fitted. Whether it still works, and whether the wedge is standing in for a failed one, is not shown.', 'Test the closer. While it is out of service the door is to be kept closed.'],
+    ['Is a sign required here?', '§ 705.2.2 asks for one where the fire code official requires it, and no sign is visible on this door.', 'Ask the official whether a sign is required, and which legend applies.'],
+    ['What does this door separate?', 'An exit sign and a hose valve are on the opposite wall, so this is a protected route. Which assembly the door is part of is not established.', 'Identify the rated assembly from the building’s plans.'],
+    ['What is the occupancy?', 'Not determinable. It matters in Berkeley, whose § 705.2.5 names R-1 and R-2 stairway and floor-separation doors.', 'Confirm the occupancy group and whether this is one of those doors.'],
+  ],
+},
+
 };

@@ -23,8 +23,8 @@ function clipAudit(rootSel) {
     let ext = 0; try { el.focus({ preventScroll: true, focusVisible: true }); const f = getComputedStyle(el); if (f.outlineStyle !== 'none') ext = Math.max(0, parseFloat(f.outlineWidth) + parseFloat(f.outlineOffset)); el.blur(); } catch (e) { /* not focusable */ }
     for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
       const s = getComputedStyle(p), cx = s.overflowX !== 'visible', cy = s.overflowY !== 'visible'; if (!cx && !cy) continue;
-      const b = p.getBoundingClientRect(), k = p.offsetWidth ? b.width / p.offsetWidth : 1, L = b.left + p.clientLeft * k, R = L + p.clientWidth * k, T = b.top + p.clientTop * k, B = T + p.clientHeight * k, e = ext * k, scrolls = /auto|scroll/.test(s.overflowY);
-      if (r.left - e < L - .6 || r.right + e > R + .6 || (!scrolls && (r.top - e < T - .6 || r.bottom + e > B + .6))) out.bad.push((el.className || el.tagName).toString().slice(0, 40) + ' "' + (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 24) + '" in .' + String(p.className).split(' ')[0] + ' [' + [r.left - e - L, R - r.right - e, r.top - e - T, B - r.bottom - e].map(v => Math.round(v * 10) / 10).join(',') + ']');
+      const b = p.getBoundingClientRect(), k = p.offsetWidth ? b.width / p.offsetWidth : 1, L = b.left + p.clientLeft * k, R = L + p.clientWidth * k, T = b.top + p.clientTop * k, B = T + p.clientHeight * k, e = ext * k, scrollsY = /auto|scroll/.test(s.overflowY), scrollsX = /auto|scroll/.test(s.overflowX);
+      if ((!scrollsX && (r.left - e < L - .6 || r.right + e > R + .6)) || (!scrollsY && (r.top - e < T - .6 || r.bottom + e > B + .6))) out.bad.push((el.className || el.tagName).toString().slice(0, 40) + ' "' + (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 24) + '" in .' + String(p.className).split(' ')[0] + ' [' + [r.left - e - L, R - r.right - e, r.top - e - T, B - r.bottom - e].map(v => Math.round(v * 10) / 10).join(',') + ']');
       break;
     }
     out.n++;
@@ -67,6 +67,9 @@ function roundAudit(rootSel) {
       for (const l of mine) {
         const T = l.b;
         if (pill) {                                             // a pill: its words keep clear of the round ends
+          // unless the pill is a rail (Shell.rail): its row of tabs scrolls sideways and is clipped to the round
+          // ends by the radius itself, so a tab that has slid under one is not words crowding a corner.
+          if (/auto|scroll/.test(s.overflowX) && el.scrollWidth > el.clientWidth + 1) continue;
           const wide = E.width >= E.height, a = wide ? T.left - E.left : T.top - E.top, b2 = wide ? E.right - T.right : E.bottom - T.bottom, need = K_PAD * R;
           if (Math.min(a, b2) < need - .75) bad('end', l, Math.min(a, b2), need);
           continue;
@@ -148,7 +151,7 @@ function looseBars(rootSel) {
     if (process.env.TEAM_FROM !== 'new') {
     // ---- 2b. the phone: camera, scan, note, question, send
     const s1 = await D.open(browser, URL), page = s1.page;
-    const cam = await page.evaluate(() => { const q = s => document.querySelector(s).getBoundingClientRect(), k = q('.tm-phone').height / 844, v = q('.ph-stage'), l = q('.ph-lens'), sh = q('.ph-shutter'), g = q('.ph-actions-camera .ph-round'), sp = q('.ph-spacer'), scr = q('.ph-screen'); return { words: document.querySelector('.ph-layer:not(.leaving)').innerText.replace(/Ladder fuel|Sprinkler|Wires/g, '').trim(), lensAbove: l.bottom <= v.top + 1, lensCentred: Math.abs((l.left + l.right) / 2 - (scr.left + scr.right) / 2) / k, sides: [(v.left - scr.left) / k, (scr.right - v.right) / k], shutter: (scr.bottom - (sh.top + sh.height / 2)) / k, shutterX: Math.abs((sh.left + sh.right) / 2 - (scr.left + scr.right) / 2) / k, row: Math.abs((g.top + g.bottom) / 2 - (sh.top + sh.bottom) / 2) / k, balance: Math.abs(g.width - sp.width) / k, gap: (sh.top - v.bottom) / k, pillGap: (v.top - l.bottom) / k, pillTop: (l.top - q('.ph-view').top) / k, marks: document.querySelectorAll('.ph-stage .ph-win, .ph-stage .tm-mark').length }; });
+    const cam = await page.evaluate(() => { const q = s => document.querySelector(s).getBoundingClientRect(), k = q('.tm-phone').height / 844, v = q('.ph-stage'), l = q('.ph-lens'), sh = q('.ph-shutter'), g = q('.ph-actions-camera .ph-round'), sp = q('.ph-spacer'), scr = q('.ph-screen'); return { words: document.querySelector('.ph-layer:not(.leaving)').innerText.replace(/Ladder fuel|Sprinkler|Wires|Fire door/g, '').trim(), lensAbove: l.bottom <= v.top + 1, lensCentred: Math.abs((l.left + l.right) / 2 - (scr.left + scr.right) / 2) / k, sides: [(v.left - scr.left) / k, (scr.right - v.right) / k], shutter: (scr.bottom - (sh.top + sh.height / 2)) / k, shutterX: Math.abs((sh.left + sh.right) / 2 - (scr.left + scr.right) / 2) / k, row: Math.abs((g.top + g.bottom) / 2 - (sh.top + sh.bottom) / 2) / k, balance: Math.abs(g.width - sp.width) / k, gap: (sh.top - v.bottom) / k, pillGap: (v.top - l.bottom) / k, pillTop: (l.top - q('.ph-view').top) / k, marks: document.querySelectorAll('.ph-stage .ph-win, .ph-stage .tm-mark').length }; });
     ok(cam.pillGap >= 20 && cam.pillGap <= 24 && cam.pillTop >= cam.pillGap - .5 && cam.pillTop <= cam.pillGap + 8, 'camera: the scene switch sits balanced in its band, 20 to 24 px above the picture and at least as far under the status bar', [cam.pillTop, cam.pillGap]);
     ok(cam.words === '' && cam.lensAbove && cam.lensCentred < 1.5 && cam.marks === 0, 'camera: no words, the scene switch above the picture and centred, nothing on the picture', cam);
     ok(Math.abs(cam.sides[0] - 16) < 1 && Math.abs(cam.sides[1] - 16) < 1 && cam.shutter >= 80 && cam.shutter <= 90 && cam.shutterX < 1 && cam.row < 1 && cam.balance < 1 && cam.gap >= 20 && cam.gap <= 24 && Math.abs(cam.gap - cam.pillGap) <= 2, 'camera: even side margins, the shutter centred 80 to 90 px above the bottom, gallery level with it and balanced by a spacer, 20 to 24 px between the picture and the shutter (the same as above the picture)', cam);
@@ -493,14 +496,16 @@ function looseBars(rootSel) {
     ok(!f1.errors.length, 'focus: no errors', f1.errors.join('|')); await f1.ctx.close();
 
     // ---- 2o. after a send the camera comes back on the scene that has not been sent yet
-    const n1 = await D.open(browser, URL), np = n1.page, sceneNow = () => np.evaluate(() => [window.Team.Phone.state.scene, document.querySelector('.ph-lens button.on').dataset.value, (src => /sprinkler/.test(src) ? 'sprinkler' : /daisychain/.test(src) ? 'daisy' : 'ladder')(document.querySelector('.ph-stage .ph-photo:last-child img').getAttribute('src'))].join(' '));
+    const n1 = await D.open(browser, URL), np = n1.page, sceneNow = () => np.evaluate(() => [window.Team.Phone.state.scene, document.querySelector('.ph-lens button.on').dataset.value, (src => /sprinkler/.test(src) ? 'sprinkler' : /daisychain/.test(src) ? 'daisy' : /firedoor/.test(src) ? 'firedoor' : 'ladder')(document.querySelector('.ph-stage .ph-photo:last-child img').getAttribute('src'))].join(' '));
     await D.phone.shoot(np); await D.phone.confirm(np); await D.phone.send(np); await D.phone.next(np);
     ok(await sceneNow() === 'ladder ladder ladder', 'the sprinkler was sent: the camera comes back on the hedge, with the switch on Ladder fuel and the hedge in the viewfinder', await sceneNow());
     await np.click('.ph-lens button[data-value="sprinkler"]'); await D.settle(np, 400); await np.click('.ph-lens button[data-value="ladder"]'); await D.settle(np, 400);
     await D.phone.shoot(np); await D.phone.confirm(np); await D.phone.pick(np, 'under10'); await D.phone.send(np); await D.phone.next(np);
-    ok(await sceneNow() === 'daisy daisy daisy', 'two of the three are sent: the camera comes back on the one that is left, the power strips', await sceneNow());
+    ok(await sceneNow() === 'daisy daisy daisy', 'two of the four are sent: the camera comes back on the next one that is left, the power strips', await sceneNow());
     await D.phone.shoot(np); await D.phone.confirm(np); await D.phone.pick(np, 'work'); await D.phone.send(np); await D.phone.next(np);
-    ok(await sceneNow() === 'daisy daisy daisy', 'all three have been sent: the camera stays on the one last used', await sceneNow());
+    ok(await sceneNow() === 'firedoor firedoor firedoor', 'three of the four are sent: the camera comes back on the last one left, the fire door', await sceneNow());
+    await D.phone.shoot(np); await D.phone.confirm(np); await D.phone.pick(np, '60'); await D.phone.send(np); await D.phone.next(np);
+    ok(await sceneNow() === 'firedoor firedoor firedoor', 'all four have been sent: the camera stays on the one last used', await sceneNow());
     await np.click('.ph-lens button[data-value="sprinkler"]'); await D.settle(np, 400);
     ok(await sceneNow() === 'sprinkler sprinkler sprinkler', 'and any of them can still be chosen by hand', await sceneNow());
     await np.click('#tmReset'); await D.settle(np, 600);
