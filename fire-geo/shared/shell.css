@@ -67,7 +67,7 @@ body:has(> .shell-bar:first-child) { grid-template-rows: var(--shell-bar) minmax
    track to about three tabs and a half, so the next one is always part way in view: there is more along here. */
 .shell-seg.is-rail { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain; }
 .shell-seg.is-rail::-webkit-scrollbar { width: 0; height: 0; display: none; }
-.shell-seg.is-rail.is-over { max-width: min(var(--seg-peek, 100%), 100%); cursor: grab; }
+.shell-seg.is-rail.is-over { max-width: min(var(--seg-peek, 100%), 100%); margin-inline: auto; cursor: grab; }      /* held to three tabs and a half, so it is centred in what it no longer fills */
 .shell-seg.is-rail.is-over > button, .shell-seg.is-rail.is-over > a { flex: 0 0 auto; }
 .shell-seg.is-rail.is-dragging { cursor: grabbing; }
 .shell-seg.is-rail.is-dragging > button, .shell-seg.is-rail.is-dragging > a { pointer-events: none; }
