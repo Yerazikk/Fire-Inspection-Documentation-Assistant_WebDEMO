@@ -11,7 +11,8 @@ Two devices on one screen, the same height, linked live.
   already chosen, one question that only a person on site can answer, send.
 - **Laptop, senior inspector.** One finding, one way forward, in four steps:
   Finding, How to fix it, For the file, For the owner. The owner's page is the last step and the thing that
-  is published, so Publish is a button on that page. There is no separate publish screen.
+  is published, so Publish is a button on that page. There is no separate publish screen. Beside it is Email,
+  which writes the same finding as the text of a message and hands it to the mail app or the clipboard.
 
 Findings on this tab are taken in Ross, inside its mapped zone. The place is kept in state and read by
 the rules, the owner's page and the file document. There is no control to change it: how the codes change
@@ -115,6 +116,8 @@ Taps from the shutter to sent: shutter, "Use this note", one answer, send. Hedge
 | Owner's steps per correction | `drafts.js` `OWNER_STEPS`, each written from a named line of `content.js` |
 | "What is wrong" on the owner's page | the first sentences of `content.js` owner.intro, plus one from "Why is this dangerous?" when short |
 | "Fix this by" (a date) | set by the senior inspector at "How to fix it". It starts at the inspection date plus 30 days: for the hedge that is the timeframe in `content.js` (owner.when, "30 days"); for the sprinkler the sources give no timeframe ("a specific deadline cannot be inferred from the image"), so 30 days there is this prototype's own starting value, and the file document says so |
+| The email to the owner | the owner's page itself, read as text: the same words in the same order, the pictures left out. The subject is the page's title |
+| The owner's email address | not in the data. The To field starts empty, with "the owner's email address" in it as a placeholder; a real product would fill it from the agency's record |
 | Contact number | not in the data. Written as the slot `###-###-####` on the owner's page and in the file document's letterhead; typing a number in either place fills both. A real product would fill it from the agency's record |
 | Agency | `FireGeo.codes.place().agency` |
 | The line citing the rule | the full citation of each red row |
@@ -186,10 +189,12 @@ cannot be reached a small built-in rewrite answers instead.
    model here and register the result on the photo as `FireGeo.solutions` does.
 4. **Reading a photo.** The two readings are prepared. A photo from the gallery gets "The app could not
    read this photo" and a text box. A real product needs the vision model.
-5. **Sending.** Publish, on the owner's page, marks the finding published and tells the phone. Nothing
-   leaves the computer, and the line that appears says so. A real product needs the hosted owner's page
-   (the preview here is that page), a link sent to the owner, and the file document written to the
-   agency's system.
+5. **Sending.** Publish, on the owner's page, marks the finding published and tells the phone. Email, beside
+   it, writes the same words as a message and hands them to the mail app (a `mailto:` link) or to the
+   clipboard. Neither sends: nothing leaves the computer, and both say so. A real product needs the hosted
+   owner's page (the preview here is that page), a link sent to the owner, the message sent from the agency's
+   own address (with the pictures attached, which plain text cannot carry), and the file document written to
+   the agency's system.
 6. **The agency's phone number.** Not in the data. It is a slot written as `###-###-####` (Andrew's
    choice for this one field) that the senior can type over; a real product fills it from the agency's
    record.
@@ -259,6 +264,16 @@ cannot be reached a small built-in rewrite answers instead.
   owner is not connected yet. Nothing has left this computer.", with Undo. The line takes its own height,
   so it never covers the page. The last breadcrumb gets a tick, the sidebar says "Published", and the
   phone's item says "Reviewed". Sidebar words: To review, Fixes to choose, Draft ready, Published.
+- **Emailing.** Email sits with Publish in the same floating pill, one above the other: stacked, the pill
+  stays no wider than Publish, so the reading column still clears it. It is in the published line too, beside
+  Undo, since the message is usually sent after publishing. Pressing it turns the same window into a message
+  window: the address bar says "A new message to the owner", the page beneath cannot be reached, and in it
+  are To (empty, the one thing to type, and where the caret starts), the subject, and the message as plain
+  text. The words are not typed into here; the page is the one place they are written. At the foot: what it
+  does and does not do, Copy email, and Open in mail app (a `mailto:` link with the subject and the whole
+  message in it; when that link runs long the line adds that a mail app can cut it and Copy email gives all
+  of it). The close symbol, or Escape, puts the page back; Escape reaches the message before the enlargement
+  under it. Leaving the step, or the finding, closes it.
 - **Enlarge.** Each draft has an Enlarge symbol (on the browser window's bar; at the top right of the
   file document). It opens the same live page over the tab: 92% of the width, from near the top to 66 px
   above the bottom, so the queue and feedback buttons in the bottom corners stay clear. It is editable

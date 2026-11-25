@@ -28,6 +28,18 @@ window.TeamDraft = (function () {
   const word = v => D.VERDICT()[v].word;
   /** put children into an element: lists are opened out and missing pieces are left out (append() alone would write "null") */
   const fill = (el, ...kids) => { el.append(...kids.flat(Infinity).filter(k => k != null && k !== false)); return el; };
+  /** a text to the clipboard, with the old way as a fallback where the API is not allowed (an embedded page, no permission) */
+  async function toClipboard(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* the old way, below */ }
+    const ta = h('textarea', { style: { position: 'fixed', opacity: '0' } }); ta.value = text; document.body.append(ta); ta.select();
+    let done = false; try { done = document.execCommand('copy'); } catch (e2) { /* nothing more to try */ }
+    ta.remove(); return done;
+  }
+  /** a Copy button that says "Copied" for a moment and then says Copy again */
+  function copyBtn(label, get, cls) {
+    const b = btn(label, async () => { await toClipboard(get()); swapText(b.lastChild, 'Copied', { size: false }); setTimeout(() => swapText(b.lastChild, label, { size: false }), 1400); }, cls, 'copy');
+    return b;
+  }
   /** "What is wrong" for the owner: two or three short sentences from the owner report in the sources */
   function problemShort(scene) {
     const o = ((window.CONTENT || {})[scene] || {}).owner || {}, T = s => D.tidy(TD.strip(s)), out = TD.sentences(T(o.intro || '')).slice(0, 3);
@@ -96,7 +108,7 @@ window.TeamDraft = (function () {
       const b = sym('expand', 'Enlarge', () => { if (still()) { if (hole) close(); else open(); } }, 'dk-big-btn', 16);
       const px = r => ({ left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
       const spot = () => { const x = Math.round(innerWidth * .04), top = Math.round(innerHeight * .035), bottom = Math.max(Math.round(innerHeight * .045), 66); return { left: x, top, width: innerWidth - 2 * x, height: innerHeight - top - bottom }; };
-      const esc = e => { if (e.key === 'Escape' && !(document.activeElement && document.activeElement.isContentEditable)) { e.stopPropagation(); close(); } };
+      const esc = e => { if (e.key === 'Escape' && !(document.activeElement && document.activeElement.isContentEditable) && !frame.querySelector('.rp-mail')) { e.stopPropagation(); close(); } };      // a message window open inside the frame answers Escape itself
       const refit = () => { if (hole) Object.assign(frame.style, px(spot())); };
       const behind = on => { const m = document.querySelector('.tm-main'); if (m) m.inert = on; };      // what is under the page cannot be reached while it is open
       const face = (name, label) => { b.replaceChildren(icon(name, 16)); b.setAttribute('aria-label', label); b.title = label; };
@@ -504,19 +516,86 @@ window.TeamDraft = (function () {
       X.doc = window.TeamDoc.create(page, { pCls: 'rp-text', onChange: ownerRead, onSettle: settle });
       X.addr = h('span', { class: 'rp-addr' });
       X.pubBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => api.publish(true) }, h('span', { class: 'dk-primary-label', text: 'Publish' }));
-      X.act = h('div', { class: 'rp-act' }, X.pubBtn);                                      // floats at the bottom right of the window
+      X.mailBtn = btn('Email', () => showMail(true), '', 'mail');
+      X.act = h('div', { class: 'rp-act' }, X.mailBtn, X.pubBtn);                           // floats at the bottom right of the window, one action above the other: the pill stays as narrow as the reading column leaves room for
       X.undo = sym('undo', 'Undo', () => api.publish(false), '', 16);
+      X.mailBtn2 = btn('Email', () => showMail(true), '', 'mail');                          // the same action once it is published and the pill has gone
       X.done = h('div', { class: 'rp-done', role: 'status', hidden: true }, h('i', { class: 'rp-done-mark', 'aria-hidden': 'true' }, icon('check', 13)),      // the line at the foot of the window, once published
-        h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' })), X.undo);
-      const win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.act, X.done);
+        h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' })), X.mailBtn2, X.undo);
+      const win = X.win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), X.scroll = h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.act, X.done);
       win.firstChild.lastChild.replaceWith(enlarger(win));
       return h('section', { class: 'dk-pane', 'data-step': 'owner' }, h('div', { class: 'dk-pane-fixed' }, win));
     }
+    const addrText = () => D.place(V.loc.place).agency + ' · your inspection';
     function syncOwner() {
-      const X = parts.owner, pl = D.place(V.loc.place);
-      swapText(X.addr, pl.agency + ' · your inspection', { size: false });
+      const X = parts.owner;
+      if (!X.mailOn) swapText(X.addr, addrText(), { size: false });
       X.doc.update(ownerBlocks());                                                           // waits if the page is being typed into; settle() calls again
-      syncPublish();
+      syncPublish(); if (X.mailOn) syncMail();
+    }
+
+    // ---------------------------------------------------------------- the email to the owner
+    // The owner's page is a website, and a website cannot be put in an email. So Email, beside Publish, writes the
+    // same finding as the text of a message: the page's own words in reading order, no pictures and nothing of the
+    // site's look. It opens as a message window in the same frame (the address bar says so), and from there it goes
+    // to the mail app (a mailto: link, which fills a new message) or to the clipboard. Nothing is sent from here.
+    // It is not typed into: the page is the one place these words are written, and the message follows it.
+    function emailBody() {
+      const lines = []; let n = 0, listKey = '';
+      const gap = () => { if (lines.length && lines[lines.length - 1] !== '') lines.push(''); };
+      for (const b of ownerBlocks()) {
+        if (b.build || b.key === 'title') continue;                                          // a picture, or the line the subject already says
+        const text = clean((b.lead || '') + (b.text || '')); if (!text) continue;
+        if (b.tag === 'li') { if (b.key !== listKey) { gap(); n = 0; listKey = b.key; } lines.push(++n + '. ' + text); continue; }
+        listKey = ''; gap(); lines.push(text);
+      }
+      return lines.join('\n');
+    }
+    const emailSubject = () => 'From your fire inspection';
+    const mailto = () => 'mailto:' + clean(parts.owner.mailTo.value).replace(/\s+/g, '') + '?subject=' + encodeURIComponent(emailSubject()) + '&body=' + encodeURIComponent(emailBody());
+    function mailSheet() {
+      const X = parts.owner; if (X.mail) return X.mail;
+      X.mailTo = h('input', { class: 'dk-input rp-mail-in', type: 'email', placeholder: 'the owner’s email address', 'aria-label': 'To', autocomplete: 'off', spellcheck: 'false', oninput: () => syncMail() });
+      X.mailTo.addEventListener('keydown', e => e.stopPropagation());                        // the laptop's own keys are not for a text field
+      X.mailSubj = h('p', { class: 'rp-mail-subject' });
+      X.mailText = h('pre', { class: 'rp-mail-text' });
+      X.mailNote = h('p', { class: 'rp-mail-note' });
+      X.mailOpen = h('a', { class: 'dk-primary rp-mail-open', href: 'mailto:' }, h('span', { class: 'dk-primary-label', text: 'Open in mail app' }));
+      const head = h('div', { class: 'rp-mail-head' },
+        h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'To' }), X.mailTo),
+        h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'Subject' }), X.mailSubj));
+      X.mail = h('div', { class: 'rp-mail' }, head, h('div', { class: 'rp-mail-body tm-softscroll tm-thinscroll' }, X.mailText),
+        h('div', { class: 'rp-mail-foot' }, X.mailNote, copyBtn('Copy email', emailBody), X.mailOpen),
+        sym('close', 'Close the message', () => showMail(false), 'rp-mail-x', 16));
+      return X.mail;
+    }
+    function syncMail() {
+      const X = parts.owner, body = emailBody(), href = mailto();
+      swapText(X.mailSubj, emailSubject(), { size: false });
+      if (X.mailText.textContent !== body) X.mailText.textContent = body;
+      X.mailOpen.href = href;
+      const lines = ['Nothing is sent from here: the message goes to your mail app, or to the clipboard.', 'The words are the owner’s page, as the text of an email. The pictures are not in it.'];
+      if (href.length > 1800) lines.push('A mail app can cut a message this long. Copy email gives all of it.');
+      swapText(X.mailNote, lines.join(' '), { size: false });
+    }
+    /** the message window over the owner's page, in the same frame: while it is there the page beneath cannot be reached */
+    const mailEsc = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); showMail(false); } };
+    function showMail(on) {
+      const X = parts.owner; if (!X || !!X.mailOn === !!on) return;
+      X.mailOn = !!on; const sheet = mailSheet();
+      sheet.getAnimations().forEach(a => a.cancel());                                        // a fade that was left from the last time would hold it invisible
+      X.scroll.inert = X.mailOn; X.act.inert = X.mailOn; X.done.inert = X.mailOn;
+      if (X.mailOn) {
+        syncMail(); X.win.append(sheet); swapText(X.addr, 'A new message to the owner', { size: false });
+        U.anim(sheet, [{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
+        document.addEventListener('keydown', mailEsc, true);                                 // Escape closes it, from wherever the focus is
+        X.mailTo.focus({ preventScroll: true }); U.soft(); return;                            // the address is the one thing to type, so the caret starts there
+      }
+      document.removeEventListener('keydown', mailEsc, true);
+      swapText(X.addr, addrText(), { size: false });
+      const out = U.anim(sheet, [{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'ease-in', fill: 'forwards' });
+      const gone = () => { if (X.mailOn) return; sheet.remove(); if (out) out.cancel(); U.refocus(X.act.hidden ? X.mailBtn2 : X.mailBtn); U.soft(); };
+      if (out) out.onfinish = gone; else gone();
     }
     /**
      * One click publishes. The button leaves, and then a line at the foot of the same window says what happened, with
@@ -524,7 +603,8 @@ window.TeamDraft = (function () {
      */
     function syncPublish() {
       const X = parts.owner; if (!X) return;
-      const on = !!V.published; X.pubBtn.disabled = !on && api.violations().length > 0 && !chosen().length;      // a violation with no correction chosen is not ready to go out
+      const on = !!V.published, short = api.violations().length > 0 && !chosen().length;      // a violation with no correction chosen is not ready to go out
+      X.pubBtn.disabled = !on && short; X.mailBtn.disabled = short; X.mailBtn2.disabled = short;
       if (X.pubOn === on) return;
       const first = X.pubOn == null; X.pubOn = on;
       if (first || U.reduced() || !X.act.offsetParent && !X.done.offsetParent) { X.act.hidden = on; X.done.hidden = !on; U.soft(); return; }
@@ -630,7 +710,7 @@ window.TeamDraft = (function () {
       X.sheet = h('div', { class: 'wd-sheet' }, body);
       X.doc = window.TeamDoc.create(body, { pCls: 'wd-p', onChange: fileRead, onSettle: settle });
       const plain = () => X.doc.blocks().map(b => (b.innerText || b.textContent).replace(/[ \t]*\n[ \t]*/g, '\n').trim()).filter(Boolean).join('\n\n');
-      const copy = btn('Copy', async () => { const t = plain(); try { await navigator.clipboard.writeText(t); } catch (e) { const ta = h('textarea', { style: { position: 'fixed', opacity: '0' } }); ta.value = t; document.body.append(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) { /* nothing more to try */ } ta.remove(); } swapText(copy.lastChild, 'Copied', { size: false }); setTimeout(() => swapText(copy.lastChild, 'Copy', { size: false }), 1400); }, null, 'copy');
+      const copy = copyBtn('Copy', plain);
       const print = btn('Print', () => { let p = document.getElementById('tmPrint'); if (!p) { p = h('div', { id: 'tmPrint' }); document.body.append(p); } const c = body.cloneNode(true); c.removeAttribute('contenteditable'); c.style.minHeight = ''; c.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable')); c.querySelectorAll('[style]').forEach(n => { n.style.paddingTop = ''; }); p.replaceChildren(h('div', { class: 'wd-sheet' }, c)); window.print(); }, null, 'print');
       X.tools = [copy, print];                              // Copy and Print sit beside the step's button at the bottom, not in a bar over the page
       const frame = h('div', { class: 'doc-frame' }, h('div', { class: 'doc-scroll tm-softscroll tm-thinscroll' }, X.sheet)); frame.prepend(enlarger(frame));
@@ -646,12 +726,12 @@ window.TeamDraft = (function () {
     return {
       model: M, chosen, due: () => ({ date: dueDate(), days: dueDays(), text: fmtDate(dueDate()) }), setDue: n => { M.due.days = n; M.due.date = null; touch(); }, docs: () => ({ owner: parts.owner && parts.owner.doc, file: parts.file && parts.file.doc }),
       pane(step) { if (!panes[step]) { panes[step] = BUILD[step](); SYNC[step](); refresh(); } return panes[step]; },
-      shown(step) { bigs.forEach(c => c(true)); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); if (step === 'file') paginateSoon(); } },
+      shown(step) { bigs.forEach(c => c(true)); if (step !== 'owner') showMail(false); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); if (step === 'file') paginateSoon(); } },
       ready: step => step !== 'fix' || chosen().length > 0,
       sync: () => syncAll(),
       published() { syncPublish(); },
-      /** put an enlarged draft back at once (the finding is being left) */
-      shut() { bigs.forEach(c => c(true)); },
+      /** put an enlarged draft back at once, and shut the message window (the finding is being left) */
+      shut() { bigs.forEach(c => c(true)); showMail(false); },
       /** what sits beside the step's button at the bottom (Copy and Print for the file document) */
       tools: step => { if (calOpen) closeCal(false, true); return step === 'file' && parts.file ? parts.file.tools : step === 'fix' ? [dueControl()] : []; },
     };

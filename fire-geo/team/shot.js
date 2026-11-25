@@ -64,6 +64,7 @@ const kill = setTimeout(() => { console.log('SHOT TIMEOUT'); process.exit(2); },
       await page.click('.dk-view.is-on .doc-frame > [aria-label="Enlarge"]'); await D.settle(page, 500); await snap(page, t + '08-for-the-file-enlarged'); await page.mouse.click(8, 8); await D.settle(page, 500);
       await D.desk.next(page); await snap(page, t + '09-for-the-owner');
       await page.evaluate(() => { document.querySelector('.dk-view.is-on .rp-scroll').scrollTop = 560; }); await D.settle(page, 250); await snap(page, t + '10-for-the-owner-options');
+      await page.click('.dk-view.is-on .rp-act ' + tb('Email')); await D.settle(page, 450); await snap(page, t + '10b-the-email'); await page.keyboard.press('Escape'); await D.settle(page, 450);
       await page.evaluate(() => { document.querySelector('.dk-view.is-on .rp-scroll').scrollTop = 0; }); await page.click('.dk-view.is-on .rp-bar [aria-label="Enlarge"]'); await D.settle(page, 500); await snap(page, t + '11-for-the-owner-enlarged');
       await page.evaluate(() => { document.querySelector('.rp-window.is-big .rp-scroll').scrollTop = 760; }); await D.settle(page, 250); await snap(page, t + '12-for-the-owner-enlarged-options');
       await page.evaluate(() => document.activeElement && document.activeElement.blur()); await page.mouse.click(8, 8); await D.settle(page, 500);

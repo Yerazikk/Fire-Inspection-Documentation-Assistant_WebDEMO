@@ -271,8 +271,9 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .dk-view[data-step="owner"] .dk-foot { display: none; }
 .dk-view[data-step="file"] .dk-foot::before { display: none; }
 .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { margin: 0 calc(-1 * var(--dk-slack)); }      /* a draft has the whole screen, margins included */
-.rp-act { right: 14px; bottom: 12px; display: flex; align-items: center; }
+.rp-act { right: 14px; bottom: 12px; display: flex; flex-direction: column; align-items: stretch; border-radius: 22px; }      /* Email over Publish: stacked, so the pill is no wider than Publish and no line of the page runs under it */
 .rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
+.rp-window .rp-act > .tm-btn { height: 34px; justify-content: center; }
 /* after Publish the button is gone and a line at the foot of the window says what happened. It is part of the
    window's own frame (the same wash as its top bar), takes its own height and never covers the page. */
 .rp-act[hidden] { display: none; }
@@ -283,6 +284,23 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-done-text > b { margin-right: 4px; font-weight: 650; color: var(--ink); }
 .rp-window .rp-done > .tm-sym { flex: none; width: 30px; height: 30px; }
 .rp-window.is-big .rp-act { right: 22px; bottom: 20px; }
+/* the email to the owner: the same frame, with a message in it instead of the website. It covers the page and the
+   pill below the window's bar (whose address says a message is being written), and it goes with the window when
+   that is enlarged. Plain text in the app's own type: an email is not a website, and it carries no pictures. */
+.rp-mail { position: absolute; left: 0; right: 0; top: 36px; bottom: 0; z-index: 8; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: var(--tm-solid); }
+.rp-mail-head { display: grid; gap: 8px; padding: 14px 52px 12px 18px; border-bottom: 1px solid var(--line); }
+.rp-mail-row { display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 10px; }
+.rp-mail-label { font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+.rp-mail-row > .dk-input { max-width: 340px; height: 34px; }
+.rp-mail-subject { margin: 0; min-width: 0; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-window .rp-mail > .rp-mail-x { position: absolute; right: 12px; top: 12px; width: 30px; height: 30px; }      /* over the head, not a row of its own (the kit sets its own position on a round button) */
+.rp-mail-body { min-height: 0; overflow-y: auto; padding: 16px 18px 20px; }
+.rp-mail-text { margin: 0; max-width: 72ch; font-family: inherit; font-size: 13.5px; line-height: 1.5; font-weight: 500; color: var(--ink); white-space: pre-wrap; }
+.rp-mail-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px 12px 18px; border-top: 1px solid var(--line); background: var(--tm-wash); }
+.rp-mail-note { flex: 1 1 220px; margin: 0; min-width: 0; font-size: 11.5px; line-height: 1.4; font-weight: 500; color: var(--ink2); }
+.rp-mail-foot > .dk-primary { height: 34px; padding: 0 16px; font-size: 13px; }
+.rp-window.is-big .rp-mail-text { font-size: 15px; }
+.rp-window.is-big .rp-mail-body { padding: 22px 24px 26px; }
 .dk-pane-fixed { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 /* a draft opened large: over most of the window, the same live page */
 .dk-big-layer { font-size: 14px; }      /* the laptop app's own base size: the page reads the same out here */
@@ -302,7 +320,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-scroll { --scroll-inset-top: 6px; --scroll-inset-bottom: 14px; }
 .doc-scroll { --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
 /* The owner's page is one document (doc.js): its blocks follow one another with ordinary paragraph spacing. */
-.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 100px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating button */
+.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 124px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating pill (Email over Publish) */
 .rp-page > * { margin: 0 0 12px; }
 .rp-window.is-big .rp-page { max-width: min(880px, 100cqw - 190px); font-size: 18px; padding-top: 44px; }
 .rp-window.is-big .rp-page > .rp-title { font-size: 42px; }
