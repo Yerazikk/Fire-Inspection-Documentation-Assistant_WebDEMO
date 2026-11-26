@@ -246,7 +246,8 @@ const field = {
       options: [{ id: '20', label: '20 minutes' }, { id: '45', label: '45 minutes' }, { id: '60', label: '60 minutes' }],
       write: { label: 'What the label says', placeholder: 'Or write what it says' },
       cant: { id: 'cant', label: 'I can\u2019t find a label' },
-      say: () => 'Look along the hinge edge of the door, and on the metal it hangs in.',
+      // No `say`: where to look is in the drawing above the question, and saying it again under the answer was a
+      // second voice for the same instruction.
       photo: { label: 'Add a photo of the label', prompt: 'Take a close photo of the label.', picture: 'doorshot', callout: 'Fill the picture with the label', safety: 'Mind the door: it is not latched.' },
       source: 'content.js firedoor.annotations[2], uncertainty "Is this a fire door?"; code row "door-blocked" (CFC \u00a7 705.2, which sends maintenance to NFPA 80). The ratings offered are the common ones; where the label is, is written for this prototype from the labelling sections of the Building Code (\u00a7\u00a7 716.2.9, 716.2.9.4), not quoted here.',
     },
@@ -254,7 +255,8 @@ const field = {
       id: 'latch', ask: 'With the wedge out, does it close and latch by itself?',
       options: [{ id: 'yes', label: 'Yes, it shuts and latches' }, { id: 'slow', label: 'It shuts but does not latch' }, { id: 'no', label: 'It does not shut on its own' }],
       cant: { id: 'cant', label: 'I did not try it' },
-      say: () => 'This is what decides whether taking the wedge out is enough.',
+      // No `say`: the question already says what it turns on, and why it matters is the senior inspector's to
+      // read off the row, not the field inspector's to be told while answering.
       source: 'code row "door-latch" (CFC \u00a7 705.2.4, read on up.codes 2026-11-23): \u201cSwinging fire doors shall close from the full-open position and latch automatically.\u201d Also code row "door-closer" (\u00a7 705.2.3).',
     },
   ],
