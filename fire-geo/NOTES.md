@@ -108,7 +108,7 @@ The documents I did read are saved as text in `sources/text/` (the downloads are
 
 ## 4. Verdict logic
 
-Mark: red square "Violation" · yellow triangle "Inspector's call" · green circle "Clear". The overall verdict is
+Mark: red square "Violation" · yellow triangle "Inspector's call" · green circle "Compliant". The overall verdict is
 the worst row. Inputs: photo, place, assumed distance `d` (ladder photo only, 0 to 150 ft, default 20), and `scope`:
 whether the pin is `in` a mapped fire hazard zone or WUI area, `out` of them, or `unknown` (no layer for that place).
 

@@ -19,7 +19,7 @@
   const badge = h('i', { class: 'tm-badge shell-num' });
   const sw = U.seg([{ id: 'phone', label: 'Phone' }, { id: 'desk', node: h('span', { class: 'tm-switch-desk' }, 'Laptop', badge) }], 'phone', v => {
     body.dataset.dev = v;
-    if (v === 'desk') { unseen = 0; badge.textContent = ''; badge.classList.remove('is-on'); }
+    if (v === 'desk') { unseen = 0; badge.textContent = ''; badge.classList.remove('is-on'); } else Desk.shut();
     requestAnimationFrame(again);
   }, 'tm-devseg');
   document.getElementById('tmSwitch').append(sw);

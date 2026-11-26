@@ -68,7 +68,7 @@ Places: `ross`, `san_anselmo`, `fairfax`, `marin` (unincorporated) carry rows. `
 
 ## 3. Verdicts
 
-Mark = colour + word + shape: red square "Violation" · yellow triangle "Inspector's call" · green circle "Clear".
+Mark = colour + word + shape: red square "Violation" · yellow triangle "Inspector's call" · green circle "Compliant".
 Overall = the worst row. Inputs: photo, place, assumed distance `d` (ladder only, 0 to 150 ft, default 20 ft),
 `scope` at the pin (`in` a mapped hazard zone or WUI area · `out` · `unknown` where the map has no layer).
 

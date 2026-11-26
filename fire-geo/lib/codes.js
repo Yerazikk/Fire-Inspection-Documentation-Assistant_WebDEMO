@@ -8,7 +8,7 @@ const LAW = root.FIREGEO_LAW, CONTENT = root.CONTENT || {};
 const VERDICT = {
   red:    { word: 'Violation', shape: 'square' },
   yellow: { word: 'Inspector’s call', shape: 'triangle' },
-  green:  { word: 'Clear', shape: 'circle' },
+  green:  { word: 'Compliant', shape: 'circle' },
 };
 const RANK = { green: 0, yellow: 1, red: 2 };
 const DISTANCE = { min: 0, max: 150, step: 1, default: 20, unit: 'ft' };

@@ -536,45 +536,189 @@ window.TeamDraft = (function () {
 
     // ---------------------------------------------------------------- the email to the owner
     // The owner's page is a website, and a website cannot be put in an email. So Email, beside Publish, writes the
-    // same finding as the text of a message: the page's own words in reading order, no pictures and nothing of the
-    // site's look. It opens as a message window in the same frame (the address bar says so), and from there it goes
-    // to the mail app (a mailto: link, which fills a new message) or to the clipboard. Nothing is sent from here.
-    // It is not typed into: the page is the one place these words are written, and the message follows it.
-    function emailBody() {
-      const lines = []; let n = 0, listKey = '';
-      const gap = () => { if (lines.length && lines[lines.length - 1] !== '') lines.push(''); };
+    // same finding as a message: the page's own words in reading order, and the pictures that belong to them, each
+    // where the page puts it. The photograph of the finding is one picture; a correction is two, its before and its
+    // after side by side, each labelled. It opens as a message window in the same frame (the address bar says so).
+    // Nothing is sent from here. How the pictures travel is the one thing an email cannot hide, so the three ways
+    // out say plainly what each one carries:
+    //   Copy email        the words AND the pictures, as rich text. Pasted into a message written in a browser
+    //                     (Gmail, Outlook on the web) the pictures come with it and go out as part of the message.
+    //   Save the photos   every picture as its own file, named in reading order, to attach by hand in any mail app.
+    //   Open in mail app  a mailto: link. A mailto: link carries text and nothing else: no attachment can be hung
+    //                     on one, by this page or any other, so that way sends the words alone and says so.
+    // The message is not typed into: the page is the one place these words are written, and the message follows it.
+    const MAIL_MAX = 1100;                                                                   // the longest side a picture is sent at: an email is read, not zoomed into
+    const picJobs = new Map();                                                               // src -> Promise<{ url, w, h }>: each picture is read and shrunk once, however often it is sent
+    /** a picture at email size: scaled down, re-encoded, and given back as a data URL that can sit inside a message */
+    function mailPicture(src) {
+      if (picJobs.has(src)) return picJobs.get(src);
+      const job = new Promise((done, fail) => {
+        const im = new Image(); im.decoding = 'async';
+        im.onload = () => {
+          const k = Math.min(1, MAIL_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+          const w = Math.max(1, Math.round(im.naturalWidth * k)), ht = Math.max(1, Math.round(im.naturalHeight * k));
+          const cv = h('canvas'); cv.width = w; cv.height = ht;
+          const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, ht); cx.drawImage(im, 0, 0, w, ht);
+          done({ url: cv.toDataURL('image/jpeg', .82), w, h: ht });
+        };
+        im.onerror = () => fail(new Error('the picture could not be read'));
+        im.src = src;
+      });
+      picJobs.set(src, job); job.catch(() => { });                                           // whoever asks for it handles the failure; the kept promise must not report it on its own
+      return job;
+    }
+    /** a data URL back into a file, so the picture can be saved and attached */
+    function asFile(url) {
+      const cut = url.indexOf(','), type = (url.slice(0, cut).match(/:(.*?);/) || [])[1] || 'image/jpeg', bin = atob(url.slice(cut + 1));
+      const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new Blob([bytes], { type });
+    }
+    /** the picture that belongs to one block of the owner's page, where it has one */
+    function picOf(key) {
+      if (key === 'photo') return { kind: 'one', id: 'photo', file: 'the-finding', src: f.photo.src, cap: 'The photograph from your inspection.' };
+      if (key === 'diagram') { const d = (((window.CONTENT || {})[scene] || {}).owner || {}).diagram; return d ? { kind: 'one', id: 'diagram', file: 'diagram', src: D.ROOT + d.src, cap: clean(d.caption || '') } : null; }
+      const m = /^sol-(.+)-fig$/.exec(key || ''); if (!m) return null;
+      const list = chosen(), s = list.find(x => x.id === m[1]); if (!s) return null;
+      const after = s.kind === 'own' ? s.after : s.sol.after; if (!after) return null;        // nothing drawn for this one yet: its words go without a picture, rather than with half a pair
+      const drawn = s.kind === 'own';
+      return { kind: 'pair', id: s.id, file: 'correction-' + (list.indexOf(s) + 1), before: drawn ? f.photo.src : s.sol.before, after,
+        tags: ['Before', drawn ? 'After, drawn' : 'After'],
+        cap: prefix(s) + val(s.title) + '.' + (drawn ? ' The second picture is drawn from the instructions. It is not a photograph of your property.' : '') };
+    }
+    /** the message, block by block, in the page's own order: its words, and the pictures that belong to them */
+    function mailBlocks() {
+      const out = []; let listKey = '';
       for (const b of ownerBlocks()) {
-        if (b.build || b.key === 'title') continue;                                          // a picture, or the line the subject already says
+        if (b.key === 'title') continue;                                                     // the subject already says it
+        if (b.build) { const p = picOf(b.key); if (p) { out.push(p); listKey = ''; } continue; }
         const text = clean((b.lead || '') + (b.text || '')); if (!text) continue;
-        if (b.tag === 'li') { if (b.key !== listKey) { gap(); n = 0; listKey = b.key; } lines.push(++n + '. ' + text); continue; }
-        listKey = ''; gap(); lines.push(text);
+        if (b.tag === 'li') { if (b.key !== listKey) { listKey = b.key; out.push({ kind: 'steps', items: [] }); } out[out.length - 1].items.push(text); continue; }
+        listKey = ''; out.push({ kind: 'line', head: b.tag === 'h2' || b.tag === 'h3', text });
+      }
+      return out;
+    }
+    /** every picture in the message as a file to save: a pair gives two, named so their order is plain */
+    function mailFiles() {
+      const out = [];
+      mailBlocks().forEach(b => {
+        if (b.kind === 'one') out.push({ name: b.file + '.jpg', src: b.src });
+        else if (b.kind === 'pair') { out.push({ name: b.file + '-before.jpg', src: b.before }); out.push({ name: b.file + '-after.jpg', src: b.after }); }
+      });
+      return out;
+    }
+    function emailBody() {
+      const lines = [], gap = () => { if (lines.length && lines[lines.length - 1] !== '') lines.push(''); };
+      for (const b of mailBlocks()) {
+        if (b.kind === 'line') { gap(); lines.push(b.text); }
+        else if (b.kind === 'steps') { gap(); b.items.forEach((t, i) => lines.push((i + 1) + '. ' + t)); }
       }
       return lines.join('\n');
     }
+    /** the same message as rich text, the pictures inside it. Inline styles and a table: that is all an email keeps. */
+    async function emailHtml() {
+      const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const S = {
+        p: 'margin:0 0 12px;font:400 14px/1.55 Helvetica,Arial,sans-serif;color:#192233;',
+        head: 'margin:22px 0 8px;font:700 15px/1.4 Helvetica,Arial,sans-serif;color:#192233;',
+        li: 'margin:0 0 6px;font:400 14px/1.55 Helvetica,Arial,sans-serif;color:#192233;',
+        cap: 'margin:7px 0 0;font:400 12px/1.45 Helvetica,Arial,sans-serif;color:#5b6577;',
+        tag: 'margin:0 0 5px;font:700 11px/1.4 Helvetica,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#5b6577;',
+      };
+      const out = [];
+      for (const b of mailBlocks()) {
+        if (b.kind === 'line') out.push('<p style="' + (b.head ? S.head : S.p) + '">' + esc(b.text) + '</p>');
+        else if (b.kind === 'steps') out.push('<ol style="margin:0 0 12px;padding-left:22px;">' + b.items.map(t => '<li style="' + S.li + '">' + esc(t) + '</li>').join('') + '</ol>');
+        else if (b.kind === 'one') {
+          const p = await mailPicture(b.src);
+          out.push('<div style="margin:0 0 18px;"><img src="' + p.url + '" width="' + Math.min(300, p.w) + '" style="display:block;max-width:100%;border-radius:8px;" alt=""><p style="' + S.cap + '">' + esc(b.cap) + '</p></div>');
+        } else {
+          const pair = await Promise.all([mailPicture(b.before), mailPicture(b.after)]);
+          const cell = (p, tag, pad) => '<td width="50%" valign="top" style="padding:' + pad + ';"><p style="' + S.tag + '">' + esc(tag) + '</p><img src="' + p.url + '" width="248" style="display:block;width:100%;max-width:248px;border-radius:8px;" alt=""></td>';
+          out.push('<div style="margin:0 0 18px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:516px;border-collapse:separate;"><tr>' +
+            cell(pair[0], b.tags[0], '0 5px 0 0') + cell(pair[1], b.tags[1], '0 0 0 5px') + '</tr></table><p style="' + S.cap + '">' + esc(b.cap) + '</p></div>');
+        }
+      }
+      return '<div style="max-width:560px;">' + out.join('') + '</div>';
+    }
     const emailSubject = () => 'From your fire inspection';
     const mailto = () => 'mailto:' + clean(parts.owner.mailTo.value).replace(/\s+/g, '') + '?subject=' + encodeURIComponent(emailSubject()) + '&body=' + encodeURIComponent(emailBody());
+    /** the message as it will be read: the words, and the pictures where they belong */
+    function mailDom(blocks) {
+      const half = (src, tag) => h('div', { class: 'rp-mail-half' }, h('b', { class: 'rp-mail-tag', text: tag }), h('img', { class: 'rp-mail-img', src, alt: '' }));
+      return blocks.map(b => {
+        if (b.kind === 'line') return h(b.head ? 'h4' : 'p', { class: b.head ? 'rp-mail-h' : 'rp-mail-p', text: b.text });
+        if (b.kind === 'steps') return h('ol', { class: 'rp-mail-steps' }, b.items.map(t => h('li', { text: t })));
+        const body = b.kind === 'one' ? h('div', { class: 'rp-mail-one' }, h('img', { class: 'rp-mail-img', src: b.src, alt: '' }))
+          : h('div', { class: 'rp-mail-ba' }, half(b.before, b.tags[0]), half(b.after, b.tags[1]));
+        return h('figure', { class: 'rp-mail-fig' }, body, h('figcaption', { class: 'rp-mail-cap', text: b.cap }));
+      });
+    }
+    /** a button that says what it did for a moment, and is then itself again */
+    function says(b, label, work) {
+      b.addEventListener('click', async () => {
+        if (b.disabled) return;
+        b.disabled = true; const said = await work(); b.disabled = false;
+        swapText(b.lastChild, said, { size: false }); clearTimeout(b.sayT); b.sayT = setTimeout(() => swapText(b.lastChild, label, { size: false }), 1900);
+      });
+      return b;
+    }
     function mailSheet() {
       const X = parts.owner; if (X.mail) return X.mail;
       X.mailTo = h('input', { class: 'dk-input rp-mail-in', type: 'email', placeholder: 'the owner’s email address', 'aria-label': 'To', autocomplete: 'off', spellcheck: 'false', oninput: () => syncMail() });
       X.mailTo.addEventListener('keydown', e => e.stopPropagation());                        // the laptop's own keys are not for a text field
       X.mailSubj = h('p', { class: 'rp-mail-subject' });
-      X.mailText = h('pre', { class: 'rp-mail-text' });
+      X.mailText = h('div', { class: 'rp-mail-text' });
       X.mailNote = h('p', { class: 'rp-mail-note' });
+      X.mailClips = h('ul', { class: 'rp-mail-clips' });
+      X.mailPics = h('div', { class: 'rp-mail-pics', hidden: true }, h('h4', { class: 'shell-label', text: 'Photos in this message' }), X.mailClips);
+      // the words and the pictures together, as rich text: pasted into a message written in a browser, the pictures go with it
+      X.mailCopy = says(btn('Copy email', null, '', 'copy'), 'Copy email', async () => {
+        const text = emailBody();
+        try {
+          // the pictures are promised, not waited for: the write has to be asked for while the press still counts
+          await navigator.clipboard.write([new ClipboardItem({
+            'text/html': emailHtml().then(s => new Blob([s], { type: 'text/html' })),
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          })]);
+          return mailFiles().length ? 'Copied, photos and all' : 'Copied';
+        } catch (e) { return await toClipboard(text) ? 'Copied the words' : 'Could not copy'; }
+      });
+      // every picture as a file, for the mail apps that want an attachment of their own
+      X.mailSave = says(btn('Save the photos', null, '', 'down'), 'Save the photos', async () => {
+        const files = mailFiles(); let n = 0;
+        for (const fi of files) {
+          try {
+            const p = await mailPicture(fi.src), u = URL.createObjectURL(asFile(p.url));
+            const a = h('a', { href: u, download: fi.name }); document.body.append(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(u), 8000); n++;
+          } catch (e) { /* that one could not be read; the rest still go */ }
+        }
+        return n ? 'Saved ' + n + (n === 1 ? ' photo' : ' photos') : 'Could not save';
+      });
       X.mailOpen = h('a', { class: 'dk-primary rp-mail-open', href: 'mailto:' }, h('span', { class: 'dk-primary-label', text: 'Open in mail app' }));
       const head = h('div', { class: 'rp-mail-head' },
         h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'To' }), X.mailTo),
         h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'Subject' }), X.mailSubj));
-      X.mail = h('div', { class: 'rp-mail' }, head, h('div', { class: 'rp-mail-body tm-softscroll tm-thinscroll' }, X.mailText),
-        h('div', { class: 'rp-mail-foot' }, X.mailNote, copyBtn('Copy email', emailBody), X.mailOpen),
+      X.mail = h('div', { class: 'rp-mail' }, head, h('div', { class: 'rp-mail-body tm-softscroll tm-thinscroll' }, X.mailText), X.mailPics,
+        h('div', { class: 'rp-mail-foot' }, X.mailNote, X.mailCopy, X.mailSave, X.mailOpen),
         sym('close', 'Close the message', () => showMail(false), 'rp-mail-x', 16));
       return X.mail;
     }
     function syncMail() {
-      const X = parts.owner, body = emailBody(), href = mailto();
+      const X = parts.owner, blocks = mailBlocks(), href = mailto(), files = mailFiles();
       swapText(X.mailSubj, emailSubject(), { size: false });
-      if (X.mailText.textContent !== body) X.mailText.textContent = body;
+      const sig = JSON.stringify(blocks);                                                    // the message is rebuilt only when its words or its pictures change: typing the address must not reload them
+      if (X.mailSig !== sig) { X.mailSig = sig; X.mailText.replaceChildren(...mailDom(blocks)); }
+      const fsig = files.map(x => x.name + ' ' + x.src).join('|');
+      if (X.mailFsig !== fsig) {
+        X.mailFsig = fsig; X.mailPics.hidden = !files.length; X.mailSave.disabled = !files.length;
+        X.mailClips.replaceChildren(...files.map(fi => h('li', { class: 'rp-mail-clip' }, h('img', { class: 'rp-mail-clip-img', src: fi.src, alt: '' }), h('span', { class: 'rp-mail-clip-name', text: fi.name }))));
+      }
       X.mailOpen.href = href;
-      const lines = ['Nothing is sent from here: the message goes to your mail app, or to the clipboard.', 'The words are the owner’s page, as the text of an email. The pictures are not in it.'];
+      const lines = ['Nothing is sent from here: the message goes to your mail app, or to the clipboard.'];
+      lines.push(files.length
+        ? 'Copy email takes the words and the ' + files.length + ' photographs together, so pasting it into a message written in a browser brings the pictures with it. Save the photos gives them as files to attach. A mailto: link cannot carry an attachment, so the mail app is given the words alone.'
+        : 'The words are the owner’s page, as the text of an email. This finding has no picture to send with them.');
       if (href.length > 1800) lines.push('A mail app can cut a message this long. Copy email gives all of it.');
       swapText(X.mailNote, lines.join(' '), { size: false });
     }

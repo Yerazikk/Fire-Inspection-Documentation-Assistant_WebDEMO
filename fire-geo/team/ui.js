@@ -304,6 +304,7 @@ window.TeamUI = (function () {
     doc: 'M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5', phone: 'M8 2.5h8a1.5 1.5 0 011.5 1.5v16a1.5 1.5 0 01-1.5 1.5H8A1.5 1.5 0 016.5 20V4A1.5 1.5 0 018 2.5zM10.5 19h3',
     alert: 'M12 4l9 15.5H3zM12 10v4.5M12 17.2v.3', chevL: 'M14 6l-6 6 6 6', chevD: 'M6 9.5l6 6 6-6', back2: 'M20 12H5M11 6l-6 6 6 6', del: 'M4 6h13a3 3 0 013 3v6a3 3 0 01-3 3H4l-3-6zM9 9.5l5 5M14 9.5l-5 5', chevR: 'M10 6l6 6-6 6', expand: 'M5 9V5h4M19 9V5h-4M5 15v4h4M19 15v4h-4',
     calendar: 'M5 6.5h14v13H5zM5 10.5h14M9 4v4M15 4v4', copy: 'M9 9h10v11H9zM5 15V4h10', mail: 'M3.5 6.5h17v11h-17zM3.5 7.2l8.5 6 8.5-6', print: 'M7 8V4h10v4M7 17H4v-7h16v7h-3M7 14h10v6H7z', trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13', open: 'M12 6v6l4 2',
+    down: 'M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14',
   };
   function icon(name, size) {
     const s = size || 18;

@@ -5,7 +5,7 @@
 // frame (what was received, the steps, the breadcrumb) and step 1, the rules. Steps 2 to 4 are in desk-draft.js.
 // At rest a rule is one line: verdict, name, citation. The line opens in place for the rule's own words, what the
 // app thinks and what is still to confirm. Pressing the verdict turns it, where it stands, into the system's small
-// two-part switch, Violation | Clear, and the name moves aside to make room. The list is sorted red, yellow, green ONCE,
+// two-part switch, Violation | Compliant, and the name moves aside to make room. The list is sorted red, yellow, green ONCE,
 // when the finding opens, from the app's own verdicts. After that every row stays where it is: changing a verdict
 // changes that row's mark and word in place, and the counts, and nothing moves under the pointer.
 // The place is kept in state (Ross on this tab). relocate() re-reads the open finding for another place and patches it
@@ -207,7 +207,7 @@ window.TeamDesk = (function () {
     if (open) setTimeout(() => { if (V.open === st.key) follow(V.scroll, guided ? st.node.firstChild : st.node); }, 280);
   }
   // ---- the verdict, pressed: it turns, where it stands, into the system's own two-part switch (the same sunken
-  // capsule and raised pill as the tabs at the top, at a small size): Violation | Clear.
+  // capsule and raised pill as the tabs at the top, at a small size): Violation | Compliant.
   // Opened from "Inspector's call" neither side is chosen and there is no thumb (the yellow mark belongs to the closed
   // label and leaves with it). Opened from a decided row the pill is on its side. The name and the citation
   // move right to make room, so nothing is covered and the row keeps its height. Choosing a side puts the pill
@@ -324,6 +324,7 @@ window.TeamDesk = (function () {
   }
   function go(V, step) {
     if (step === V.step || V.flow.indexOf(step) < 0) return;
+    closeToggle(true);                                                // an open verdict switch belongs to the step it was opened on, and leaves with it
     if (!V.panes[step]) { V.panes[step] = V.draft.pane(step); V.stepsEl.append(V.panes[step]); void V.panes[step].offsetWidth; }
     V.step = step; V.reached = Math.max(V.reached, V.flow.indexOf(step)); V.movedAt = performance.now();
     for (const id in V.panes) { const on = id === step; V.panes[id].classList.toggle('is-on', on); V.panes[id].inert = !on; }
@@ -425,11 +426,17 @@ window.TeamDesk = (function () {
     root.append(h('div', { class: 'dk-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), h('b', { text: 'Inspections' })), panes, zoomEl);
     document.addEventListener('pointerdown', e => { if (tog && !tog.el.contains(e.target) && !tog.st.vbtn.contains(e.target)) closeToggle(); }, true);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && tog) closeToggle(); });
+    // Leaving the page is leaving the question. An open switch with nothing chosen is a decision half-taken: it does
+    // not wait behind another tab. Whichever way the page goes out of sight, the switch closes unchanged, as Escape
+    // closes it, so coming back shows the row as it was.
+    window.addEventListener('shell:visibility', e => { if (!(e.detail && e.detail.visible)) closeToggle(true); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) closeToggle(true); });
   }
   return {
     mount, reserve, land, select, relocate, reset, seed, zoom, STEPS,
     view: () => current && views.get(current), views,
     relayout() { const V = current && views.get(current); if (V) placeCrumb(V, true); },
+    shut() { closeToggle(true); },                                    // the laptop is going out of sight: nothing of it stays open
     onPublished(fn) { hooks.published = fn; }, onSelect(fn) { hooks.select = fn; },
   };
 })();

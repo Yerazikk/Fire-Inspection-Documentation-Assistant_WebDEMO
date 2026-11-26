@@ -38,7 +38,7 @@ const kill = setTimeout(() => { console.log('SHOT TIMEOUT'); process.exit(2); },
           const row = '.dk-row[data-key="' + key + '"]', clip = async () => rect(page, row, 6);
           await page.click(row + ' .dk-verdict'); await D.settle(page, 400); cells.push({ buf: await page.screenshot({ clip: await clip() }), cap: name + ': not decided, open', h: 70 });
           await page.evaluate(() => { const t = document.querySelector('.dk-toggle'); t.focus(); }); await page.keyboard.press('ArrowLeft'); await D.settle(page, 330); await page.evaluate(() => document.activeElement.blur()); cells.push({ buf: await page.screenshot({ clip: await clip() }), cap: name + ': pill on Violation', h: 70 });
-          await page.evaluate(() => { document.querySelector('.dk-toggle').focus(); }); await page.keyboard.press('ArrowRight'); await D.settle(page, 330); await page.evaluate(() => document.activeElement.blur()); cells.push({ buf: await page.screenshot({ clip: await clip() }), cap: name + ': pill on Clear', h: 70 });
+          await page.evaluate(() => { document.querySelector('.dk-toggle').focus(); }); await page.keyboard.press('ArrowRight'); await D.settle(page, 330); await page.evaluate(() => document.activeElement.blur()); cells.push({ buf: await page.screenshot({ clip: await clip() }), cap: name + ': pill on Compliant', h: 70 });
           await page.click('.dk-toggle button[data-value="green"]'); await page.waitForTimeout(400); cells.push({ buf: await page.screenshot({ clip: await clip() }), cap: name + ': closing', h: 70 }); await D.settle(page, 900);
         }
         await sheet('verdict-switch' + tag, 'The verdict switch' + (look === 'off' ? ' (kit off)' : ''), cells); await s.ctx.close(); }
