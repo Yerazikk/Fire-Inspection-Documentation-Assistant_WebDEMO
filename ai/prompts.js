@@ -389,6 +389,54 @@ const VISUAL = {
 };
 
 // ---------------------------------------------------------------------------
+// REGION — where the visualisation differs from the photograph
+// ---------------------------------------------------------------------------
+
+// A prepared correction's "after" is registered against the photograph offline
+// and the two are differenced, so the ring the page draws round the change is
+// measured: tools/register.js traces the pixels that actually moved. The
+// inspector's own correction is drawn while they wait and has no such pass, so
+// there is nothing measured to trace.
+//
+// This asks the model that drew the picture where it drew. That is weaker
+// evidence and the interface has to say so: it is the model's account of its
+// own work, not a measurement of the difference between two images, and the
+// page labels it that way. It is worth asking because the alternative is no
+// ring at all, and the inspector is looking at the picture to find the change.
+//
+// A box, not a polygon. A model will happily emit twenty plausible-looking
+// vertices, and the extra fifteen are invention dressed as precision. Four
+// numbers it can get roughly right, and the page rounds them into a soft shape
+// that reads as "about here" rather than as a traced edge.
+const REGION = {
+  // The project's own text model, not a second id pinned here: a reader of two pictures needs
+  // nothing the records do not already need, and one id to keep current is better than two.
+  model: process.env.GEMINI_REGION_MODEL || MODEL.name,
+  timeoutMs: Number(process.env.GEMINI_REGION_TIMEOUT_MS || 30000),
+  instruction: rec => [
+    'Two pictures of the same scene: first the original photograph, then a visualisation of it',
+    'with one correction carried out.',
+    '',
+    'THE CORRECTION THAT WAS ILLUSTRATED',
+    `Title: ${rec.title}`,
+    rec.text ? `Detail: ${rec.text}` : null,
+    '',
+    'Say where the second picture differs from the first. Reply with JSON and nothing else:',
+    '',
+    '{"box":[x0,y0,x1,y1],"label":"two or three words"}',
+    '',
+    '- x0, y0, x1, y1 are the left, top, right and bottom of the changed area as fractions of',
+    '  the picture, 0 at the left and top, 1 at the right and bottom. x0 < x1 and y0 < y1.',
+    '- Bound the area that actually changed between the two pictures, not the whole subject and',
+    '  not the whole frame. If the change is in one corner, the box is in that corner.',
+    '- label says what changed, in the past tense, two or three words: "lower tier removed",',
+    '  "head replaced", "cord rerouted". No punctuation, no section numbers, no measurements.',
+    '- If the two pictures are the same, or you cannot tell them apart, reply {"box":null}.',
+    '  That is a useful answer. Do not invent a box to fill the field.',
+  ].filter(x => x !== null).join('\n'),
+};
+
+// ---------------------------------------------------------------------------
 // VOICE — the dictated memo
 // ---------------------------------------------------------------------------
 
@@ -1097,6 +1145,6 @@ function assemble(kind, ctx) {
 }
 
 module.exports = {
-  MODEL, VISUAL, VOICE, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
+  MODEL, VISUAL, REGION, VOICE, GROUNDING, SHARED, RECORD, REPORT, NOTICE, SEVERITY_BANDS,
   SCHEMAS, SECTION_SCHEMA, assemble, assembleDetect, DETECT, systemFor, userFor,
 };

@@ -20,12 +20,15 @@
 //
 //   POST /api/team/visual  -> the picture of the inspector's own correction carried out
 //     body  { scene, title, text?, finding? }
-//     reply { ok, source: 'model' | 'fake', mimeType, data (base64), model?, ms? }
+//     reply { ok, source: 'model' | 'fake', mimeType, data (base64), model?, ms?,
+//             region?: { box: [x0,y0,x1,y1], label } | null }
 //   A prepared correction's "after" picture is drawn offline and registered against the photograph
 //   (tools/register.js), which is what lets "Show what changed" draw a measured contour. The inspector's own
 //   correction has no such picture, so this draws one while they wait: the inspection photograph and their one
 //   sentence go to the image model (../ai/visual.js, Gemini), and the same frame comes back with the work done.
-//   It carries no contour, so the page shows it under the divider with the switch left off.
+//   There is no measured difference to trace on it, so a second, cheap call asks the model where it drew and the
+//   page rings that. It is weaker evidence than a prepared contour and is captioned as what it is: the model's
+//   account of its own work. No region (it could not tell, or the call failed) simply means no ring.
 const { spawn, spawnSync } = require('child_process'), fs = require('fs'), path = require('path'), os = require('os'), vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 const MODEL = process.env.TEAM_DRAFT_MODEL || 'claude-opus-5-5';
@@ -201,13 +204,16 @@ async function visual(raw) {
   try { photo = { mimeType: mime(c.photo), data: fs.readFileSync(path.join(ROOT, c.photo)).toString('base64') }; }
   catch { return { code: 500, body: { error: 'the inspection photograph could not be read' } }; }
 
-  // the test switch: a prepared "after" for this scene stands in, so the page's own path runs without a model call
+  // the test switch: a prepared "after" for this scene stands in, so the page's own path runs without a model call.
+  // A stand-in region comes with it, for the same reason: the ring the page draws round the change is part of that
+  // path, and a switch nothing ever exercises is a switch nobody finds broken.
   if (process.env.TEAM_DRAFT_FAKE) {
+    const region = { box: [0.18, 0.52, 0.74, 0.72], label: 'the changed area' };
     const dir = path.join(ROOT, 'assets', 'after');
     let f = null;
     try { f = fs.readdirSync(dir).filter(n => n.indexOf(scene + '-') === 0).sort()[0]; } catch { }
-    if (!f) return { code: 200, body: { ok: true, source: 'fake', mimeType: photo.mimeType, data: photo.data } };
-    return { code: 200, body: { ok: true, source: 'fake', mimeType: mime(f), data: fs.readFileSync(path.join(dir, f)).toString('base64') } };
+    if (!f) return { code: 200, body: { ok: true, source: 'fake', mimeType: photo.mimeType, data: photo.data, region } };
+    return { code: 200, body: { ok: true, source: 'fake', mimeType: mime(f), data: fs.readFileSync(path.join(dir, f)).toString('base64'), region } };
   }
 
   let V;
@@ -217,7 +223,11 @@ async function visual(raw) {
   drawing++;
   try {
     const out = await V.illustrate(photo, { title, text }, { finding });
-    return { code: 200, body: { ok: true, source: 'model', model: V.model(), mimeType: out.mimeType, data: out.data, ms: out.ms } };
+    // Then, where it drew. A prepared correction's ring is measured offline (tools/register.js differences the
+    // registered pair); this one is the model's own account of its work, so it travels under its own name and the
+    // page captions it as that. It never fails the picture: no region simply means no ring.
+    const region = await V.locate(photo, { mimeType: out.mimeType, data: out.data }, { title, text });
+    return { code: 200, body: { ok: true, source: 'model', model: V.model(), mimeType: out.mimeType, data: out.data, ms: out.ms, region } };
   } catch (e) {
     return { code: 502, body: { error: clean(e.message, 300) || 'the image model could not be reached', kind: e.kind || 'upstream' } };
   } finally { drawing--; }

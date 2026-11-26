@@ -251,9 +251,17 @@ window.TeamDraft = (function () {
         view.classList.remove('tm-ba', 'tm-markup', 'dragging');
         view.style.removeProperty('aspect-ratio'); view.style.removeProperty('--p');
         if (s.after && s.show !== 'mark') {
-          C.ba = P.beforeAfter(view, { before: f.photo.src, after: s.after, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, outline: [], position: M.pos, tags: { before: 'Before', after: 'After · proposed' } });
-          fill(extra, head('Drawn from your sentence to show the result. It is not a photograph of the property.'),
-            h('div', { class: 'tm-btns' }, btn('Draw it again', () => drawAfter(s), 'is-quiet')));
+          const ring = (s.outline || []).length ? s.outline : null;
+          C.ba = P.beforeAfter(view, { before: f.photo.src, after: s.after, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true },
+            outline: ring && s.changed ? ring : [], position: M.pos, tags: { before: 'Before', after: 'After · proposed' } });
+          // the same switch as a prepared correction's, and the same words, because it does the same thing to the
+          // same picture. What it is told about where the change is differs, and the line above it says so.
+          const sw = !ring ? null : h('button', { class: 'shell-pill ba-toggle', type: 'button', 'aria-pressed': String(!!s.changed) },
+            h('span', { class: 'ba-check', 'aria-hidden': 'true' }), 'Show what changed');
+          if (sw) sw.addEventListener('click', () => { s.changed = !s.changed; sw.setAttribute('aria-pressed', String(s.changed)); C.ba.update({ outline: s.changed ? ring : [] }); });
+          fill(extra, head('Drawn from your sentence to show the result. It is not a photograph of the property.'
+            + (ring ? ' The ring is where the drawing says it changed, not a measurement of the two pictures.' : '')),
+            h('div', { class: 'tm-btns' }, sw, btn('Draw it again', () => drawAfter(s), 'is-quiet')));
           return;
         }
         // the photograph itself, to mark the area on
@@ -268,20 +276,36 @@ window.TeamDraft = (function () {
       C.repaint = paint; paint();
       return extra;
     }
+    /** A prepared correction's ring is traced from the measured difference between its registered pair
+        (tools/register.js, offline). The inspector's own correction is drawn while they wait, so there is no such
+        pass: the server asks the model where it drew and sends back a box. A box is all a model can honestly give,
+        so the page rounds it into an oval, which reads as "about here" rather than as a traced edge. */
+    const RING_N = 28;
+    function ringFrom(region) {
+      const b = region && region.box; if (!Array.isArray(b) || b.length !== 4) return null;
+      const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, rx = (b[2] - b[0]) / 2, ry = (b[3] - b[1]) / 2;
+      const at = v => Math.max(0.004, Math.min(0.996, v));
+      const points = Array.from({ length: RING_N }, (_, i) => { const t = i / RING_N * Math.PI * 2; return [at(cx + rx * Math.cos(t)), at(cy + ry * Math.sin(t))]; });
+      return { points, label: clean(region.label || '') || 'what changed' };
+    }
     /** Ask the server to draw it (POST /api/team/visual -> ../ai/visual.js, the image model). Nothing waits on it:
         the senior carries on with the steps and the picture arrives in the card when it is ready. */
     async function drawAfter(s) {
       if (s.drawing) return;
       s.drawing = true; s.drawNote = ''; if (s.ui && s.ui.repaint) s.ui.repaint();
       const body = { scene, title: val(s.title), text: s.steps.map(val).join(' '), finding: val(M.problem) };
-      let got = null, why = '';
+      let got = null, ring = null, why = '';
       try {
         const r = await fetch('/api/team/visual', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-        const j = await r.json();
-        if (r.ok && j && j.ok && j.data) got = 'data:' + (j.mimeType || 'image/jpeg') + ';base64,' + j.data;
-        else why = (j && j.error) || 'it could not be drawn';
-      } catch (e) { why = 'the drawing service could not be reached'; }
-      s.drawing = false; s.after = got; s.drawNote = got ? '' : 'No picture: ' + why + '. Mark the area on the photograph instead.';
+        // a reply that is not JSON at all is the one case the server cannot have written: say that, rather than
+        // reporting it as the model's refusal
+        const j = await r.json().catch(() => null);
+        if (r.ok && j && j.ok && j.data) { got = 'data:' + (j.mimeType || 'image/jpeg') + ';base64,' + j.data; ring = ringFrom(j.region); }
+        else if (j && j.error) why = j.error;
+        else why = 'the drafting server answered ' + r.status + ' and not in words this page can read';
+      } catch (e) { why = 'the drafting server could not be reached from this page'; }
+      s.drawing = false; s.after = got; s.outline = ring ? [ring] : []; s.changed = !!ring;      // the ring is on when it arrives: it is the reason to look
+      s.drawNote = got ? '' : 'No picture: ' + why + '. Mark the area on the photograph instead.';
       if (s.ui && s.ui.repaint) s.ui.repaint();
       touch();
     }
@@ -291,7 +315,7 @@ window.TeamDraft = (function () {
       const ask = h('div', { class: 'dk-ask' }), newPane = h('div', { class: 'dk-detail-pane', 'data-kind': 'new' }, h('div', { class: 'dk-new' }, h('h3', { class: 'dk-card-title', text: 'Your own correction' }), ask));
       const mine = btn('Write my own', () => { look('new'); if (ask.hidden || !ask.firstChild) { ask.hidden = true; askForm(ask, { placeholder: 'Your correction, in one sentence', go: 'Write it up', steps: ['Reading your sentence', 'Writing the steps', 'Checking against the sources'],
         body: text => ({ target: 'own', instruction: text, current: {} }),
-        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0, after: null, drawing: false, drawNote: '', show: 'result' }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); drawAfter(s); } }); } }, 'dk-mine', 'plus');
+        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0, after: null, outline: [], changed: false, drawing: false, drawNote: '', show: 'result' }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); drawAfter(s); } }); } }, 'dk-mine', 'plus');
       parts.fix = { list, offBox, offList, detail, newPane, mine };
       return h('section', { class: 'dk-pane', 'data-step': 'fix' }, h('div', { class: 'dk-fix' }, h('div', { class: 'dk-fix-list tm-softscroll' }, h('h2', { class: 'dk-h', text: 'How to fix it' }), list, mine, offBox), detail));
     }

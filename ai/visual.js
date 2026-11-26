@@ -109,4 +109,63 @@ async function illustrateWithRetry(photo, rec, ctx) {
   throw last;
 }
 
-module.exports = { illustrate: illustrateWithRetry, model: () => prompts.VISUAL.model };
+/**
+ * Ask where the visualisation differs from the photograph.
+ *
+ * This is the model's account of its own work, not a measurement of the two
+ * images (tools/register.js is the measurement, and it runs offline against a
+ * prepared pair). Whoever shows the answer has to caption it as such.
+ *
+ * It never throws: a ring is a nice-to-have on a picture that is already
+ * drawn, so a failure here returns null and the picture goes out without one.
+ *
+ * @param {object} photo  { mimeType, data } the inspection photograph, base64
+ * @param {object} after  { mimeType, data } what the image model drew
+ * @param {object} rec    { title, text }
+ * @returns {Promise<{box: number[], label: string, ms: number, model: string} | null>}
+ */
+async function locate(photo, after, rec) {
+  const key = apiKey();
+  if (!key || !photo || !photo.data || !after || !after.data || !rec || !rec.title) return null;
+  const G = prompts.REGION, api = backend(), t0 = Date.now();
+  const body = {
+    contents: [{
+      role: 'user',
+      parts: [
+        { inlineData: { mimeType: photo.mimeType || 'image/jpeg', data: photo.data } },
+        { inlineData: { mimeType: after.mimeType || 'image/png', data: after.data } },
+        { text: G.instruction(rec) },
+      ],
+    }],
+    generationConfig: { responseMimeType: 'application/json', temperature: 0 },
+  };
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), G.timeoutMs);
+  try {
+    const res = await fetch(api.generate(G.model), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+    if (!res.ok) return null;
+    const payload = await res.json();
+    const parts = ((payload.candidates || [])[0] || {}).content;
+    const said = ((parts && parts.parts) || []).map(p => p.text || '').join('').trim();
+    const j = JSON.parse(said.replace(/^```(?:json)?|```$/g, '').trim());
+    const b = j && j.box;
+    // "the two pictures are the same" is an answer, and so is a box that came back malformed:
+    // both mean no ring. A box is only used if it is four numbers in order, inside the frame.
+    if (!Array.isArray(b) || b.length !== 4 || !b.every(v => typeof v === 'number' && isFinite(v) && v >= 0 && v <= 1)) return null;
+    const x0 = Math.min(b[0], b[2]), x1 = Math.max(b[0], b[2]), y0 = Math.min(b[1], b[3]), y1 = Math.max(b[1], b[3]);
+    if (x1 - x0 < 0.02 || y1 - y0 < 0.02) return null;                       // too small to ring: a dot on the picture says nothing
+    if ((x1 - x0) * (y1 - y0) > 0.92) return null;                           // the whole frame is not a region, it is a shrug
+    const label = String((j.label == null ? '' : j.label)).replace(/\s+/g, ' ').trim().slice(0, 40);
+    return { box: [x0, y0, x1, y1], label, ms: Date.now() - t0, model: G.model };
+  } catch (_) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+module.exports = { illustrate: illustrateWithRetry, locate, model: () => prompts.VISUAL.model };
