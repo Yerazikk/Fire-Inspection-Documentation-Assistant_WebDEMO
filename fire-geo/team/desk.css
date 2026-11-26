@@ -91,8 +91,11 @@ html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
 .dk-rec-shot { width: 84px; aspect-ratio: 4 / 3; border-radius: 9px; }
 
 .dk-steps { position: relative; min-height: 0; min-width: 0; }
-.dk-pane { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; }
-.dk-pane.is-on { opacity: 1; visibility: visible; transition: opacity 170ms var(--flat) 110ms, visibility 0s 110ms; }
+/* A step changes in one frame: the page that is leaving goes at the moment the next one comes, whole, with nothing
+   fading through it. A crossfade here laid two different layouts over one another, so for a moment the step just
+   left was still legible under the one arriving. */
+.dk-pane { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); visibility: hidden; }
+.dk-pane.is-on { visibility: visible; }
 .dk-pane-scroll { min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 2px 8px 22px 4px; }
 .dk-pane-scroll::-webkit-scrollbar, .dk-rail-in::-webkit-scrollbar { display: none; }
 .dk-rules-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; padding: 0 4px 8px; }
@@ -263,27 +266,29 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
    At these steps the finding's photo and note step aside: the draft is the whole screen. */
 .dk-view[data-step="owner"] .dk-context, .dk-view[data-step="file"] .dk-context { display: none; }
 .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { grid-template-columns: minmax(0, 1fr); padding: 8px 10px 10px; }
-/* the draft has the whole screen: the step's button floats at the bottom right on a soft backing, with no strip under the page.
-   For the file it is the laptop's own button (with Copy and Print). For the owner it is Publish, which belongs to the
-   browser window (.rp-act) so that it is still there when the page is enlarged; both sit in the same spot. */
-.dk-view[data-step="file"] .dk-foot, .rp-act { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
+/* the draft has the whole screen: for the file the laptop's button (with Copy and Print) floats at the bottom right
+   on a soft backing, with no strip under the page. For the owner, Email and Publish belong to the browser window, in
+   its own foot (.rp-foot), so they are still there when the page is enlarged and no line of the page runs under them. */
+.dk-view[data-step="file"] .dk-foot { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
 .dk-view[data-step="file"] .dk-foot-slot { margin-right: 0; }
 .dk-view[data-step="owner"] .dk-foot { display: none; }
 .dk-view[data-step="file"] .dk-foot::before { display: none; }
 .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { margin: 0 calc(-1 * var(--dk-slack)); }      /* a draft has the whole screen, margins included */
-.rp-act { right: 14px; bottom: 12px; display: flex; flex-direction: column; align-items: stretch; border-radius: 22px; }      /* Email over Publish: stacked, so the pill is no wider than Publish and no line of the page runs under it */
-.rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
-.rp-window .rp-act > .tm-btn { height: 34px; justify-content: center; }
-/* after Publish the button is gone and a line at the foot of the window says what happened. It is part of the
-   window's own frame (the same wash as its top bar), takes its own height and never covers the page. */
+/* The foot of the window: before it goes out, the two ways it can go -- Email, then Publish, side by side and in the
+   same ink, two actions of one weight. After Publish they give way to a line in the same place that says what
+   happened, with Email and Undo. The foot keeps one height through both, so nothing moves as one replaces the other,
+   and it is part of the window's frame (the same wash as its top bar), so no line of the page runs under it. */
+.rp-foot { position: relative; min-height: 53px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; border-top: 1px solid var(--line); background: var(--tm-wash); }
+.rp-act { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap: 8px; padding: 6px 12px; }
 .rp-act[hidden] { display: none; }
-.rp-done { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; border-top: 1px solid var(--line); background: var(--tm-wash); }
+.rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
+.rp-window .rp-act > .tm-btn { height: 40px; padding: 0 18px; font-size: 14px; justify-content: center; }
+.rp-done { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; }
 .rp-done[hidden] { display: none; }
 .rp-done-mark { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--hi); color: #fff; display: grid; place-items: center; }
 .rp-done-text { flex: 1; margin: 0; min-width: 0; font-size: 13px; line-height: 1.4; font-weight: 550; color: var(--ink2); }
 .rp-done-text > b { margin-right: 4px; font-weight: 650; color: var(--ink); }
 .rp-window .rp-done > .tm-sym { flex: none; width: 30px; height: 30px; }
-.rp-window.is-big .rp-act { right: 22px; bottom: 20px; }
 /* the email to the owner: the same frame, with a message in it instead of the website. It covers the page and the
    pill below the window's bar (whose address says a message is being written), and it goes with the window when
    that is enlarged. The app's own type, and the page's own pictures: the photograph of the finding, and each
@@ -345,7 +350,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-scroll { --scroll-inset-top: 6px; --scroll-inset-bottom: 14px; }
 .doc-scroll { --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
 /* The owner's page is one document (doc.js): its blocks follow one another with ordinary paragraph spacing. */
-.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 124px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720; the room at the foot keeps the last lines clear of the floating pill (Email over Publish) */
+.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 56px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720, clear of the window's edges, with the last lines a little off the foot */
 .rp-page > * { margin: 0 0 12px; }
 .rp-window.is-big .rp-page { max-width: min(880px, 100cqw - 190px); font-size: 18px; padding-top: 44px; }
 .rp-window.is-big .rp-page > .rp-title { font-size: 42px; }
@@ -424,10 +429,18 @@ html.gleb .wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-w
    like a keyboard's keys, which is the one place the kit goes under the 48 px target (this is a mouse screen; the
    phone keeps its own 44). The day in force is ink, today carries a hairline ring, and the four usual choices are
    dotted, so the calendar and the chips beside it say the same thing. */
-.dk-cal { position: absolute; right: 0; bottom: calc(100% + 18px); z-index: 20; box-sizing: border-box; width: 268px; padding: 14px 16px 16px;
+.dk-cal { position: absolute; right: 0; bottom: calc(100% + 18px); z-index: 20; box-sizing: border-box; width: 286px; padding: 14px 16px 16px;
   border-radius: var(--tm-radius-card); background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 18px 40px -16px rgba(var(--shade), .5); }
-.dk-cal-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-.dk-cal-month { position: relative; flex: 1; min-width: 0; text-align: center; font-size: 14px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+.dk-cal-head { display: flex; align-items: center; gap: 2px; margin-bottom: 10px; }
+.dk-cal-month { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 1px; font-size: 14px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+/* the month and the year are lists, and read as the heading they replace: the words themselves, a small chevron to
+   say they open, and a quiet fill only under the pointer */
+.dk-cal-listed { position: relative; display: inline-flex; align-items: center; min-width: 0; }
+.dk-cal-sel { appearance: none; -webkit-appearance: none; box-sizing: border-box; max-width: 100%; margin: 0; padding: 3px 17px 3px 6px; border: 0; border-radius: 8px;
+  background: none; color: inherit; font: inherit; line-height: 1.3; text-align: left; cursor: pointer; transition: background-color 120ms var(--flat); }
+.dk-cal-sel:hover { background: var(--tm-wash); }
+.dk-cal-sel:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
+.dk-cal-listed-chev { position: absolute; right: 3px; display: grid; place-items: center; color: var(--ink3); pointer-events: none; }
 .dk-cal-step.tm-sym { width: 32px; height: 32px; }
 .dk-cal-step[disabled] { opacity: .35; pointer-events: none; }
 .dk-cal-week { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
@@ -450,6 +463,8 @@ html.gleb .wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-w
 html.gleb .dk-cal { border-radius: var(--gl-r-tile); background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35);
   -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); }
 html.gleb .dk-cal-week > span { color: var(--gl-text-quiet); }
+html.gleb .dk-cal-sel:hover { background: var(--gl-well); }
+html.gleb .dk-cal-listed-chev { color: var(--gl-text-quiet); }
 html.gleb .dk-cal-day:hover { background: var(--gl-well); }
 html.gleb .dk-cal-day.is-today { box-shadow: inset 0 0 0 1.5px rgba(25, 34, 51, .22); }
 html.gleb .dk-cal-day.is-on, html.gleb .dk-cal-day.is-on:hover { background: var(--gl-ink); color: #fff; }

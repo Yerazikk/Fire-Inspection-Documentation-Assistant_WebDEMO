@@ -1,6 +1,6 @@
 // FireGeo.solutions: the corrections for each photograph, ready for the before / after stage. No DOM.
-// Words come from data/content.js (the inspector's analyses). Image alignment and the contour of what changes
-// come from data/outlines.js, which tools/register.js measures offline.
+// Words come from each example's own record (examples/<id>/example.js, bound as window.CONTENT). Image alignment
+// and the contour of what changes come from data/outlines.js, which tools/register.js measures offline.
 (function (root) {
 
 // The measured contour is exact but busy. Andrew asked for a simpler shape (2026-11-22): draw the convex hull of the

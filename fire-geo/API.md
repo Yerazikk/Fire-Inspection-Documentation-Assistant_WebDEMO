@@ -26,7 +26,12 @@ only used for the basemap bounds, the town polygons and the three town pins.
 <header class="shell-bar" data-shell="inspectors"></header>   <!-- "technology" on / ; "inspectors" on /team/ -->
 
 <script src="/data/jurisdictions.js"></script>   <!-- window.JURIS   (repo copy: basemap bounds, town polygons) -->
-<script src="/data/content.js"></script>         <!-- window.CONTENT (repo copy: the two inspections, corrections text) -->
+<!-- the examples (§ 11). One file per photograph, holding its content, law, field questions and owner steps: -->
+<script src="/data/lawbase.js"></script>         <!-- window.FIREGEO_LAWBASE  (places, documents, local code maps) -->
+<script src="/examples/registry.js"></script>    <!-- window.FireExamples     (the collector) -->
+<script src="/examples/common.js"></script>      <!-- window.FireExampleCommon (rows more than one example carries) -->
+<script src="/examples/index.js"></script>       <!--                          (the id list; pulls each example in) -->
+<script src="/data/content.js"></script>         <!-- window.CONTENT (binds the examples' inspection records) -->
 <script src="/data/hazard.js"></script>          <!-- window.FIREGEO_HAZARD   (Ross Valley Fire map polygons) -->
 <!-- optional, the fifth place (§ 10). Leave these three out and there are four places, exactly as before: -->
 <script src="/data/city4/law.js"></script>       <!-- window.FIREGEO_CITY4           (Berkeley: rows, sources) -->
@@ -45,7 +50,9 @@ only used for the basemap bounds, the town polygons and the three town pins.
 ```
 
 `geo.js`, `codes.js`, `solutions.js` touch no DOM and also load in node (`vm` with a `window` object: see the first
-lines of `test.js`). The three `data/city4` files must come before `data/law.js` and `lib/geo.js`.
+lines of `test.js`). The three `data/city4` files must come before `data/law.js` and `lib/geo.js`, and the four
+example files above must come before `data/content.js` and `data/law.js`, which read the registry as they run.
+In node, load the four boot files and then `FireExamples.files()` rather than naming the example files.
 
 ## 2. `FireGeo.geo`
 
@@ -78,7 +85,7 @@ Berkeley point unchanged and returns large numbers (that picture's top-left corn
 ```js
 const where = FireGeo.geo.at(lon, lat);
 const ev = FireGeo.codes.evaluate({
-  photo: 'ladder' | 'sprinkler',
+  photo: 'ladder' | 'sprinkler' | 'daisy' | 'firedoor',   // any id in FireExamples.ids()
   place: where.place,
   distance: 20,                 // feet, assumed; the ladder photo only. Default codes.DISTANCE.default (20)
   scope: where.scope,           // default 'unknown'
@@ -411,7 +418,49 @@ and prepared `data/city4/` (read its `HANDOFF.md`). It is joined to the shared m
   move of about 1.4 s that pulls back to a quarter scale, travels east-southeast and comes down on Berkeley. The
   land between the two pictures is not drawn. With reduced motion the two maps crossfade.
 
+## 11. The examples (2026-11-25)
+
+A photograph and everything the product does with it is **one file**, `examples/<id>/example.js`: the inspection
+record (`content`), the code rows with their quoted text and sources (`law`), what the phone asks in the field
+(`field`), the owner's numbered steps (`ownerSteps`), and the manifest (id, tab, title, picture, aspect, zoom,
+whether it uses the distance control). Before this, those five lived in `data/content.js`, `data/law.js`,
+`team/flow.js`, `team/drafts.js` and a branch of `team/adapter.js`, and `lib/codes.js`, `lib/emphasis.js`,
+`team/phone.js` and `app.js` each named the photographs too.
+
+`examples/index.js` holds the id list, in tab order, and is **the only other place an example is named**. Adding
+one is a new folder and one line there.
+
+`window.FireExamples` (`examples/registry.js`) collects them:
+
+| member | used by |
+|---|---|
+| `ids()` `all()` `get(id)` `has(id)` | anything that needs one example |
+| `photos()` | `lib/codes.js` → `codes.PHOTOS`, so the tab strip and the phone's camera |
+| `content()` | `data/content.js` → `window.CONTENT` |
+| `lawRows()` `lawShort()` `lawAcross()` | `data/law.js`, which then joins Berkeley's rows on by meaning |
+| `rules()` | `lib/codes.js`; merged over the two shared rules (`judgement`, `carried`) |
+| `phrases()` | `lib/emphasis.js` |
+| `table('reading'\|'scan'\|'seen'\|'questions')` | `team/flow.js` |
+| `facts(id, answers, changes, helpers)` `callouts(id, f, ctx)` | `team/flow.js` |
+| `apply(id, f, ctx)` | `team/adapter.js` |
+| `ownerSteps()` | `team/drafts.js` |
+| `files()` | the node suites, instead of naming the example files |
+
+The globals, the verdicts and every word on screen are unchanged by the move: a parity run compared 8,424
+`evaluate()` combinations, 972 `diff()` pairs, every correction, 159 emphasis texts and 912 sets of field answers
+across the senior inspector's rows, callouts and owner steps, and found no difference. Only the key order of four
+lookup maps changed, and nothing reads them positionally.
+
+`examples/README.md` is the process for adding one and the standard it has to meet.
+`tools/new-example.js <id>` starts one; `tools/check-examples.js [id]` says what is still missing (about 1,800
+checks per example).
+
 ## Changed
+
+- 2026-11-25: **the examples** (§ 11). One file per photograph under `examples/`, collected by
+  `window.FireExamples`; `data/lawbase.js` is new (the places, the documents, the local code maps, split out of
+  `data/law.js`). `data/content.js` is now the binder for `window.CONTENT`, and `data/law.js` the join that
+  collects the rows and adds Berkeley's. No change to any global's contents, any verdict or anything on screen.
 
 - 2026-11-22, first version.
 - 2026-11-22: rows gained `title`, `sec`, `code`, `extra`; `label` is now the short form. Sources gained `short`.

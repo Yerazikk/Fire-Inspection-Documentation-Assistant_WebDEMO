@@ -18,15 +18,37 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   // ------------------------------------------------------------ node: data and logic
   console.log('data and logic');
   const w = {}, ctx = vm.createContext({ window: w, globalThis: w });
-  const FILES = ['data/jurisdictions.js', 'data/content.js', 'data/hazard.js', 'data/city4/law.js', 'data/city4/boundary.js', 'data/city4/zones.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/solutions.js'];
-  for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(__dirname, f), 'utf8'), ctx, { filename: f });
+  // The boot files first, because examples/index.js names the examples and everything after reads them.
+  const BOOT = ['data/jurisdictions.js', 'data/lawbase.js', 'examples/registry.js', 'examples/common.js', 'examples/index.js'];
+  const REST = ['data/content.js', 'data/hazard.js', 'data/city4/law.js', 'data/city4/boundary.js', 'data/city4/zones.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/solutions.js'];
+  const load = (c, o, files) => { for (const f of files) vm.runInContext(fs.readFileSync(path.join(__dirname, f), 'utf8'), c, { filename: f }); return o; };
+  load(ctx, w, BOOT); load(ctx, w, w.FireExamples.files()); load(ctx, w, REST);
+  const FILES = BOOT.concat(w.FireExamples.files(), REST);
   // the same libraries without the Berkeley files, as the Inspectors page loads them
   const w4 = {}, ctx4 = vm.createContext({ window: w4, globalThis: w4 });
-  for (const f of FILES.filter(x => !x.includes('city4'))) vm.runInContext(fs.readFileSync(path.join(__dirname, f), 'utf8'), ctx4, { filename: f });
+  load(ctx4, w4, FILES.filter(x => !x.includes('city4')));
   const { geo, codes, solutions } = w.FireGeo, LAW = w.FIREGEO_LAW;
-  const snap = fs.existsSync(path.join(__dirname, 'src-monday/monday/content.js')), cNow = fs.readFileSync(path.join(__dirname, 'data/content.js'), 'utf8').split('\n'), cWas = snap ? fs.readFileSync(path.join(__dirname, 'src-monday/monday/content.js'), 'utf8').split('\n') : cNow, cDiff = cNow.map((l, i) => (l === cWas[i] ? null : l)).filter(Boolean), spr = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets/sprinkler.json'), 'utf8'));
+  // The two original records came from the repo's own monday/content.js and must still read as that file wrote
+  // them. They moved out of data/content.js and into the examples on 2026-11-25, so the comparison is now against
+  // the records themselves rather than the lines of one file: the ladder word for word, and the sprinkler word for
+  // word but for the edits the new photograph needed: its shape and its three annotation boxes. The tab name of
+  // each is left out of the comparison, because both were re-cased for the tab strip. The old form of this check
+  // compared the LINES of data/content.js and had gone stale twice over: the tabs were re-cased and two more
+  // findings were added to the file after it was written.
+  const snap = fs.existsSync(path.join(__dirname, 'src-monday/monday/content.js')), spr = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets/sprinkler.json'), 'utf8'));
   if (!snap) console.log('       (src-monday/ is not here, as in a fresh clone: the comparison with the repo snapshot is skipped)');
-  ok(!snap || fs.readFileSync(path.join(__dirname, 'data/jurisdictions.js'), 'utf8') === fs.readFileSync(path.join(__dirname, 'src-monday/monday/jurisdictions.js'), 'utf8') && cNow.length === cWas.length && cDiff.length === 4 && cDiff.filter(l => /^\s*\{ box: \[[\d., ]+\], tone: /.test(l)).length === 3 && cDiff.some(l => /aspect: 428 \/ 710/.test(l)), 'data/jurisdictions.js is an untouched copy of the repo file, and data/content.js differs from it in four lines only: the sprinkler picture\'s shape and its three annotation boxes, moved onto the new photograph');
+  let provenance = true, provSays = 'skipped';
+  if (snap) {
+    const ws = {}; vm.runInContext(fs.readFileSync(path.join(__dirname, 'src-monday/monday/content.js'), 'utf8'), vm.createContext({ window: ws, globalThis: ws }), { filename: 'src-monday/monday/content.js' });
+    const strip = (o, drop) => JSON.stringify(o, (k, v) => (drop.includes(k) ? undefined : v));
+    const sameJuris = fs.readFileSync(path.join(__dirname, 'data/jurisdictions.js'), 'utf8') === fs.readFileSync(path.join(__dirname, 'src-monday/monday/jurisdictions.js'), 'utf8');
+    const ladderSame = strip(ws.CONTENT.ladder, ['tab']) === strip(w.CONTENT.ladder, ['tab']);
+    const sprSame = strip(ws.CONTENT.sprinkler, ['aspect', 'box', 'tab']) === strip(w.CONTENT.sprinkler, ['aspect', 'box', 'tab']);
+    const boxesMoved = (ws.CONTENT.sprinkler.annotations || []).filter((a, i) => JSON.stringify(a.box) !== JSON.stringify(w.CONTENT.sprinkler.annotations[i].box)).length;
+    provenance = sameJuris && ladderSame && sprSame && boxesMoved === 3 && ws.CONTENT.sprinkler.aspect !== w.CONTENT.sprinkler.aspect;
+    provSays = 'the ladder identical, the sprinkler identical but for its shape, its tab name and ' + boxesMoved + ' boxes';
+  }
+  ok(provenance, 'data/jurisdictions.js is an untouched copy of the repo file, and the two original records still read as monday/content.js wrote them (' + provSays + ')');
   ok(spr.size.join() === '428,710' && spr.oldInNew.correlation > 0.9 && spr.oldInNew.scale > 1.3 && spr.oldInNew.scale < 1.5 && spr.boxesMoved === 3 && Math.abs(w.FireGeo.codes.PHOTOS[1].aspect - 428 / 710) < 1e-9 && w.FIREGEO_OUTLINES['sprinkler-a'].beforeSize.join() === '428,710' && w.FIREGEO_OUTLINES['sprinkler-a'].fit.rmsPx < 0.5,
     'the sprinkler photograph is the new one (428 x 710): the old picture was found in it at ' + spr.oldInNew.scale + ' new pixels per old pixel (correlation ' + spr.oldInNew.correlation + '), the old files are kept, and the new before / after pair registers to ' + w.FIREGEO_OUTLINES['sprinkler-a'].fit.rmsPx + ' px');
 
@@ -88,6 +110,19 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   const pairs = []; for (const photo of ['ladder', 'sprinkler', 'daisy']) for (const a of all4.concat('san_rafael')) for (const b of all4.concat('san_rafael')) if (a !== b) pairs.push(D(photo, a, b));
   ok(pairs.every(s => s && s.length <= 52 && !/§|Ord\.|20\d\d|until|RMC|SAMC|FMC|MCC/.test(s) && (s.match(/[.!?](\s|$)/g) || []).filter((_, i, arr) => true).length >= 1 && !/\.\s+[A-Z]/.test(s.replace(/in\., /g, 'in, '))), 'the difference between two places is one short plain sentence with no citation and no history (' + pairs.length + ' pairs)');
   ok(D('ladder', 'san_anselmo', 'fairfax') === 'Fairfax adds a dry-brush rule.' && D('ladder', 'ross', 'san_anselmo') === 'Same rules, under San Anselmo’s own code.' && D('ladder', 'fairfax', 'marin') === 'The county’s tree limit is 6 in., not 8 in.' && D('sprinkler', 'fairfax', 'marin') === 'The county lists 5 exceptions, not 2.' && D('ladder', 'ross', 'san_rafael') === 'Only statewide rules for San Rafael.' && D('ladder', 'ross', 'ross') === '', 'difference sentences read as intended ("Fairfax adds a dry-brush rule.", "The county’s tree limit is 6 in., not 8 in.") and are empty inside one place');
+  // ---- the examples: one file per photograph (examples/README.md, API.md § 11)
+  const EXL = w.FireExamples;
+  ok(EXL.ids().join() === 'ladder,sprinkler,daisy,firedoor' && EXL.ids().join() === codes.PHOTOS.map(p => p.id).join() && EXL.ids().join() === Object.keys(w.CONTENT).join() && EXL.ids().every(id => Object.keys(LAW.rows).includes(id)),
+    'the four examples are one list (examples/index.js): the tabs, window.CONTENT and the row sets all follow it, in that order');
+  ok(EXL.all().every(e => e.content && e.law && e.field && e.ownerSteps && e.photo && e.aspect > 0 && typeof e.zoom === 'number' && typeof e.usesDistance === 'boolean')
+    && EXL.all().filter(e => e.usesDistance).map(e => e.id).join() === 'ladder'
+    && EXL.all().every(e => fs.existsSync(path.join(__dirname, e.photo))),
+    'each example carries its own content, law, field questions and owner steps, and its photograph is on disk; the ladder is the one that uses the distance');
+  ok(!Object.keys(EXL.rules()).some(k => ['judgement', 'carried'].includes(k)) && Object.keys(EXL.rules()).length >= 8 && EXL.all().every(e => !!e.law.overallLine && !!e.law.across),
+    'the verdict rules that read one photograph’s sections come from that example (' + Object.keys(EXL.rules()).length + ' of them), the two shared ones are not redefined, and every example says its own headline reason');
+  const exc = require('child_process').spawnSync(process.execPath, ['tools/check-examples.js'], { cwd: __dirname, encoding: 'utf8' });
+  ok(exc.status === 0, 'every example meets the standard in examples/README.md (tools/check-examples.js: ' + ((exc.stdout || '').trim().split(String.fromCharCode(10)).filter(l => /checks /.test(l))[0] || 'no output') + ')');
+
   const sols = solutions.list('ladder').concat(solutions.list('sprinkler'));
   const daisySols = solutions.list('daisy');
   ok(solutions.list('ladder').length === 3 && solutions.list('sprinkler').length === 1 && sols[0].standing === 'required' && sols[1].standing === 'alternative' && sols[2].standing === 'alternative' && sols.every(s => fs.existsSync(path.join(__dirname, s.before)) && fs.existsSync(path.join(__dirname, s.after))), 'three ladder corrections and one sprinkler correction, standing kept in the data, both images on disk');
@@ -99,17 +134,25 @@ const VISIBLE = `(() => { const vis = el => { for (let n = el; n && n.nodeType =
   ok(daisySols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && s.align.sx === 1 && s.align.sy === 1 && s.align.dx === 0 && s.align.dy === 0), 'each daisy correction has a contour found by difference (6 to 16 points) on an identity alignment');
   ok(sols.every(s => s.outline.length === 1 && s.outline[0].points.length >= 6 && s.outline[0].points.length <= 16 && s.outline[0].points.every(p => p[0] >= 0 && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && s.outline[0].label && Math.abs(s.align.sx - 1) < 0.03 && Math.abs(s.align.sy - 1) < 0.03 && Math.abs(s.align.dx) < 0.02 && Math.abs(s.align.dy) < 0.02), 'every correction has a simple outline (6 to 16 points) and an image registration close to identity');
   // A contour that is not a registration must not be read as one: it says in the data how it was arrived at, in
-  // `fit.how`, and the ones with no `how` are registrations and are held to the residual. Two of the daisy
-  // contours are marked by hand (the receptacle the power now comes from, which is not the biggest difference in
-  // either picture); the rest of the unregistered ones, the daisy's third and both of the fire door's, are the
-  // difference between the pair.
+  // `fit.how`, and the ones with no `how` are registrations and are held to the residual. Three are marked by
+  // hand: two of the daisy contours (the receptacle the power now comes from, which is not the biggest difference
+  // in either picture) and the fire door's pair (the sign that was added and the floor the wedge came off, which
+  // a difference reads as one blob). The daisy's third is the difference between the pair.
   const told = Object.entries(w.FIREGEO_OUTLINES).filter(([, o]) => (o.fit.how || '') !== '');
   const fitted = Object.entries(w.FIREGEO_OUTLINES).filter(([, o]) => (o.fit.how || '') === '');
+  const fire = solutions.list('firedoor')[0];
   ok(fitted.length >= 4 && fitted.every(([, o]) => o.fit.rmsPx <= 0.6 && o.fit.inliersX >= 30)
     && told.every(([, o]) => /difference|marked by hand/.test(o.fit.how))
-    && told.filter(([, o]) => /marked by hand/.test(o.fit.how)).length === 2
+    && told.filter(([, o]) => /marked by hand/.test(o.fit.how)).length === 3
     && w.FIREGEO_OUTLINES['daisy-a'].reveal === 0.02,
-    'registration residual is under 0.6 px for the ' + fitted.length + ' registered pairs; the ' + told.length + ' contours that are not registrations each say how they were arrived at (two marked by hand, the rest by difference) and the one at the frame edge carries the divider position that reveals it');
+    'registration residual is under 0.6 px for the ' + fitted.length + ' registered pairs; the ' + told.length + ' contours that are not registrations each say how they were arrived at (three marked by hand, the rest by difference) and the one at the frame edge carries the divider position that reveals it');
+  // The fire door is the one correction that marks two places at once: the wedge is the finding and the sign is
+  // what keeps it answered, and the owner should read them as two pieces of work. Both circles have to be on the
+  // after side of the divider once it has walked back to `reveal`, or one of them is drawn inside the clipped half.
+  ok(fire && fire.outline.length === 2 && fire.outline.map(c => c.label).join(' · ') === 'signage added · wedge removed'
+    && fire.reveal === 0.26
+    && fire.outline.every(c => c.points.length >= 6 && c.points.length <= 16 && c.points.every(p => p[0] >= fire.reveal && p[0] <= 1 && p[1] >= 0 && p[1] <= 1) && c.labelAt[0] > fire.reveal),
+    'the fire door carries two circles, "signage added" and "wedge removed", and with the divider walked back to ' + ((fire || {}).reveal) + ' both of them and both labels lie on the after side');
 
   // ---- the fifth place: Berkeley (data/city4, joined in data/law.js and lib/geo.js)
   console.log('Berkeley');

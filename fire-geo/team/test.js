@@ -103,7 +103,10 @@ function looseBars(rootSel) {
     // ================================================================ 1. logic, in node (no browser)
     const sb = { console }; sb.window = sb; vm.createContext(sb);
     const dir = process.env.TEAM_NEXT === '1' ? f => (fs.existsSync(path.join(__dirname, 'next', f)) ? path.join(__dirname, 'next', f) : path.join(__dirname, f)) : f => path.join(__dirname, f);
-    for (const f of ['data/jurisdictions.js', 'data/content.js', 'data/hazard.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/emphasis.js', 'lib/solutions.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), sb, { filename: f });
+    const run = f => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), sb, { filename: f });
+    for (const f of ['data/jurisdictions.js', 'data/lawbase.js', 'examples/registry.js', 'examples/common.js', 'examples/index.js']) run(f);
+    for (const f of sb.FireExamples.files()) run(f);
+    for (const f of ['data/content.js', 'data/hazard.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/emphasis.js', 'lib/solutions.js']) run(f);
     for (const f of ['adapter.js', 'flow.js', 'drafts.js']) vm.runInContext(fs.readFileSync(dir(f), 'utf8'), sb, { filename: f });
     const TDt = sb.TeamData, TF = sb.TeamFlow;
     ok(TDt.usesFireGeo(), 'the adapter reads the shared FireGeo modules');
@@ -318,8 +321,8 @@ function looseBars(rootSel) {
         text: p.innerText, contact: p.querySelector('.rp-contact').textContent, law: p.querySelector('.rp-law').textContent, marks: p.querySelectorAll('.tm-mark').length, body: parseFloat(cs.fontSize), fill: [wr.width / work.width, wr.height / work.height], bar: w.querySelector('.rp-bar').getBoundingClientRect().height, actPos: getComputedStyle(act).position, btn: act.querySelector('.dk-primary').textContent, btnH: act.querySelector('.dk-primary').getBoundingClientRect().height, strip: getComputedStyle(v.querySelector('.dk-foot')).display, top: w.querySelector('.rp-scroll').scrollTop,
         firstScreen: (() => { const hd = [...p.querySelectorAll(':scope > h2')].find(n => n.textContent === 'What is wrong').getBoundingClientRect(), tx = p.querySelector('p[data-key="problem"]').getBoundingClientRect(); return hd.bottom < sc.bottom - 28 && tx.top < sc.bottom - 34; })(), junk: (v.innerText.match(/\[object |\bnull\b|\bundefined\b|NaN|Put it back/) || [])[0] || '' };
     });
-    ok(ow.step === 'owner' && ow.one && /Ross Valley Fire Department · your inspection/.test(ow.addr) && ow.wide > 700 && ow.col >= 560 && ow.col <= 722 && ow.centred < 2 && ow.top === 0 && ow.fill[0] > .96 && ow.fill[1] > .96 && ow.bar <= 38 && ow.actPos === 'absolute' && ow.strip === 'none' && ow.btn === 'Publish' && ow.btnH <= 42, 'the owner’s page is a website in a browser window that has the whole screen, and it is ONE editing surface; Publish floats on it', ow);
-    ok(await page.evaluate(() => { const v = document.querySelector('.dk-view.is-on'), b = v.querySelector('.rp-act').getBoundingClientRect(), p = v.querySelector('.rp-page'), cs = getComputedStyle(p), right = p.getBoundingClientRect().right - parseFloat(cs.paddingRight); return right <= b.left + 1; }), 'the reading column is centred and stops short of the floating Publish button: no line of the page runs under it');
+    ok(ow.step === 'owner' && ow.one && /Ross Valley Fire Department · your inspection/.test(ow.addr) && ow.wide > 700 && ow.col >= 560 && ow.col <= 722 && ow.centred < 2 && ow.top === 0 && ow.fill[0] > .96 && ow.fill[1] > .96 && ow.bar <= 38 && ow.actPos === 'static' && ow.strip === 'none' && ow.btn === 'Publish' && ow.btnH <= 42, 'the owner’s page is a website in a browser window that has the whole screen, and it is ONE editing surface; Publish is in the window’s own foot', ow);
+    ok(await page.evaluate(() => { const v = document.querySelector('.dk-view.is-on'), f = v.querySelector('.rp-foot').getBoundingClientRect(), sc = v.querySelector('.rp-scroll').getBoundingClientRect(), w = v.querySelector('.rp-window').getBoundingClientRect(); return f.top >= sc.bottom - 1 && Math.round(w.bottom - f.bottom) === 0 && f.height >= 48; }), 'Email and Publish are in the foot of the window, under the page and never over it: no line of the page runs under them');
     ok(Math.abs(ow.photo.shape - 1) < .02 && ow.photo.whole && ow.photo.tall <= .61 && ow.photo.mid < 2 && ow.firstScreen, 'the photograph is shown whole, at its own shape (not cropped to a band, not stretched), centred, no taller than six tenths of what is visible; the first screenful still reaches "What is wrong"', ow.photo);
     ok(ow.figs.length === 3 && ow.figs.every(g => Math.abs(g.shape - 1) < .03 && g.tall <= .61 && g.centred < 2 && g.under), 'every before and after on the page keeps the photograph’s shape and shows the full frame, centred, with "Show what changed" under it', ow.figs);
     ok(ow.heads === 'What is wrong|Options for how to fix it' && ow.pick === 'Pick one of these.' && ow.names[0] === 'Option 1: Remove the lower tier of bushes' && /^Option 2: /.test(ow.names[1]) && /^Option 3: /.test(ow.names[2]) && ow.stand === 'What the inspector asked for|Another way, ask your inspector first|From your inspector' && ow.lists.split(',').every(x => +x.split(':')[0] <= 4 && x.split(':')[1] === 'decimal') && ow.marks === 0 && /Town WUI Code § 604\.6\(7\)/.test(ow.law) && ow.body >= 15 && ow.body <= 16.5 && !ow.junk, 'what is on it: "What is wrong", the options as "Option N: name" with their standing, each with a real numbered list of at most four steps, the rule cited at the foot', [ow.heads, ow.names, ow.lists]);
@@ -369,6 +372,25 @@ function looseBars(rootSel) {
     const dueUi = await page.evaluate(() => { const v = document.querySelector('.dk-view.is-on'), d = v.querySelector('.dk-foot .dk-due'), r = d.getBoundingClientRect(), f = v.querySelector('.dk-foot').getBoundingClientRect(); return { date: d.querySelector('.dk-due-date').textContent, note: d.querySelector('.dk-due-note').textContent, chips: [...d.querySelectorAll('.dk-due-chip')].map(b => b.textContent + (b.classList.contains('is-on') ? '*' : '')).join(' '), cal: !!d.querySelector('[aria-label="Pick a date"]'), seen: r.height > 20 && r.top >= f.top && r.bottom <= f.bottom + 1 && r.right < v.querySelector('.dk-foot .dk-primary').getBoundingClientRect().left }; });
     await page.click('.dk-view.is-on .dk-due-chip:has(span:text-is("60 days"))'); await D.settle(page, 300);
     ok(dueUi.seen && dueUi.date === after[1] && dueUi.note === '14 days from the inspection' && dueUi.chips === '7 days 14 days* 30 days 60 days' && dueUi.cal && await page.evaluate(() => { const d = window.Team.Desk.view().draft, t = d.due().text; return d.due().days === 60 && document.querySelector('.dk-view.is-on .dk-due-date').textContent === t && document.querySelector('.dk-pane[data-step="owner"] .rp-page h2.tm-island').textContent === 'Fix this by ' + t && /Correction due: /.test(document.querySelector('.dk-pane[data-step="file"] .wd-body').textContent) && document.querySelector('.dk-pane[data-step="file"] .wd-body').textContent.includes('Correction due: ' + t + ' (60 days'); }), 'at "How to fix it" the senior sets the date, beside the step’s button where it is always in view: it is written out, with 7, 14, 30 or 60 days from the inspection or any date from a calendar; changing it changes both drafts', dueUi);
+    // ---- the calendar's head: the month and the year are each picked from a list, so a month a year off is one
+    // choice and not a run of presses; the steps either side stay for the month next door, and nothing before the
+    // inspection can be chosen in either list
+    await page.click('.dk-view.is-on .dk-due [aria-label="Pick a date"]'); await D.settle(page, 320);
+    const cal = await page.evaluate(() => {
+      const V = window.Team.Desk.view(), d = V.draft, on = d.due().date, text0 = d.due().text, ins = new Date(V.f.at);
+      const c = document.querySelector('.dk-cal'), m = c.querySelector('.dk-cal-sel.is-month'), y = c.querySelector('.dk-cal-sel.is-year');
+      const day1 = () => c.querySelector('.dk-cal-day').getAttribute('aria-label');
+      const put = (sel, v) => { sel.value = String(v); sel.dispatchEvent(new Event('change', { bubbles: true })); };
+      const start = [+m.value === on.getMonth(), +y.value === on.getFullYear(), m.options.length === 12, y.options.length >= 11, +y.options[0].value === ins.getFullYear()];
+      const yN = +y.value + 1; put(y, yN);
+      const jumped = [+y.value === yN, +m.value === on.getMonth(), day1().indexOf(String(yN)) > 0];
+      put(y, y.options[0].value);                                                  // the inspection's own year: the months before it are shut
+      const shut = [...m.options].filter(o => o.disabled).map(o => +o.value).join();
+      return { start, jumped, shut, want: Array.from({ length: ins.getMonth() }, (_, i) => i).join(), kept: d.due().text === text0, steps: c.querySelectorAll('.dk-cal-step').length };
+    });
+    await page.keyboard.press('Escape'); await D.settle(page, 300);
+    ok(cal.start.every(Boolean) && cal.jumped.every(Boolean) && cal.shut === cal.want && cal.kept && cal.steps === 2
+      && await page.evaluate(() => !document.querySelector('.dk-cal')), 'the calendar opens on the month in force with that month and year in two lists: a year is picked in one go, the months before the inspection are not offered, and walking the lists does not set the date', cal);
     await page.click('.dk-view.is-on .dk-crumb[data-step="owner"]'); await D.settle(page, 450);
     // the enlarged view is the same one document
     await page.dblclick('.dk-view.is-on .rp-bar [aria-label="Enlarge"]'); await D.settle(page, 500);
@@ -387,6 +409,9 @@ function looseBars(rootSel) {
     ok(pub.phone === 'reviewed' && pub.item === 'Published' && pub.tick === '1' && pub.mark === '1', 'publishing marks the finding "Published" (a tick beside its last step) and the phone’s item "Reviewed"', pub);
     await page.click('.dk-view.is-on .rp-done [aria-label="Undo"]'); await D.settle(page, 600);
     ok(await D.desk.step(page) === 'owner' && await page.evaluate(() => { const V = window.Team.Desk.view(), v = document.querySelector('.dk-view.is-on'); return !V.published && v.querySelector('.rp-done').hidden && !v.querySelector('.rp-act').hidden && v.querySelector('.rp-act .dk-primary').textContent === 'Publish' && document.querySelector('.ph-sent').dataset.state === 'sent' && document.querySelector('.dk-item.is-on .dk-item-state').textContent === 'Draft ready' && getComputedStyle(v.querySelector('.dk-crumb-tick')).opacity === '0'; }), 'Undo unpublishes in place: the Publish button is back, the finding is "Draft ready" and the phone’s item "Sent" again');
+    ok(await page.evaluate(() => { const a = document.querySelector('.dk-view.is-on .rp-act'), e = a.querySelector('.tm-btn'), p = a.querySelector('.dk-primary'), er = e.getBoundingClientRect(), pr = p.getBoundingClientRect(), bg = el => getComputedStyle(el).backgroundColor;
+      return /Email/.test(e.textContent) && er.right <= pr.left + 1 && Math.abs((er.top + er.bottom) / 2 - (pr.top + pr.bottom) / 2) < 1 && Math.abs(er.height - pr.height) < 1.5 && bg(e) === bg(p); }),
+      'Email sits to the left of Publish in the one pill, the same height and the same ink: the two ways the page leaves the desk read as one pair');
     // ---- Email, beside Publish: the same words and the same pictures as a message, which nothing here sends
     await page.click('.dk-view.is-on .rp-act ' + tb('Email')); await D.settle(page, 450);
     const mail = await page.evaluate(() => {
@@ -644,8 +669,12 @@ function looseBars(rootSel) {
     await D.desk.approve(wp); await D.settle(wp, 500);
     fr = await watch(wp, "document.querySelector('.dk-view.is-on .dk-fix-row:nth-child(2)').click()", "eff => { const p = document.querySelectorAll('.dk-view.is-on .dk-detail > .dk-detail-pane'); return [p.length > 1 ? 1 : 0, p.length > 1 ? 1 : 0]; }", 450);
     ok(both(fr) === 0, 'the large before and after is replaced as one unit: never two in the pane at once');
+    // a step is a whole page, not a piece changing in place: it changes in one frame, so the step just left is never
+    // seen under the one arriving and no part of the new step arrives after another (the right of it after the left)
     fr = await watch(wp, "document.querySelector('.dk-view.is-on .dk-crumb[data-step=\"finding\"]').click()", "eff => [eff(document.querySelector('.dk-view.is-on .dk-pane[data-step=\"fix\"] .dk-h')), eff(document.querySelector('.dk-view.is-on .dk-pane[data-step=\"finding\"] .dk-h'))]", 450);
-    ok(both(fr) === 0 && seen(fr, 0) && seen(fr, 1), 'a step change: the old step leaves before the new one arrives', fr.filter(x => Math.min(x[0], x[1]) > .3).slice(0, 4));
+    ok(fr.length > 1 && fr.every(x => x[0] === 0 && x[1] > .99), 'a step change happens in one frame: the step left is gone and the new one is whole from the first frame', fr.slice(0, 4));
+    fr = await watch(wp, "document.querySelector('.dk-view.is-on .dk-crumb[data-step=\"fix\"]').click()", "eff => { const p = document.querySelector('.dk-view.is-on .dk-pane[data-step=\"fix\"]'); return [eff(p.querySelector('.dk-fix-list .dk-h')), eff(p.querySelector('.dk-detail > .dk-detail-pane'))]; }", 450);
+    ok(fr.length > 1 && fr.every(x => Math.min(x[0], x[1]) > .99), 'and the whole of it at once: the list and the correction beside it are both whole from the first frame', fr.slice(0, 4));
     fr = await watch(wp, "document.querySelector('.dk-view.is-on .dk-crumb[data-step=\"fix\"]').click()", "eff => { const g = document.querySelectorAll('.tm-ghost').length; return [g ? 1 : 0, g ? 1 : 0]; }", 450);
     ok(both(fr) === 0, 'a text that changes (the button’s label) is never drawn twice');
     await D.desk.next(wp); await D.desk.next(wp);

@@ -1,11 +1,15 @@
 # fire-geo: where the legal content comes from
 
-Read on 2026-11-22. `status` words used below and in `data/law.js`: **read** = I opened the document and read the
+Read on 2026-11-22. `status` words used below and in `data/lawbase.js`: **read** = I opened the document and read the
 text · **not loaded** = the site refused automated access (bot challenge or 403), so nothing was read there ·
 **repo** = taken from the repo's `monday/` files and not re-read at the source.
 
 Since the declutter pass none of this is on the main screen. It is here, and behind the one "Sources and notes"
 button on the page (§ 10 lists what moved there). Berkeley, the fifth place, is § 9.
+
+Since 2026-11-25 the rows themselves live with the photograph they judge, in `examples/<id>/example.js`, and the
+documents they cite are the `SRC` catalogue in `data/lawbase.js`. A new finding adds its sources there and its
+reading here; `examples/README.md` § 3 is the standard for writing a row, and § 14 below is the move itself.
 
 ## 1. The headline: the repo data is out of date, and the page follows the ordinances
 
@@ -545,3 +549,39 @@ The block itself is not gone from the app. Any finding can take one: `owner.diag
 `{ src, alt, caption }`, and the owner's page (`team/desk-draft.js` `ownerBlocks`) adds it under "What is wrong"
 as an island block with its own caption whenever it is there, captioned as a general diagram and never as a
 picture of the owner's room.
+
+## 14. One file per example (2026-11-25)
+
+Adding the fourth photograph meant editing eleven files, and the parts of an example that have to agree with each
+other — the annotation the scan points at, the code row a question is asked for, the correction the owner's steps
+belong to — were the furthest apart in the tree. So each photograph's whole contribution now sits in one file,
+`examples/<id>/example.js`:
+
+| what moved | from |
+|---|---|
+| the inspection record | `data/content.js` (which is now the binder for `window.CONTENT`) |
+| the code rows, their quoted text, their `short` form and the `across` sentence | `data/law.js` (now the join that collects them and adds Berkeley's) |
+| the verdict rules that read those sections, and the headline reason | `lib/codes.js` (which keeps only `judgement` and `carried`) |
+| the key phrases marked in a quoted requirement | `lib/emphasis.js` |
+| what the phone reads, scans, shows and asks | `team/flow.js` |
+| what the field answers do to a row | a branch of `team/adapter.js` |
+| the owner's numbered steps | `team/drafts.js` |
+| how far the phone pulls back from the finding | `team/phone.js` |
+| this example's note under "Statewide rules" | `app.js` |
+
+The places, the documents and the three maps of local code sections are shared, and split out of `data/law.js`
+into `data/lawbase.js`. The penalty clause is carried by more than one finding, so it is a factory in
+`examples/common.js`. `examples/index.js` is the id list and the only other place an example is named.
+
+**Nothing on screen changed.** A parity run loaded the old files and the new ones side by side and compared
+`window.CONTENT`, every row set, 8,424 `evaluate()` combinations across photograph x place x zone x distance, 972
+`diff()` pairs, every correction with its pictures and contours, 159 emphasis texts, and 912 sets of field answers
+through `facts()`, `callouts()`, the senior inspector's rows and the owner's steps. No difference. Only the key
+order of four lookup maps changed, and nothing reads them positionally. `node test.js` and `node test.js --plain`
+pass as before; `node team/test.js` fails the same seven inline-editing checks it failed before the move.
+
+`tools/check-examples.js` is the standard, mechanised: about 1,800 checks per example, including that every row
+carries a source and a verdict and a reason under 70 characters, that every yellow row says what it depends on,
+that the scan points at an annotation that exists, that every question has a provenance, and that every set of
+field answers produces a callout with no `undefined` in it. It records two known gaps: the fire-door record stops
+after its risk section and has no closing summary, because writing either means new prose about a real fire door.

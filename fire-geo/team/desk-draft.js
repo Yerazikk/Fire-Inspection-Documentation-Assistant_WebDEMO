@@ -61,7 +61,7 @@ window.TeamDraft = (function () {
     const dueDate = () => { if (M.due.date) return M.due.date; const s = day0(new Date(f.at)); return new Date(s.getFullYear(), s.getMonth(), s.getDate() + M.due.days); };      // counted on the calendar: a day is not always 24 hours (the clocks change)
     const dueDays = () => Math.round((day0(dueDate()) - day0(new Date(f.at))) / DAY);
     const daysText = n => n + (n === 1 ? ' day' : ' days');
-    M.sols = D.solutions(scene).map(s => ({ id: s.id, kind: 'prepared', sol: s, standing: s.standing, use: s.standing === 'required', off: false, title: ref(s.title), plain: ref(s.plain), steps: B.ownerSteps(scene, s.id, V.ev.rows).map(x => ref(x.text)), regions: [], treat: 'remove', rewrites: 0 }));
+    M.sols = D.solutions(scene).map(s => ({ id: s.id, kind: 'prepared', sol: s, standing: s.standing, use: s.standing === 'required', off: false, title: ref(s.title), plain: ref(s.plain), steps: B.ownerSteps(scene, s.id, V.ev.rows, f.facts).map(x => ref(x.text)), regions: [], treat: 'remove', rewrites: 0 }));
     const chosen = () => M.sols.filter(s => s.use && !s.off).sort((a, b) => RANK[a.standing] - RANK[b.standing]);
     /** "Option 2": a correction's number among those included, the required one first. None when only one is included. The same number on the laptop's list, the owner's page and the file document. */
     const option = s => { const list = chosen(); return list.length > 1 ? list.indexOf(s) + 1 : 0; };
@@ -224,7 +224,7 @@ window.TeamDraft = (function () {
       const X = parts.fix; if (!X || M.open === id) return; M.open = id; markRows();
       const s = M.sols.find(x => x.id === id), next = id === 'new' ? X.newPane : s ? (s.ui.pane || paneNode(s)) : null, old = X.detail.firstElementChild;
       if (!next || next === old) return;
-      const put = () => { X.detail.replaceChildren(next); U.anim(next, [{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' }); if (s && s.ui.ba && s.ui.ba.set) s.ui.ba.set(M.pos == null ? .5 : M.pos); U.syncAllSegs(next); U.soft(); };
+      const put = () => { X.detail.replaceChildren(next); if (old) U.anim(next, [{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' }); if (s && s.ui.ba && s.ui.ba.set) s.ui.ba.set(M.pos == null ? .5 : M.pos); U.syncAllSegs(next); U.soft(); };      // nothing to fade from when the step is arriving: it comes in with the list beside it, not after it
       const out = old && U.anim(old, [{ opacity: 1 }, { opacity: 0 }], { duration: 110, easing: 'ease-out', fill: 'forwards' });
       if (out) out.onfinish = () => { out.cancel(); put(); }; else put();
     }
@@ -319,21 +319,37 @@ window.TeamDraft = (function () {
       M.due.date = d; M.due.days = null; touch(); return true;
     }
 
-    // ---- The calendar, for any date that is not one of the four usual ones. One month at a time: its name and year
-    // between two steps, the weekdays as initials, and the days as circles -- the one in force is ink, today carries a
-    // hairline ring, and the four usual choices are dotted, so the calendar and the chips beside it say the same thing.
-    // Days before the inspection are there but cannot be taken. It opens upward over the foot and closes the moment a
-    // day is picked; the date beside it crossfades to the new one. Arrow keys walk the days, PageUp and PageDown the
-    // months, Escape closes it and gives the button back the focus.
+    // ---- The calendar, for any date that is not one of the four usual ones. One month at a time: the month and the
+    // year are each picked from a list, between two steps for the month either side, the weekdays as initials, and the
+    // days as circles -- the one in force is ink, today carries a hairline ring, and the four usual choices are dotted,
+    // so the calendar and the chips beside it say the same thing. A month far off is one choice, not a run of presses.
+    // Days before the inspection are there but cannot be taken, and nor are the months and years before it.
+    // It opens upward over the foot and closes the moment a day is picked; the date beside it crossfades to the new
+    // one. Arrow keys walk the days, PageUp and PageDown the months, Escape closes it and gives the button back the
+    // focus -- except inside the two lists, where the keys are the list's own.
     const WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const MONTHS = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString('en-US', { month: 'long' }));
+    const YEARS_ON = 10;      // how far ahead the year list reaches from the inspection
     const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
     const sameMonth = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+
+    /** the years the list offers: from the inspection's own year to ten on, and far enough to hold the date in force */
+    function years(C) {
+      const from = C.first.getFullYear(), to = Math.max(from + YEARS_ON, C.at.getFullYear(), day0(dueDate()).getFullYear());
+      return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+    }
+    /** a list in the calendar's head: it reads as the heading it replaces, with a small chevron to say it opens */
+    const listed = sel => h('span', { class: 'dk-cal-listed' }, sel, h('i', { class: 'dk-cal-listed-chev', 'aria-hidden': 'true' }, icon('chevD', 13)));
 
     function openCal() {
       const X = parts.due; if (!X || calOpen) return;
       const on = day0(dueDate());
       const C = calOpen = { at: new Date(on.getFullYear(), on.getMonth(), 1), focus: on, first: day0(new Date(f.at)) };
-      C.title = h('b', { class: 'dk-cal-month' });
+      C.mSel = h('select', { class: 'dk-cal-sel is-month', 'aria-label': 'Month' }, MONTHS.map((name, i) => h('option', { value: String(i), text: name })));
+      C.ySel = h('select', { class: 'dk-cal-sel is-year', 'aria-label': 'Year' }, years(C).map(y => h('option', { value: String(y), text: String(y) })));
+      const jump = () => goMonth(new Date(+C.ySel.value, +C.mSel.value, 1));
+      C.mSel.addEventListener('change', jump); C.ySel.addEventListener('change', jump);
+      C.title = h('div', { class: 'dk-cal-month' }, listed(C.mSel), listed(C.ySel));
       C.back = sym('chevL', 'Earlier month', () => month(-1), 'dk-cal-step is-small', 16);
       C.fwd = sym('chevR', 'Later month', () => month(1), 'dk-cal-step is-small', 16);
       C.grid = h('div', { class: 'dk-cal-grid', role: 'grid', 'aria-label': 'Fix by' });
@@ -348,14 +364,16 @@ window.TeamDraft = (function () {
       C.away = e => { if (!C.el.contains(e.target) && !X.cal.contains(e.target)) closeCal(); };
       // the keys are taken while the panel is open, wherever the focus is: opened with the mouse, nothing inside it
       // holds the focus (a ring is for the keyboard only), and the arrows should still walk the month
-      C.keys = e => { if (calOpen !== C) return; if (e.key === 'Escape') { e.stopPropagation(); closeCal(true); return; } onKeys(e); };
+      C.keys = e => { if (calOpen !== C) return; if (e.key === 'Escape') { e.stopPropagation(); closeCal(true); return; } if (e.target && e.target.tagName === 'SELECT') return; onKeys(e); };      // inside a list the keys are the list's own
       setTimeout(() => { if (calOpen === C) document.addEventListener('pointerdown', C.away, true); }, 0);
       document.addEventListener('keydown', C.keys, true);
       focusDay();
-      /** another month. The focus goes with it, so walking back and forth lands where it left. */
-      function month(d) {
-        const at = new Date(C.at.getFullYear(), C.at.getMonth() + d, 1);
-        if (at < new Date(C.first.getFullYear(), C.first.getMonth(), 1)) return;
+      /** another month, stepped or picked from the lists. The focus goes with it, so walking back and forth lands where it left. */
+      function month(d) { goMonth(new Date(C.at.getFullYear(), C.at.getMonth() + d, 1)); }
+      function goMonth(at) {
+        const floor = new Date(C.first.getFullYear(), C.first.getMonth(), 1);
+        if (at < floor) at = floor;                                    // the inspection is the floor: a year picked from the list lands on its first month that is not behind it
+        if (sameMonth(at, C.at)) { fillCal(false); return; }           // nowhere to go: the lists are put back to the month in view
         C.at = at; fillCal(true); focusDay();
       }
       function onKeys(e) {
@@ -384,8 +402,12 @@ window.TeamDraft = (function () {
       const usual = {};      // the four usual choices, where they fall in this month
       CHOICES.forEach(n => { const d = new Date(C.first.getFullYear(), C.first.getMonth(), C.first.getDate() + n); if (sameMonth(d, C.at)) usual[d.getDate()] = n; });
       if (!sameMonth(C.focus, C.at)) C.focus = sameMonth(on, C.at) ? on : new Date(y, m, 1);
-      swapText(C.title, C.at.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), { size: false });
-      C.back.disabled = new Date(y, m, 1) <= new Date(C.first.getFullYear(), C.first.getMonth(), 1);
+      const fy = C.first.getFullYear(), fm = C.first.getMonth();
+      const ys = years(C); if (C.ySel.options.length !== ys.length || C.ySel.options[0].value !== String(ys[0])) C.ySel.replaceChildren(...ys.map(v => h('option', { value: String(v), text: String(v) })));
+      if (C.mSel.value !== String(m)) C.mSel.value = String(m);
+      if (C.ySel.value !== String(y)) C.ySel.value = String(y);
+      for (const o of C.mSel.options) o.disabled = y === fy && +o.value < fm;      // nothing before the inspection, in the list as on the grid
+      C.back.disabled = new Date(y, m, 1) <= new Date(fy, fm, 1);
       const cells = [];
       for (let i = 0; i < lead; i++) cells.push(h('span', { class: 'dk-cal-pad', role: 'presentation' }));
       for (let d = 1; d <= len; d++) {
@@ -510,19 +532,21 @@ window.TeamDraft = (function () {
       // it. It goes under "What is wrong", captioned as a diagram so it is never read as a picture of the property.
       const dia = (((window.CONTENT || {})[scene] || {}).owner || {}).diagram;
       if (dia) {
-        const img = h('img', { class: 'rp-dia-img', src: D.ROOT + dia.src, alt: dia.alt || '', loading: 'lazy' });
+        const img = h('img', { class: 'rp-dia-img', src: D.ROOT + dia.src, alt: dia.alt || '' });      // not lazy: it belongs to the page, and must not arrive after it
         X.diagram = h('figure', { class: 'rp-dia' }, img, h('figcaption', { class: 'rp-dia-cap', text: dia.caption || '' }));
       }
       X.doc = window.TeamDoc.create(page, { pCls: 'rp-text', onChange: ownerRead, onSettle: settle });
       X.addr = h('span', { class: 'rp-addr' });
       X.pubBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => api.publish(true) }, h('span', { class: 'dk-primary-label', text: 'Publish' }));
-      X.mailBtn = btn('Email', () => showMail(true), '', 'mail');
-      X.act = h('div', { class: 'rp-act' }, X.mailBtn, X.pubBtn);                           // floats at the bottom right of the window, one action above the other: the pill stays as narrow as the reading column leaves room for
+      X.mailBtn = btn('Email', () => showMail(true), 'is-solid', 'mail');      // the same ink as Publish: the two ways the page leaves the desk, said in one voice
+      X.act = h('div', { class: 'rp-act' }, X.mailBtn, X.pubBtn);                           // Email on the left, Publish on the right, at the right of the window's own foot
       X.undo = sym('undo', 'Undo', () => api.publish(false), '', 16);
-      X.mailBtn2 = btn('Email', () => showMail(true), '', 'mail');                          // the same action once it is published and the pill has gone
+      X.mailBtn2 = btn('Email', () => showMail(true), '', 'mail');                          // the same action once it is published and the two buttons have gone
       X.done = h('div', { class: 'rp-done', role: 'status', hidden: true }, h('i', { class: 'rp-done-mark', 'aria-hidden': 'true' }, icon('check', 13)),      // the line at the foot of the window, once published
         h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' })), X.mailBtn2, X.undo);
-      const win = X.win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), X.scroll = h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.act, X.done);
+      // the two actions and the line that replaces them share one foot of a fixed height, so neither covers the page and nothing moves when one gives way to the other
+      X.foot = h('div', { class: 'rp-foot' }, X.act, X.done);
+      const win = X.win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), X.scroll = h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.foot);
       win.firstChild.lastChild.replaceWith(enlarger(win));
       return h('section', { class: 'dk-pane', 'data-step': 'owner' }, h('div', { class: 'dk-pane-fixed' }, win));
     }
@@ -833,6 +857,8 @@ window.TeamDraft = (function () {
     // flow and is never split up, so the caret is not disturbed. Each page has its number at the foot.
     let pageRaf = 0;
     const paginateSoon = () => { if (!pageRaf) pageRaf = requestAnimationFrame(() => { pageRaf = 0; paginate(); }); };
+    /** now, not next frame: on the way in the pages are placed before anything is drawn, so the text is never seen unpaged */
+    const paginateNow = () => { if (pageRaf) { cancelAnimationFrame(pageRaf); pageRaf = 0; } paginate(); };
     function paginate() {
       const X = parts.file; if (!X || !X.sheet.isConnected) return; const pw = X.sheet.clientWidth; if (!pw) return;
       const H = pw * 11 / 8.5, m = pw / 8.5, gap = 18, room = H - 2 * m, blocks = X.doc.blocks();
@@ -870,7 +896,7 @@ window.TeamDraft = (function () {
     return {
       model: M, chosen, due: () => ({ date: dueDate(), days: dueDays(), text: fmtDate(dueDate()) }), setDue: n => { M.due.days = n; M.due.date = null; touch(); }, docs: () => ({ owner: parts.owner && parts.owner.doc, file: parts.file && parts.file.doc }),
       pane(step) { if (!panes[step]) { panes[step] = BUILD[step](); SYNC[step](); refresh(); } return panes[step]; },
-      shown(step) { bigs.forEach(c => c(true)); if (step !== 'owner') showMail(false); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); if (step === 'file') paginateSoon(); } },
+      shown(step) { bigs.forEach(c => c(true)); if (step !== 'owner') showMail(false); if (panes[step]) { SYNC[step](); refresh(); U.syncAllSegs(panes[step]); U.soft(); if (step === 'file') paginateNow(); } },
       ready: step => step !== 'fix' || chosen().length > 0,
       sync: () => syncAll(),
       published() { syncPublish(); },

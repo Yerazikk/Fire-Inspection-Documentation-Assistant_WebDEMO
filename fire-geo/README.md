@@ -25,8 +25,23 @@ does not run from a sub-path of another server or straight from the file system.
   verdict, because the exception in CFC § 603.5.2 turns on what the room is used for (`NOTES.md` § 13).
 
 Shared pieces: `shared/shell.*` (top bar, tabs, soft scroll edges), `lib/` (place lookup, the rules and verdicts, the
-before / after divider, the pin), `data/` (the rules with their sources, map polygons), `shared/gleb/` (a second look).
+before / after divider, the pin), `data/` (the places with their sources, map polygons), `shared/gleb/` (a second look).
 `API.md` describes all of it.
+
+## The examples
+
+Each photograph and everything the product does with it is one file, `examples/<id>/example.js`: the inspection
+record, the code rows with their quoted text and sources, what the phone asks in the field, the owner's numbered
+steps. `examples/index.js` lists them in tab order and is the only other place an example is named — the tab
+strip, the phone's camera, the code rows, the drafting desk and both test suites all follow that list.
+
+```
+node tools/new-example.js <id> "<tab name>" "<title>"   start one
+node tools/check-examples.js [<id>]                     what is still missing (about 1,800 checks each)
+```
+
+`examples/README.md` is the process and the standard: where the words may come from, how a row is written, what
+makes a question a fair one to ask someone standing in a building, and what each of the three verdicts means.
 
 ## Two looks
 

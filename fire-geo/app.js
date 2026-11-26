@@ -599,8 +599,11 @@ function buildNotes() {
     s.append(dl);
   }));
   const there = S.region === 'berkeley';
-  if (ev.photo === 'ladder') body.append(notesBlock('Statewide rules', s => { s.append(h('p', '', (there ? 'The 30 ft ladder-fuel rule is local text here too: Berkeley writes it into § 604.3.1 of its own WUI Code.' : 'The 30 ft ladder-fuel rule is local text: each Ross Valley ordinance adds it as § 604.6 to the 2025 California WUI Code.') + ' The state chapter itself could not be opened at codes.iccsafe.org, so no state distance is shown.')); }));
-  else body.append(notesBlock('Statewide rules', s => { s.append(h('p', '', 'The duty to replace a painted sprinkler is state law. What changes with the place is the adopting ordinance and whether the local rule made this a required system. The state code site (codes.iccsafe.org) would not open, so the three statewide rows use the wording in the inspector’s analysis.')); }));
+  // Under "Statewide rules": the example's own note where it writes one (examples/<id>/example.js), else the
+  // wording the three findings whose duty is state law have always shared.
+  const ownNote = ((window.FireExamples.get(ev.photo) || {}).statewideNote);
+  const stateText = ownNote ? ownNote(there) : 'The duty to replace a painted sprinkler is state law. What changes with the place is the adopting ordinance and whether the local rule made this a required system. The state code site (codes.iccsafe.org) would not open, so the three statewide rows use the wording in the inspector’s analysis.';
+  body.append(notesBlock('Statewide rules', s => { s.append(h('p', '', stateText)); }));
   body.append(notesBlock('The map', s => {
     const p = h('p'), a = h('a', '', there ? 'City of Berkeley fire map' : 'Ross Valley Fire Department map'); a.target = '_blank'; a.rel = 'noopener';
     if (there) {

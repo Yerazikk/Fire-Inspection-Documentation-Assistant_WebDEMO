@@ -11,7 +11,8 @@
 //     Unknown: the shared logic is asked at both ends of its range and any row whose verdict depends on the distance
 //     is left for the inspector. An estimate decides the row, and the row says it is an estimate.
 //   - a correction to one of the app's readings (no road beside it, a gap between the layers, no dry leaves) is put
-//     in front of the analysis it bears on. Only "no road or driveway" changes a verdict (it clears the roadside row).
+//     in front of the analysis it bears on. What each photograph's answers do to its own rows is written with that
+//     photograph, in examples/<id>/example.js under `field.apply`, so adding a finding needs no change here.
 window.TeamData = (function () {
   'use strict';
   const W = window, C = W.CONTENT || {};
@@ -81,7 +82,7 @@ window.TeamData = (function () {
     const g = fg(), f = facts || {}, L = typeof loc === 'string' ? pin(loc) : (loc || pin('ross')), pl = place(L.place);
     if (!g || !C[photo]) return { rows: [], adopted: [], place: pl, loc: L, missing: true, carried: false, stateNote: '' };
     const D = g.codes.DISTANCE || { min: 0, max: 150, default: 20 };
-    const dist = photo === 'ladder' ? f.distance : null, known = !!dist && (dist.kind === 'exact' || dist.kind === 'estimate');
+    const ex = W.FireExamples.get(photo), dist = ex && ex.usesDistance ? f.distance : null, known = !!dist && (dist.kind === 'exact' || dist.kind === 'estimate');
     const call = d => g.codes.evaluate({ photo, place: L.place, distance: d, scope: L.scope, hazardLabel: L.label });
     const used = known ? Math.max(D.min, Math.min(D.max, dist.feet)) : D.default, ev = call(used);
     const rows = (ev.state || []).concat(ev.local || []).map((r, i) => ({
@@ -93,71 +94,12 @@ window.TeamData = (function () {
     const by = {}; rows.forEach(r => { by[r.key] = r; });
     const lead = (key, text) => { if (by[key] && text) by[key].lead = (by[key].lead ? by[key].lead + ' ' : '') + text; };
 
-    if (photo === 'ladder') {
-      // Which rows depend on the distance: ask the shared logic at both ends of its range.
-      const near = {}, far = {}, lo = call(D.min), hi = call(D.max);
-      (lo.state || []).concat(lo.local || []).forEach(r => { near[r.key] = r; });
-      (hi.state || []).concat(hi.local || []).forEach(r => { far[r.key] = r; });
-      for (const r of rows) {
-        const a = near[r.key], b = far[r.key];
-        if (!a || !b || a.verdict === b.verdict) continue;
-        r.dependsOnDistance = true;
-        if (!known) {
-          r.verdict = 'yellow'; r.why = 'Depends on the distance, which the field inspector did not give.';
-          if (!r.open) r.open = 'The distance from the bushes to the building.';
-          if (dist && dist.kind === 'unsure') r.lead = 'The field inspector was not sure of the distance.';
-        } else if (dist.kind === 'exact') {
-          if (/distance/i.test(r.open)) r.open = '';
-          r.why = r.why.replace(new RegExp(' at ' + used + ' ft\\b'), ' at ' + dist.feet + ' ft, as the field inspector gives it');
-        } else {
-          // an estimate decides the row, but no exact figure is quoted for it
-          r.why = r.why.replace(new RegExp(' at ' + used + ' ft\\b'), ', by the field inspector’s estimate (' + dist.label.toLowerCase() + ')').replace(new RegExp('This is ' + used + ' ft\\.'), 'By the field inspector’s estimate it is farther (' + dist.label.toLowerCase() + ').');
-          if (/distance/i.test(r.open)) r.open = 'A measured distance. This one is an estimate.';
-        }
-      }
-      if (f.touch === 'gap') lead('ladder-reach', 'The field inspector says there is a gap between the two layers.');
-      if (f.dry === 'none') lead('hazard-veg', 'The field inspector sees no dry leaves or dead plants.');
-      else if (f.dry === 'lots') lead('hazard-veg', 'The field inspector says there is a lot of dry material.');
-      if (f.beside === 'neither') {
-        lead('roadside', 'The field inspector says there is no road or driveway next to it.');
-        if (by.roadside) { by.roadside.verdict = 'green'; by.roadside.why = 'No road or driveway next to it, by the field inspector’s report.'; by.roadside.open = ''; }
-      } else if (f.beside === 'driveway') lead('roadside', 'The field inspector says it is a driveway, not a road.');
-    } else if (photo === 'daisy') {
-      // The two answers the phone asks for are the two exceptions in CFC \u00a7 603.5.2, so they land on that row.
-      // A meeting or function room does not clear the finding; it turns a confirmed violation into a reading the
-      // inspector has to make, which is what yellow means everywhere else on this page.
-      if (f.room === 'meeting' || f.room === 'assembly') {
-        const where = f.room === 'meeting' ? 'a meeting room' : 'a hall or function room';
-        lead('tap-direct', 'The field inspector calls this ' + where + '.');
-        if (by['tap-direct']) {
-          by['tap-direct'].verdict = 'yellow';
-          by['tap-direct'].why = 'Depends on whether the meeting-room exception covers this.';
-          by['tap-direct'].open = 'Whether the room is a Group A occupancy or a Group B meeting room, whether the use is temporary, and whether the load is electronic equipment.';
-        }
-      } else if (f.room === 'work') lead('tap-direct', 'The field inspector calls this an office or work room, so neither exception is in play.');
-      else if (f.room === 'written') {
-        lead('tap-direct', 'The field inspector wrote the room in: \u201c' + f.roomText + '\u201d.');
-        if (by['tap-direct']) {
-          by['tap-direct'].verdict = 'yellow';
-          by['tap-direct'].why = 'Depends on whether that room is one the exception covers.';
-          by['tap-direct'].open = 'Whether the room the field inspector describes is a Group A occupancy or a Group B meeting room, and whether the use is temporary.';
-        }
-      }
-      if (f.temp === 'testing' || f.temp === 'temporary') lead('tap-direct', f.temp === 'testing' ? 'Temporary, for testing equipment, the field inspector says.' : 'Temporary, the field inspector says.');
-      // A cord run under a door or a covering is the plain words of \u00a7 603.5.3, and the field inspector can see it.
-      if (f.cords === 'under' && by['tap-install']) {
-        lead('tap-install', 'The field inspector says a cord runs under a door or under the carpet.');
-        by['tap-install'].verdict = 'red';
-        by['tap-install'].why = 'A cord runs under a door or a covering. Confirmed on site.';
-        by['tap-install'].open = '';
-      }
-      if (f.count === 'more') lead('tap-direct', 'The field inspector counts more than the two taps in the photograph.');
-      if (f.upper === 'other') lead('cords', 'The field inspector says the upper strip is not plugged into a wall socket either.');
-    } else {
-      if (f.paint === 'all') lead('maintenance', 'The field inspector says the paint is all over the sprinkler.');
-      else if (f.paint === 'ring') lead('maintenance', 'The field inspector says the paint is only on the ring around the sprinkler.');
-      if (f.plate === 'painted') { lead('maintenance', 'The field inspector says the bottom plate is painted too.'); lead('itm-standard', 'The field inspector says the bottom plate is painted too.'); }
-    }
+    // What the field inspector's answers do to this photograph's rows is written with the photograph, in
+    // examples/<id>/example.js under `field.apply`. It is handed everything it could need: the rows in order and
+    // by key, `lead` to put a line in front of a row's analysis, and the distance machinery above for an example
+    // that uses one. Most readings only annotate; a few decide a row, and those are the ones the photograph could
+    // never settle (no road beside it, a cord run under a door, what a fire door does once the wedge is out).
+    W.FireExamples.apply(photo, f, { rows, by, lead, D, call, known, dist, used, loc: L, place: pl });
     for (const r of rows) r.analysis = (r.lead ? r.lead + ' ' : '') + r.applies;
     const adopted = (ev.facts || []).map(x => ({ key: x.key, label: tidy(x.label), value: tidy(x.value), cite: tidy(x.cite || ''), was: x.was || null }));
     return { rows, adopted, place: pl, loc: L, missing: false, carried: ev.carried !== false, stateNote: tidy(ev.stateNote || '') };

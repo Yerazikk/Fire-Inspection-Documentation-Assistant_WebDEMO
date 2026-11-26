@@ -23,21 +23,34 @@ const PLAYWRIGHT = path.join(GEO, '..', 'node_modules', 'playwright');
 const WRITE = process.argv.includes('--write');
 const W = 224;                              // working width; the blur radius below is in these pixels
 
-// Two of the three are marked by hand, because the thing worth circling is not the biggest thing that changed.
-// In correction A the plug also leaves the grey strip in the middle of the frame, and in C both strips vanish from
+// Three of the four are marked by hand, because the thing worth circling is not the biggest thing that changed.
+// In daisy A the plug also leaves the grey strip in the middle of the frame, and in C both strips vanish from
 // the floor; a difference finds those, and they are not the point. What the inspector and the owner need to see is
 // WHERE THE POWER NOW COMES FROM: the free socket of the receptacle that was always there, and the new receptacle.
+// The fire door is marked by hand for the opposite reason: the correction is two pieces of work in one picture, and
+// a difference finds only the loudest of them. The wedge coming out is the finding; the sign is what keeps it out.
+// One circle each, so the owner reads two corrections and not one.
 //
 // `ellipse` is in fractions of the frame and is the shape BEFORE lib/solutions.js simpleShape() opens it out. That
 // function enlarges any shape narrower than 0.42 by up to 2.4x about its centre, so the radii here are the ones
-// wanted on screen divided by 2.4. `reveal` is where the before/after divider has to sit for the circle to be on
+// wanted on screen divided by 2.4. `reveal` is where the before/after divider has to sit for the circles to be on
 // the after side at all: the outline is drawn inside the clip, so a mark near the left edge is invisible until the
-// divider moves there. Measured off the pictures by cropping them, like the annotation boxes in content.js.
+// divider moves there. Measured off the pictures by cropping them, like an example's annotation boxes.
+// A key with `marks` carries more than one circle; `label` on a mark overrides the job's own label.
 const MANUAL = {
   'daisy-a': { ellipse: { cx: 0.105, cy: 0.0875, rx: 0.025, ry: 0.026 }, labelAt: [0.30, 0.175], reveal: 0.02,
                note: 'the free socket of the receptacle that was already there' },
   'daisy-c': { ellipse: { cx: 0.895, cy: 0.1125, rx: 0.027, ry: 0.023 }, labelAt: [0.66, 0.225],
                note: 'the receptacle the electrician added' },
+  // The sign sits across the middle of the leaf and the wedge sat at the foot of it, so the two circles are well
+  // apart and each takes its label beside it on the wall. Opened out 2.4x, the sign's circle reaches x = 0.29, which
+  // is left of where the divider rests: `reveal` walks the divider back to 0.26 when the switch goes on.
+  'firedoor-a': { reveal: 0.26, marks: [
+    { ellipse: { cx: 0.402, cy: 0.329, rx: 0.048, ry: 0.029 }, label: 'signage added', labelAt: [0.655, 0.47],
+      note: 'the FIRE DOOR KEEP CLOSED sign now screwed to the leaf' },
+    { ellipse: { cx: 0.575, cy: 0.910, rx: 0.0437, ry: 0.0331 }, label: 'wedge removed', labelAt: [0.74, 0.775],
+      note: 'the floor under the leading edge, where the wedge was' },
+  ] },
 };
 const ring = (e, n) => Array.from({ length: n }, (_, i) => {
   const t = i / n * Math.PI * 2;
@@ -53,13 +66,13 @@ const SCENES = {
       { key: 'daisy-c', after: 'assets/after/daisy-c-receptacles.jpg', label: 'new outlet' },
     ],
   },
-  // The fire door. One picture: the wedge gone, the door shut and a sign on the leaf. The largest blob the
-  // difference finds is the sign, so that is what gets circled — which is the mark worth having, because the
-  // door being shut is plain as soon as the divider moves and the sign is the half that is easy to miss.
+  // The fire door. One picture, two circles: the sign that was added and the floor the wedge came off. The largest
+  // blob the difference finds is the sign alone, and the wedge going is the finding, so both are marked by hand
+  // above. The door being shut needs no circle: it is plain as soon as the divider moves.
   firedoor: {
     before: 'assets/firedoor.png',
     jobs: [
-      { key: 'firedoor-a', after: 'assets/after/firedoor-a-shut-and-signed.jpg', label: 'shut, and a sign on it' },
+      { key: 'firedoor-a', after: 'assets/after/firedoor-a-shut-and-signed.jpg', label: 'signage added' },
     ],
   },
 };
@@ -164,14 +177,15 @@ function findContour([beforeUrl, afterUrl, W]) {
     const r = await page.evaluate(findContour, [dataUrl(BEFORE), dataUrl(job.after), W]);
     if (r.error && !m) { console.error(job.key + ': ' + r.error); continue; }
     if (m) {
+      const marks = m.marks || [m];
       out[job.key] = {
         align: { sx: 1, sy: 1, dx: 0, dy: 0 },
-        fit: { size: r.size || [W, 0], matches: 0, inliersX: 0, inliersY: 0, rmsPx: 0, how: 'marked by hand (tools/daisy-outline.js MANUAL): ' + m.note },
+        fit: { size: r.size || [W, 0], matches: 0, inliersX: 0, inliersY: 0, rmsPx: 0, how: 'marked by hand (tools/daisy-outline.js MANUAL): ' + marks.map(x => x.note).join('; ') },
         beforeSize: r.beforeSize, afterSize: r.afterSize,
         reveal: m.reveal != null ? m.reveal : null,
-        contours: [{ label: job.label, labelAt: m.labelAt, areaShare: +(Math.PI * m.ellipse.rx * m.ellipse.ry * 5.76).toFixed(4), points: ring(m.ellipse, 12) }],
+        contours: marks.map(x => ({ label: x.label || job.label, labelAt: x.labelAt, areaShare: +(Math.PI * x.ellipse.rx * x.ellipse.ry * 5.76).toFixed(4), points: ring(x.ellipse, 12) })),
       };
-      console.log(job.key + ': marked by hand, ' + m.note);
+      console.log(job.key + ': marked by hand, ' + marks.map(x => x.note).join('; '));
       continue;
     }
     // the label sits inside the picture, clear of the shape's own centre

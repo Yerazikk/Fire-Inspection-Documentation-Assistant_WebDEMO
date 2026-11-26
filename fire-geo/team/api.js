@@ -46,9 +46,11 @@ let BIN = null; const bin = () => BIN || (BIN = findClaude());
 // then this tab's adapter and drafts. Built per request so an edited source file is picked up at once.
 function world() {
   const sb = { console: { log() { }, warn() { }, error() { } } }; sb.window = sb; vm.createContext(sb);
-  for (const f of ['data/jurisdictions.js', 'data/content.js', 'data/hazard.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/solutions.js', 'team/adapter.js', 'team/drafts.js']) {
-    try { vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), sb, { filename: f }); } catch (e) { /* a missing shared file only means less grounding */ }
-  }
+  const run = f => { try { vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), sb, { filename: f }); } catch (e) { /* a missing shared file only means less grounding */ } };
+  // the shared boot files, then every example examples/index.js lists, then the rest
+  for (const f of ['data/jurisdictions.js', 'data/lawbase.js', 'examples/registry.js', 'examples/common.js', 'examples/index.js']) run(f);
+  for (const f of (sb.FireExamples ? sb.FireExamples.files() : [])) run(f);
+  for (const f of ['data/content.js', 'data/hazard.js', 'data/law.js', 'data/outlines.js', 'lib/geo.js', 'lib/codes.js', 'lib/solutions.js', 'team/adapter.js', 'team/drafts.js']) run(f);
   if (!sb.CONTENT || !sb.TeamData || !sb.TeamDrafts) throw new Error('source data did not load');
   return sb;
 }
@@ -72,7 +74,7 @@ function readBody(raw, sb) {
     if (d.kind === 'estimate') { d.bucket = word(f.distance.bucket) ? f.distance.bucket : ''; d.label = clean(f.distance.label, 30) || 'an estimate'; }
     facts.distance = d;
   }
-  for (const k of ['touch', 'dry', 'beside', 'plant', 'paint', 'plate']) if (word(f[k])) facts[k] = f[k];
+  for (const k of ['touch', 'dry', 'beside', 'plant', 'paint', 'plate', 'door', 'held', 'closer', 'sign', 'latch', 'label']) if (word(f[k])) facts[k] = f[k];
   if (isFinite(f.year) && +f.year >= 1850 && +f.year <= 2100) facts.year = Math.round(+f.year);
   if (f.yearCant === true) facts.yearCant = true;
   return { target: b.target, scene: b.scene, place: b.place, solution, instruction, current, facts };

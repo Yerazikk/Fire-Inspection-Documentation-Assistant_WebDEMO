@@ -13,7 +13,7 @@ fs.mkdirSync(WORK, { recursive: true });
 
 // roi: where a change may count, in 0..1 of the photograph [x0, y0, x1, y1]. It only trims generator noise far
 // from the correction (sky, road); the contour itself always comes from the measured difference.
-// labels: text is from the correction's own description in content.js, shortened. labelAt is hand-placed in clear
+// labels: text is from the correction's own description in the example, shortened. labelAt is hand-placed in clear
 // space after looking at tools/work/<id>-outline.png; the leader runs to the nearest point of the contour.
 const JOBS = [
   { id: 'ladder-a', before: 'assets/ladderfuel.jpg', after: 'ladder-a-remove-hedge.png', W: 410, blurR: 5, thresh: 46, maskR: 5, openR: 4, minArea: 0.012, keep: 1,

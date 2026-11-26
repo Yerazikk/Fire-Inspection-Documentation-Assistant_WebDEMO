@@ -1,7 +1,7 @@
 // node tools/sprinkler-swap.js [--write]
 // Andrew sent a new, wider and sharper photograph of the same painted sprinkler (team-input/sprinkler-new.png).
 // This finds the OLD photograph inside the NEW one (one scale and a shift: the old picture is a crop of the same
-// shot), reports the fit, moves the annotation boxes of data/content.js onto the new picture, and makes the new
+// shot), reports the fit, moves the annotation boxes of the sprinkler example onto the new picture, and makes the new
 // "after" picture by putting only the replaced head from the existing after picture into the new photograph, under
 // a soft mask, with its exposure matched to the photograph around it. Nothing is generated: every pixel is from the
 // new photograph or from the existing after picture.  Without --write it only measures and writes previews in
@@ -67,5 +67,5 @@ if (WRITE) {
   execFileSync('/usr/bin/sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '93', path.join(WORK, 'sprinkler-new-after.png'), '--out', A('assets/after/sprinkler-a-replacement.jpg')], { stdio: 'ignore' });
   fs.writeFileSync(srcFile, src.slice(0, i0) + moved);
   fs.writeFileSync(A('assets/sprinkler.json'), JSON.stringify({ photo: 'assets/sprinkler.png', size: [NW, NH], aspect: +(NW / NH).toFixed(4), replaces: 'assets/sprinkler.old.png (343 x 263), a crop of the same photograph', oldInNew: { x: TX, y: TY, w: fine.w, h: fine.h, scale: +S.toFixed(4), correlation: +fine.c.toFixed(4), residualGrey: +fine.rms.toFixed(2) }, after: 'assets/after/sprinkler-a-replacement.jpg: this photograph with only the replaced head taken from the earlier after picture (soft mask, exposure matched). Illustrative.', boxesMoved: boxes, tool: 'tools/sprinkler-swap.js' }, null, 1) + '\n');
-  console.log('installed: assets/sprinkler.png (' + NW + ' x ' + NH + '), the new after picture, ' + boxes + ' boxes in data/content.js, assets/sprinkler.json');
+  console.log('installed: assets/sprinkler.png (' + NW + ' x ' + NH + '), the new after picture, ' + boxes + ' boxes in examples/sprinkler/example.js, assets/sprinkler.json');
 }

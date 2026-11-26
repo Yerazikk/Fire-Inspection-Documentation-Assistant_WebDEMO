@@ -3,6 +3,7 @@
 //
 //   build(CONTENT, tidy)  the drafts prepared from the source files: the problem in plain language, the owner's
 //                         numbered steps per correction, the technical wording, the timeframe, the grounding text.
+//                         The steps themselves are written with their photograph (examples/<id>/example.js).
 //   guard(reply, allowed) strips any sentence that carries a section number, a measurement, a number or a deadline
 //                         that is not in the supplied material. Runs on the server before a model reply reaches the page.
 //   builtin(...)          a small rewrite with no model behind it: shorten, simplify, add what stays, add where to look.
@@ -19,84 +20,13 @@
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
   // ---------------------------------------------------------------- prepared owner steps
-  // Written from the source content for someone who has never heard the term "ladder fuel". Each step is one
-  // concrete action and says where to stop or what must stay. The second item is where the step comes from.
-  const OWNER_STEPS = {
-    ladder: {
-      a: [
-        ['Find the low, clipped green hedge that grows directly under the tall flowering plants. In your photo it is the dense green row along the roadside.', 'solutions[a].how[0], .where; owner.qa "What do you need to do?"'],
-        ['Remove that low hedge. It is the only row that has to come out.', 'solutions[a].how[1], .plain; owner.keep'],
-        ['Leave the tall plants above it, the stone wall and the rest of your landscaping where they are.', 'solutions[a].keep; owner.keep'],
-        ['Take the cut branches off the property, and clear away dead leaves and plant debris along the wall.', 'solutions[a].how[2]; owner.todo'],
-        ['When you finish there should be open space between the ground and the bottom of the tall plants.', 'solutions[a].how[3]; owner.qa "What do you need to do?"'],
-        ['If you are not sure which bushes to remove, contact your fire prevention inspector before you start.', 'owner.qa "What happens after the work is done?"'],
-      ],
-      b: [
-        ['Ask your inspector first. This option only counts if the inspector approves it.', 'solutions[b].limit'],
-        ['Find the places where the low hedge and the tall plants nearly touch.', 'solutions[b].how[0]'],
-        ['Cut only the lowest branches off the tall plants to open a gap. Ask your inspector how high you may cut, and stop there.', 'solutions[b].how[1], [2]'],
-        ['Trim the low hedge down so its top sits well below the branches above it.', 'solutions[b].plain, .change'],
-        ['Keep the healthy upper parts of the tall plants. Do not prune so hard that the plants are damaged.', 'solutions[b].keep'],
-        ['If cutting cannot open a clear gap, the low hedge has to come out instead.', 'solutions[b].how[3]'],
-      ],
-      c: [
-        ['Ask your inspector first. The plants, the spacing and the materials all need approval before you plant.', 'solutions[c].limit, .how[3]'],
-        ['Remove the low hedge under the tall plants, as in the required correction.', 'solutions[c].how[0]'],
-        ['Cover the cleared strip with gravel or stone.', 'solutions[c].how[1]'],
-        ['Plant only low plants, far enough apart that they do not touch each other or reach the tall plants above.', 'solutions[c].how[2]'],
-        ['Leave the tall plants and the stone wall where they are.', 'solutions[c].keep'],
-      ],
-    },
-    sprinkler: {
-      a: [
-        ['Call a qualified fire sprinkler contractor. This is not a job to do yourself.', 'solutions[a].how[0]; owner.todo'],
-        ['Do not scrape, sand or clean the paint off. It can damage the sprinkler and does not make it safe.', 'notAcceptable.body; owner.dont'],
-        ['The contractor works out exactly which sprinkler you have and fits a matching new one in the same place.', 'solutions[a].how[1], [2], [4]'],
-        ['The contractor keeps the system safe while the old head is out, then tests it.', 'solutions[a].how[3], [5]'],
-        ['In most cases only this one head has to be replaced, not the whole system. The ceiling and the pipes stay as they are.', 'owner.keep; solutions[a].keep'],
-        ['Keep the contractor’s paperwork and give it to your inspector if asked.', 'solutions[a].how[6]; owner.qa "What happens next?"'],
-      ],
-    },
-    // One correction now, so one list. The owner’s page shows the first four steps, so the sign is in them:
-    // the wedge and the sign are what this finding ends as, and the owner should not have to scroll for half of it.
-    firedoor: {
-      a: [
-        ['Take the wedge out from under the door, and take it out of the building: left beside the door it will be back under it by the afternoon.', 'solutions[a].change, .how[0]; owner.todo'],
-        ['Let the door close on its own from fully open, and listen for the latch. A door resting against the frame without latching has not closed.', 'solutions[a].how[1], [2]; owner.qa “What do you need to do?”'],
-        ['Ask your inspector whether this door also needs a sign. Not every one does.', 'solutions[a].how[5]; solutions[a].lede, .limit'],
-        ['Where it does, fix a permanent sign to the face of the door in letters at least an inch high, where someone about to prop it open will read it.', 'solutions[a].how[7], [8]; solutions[a].where'],
-        ['Settle which words it takes: KEEP CLOSED for a door meant to stay shut, DO NOT BLOCK for one meant to stand open.', 'solutions[a].how[6]'],
-        ['If the door does not close or does not latch, say so: the door is then kept closed until the closer is repaired.', 'solutions[a].how[3]; owner.qa “The door does not close properly. Now what?”'],
-        ['Do not swap the wedge for a hook, a chair or a bin. Anything holding it open is the same problem.', 'owner.dont'],
-        ['Apart from the sign, nothing has to be bought. The door, the frame and the arm at the top all stay as they are.', 'solutions[a].keep; owner.keep'],
-      ],
-    },
-    daisy: {
-      a: [
-        ['Switch both power strips off before you move anything.', 'solutions[a].how[0]; owner.qa "What do you need to do?"'],
-        ['Find the cream-coloured plug in the last socket on the right of the white strip. That is the lower strip’s cord.', 'solutions[a].where; owner.qa "What do you need to do?"'],
-        ['Pull it out and plug the lower strip straight into a wall socket instead.', 'solutions[a].change, .how[2]; owner.todo'],
-        ['Do not put an extension lead between the strip and the wall. That is the same problem with one more part in it.', 'notAcceptable.body; owner.dont'],
-        ['Check that neither strip is now fed by the other, and that each one goes straight to a wall socket.', 'solutions[a].how[3]'],
-        ['Move the cords so they are not walked on, trapped under furniture, or run under a door or the carpet.', 'solutions[a].how[5]'],
-        ['You can keep both strips and everything plugged into them. Nothing has to be thrown away.', 'solutions[a].keep; owner.keep'],
-      ],
-      b: [
-        ['Ask your inspector first. This option only counts if the inspector approves it.', 'solutions[b].limit'],
-        ['Add up what is plugged into both strips, and check the total against the rating printed on the strip you want to keep.', 'solutions[b].how[0], [1]'],
-        ['If it all fits, move everything onto that one strip and take the other one out of the room.', 'solutions[b].how[2]; solutions[b].plain'],
-        ['Plug the strip you kept straight into a wall socket.', 'solutions[b].change'],
-        ['If it does not all fit, this option is closed: use the required correction, or have more sockets installed.', 'solutions[b].how[3]'],
-      ],
-      c: [
-        ['Ask your inspector first, and use a licensed electrician. This usually needs a permit.', 'solutions[c].limit; solutions[c].how[0], [1]'],
-        ['Have the electrician check the circuit and what is already on it.', 'solutions[c].how[0]'],
-        ['Have new wall sockets installed where the equipment actually sits.', 'solutions[c].how[1]; solutions[c].plain'],
-        ['Plug the equipment into the new sockets and take away the strips you no longer need.', 'solutions[c].how[2]'],
-        ['Any strip you keep goes straight into a wall socket of its own.', 'solutions[c].how[3]; solutions[c].keep'],
-        ['This is not required to clear the violation. Moving one plug does that, at no cost.', 'solutions[c].limit'],
-      ],
-    },
+  // Written for someone who has never heard the term "ladder fuel". Each step is one concrete action and says
+  // where to stop or what must stay; the second item is where the step comes from in that example's content.
+  // They live with their photograph, in examples/<id>/example.js under `ownerSteps`, keyed by correction id.
+  const ownerStepsFor = scene => {
+    const EX = (typeof window !== 'undefined' ? window : globalThis).FireExamples;
+    const all = EX ? EX.ownerSteps() : {};
+    return all[scene] || {};
   };
 
   function build(C, tidy) {
@@ -133,12 +63,36 @@
       return { text: parts.map(p => p.text).join(' '), parts };
     }
 
-    /** the owner's numbered steps for one correction, with one line added where the place's code rows call for it */
-    function ownerSteps(scene, sid, rows) {
-      const list = ((OWNER_STEPS[scene] || {})[sid] || []).map(x => ({ text: x[0], source: x[1] }));
+    /**
+     * The owner's numbered steps for one correction, with the lines the place's code rows and the field
+     * inspector's answers call for. The owner's page shows the first four, so anything the field inspector
+     * has actually found is put among them and the conditional line it answers is taken out.
+     */
+    function ownerSteps(scene, sid, rows, facts) {
+      const list = ((ownerStepsFor(scene))[sid] || []).map(x => ({ text: x[0], source: x[1] })), f = facts || {};
       if (scene === 'sprinkler' && sid === 'a' && (rows || []).some(r => r.key === 'out-of-service')) {
         const i = list.findIndex(x => /keeps the system safe/.test(x.text));
         if (i >= 0) list[i] = { text: list[i].text + ' The fire department has to be told when a required system is switched off.', source: list[i].source + '; code row "out-of-service"' };
+      }
+      // The door was tried on site and it failed: the prepared list only says "if it does not close, say so", and
+      // the owner is owed the repair itself. The conditional step goes and the work takes its place, high enough up
+      // to be on the owner's page, because a door that will not shut is not corrected by taking the wedge out.
+      if (scene === 'firedoor' && sid === 'a' && (f.latch === 'slow' || f.latch === 'no')) {
+        const cond = list.findIndex(x => /does not close or does not latch/.test(x.text));
+        if (cond >= 0) list.splice(cond, 1);
+        const at = list.findIndex(x => /listen for the latch/.test(x.text));
+        const add = f.latch === 'slow' ? [
+          ['Your inspector has already tried that on site: with the wedge out the door swings shut, but the latch does not catch. A door resting against its frame without latching is not closed, so this is the second thing to put right.',
+           'field answer "With the wedge out, does it close and latch by itself?" = it shuts but does not latch; solutions[a].how[2], [3]'],
+          ['Have the latch and the strike plate on the frame seen to, so the bolt drops in on its own with nobody touching the door. Then try it again from fully open and listen for the click. Until it latches, keep the door shut and do not prop it.',
+           'solutions[a].how[3]; owner.qa “The door does not close properly. Now what?”; code row "door-latch"'],
+        ] : [
+          ['Your inspector has already tried that on site: with the wedge out the door does not shut by itself. The arm across the top of the door, the closer, is what should be shutting it, and it is not.',
+           'field answer "With the wedge out, does it close and latch by itself?" = it does not shut on its own; owner.qa “What did we find?”'],
+          ['Have the closer repaired or replaced, then watch the door close from fully open and listen for the latch. Until it is repaired the door is kept closed: not propped, not left ajar.',
+           'solutions[a].how[3]; owner.qa “The door does not close properly. Now what?”; code rows "door-closer", "door-latch"'],
+        ];
+        list.splice(at >= 0 ? at + 1 : list.length, 0, ...add.map(x => ({ text: x[0], source: x[1] })));
       }
       return list;
     }
@@ -278,5 +232,7 @@
     };
   }
 
-  return { build, guard, inventory, foreign, builtin, builtinOwn, sentences, clean, strip, OWNER_STEPS };
+  // OWNER_STEPS stays on the export (team/test.js reads it whole) but is now assembled from the examples.
+  return { build, guard, inventory, foreign, builtin, builtinOwn, sentences, clean, strip,
+    get OWNER_STEPS() { const EX = (typeof window !== 'undefined' ? window : globalThis).FireExamples; return EX ? EX.ownerSteps() : {}; } };
 });
