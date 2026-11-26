@@ -112,7 +112,7 @@ The documents I did read are saved as text in `sources/text/` (the downloads are
 
 ## 4. Verdict logic
 
-Mark: red square "Violation" · yellow triangle "Inspector's call" · green circle "Compliant". The overall verdict is
+Mark: red square "Noncompliant" · yellow triangle "Inspector's call" · green circle "Compliant". The overall verdict is
 the worst row. Inputs: photo, place, assumed distance `d` (ladder photo only, 0 to 150 ft, default 20), and `scope`:
 whether the pin is `in` a mapped fire hazard zone or WUI area, `out` of them, or `unknown` (no layer for that place).
 
@@ -518,7 +518,7 @@ and both are things only the person standing in the room knows:
 red to yellow — not cleared, but the inspector's reading rather than a settled fact, which is what yellow means
 everywhere else on this page. An office or work room leaves it red and says why. A cord reported running under a
 door or the carpet turns `tap-install` red, because that is the plain words of § 603.5.3 and the field inspector
-can see it where the camera could not. Sent from the phone as a work room the senior's screen reads **Violation,
+can see it where the camera could not. Sent from the phone as a work room the senior's screen reads **Noncompliant,
 1 red and 4 of the inspector's call**; as a meeting room, **Inspector's call, 0 red and 5**.
 
 Three fixes fell out of this.

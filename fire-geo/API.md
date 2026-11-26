@@ -130,7 +130,7 @@ returns
   applies: 'how it applies to this photograph',
   open: 'what the photograph cannot settle, or empty',
   verdict: 'red' | 'yellow' | 'green',
-  word: 'Violation' | 'Inspector’s call' | 'Compliant',
+  word: 'Noncompliant' | 'Inspector’s call' | 'Compliant',
   why: 'a few words, 70 characters at most. Every yellow says "Depends on …"',
   was: { value:100, unit:'ft', until:'31 Dec 2025', cite:'CFC § 4907.4(7) as added by FMC § 8.04.100 · Ord. 873 (2022)' } | null,
   extra: 'a difference that is not a number, or empty',
@@ -155,7 +155,7 @@ Other members:
 
 | Member | Meaning |
 |---|---|
-| `VERDICT` | `{ red:{word:'Violation',shape:'square'}, yellow:{word:'Inspector’s call',shape:'triangle'}, green:{word:'Compliant',shape:'circle'} }` |
+| `VERDICT` | `{ red:{word:'Noncompliant',shape:'square'}, yellow:{word:'Inspector’s call',shape:'triangle'}, green:{word:'Compliant',shape:'circle'} }` |
 | `DISTANCE` | `{ min:0, max:150, step:1, default:20, unit:'ft' }` |
 | `PHOTOS` | `[{ id:'ladder', tab:'Ladder fuel', title, finding, photo:'assets/ladderfuel.jpg', aspect, usesDistance:true }, { id:'sprinkler', … usesDistance:false }]` |
 | `place(id)` | the place record (`placeInfo` above) |

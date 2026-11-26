@@ -134,7 +134,7 @@ cannot be reached a small built-in rewrite answers instead.
 ## How things are edited and undone
 
 - **A verdict.** Every verdict is the same raised capsule, because every one can be pressed. Pressing it
-  turns it, in place, into the system's small two-part switch showing only the two choices, Violation and
+  turns it, in place, into the system's small two-part switch showing only the two choices, Noncompliant and
   Compliant. From "Inspector's call" neither side has the pill (the yellow mark belongs to the closed label and
   leaves with it). Pressing the side already chosen takes the decision back to the app's own verdict.
   There is no caption under the row, and the row does not move. Nothing closes it but a decision, Escape, a
@@ -311,7 +311,7 @@ cannot be reached a small built-in rewrite answers instead.
   on, "Show what changed" has a quiet fill on this page: the kit's pale pill cannot be seen on white.
 - **The file document is a plain office page**, not the app's look: a white Letter page (8.5 x 11, one
   inch margins, square corners) on a grey desk, Times at 12 pt, black, bold headings, "Label: value" lines,
-  code quoted as an indented paragraph, verdicts written as words (Violation, To be determined by the
+  code quoted as an indented paragraph, verdicts written as words (Noncompliant, To be determined by the
   inspector, Compliant), the photograph as Figure 1 about three inches wide with a caption, the agency's
   name as a letterhead with one rule under it, a page number at the foot of each page. A block that would
   run over the foot of a page starts the next page. The styles inside the page are a reset of their own;

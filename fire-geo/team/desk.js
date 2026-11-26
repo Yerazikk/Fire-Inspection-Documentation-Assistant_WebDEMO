@@ -5,7 +5,7 @@
 // frame (what was received, the steps, the breadcrumb) and step 1, the rules. Steps 2 to 4 are in desk-draft.js.
 // At rest a rule is one line: verdict, name, citation. The line opens in place for the rule's own words, what the
 // app thinks and what is still to confirm. Pressing the verdict turns it, where it stands, into the system's small
-// two-part switch, Violation | Compliant, and the name moves aside to make room. The list is sorted red, yellow, green ONCE,
+// two-part switch, Noncompliant | Compliant, and the name moves aside to make room. The list is sorted red, yellow, green ONCE,
 // when the finding opens, from the app's own verdicts. After that every row stays where it is: changing a verdict
 // changes that row's mark and word in place, and the counts, and nothing moves under the pointer.
 // The place is kept in state (Ross on this tab). relocate() re-reads the open finding for another place and patches it
@@ -212,7 +212,7 @@ window.TeamDesk = (function () {
     if (open) setTimeout(() => { if (V.open === st.key) follow(V.scroll, guided ? st.node.firstChild : st.node); }, 280);
   }
   // ---- the verdict, pressed: it turns, where it stands, into the system's own two-part switch (the same sunken
-  // capsule and raised pill as the tabs at the top, at a small size): Violation | Compliant.
+  // capsule and raised pill as the tabs at the top, at a small size): Noncompliant | Compliant.
   // Opened from "Inspector's call" neither side is chosen and there is no thumb (the yellow mark belongs to the closed
   // label and leaves with it). Opened from a decided row the pill is on its side. The name and the citation
   // move right to make room, so nothing is covered and the row keeps its height. Choosing a side puts the pill

@@ -284,27 +284,29 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
    At these steps the finding's photo and note step aside: the draft is the whole screen. */
 .dk-view[data-step="owner"] .dk-context, .dk-view[data-step="file"] .dk-context { display: none; }
 .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { grid-template-columns: minmax(0, 1fr); padding: 8px 10px 10px; }
-/* the draft has the whole screen: for the file the laptop's button (with Copy and Print) floats at the bottom right
-   on a soft backing, with no strip under the page. For the owner, Email and Publish belong to the browser window, in
-   its own foot (.rp-foot), so they are still there when the page is enlarged and no line of the page runs under them. */
-.dk-view[data-step="file"] .dk-foot { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
+/* the draft has the whole screen, and its buttons float on one soft pill at the bottom right of it, with no strip
+   under the page: for the file the laptop's button with Copy and Print beside it, for the owner Email and Publish.
+   The owner's pill hangs inside the browser window, so it is still there -- and still the same pill -- when the page
+   is enlarged, and the page keeps room at its foot (see .rp-page) so its last lines scroll clear of it. */
+.dk-view[data-step="file"] .dk-foot, .rp-foot { position: absolute; right: 24px; bottom: 22px; z-index: 6; min-height: 0; padding: 6px; gap: 8px; border: 0; border-radius: 99px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
 .dk-view[data-step="file"] .dk-foot-slot { margin-right: 0; }
 .dk-view[data-step="owner"] .dk-foot { display: none; }
 .dk-view[data-step="file"] .dk-foot::before { display: none; }
 .dk-view[data-step="owner"] .dk-work, .dk-view[data-step="file"] .dk-work { margin: 0 calc(-1 * var(--dk-slack)); }      /* a draft has the whole screen, margins included */
-/* The foot of the window: before it goes out, the two ways it can go -- Email, then Publish, side by side and in the
-   same ink, two actions of one weight. After Publish they give way to a line in the same place that says what
-   happened, with Email and Undo. The foot keeps one height through both, so nothing moves as one replaces the other,
-   and it is part of the window's frame (the same wash as its top bar), so no line of the page runs under it. */
-.rp-foot { position: relative; min-height: 53px; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; border-top: 1px solid var(--line); background: var(--tm-wash); }
-.rp-act { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap: 8px; padding: 6px 12px; }
+/* What is in the owner's pill: before the page goes out, the two ways it can go -- Email, then Publish, side by side
+   and in the same ink, two actions of one weight. After Publish they give way to a line in the same pill that says
+   what happened, with Email and Undo. Both rows are 40 px, the height of the file pill's button, so the pill is one
+   size through both and nothing moves as one replaces the other. */
+.rp-foot { display: grid; grid-template-columns: minmax(0, 1fr); }
+.rp-foot > .rp-act, .rp-foot > .rp-done { min-height: 40px; }
+.rp-act { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap: 8px; }
 .rp-act[hidden] { display: none; }
 .rp-window .rp-act > .dk-primary { height: 40px; }      /* a normal-size button under either look */
 .rp-window .rp-act > .tm-btn { height: 40px; padding: 0 18px; font-size: 14px; justify-content: center; }
-.rp-done { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; }
+.rp-done { display: flex; align-items: center; gap: 8px; padding-left: 10px; }
 .rp-done[hidden] { display: none; }
 .rp-done-mark { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--hi); color: #fff; display: grid; place-items: center; }
-.rp-done-text { flex: 1; margin: 0; min-width: 0; font-size: 13px; line-height: 1.4; font-weight: 550; color: var(--ink2); }
+.rp-done-text { flex: none; margin: 0; min-width: 0; white-space: nowrap; font-size: 13px; line-height: 1.4; font-weight: 550; color: var(--ink2); }
 .rp-done-text > b { margin-right: 4px; font-weight: 650; color: var(--ink); }
 .rp-window .rp-done > .tm-sym { flex: none; width: 30px; height: 30px; }
 /* the email to the owner: the same frame, with a message in it instead of the website. It covers the page and the
@@ -356,7 +358,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-window.is-big, .doc-frame.is-big { position: fixed; z-index: 71; margin: 0; max-width: none; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .55); }
 .dk-big-btn.tm-sym { width: 26px; height: 26px; }
 /* words in a draft: click and type. A soft ground under the pointer and under the caret says so; nothing else does. */
-.rp-window { position: relative; min-height: 0; justify-self: stretch; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 36px minmax(0, 1fr) auto; border-radius: 14px; overflow: hidden; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -38px rgba(var(--shade), .5); }
+.rp-window { position: relative; min-height: 0; justify-self: stretch; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 36px minmax(0, 1fr); border-radius: 14px; overflow: hidden; background: var(--tm-solid); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -38px rgba(var(--shade), .5); }
 /* Enlarge is the way to read the page properly, so it is a plain round button on the bar, not a faint mark */
 .rp-bar > .dk-big-btn.tm-sym { justify-self: end; width: 28px; height: 28px; border-radius: 50%; background: var(--tm-solid); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
 .rp-bar { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; padding: 0 10px 0 14px; border-bottom: 1px solid var(--line); background: var(--tm-wash); }
@@ -367,7 +369,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-scroll { --scroll-inset-top: 6px; --scroll-inset-bottom: 14px; }
 .doc-scroll { --scroll-inset-top: 18px; --scroll-inset-bottom: 18px; }
 /* The owner's page is one document (doc.js): its blocks follow one another with ordinary paragraph spacing. */
-.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 56px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720, clear of the window's edges, with the last lines a little off the foot */
+.rp-page { position: relative; box-sizing: border-box; max-width: min(784px, 100cqw - 190px); margin: 0 auto; padding: 28px 32px 96px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }      /* a reading column of 720, clear of the window's edges, with room at the foot to scroll the last lines out from under the pill */
 .rp-page > * { margin: 0 0 12px; }
 .rp-window.is-big .rp-page { max-width: min(880px, 100cqw - 190px); font-size: 18px; padding-top: 44px; }
 .rp-window.is-big .rp-page > .rp-title { font-size: 42px; }

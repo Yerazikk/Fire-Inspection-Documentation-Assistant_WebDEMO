@@ -9,7 +9,7 @@
 const LAW = root.FIREGEO_LAW, EX = root.FireExamples;
 
 const VERDICT = {
-  red:    { word: 'Violation', shape: 'square' },
+  red:    { word: 'Noncompliant', shape: 'square' },
   yellow: { word: 'Inspector’s call', shape: 'triangle' },
   green:  { word: 'Compliant', shape: 'circle' },
 };

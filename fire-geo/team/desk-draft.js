@@ -539,12 +539,12 @@ window.TeamDraft = (function () {
       X.addr = h('span', { class: 'rp-addr' });
       X.pubBtn = h('button', { class: 'dk-primary', type: 'button', onclick: () => api.publish(true) }, h('span', { class: 'dk-primary-label', text: 'Publish' }));
       X.mailBtn = btn('Email', () => showMail(true), 'is-solid', 'mail');      // the same ink as Publish: the two ways the page leaves the desk, said in one voice
-      X.act = h('div', { class: 'rp-act' }, X.mailBtn, X.pubBtn);                           // Email on the left, Publish on the right, at the right of the window's own foot
+      X.act = h('div', { class: 'rp-act' }, X.mailBtn, X.pubBtn);                           // Email on the left, Publish on the right, on the pill at the bottom right of the window
       X.undo = sym('undo', 'Undo', () => api.publish(false), '', 16);
       X.mailBtn2 = btn('Email', () => showMail(true), '', 'mail');                          // the same action once it is published and the two buttons have gone
-      X.done = h('div', { class: 'rp-done', role: 'status', hidden: true }, h('i', { class: 'rp-done-mark', 'aria-hidden': 'true' }, icon('check', 13)),      // the line at the foot of the window, once published
+      X.done = h('div', { class: 'rp-done', role: 'status', hidden: true }, h('i', { class: 'rp-done-mark', 'aria-hidden': 'true' }, icon('check', 13)),      // the same pill, saying it is published
         h('p', { class: 'rp-done-text' }, h('b', { text: 'Published' })), X.mailBtn2, X.undo);
-      // the two actions and the line that replaces them share one foot of a fixed height, so neither covers the page and nothing moves when one gives way to the other
+      // the two actions and the line that replaces them share one floating pill of a fixed height -- the same pill as the file document's Copy, Print and Next -- so nothing moves when one gives way to the other
       X.foot = h('div', { class: 'rp-foot' }, X.act, X.done);
       const win = X.win = h('div', { class: 'rp-window' }, h('div', { class: 'rp-bar' }, h('span', { class: 'dk-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), X.addr, h('span')), X.scroll = h('div', { class: 'rp-scroll tm-softscroll tm-thinscroll' }, page), X.foot);
       win.firstChild.lastChild.replaceWith(enlarger(win));
@@ -790,7 +790,7 @@ window.TeamDraft = (function () {
     // typeface, bold headings, "Label: value" lines, the photograph as a figure with a caption, a page number at the
     // foot. Nothing of the app's own look is inside the page. Verdicts are written as words. Citations, quoted code,
     // what the app read and the lines the app works out are protected, and look like the rest of the text.
-    const VW = { red: 'Violation', yellow: 'To be determined by the inspector', green: 'Compliant' };
+    const VW = { red: 'Noncompliant', yellow: 'To be determined by the inspector', green: 'Compliant' };
     const plainRead = st => [st.r.lead, st.r.why, st.r.applies].filter(Boolean).join(' ');
     function stepList(s, box) { box = box || h('div', { class: 'wd-steps' }, h('ol', { class: 'wd-list' })); box.firstChild.replaceChildren(...s.steps.map(r => h('li', { text: val(r) }))); return box; }
     function fileBlocks() {
@@ -802,7 +802,7 @@ window.TeamDraft = (function () {
       T('letter', pl.agency, { cls: 'wd-letter' });
       out.push({ key: 'tel', tag: 'p', cls: 'wd-letter-line', lead: 'Telephone: ', text: val(M.phone), bound: true });
       T('title', rec.title, { tag: 'h1', cls: 'wd-title' });
-      I('status', 'Inspection of ' + day + '. ' + (red.length ? 'Violation recorded.' : 'No violation recorded.'));
+      I('status', 'Inspection of ' + day + '. ' + (red.length ? 'Noncompliant finding recorded.' : 'No noncompliant finding recorded.'));
       out.push({ key: 'fig1', island: true, sig: 'fig1', build: () => h('figure', { class: 'wd-fig' }, h('img', { src: f.photo.src, alt: '', draggable: 'false' }), h('figcaption', { text: 'Figure 1. ' + f.title + ', as photographed on ' + day + '.' })) });
       H('h-place', 'Location');
       T('place', pl.name + '. ' + D.zoneText(V.loc) + '. Fire agency: ' + pl.agency + '.' + (pl.agencyNote ? ' ' + pl.agencyNote : ''));

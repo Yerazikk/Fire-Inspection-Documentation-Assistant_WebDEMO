@@ -29,7 +29,7 @@ window.TeamData = (function () {
     });
   }
   const VERDICT = () => (fg() && fg().codes.VERDICT) || {
-    red: { word: 'Violation', shape: 'square' }, yellow: { word: 'Inspector’s call', shape: 'triangle' }, green: { word: 'Compliant', shape: 'circle' },
+    red: { word: 'Noncompliant', shape: 'square' }, yellow: { word: 'Inspector’s call', shape: 'triangle' }, green: { word: 'Compliant', shape: 'circle' },
   };
   const RANK = { red: 0, yellow: 1, green: 2 };          // the order on the senior's desk: red first
 

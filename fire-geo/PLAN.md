@@ -34,7 +34,7 @@ Details and sources per statement: NOTES.md.
  Fire code by location        [ Technology | Inspectors ]                     A demonstration …
 ┌───────────────┐ ┌──────────────────────────────────┐ ┌──────────────────────────────────────┐
 │ PHOTO  320    │ │ MAP  550                          │ │ CODES  490                           │
-│ [Ladder fuel |│ │ pearl-tinted basemap              │ │ ■ Violation here      1 · 3 · 1      │
+│ [Ladder fuel |│ │ pearl-tinted basemap              │ │ ■ Noncompliant here   1 · 3 · 1      │
 │  Painted      │ │ town limits, labels, hazard hatch │ │ one line: what changed when crossing │
 │  sprinkler]   │ │ blue pin (drag, tap, arrow keys)  │ │ Statewide · the same everywhere      │
 │               │ │ short label over the pin          │ │   rows (never touched by the pin)    │
@@ -68,7 +68,7 @@ Places: `ross`, `san_anselmo`, `fairfax`, `marin` (unincorporated) carry rows. `
 
 ## 3. Verdicts
 
-Mark = colour + word + shape: red square "Violation" · yellow triangle "Inspector's call" · green circle "Compliant".
+Mark = colour + word + shape: red square "Noncompliant" · yellow triangle "Inspector's call" · green circle "Compliant".
 Overall = the worst row. Inputs: photo, place, assumed distance `d` (ladder only, 0 to 150 ft, default 20 ft),
 `scope` at the pin (`in` a mapped hazard zone or WUI area · `out` · `unknown` where the map has no layer).
 
