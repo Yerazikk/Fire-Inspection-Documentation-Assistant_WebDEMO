@@ -232,7 +232,35 @@
     };
   }
 
+  /**
+   * A photograph the inspector added themselves, in the shape the drafting chain expects of an example.
+   *
+   * Everything else on this tab is grounded in examples/<id>/example.js: the code rows with their quoted text, the
+   * citations, the prepared corrections, the owner's wording. A photograph off someone's phone has none of that,
+   * and nothing here invents any: the entry carries the field inspector's note and what the senior inspector has
+   * written about the problem, and that is the whole of the supplied material. The guard then does what it always
+   * does, and because the material holds no section number, measurement or deadline, any the model reaches for is
+   * taken straight back out. So the steps are practical wording about this photograph and never a statement of law.
+   *
+   * @param {object} f  { title, note, problem } the finding as both devices have it
+   */
+  function customContent(f) {
+    const title = clean((f && f.title) || '', 120) || 'Photograph with a note';
+    const note = clean((f && f.note) || '', 1200);
+    const problem = clean((f && f.problem) || '', 2400);
+    const said = [note, problem === note ? '' : problem].filter(Boolean).join(' ');
+    return {
+      tab: 'Added photo', title, status: 'Added by the inspector', meta: [], photo: '', aspect: 1,
+      note, noteFix: '', noteWhy: '', summary: said, primary: problem || note,
+      annotations: [], annotationCaption: '', solutions: [], extras: [],
+      analysis: [{ h: 'What was recorded', blocks: [{ t: 'h', v: 'Observed condition' }, { t: 'p', v: said }] }],
+      // no `when`: there is no source deadline behind this one, so the date is only ever the one the senior sets
+      owner: { title, sub: '', intro: problem || note, todo: '', keep: '', when: '', qa: [] },
+      uncertainty: [], final: '',
+    };
+  }
+
   // OWNER_STEPS stays on the export (team/test.js reads it whole) but is now assembled from the examples.
-  return { build, guard, inventory, foreign, builtin, builtinOwn, sentences, clean, strip,
+  return { build, guard, inventory, foreign, builtin, builtinOwn, customContent, sentences, clean, strip,
     get OWNER_STEPS() { const EX = (typeof window !== 'undefined' ? window : globalThis).FireExamples; return EX ? EX.ownerSteps() : {}; } };
 });

@@ -309,8 +309,11 @@ window.TeamDesk = (function () {
     m.style.width = b.offsetWidth + 'px'; m.style.transform = 'translateX(' + b.offsetLeft + 'px)';
     if (m.style.transition) { void m.offsetWidth; m.style.transition = ''; } m.dataset.placed = '1';
   }
+  /** whether this finding goes through "How to fix it": a red row, or a photograph the inspector added, which has
+      no rows at all and is the one case where writing the correction IS the reason the finding exists */
+  const needsFix = V => V.f.scene === 'custom' || violations(V).length > 0;
   function syncFlow(V) {
-    const at = V.flow.indexOf(V.step), noFix = V.approved && !violations(V).length;
+    const at = V.flow.indexOf(V.step), noFix = V.approved && !needsFix(V);
     V.flow.forEach((id, i) => {
       const b = V.crumbBtns[id], skipped = id === 'fix' && noFix, state = i === at ? 'current' : skipped ? 'skipped' : i <= V.reached ? 'done' : 'todo';
       b.dataset.state = state; b.disabled = state !== 'done'; if (i === at) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
@@ -319,7 +322,7 @@ window.TeamDesk = (function () {
     // the one button: Approve the finding, then on through the steps. Every one is a single click. The last step has
     // no button here: its Publish button is on the owner's page itself (desk-draft.js).
     const s = V.step, single = V.flow.length === 1, last = s === 'owner';
-    const text = s === 'finding' ? (!V.approved ? 'Approve' : single ? 'Reviewed' : violations(V).length ? 'Next: how to fix it' : 'Next: for the file') : s === 'fix' ? 'Next: for the file' : 'Next: for the owner';
+    const text = s === 'finding' ? (!V.approved ? 'Approve' : single ? 'Reviewed' : needsFix(V) ? 'Next: how to fix it' : 'Next: for the file') : s === 'fix' ? 'Next: for the file' : 'Next: for the owner';
     if (V.nextBtn.hidden) { if (!last) V.nextBtn.lastChild.textContent = text; }      // out of sight: nothing to swap
     else if (!last) swapText(V.nextBtn.lastChild, text, { size: false });
     if (s === 'finding') { if (!V.dropBtn.isConnected) V.nextBtn.before(V.dropBtn); } else V.dropBtn.remove();      // the trash is the finding's, beside Approve
@@ -341,7 +344,7 @@ window.TeamDesk = (function () {
     if (s === 'finding') {
       V.approved = true;
       if (V.flow.length === 1) { publish(V, true); syncFlow(V); return; }
-      go(V, violations(V).length ? 'fix' : 'file');
+      go(V, needsFix(V) ? 'fix' : 'file');
     } else if (s === 'fix') go(V, 'file'); else if (s === 'file') go(V, 'owner');
   }
   function publish(V, on) {
@@ -372,7 +375,10 @@ window.TeamDesk = (function () {
   function buildView(f) {
     const V = { f, loc: Object.assign({}, f.loc), rows: new Map(), step: 'finding', reached: 0, approved: false, published: false, open: null, state: 'review', panes: {} };
     V.ev = f.scene === 'custom' ? { rows: [], carried: true, missing: false } : D.evaluate(f.scene, V.loc, f.facts);
-    V.flow = (window.TeamDraft && f.scene !== 'custom' ? STEPS : STEPS.slice(0, 1)).map(s => s[0]);
+    // A photograph the inspector added themselves goes through all four steps too. It has no code rows behind it,
+    // so the drafting is grounded in the field inspector's note and what the senior writes about the problem, and
+    // nothing else; see TeamDrafts.customContent. Without the drafting module there is only the finding, as before.
+    V.flow = (window.TeamDraft ? STEPS : STEPS.slice(0, 1)).map(s => s[0]);
     V.ev.rows.forEach(r => mkRow(V, r));
     V.panes.finding = findingPane(V);
     V.stepsEl = h('div', { class: 'dk-steps' }, V.panes.finding);

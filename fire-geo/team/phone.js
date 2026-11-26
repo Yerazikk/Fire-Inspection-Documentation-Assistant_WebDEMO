@@ -362,7 +362,27 @@ window.TeamPhone = (function () {
 
   // ---------------------------------------------------------------- choosing a picture from the device
   function pick(cb) { onPicked = cb; file.value = ''; file.click(); }
-  function loadPicked(src, cb) { const im = new Image(); im.onload = () => cb({ src, aspect: im.naturalWidth / im.naturalHeight || 1 }); im.onerror = () => { }; im.src = src; }
+  // A photograph off a phone is twelve megapixels and more, and it went in at that size: the stage crops and glides
+  // it on every screen, the laptop crops it again, and the before / after divider re-clips it on every frame of a
+  // drag. None of them ever show more than about a thousand pixels across. It is scaled down once, here, where the
+  // picture arrives, so everything downstream is working on something the size of what it draws.
+  const PICK_MAX = 1600;
+  function loadPicked(src, cb) {
+    const im = new Image();
+    im.onload = () => {
+      const aspect = im.naturalWidth / im.naturalHeight || 1;
+      const k = Math.min(1, PICK_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+      if (k === 1) { cb({ src, aspect }); return; }                                 // already small: it goes in as it came
+      const w = Math.max(1, Math.round(im.naturalWidth * k)), ht = Math.max(1, Math.round(im.naturalHeight * k));
+      const cv = h('canvas'); cv.width = w; cv.height = ht;
+      const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, ht); cx.drawImage(im, 0, 0, w, ht);
+      let out = ''; try { out = cv.toDataURL('image/jpeg', .9); } catch { out = ''; }   // a canvas it is not allowed to read throws: the picture as it came still works
+      if (out && /^blob:/.test(src)) URL.revokeObjectURL(src);
+      cb({ src: out || src, aspect });
+    };
+    im.onerror = () => { };
+    im.src = src;
+  }
 
   function mount(el, loc) {
     root = el; S.loc = loc || D.pin('ross');

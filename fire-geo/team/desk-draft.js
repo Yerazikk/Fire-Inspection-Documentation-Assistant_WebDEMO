@@ -14,7 +14,7 @@
 window.TeamDraft = (function () {
   'use strict';
   const U = window.TeamUI, { h, icon, btn, sym, swapText, reveal } = U, D = window.TeamData, F = window.TeamFlow, P = window.TeamPhoto, TD = window.TeamDrafts;
-  const B = TD.build(window.CONTENT || {}, D.tidy);
+  const BASE = TD.build(window.CONTENT || {}, D.tidy);
   const STAND = { required: 'Required', alternative: 'Alternative', own: 'Your own' };
   // the standing of a correction in the owner's words. Only what the source data gives: required (the inspector's
   // preferred correction), an alternative that needs the inspector's approval, or the inspector's own.
@@ -50,7 +50,10 @@ window.TeamDraft = (function () {
 
   function attach(V, api) {
     const f = V.f, scene = f.scene, binds = [], panes = {}, parts = {};
-    const M = { problem: ref(problemShort(scene)), phone: ref('###-###-####'), ownN: 0, open: null, pos: .5 };      // phone: a slot, written as hash marks; the real product fills it from the agency's record
+    // A photograph with no example behind it is given one, built from the note and nothing else, so every piece
+    // below reads its finding the one way. B is the shared build for every prepared example; this shadows it.
+    const B = scene !== 'custom' ? BASE : TD.build(Object.assign({}, window.CONTENT || {}, { custom: TD.customContent({ title: f.title, note: (f.note || {}).text }) }), D.tidy);
+    const M = { problem: ref(problemShort(scene) || TD.clean(((f.note || {}).text) || '', 2400)), phone: ref('###-###-####'), ownN: 0, open: null, pos: .5 };      // phone: a slot, written as hash marks; the real product fills it from the agency's record
     // The date the correction is due is the senior inspector's decision. It starts at the inspection date plus the
     // days the source gives for this finding (30 for the hedge); where the source gives none (the sprinkler) it
     // starts at 30 days too, which is this prototype's own starting value. Both drafts show the one date.
@@ -140,7 +143,9 @@ window.TeamDraft = (function () {
 
     // ---- asking for a rewrite. Named steps while it works; what could not be used is said in place.
     async function request(body) {
-      const full = Object.assign({ scene, place: V.loc.place, facts: f.facts }, body);
+      // title and note travel too: for a photograph with no example they are the whole of the supplied material,
+      // and the server builds the same content from them that this page built for itself
+      const full = Object.assign({ scene, place: V.loc.place, facts: f.facts, title: f.title, note: (f.note || {}).text || '' }, body);
       try {
         const r = await fetch('/api/team/draft', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(full) }), j = await r.json();
         if (!r.ok || !j.ok) throw new Error(j.error || 'failed'); return j;
@@ -264,7 +269,7 @@ window.TeamDraft = (function () {
         const mk = P.markup(view, { photo: f.photo.src, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, regions: s.regions, treat: s.treat, onChange: r => { s.regions = r; touch(); } });
         if (s.drawing) { fill(extra, head('Loading recommendation…'), wait.el); wait.run(0); return; }
         const seg = U.seg(Object.keys(P.TREAT).map(id => ({ id, label: P.TREAT[id] })), s.treat, v => { s.treat = v; mk.setTreat(v); }, 'dk-treat');
-        const fa = (D.scene(scene).annotations.find(a => a.finding) || {}).box;
+        const sc = D.scene(scene), fa = sc ? (sc.annotations.find(a => a.finding) || {}).box : null;
         fill(extra, head(s.drawNote || (s.after ? 'The photograph, to mark the area on.' : 'No picture of this one yet.')),
           h('div', { class: 'tm-btns' }, s.after ? null : btn(s.drawNote ? 'Try again' : 'Draw the result', () => drawAfter(s), 'is-quiet'), seg,
             fa ? btn('Mark where the problem is', () => mk.add(fa.slice(), s.treat)) : null, sym('undo', 'Undo', () => mk.undo(), '', 16)));
@@ -284,6 +289,17 @@ window.TeamDraft = (function () {
       const at = v => Math.max(0.004, Math.min(0.996, v));
       const points = Array.from({ length: RING_N }, (_, i) => { const t = i / RING_N * Math.PI * 2; return [at(cx + rx * Math.cos(t)), at(cy + ry * Math.sin(t))]; });
       return { points, label: clean(region.label || '') || 'what changed' };
+    }
+    /** the photograph as the server can take it: base64 and its type. A picked one is already a data URL. */
+    async function asBase64(src) {
+      try {
+        const m = /^data:([^;,]+)[^,]*,(.*)$/.exec(src || '');
+        if (m) return { mimeType: m[1], data: m[2] };
+        const r = await fetch(src); if (!r.ok) return null;
+        const blob = await r.blob();
+        const data = await new Promise(done => { const fr = new FileReader(); fr.onload = () => done(String(fr.result).replace(/^data:[^,]*,/, '')); fr.onerror = () => done(''); fr.readAsDataURL(blob); });
+        return data ? { mimeType: blob.type || 'image/jpeg', data } : null;
+      } catch { return null; }
     }
     const DRAW_MAX = 1400;
     /** The image model returns a large PNG, two and a half megabytes of it. The divider re-clips that layer on every
@@ -309,6 +325,11 @@ window.TeamDraft = (function () {
       if (s.drawing) return;
       s.drawing = true; s.drawNote = ''; if (s.ui && s.ui.repaint) s.ui.repaint();
       const body = { scene, title: val(s.title), text: s.steps.map(val).join(' '), finding: val(M.problem) };
+      if (scene === 'custom') {
+        const p = await asBase64(f.photo.src);                                               // it exists only here, so it travels with the request
+        if (!p) { s.drawing = false; s.drawNote = 'No picture: this photograph could not be read to send. Mark the area on the photograph instead.'; if (s.ui && s.ui.repaint) s.ui.repaint(); return; }
+        body.photo = p;
+      }
       let got = null, ring = null, why = '';
       try {
         const r = await fetch('/api/team/visual', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });

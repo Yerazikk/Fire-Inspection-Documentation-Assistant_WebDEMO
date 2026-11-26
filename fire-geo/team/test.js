@@ -524,9 +524,21 @@ function looseBars(rootSel) {
     ok(await c1.page.evaluate(() => document.querySelectorAll('.ph-win').length === 0 && document.querySelector('.ph-scan-said').textContent === 'Nothing was marked.'), 'a photo from the gallery: the line passes and it says plainly that nothing was marked');
     await D.waitScreen(c1.page, 'note'); await D.settle(c1.page);
     await c1.page.fill(D.LAYER + ' .ph-own-text', 'The gate is blocked by a parked trailer.'); await D.primary(c1.page).click(); await D.waitScreen(c1.page, 'questions'); await D.settle(c1.page); await D.phone.send(c1.page);
-    ok(await c1.page.evaluate(() => { const V = window.Team.Desk.view(); return V && V.f.scene === 'custom' && /could not read this photo/.test(document.querySelector('.dk-view.is-on .dk-gap').textContent) && document.querySelector('.dk-view.is-on .dk-crumbs').hidden; }), 'on the laptop it has the note, no rules and no further steps');
-    await D.desk.approve(c1.page);
-    ok(await c1.page.evaluate(() => window.Team.Desk.view().published && document.querySelector('.ph-sent').dataset.state === 'reviewed'), 'Approve marks it reviewed on both devices');
+    ok(await c1.page.evaluate(() => { const V = window.Team.Desk.view(); return V && V.f.scene === 'custom' && /could not read this photo/.test(document.querySelector('.dk-view.is-on .dk-gap').textContent)
+      && [...document.querySelectorAll('.dk-view.is-on .dk-crumb')].map(b => b.textContent).join('|') === 'Finding|How to fix it|For the file|For the owner' && !V.rows.size; }),
+      'on the laptop it has the note and no rules, and it still goes through all four steps: writing the correction is the whole reason the photograph was added');
+    await D.desk.approve(c1.page); await D.settle(c1.page, 500);
+    ok(await D.desk.step(c1.page) === 'fix', 'Approve goes to "How to fix it", though no rule said so: a photograph with no example can have no red row, and that is not a reason to skip the step');
+    ok(await c1.page.evaluate(() => { const V = window.Team.Desk.view(); return V.draft.chosen().length === 0 && document.querySelector('.dk-view.is-on .dk-foot .dk-primary').disabled; }),
+      'it arrives with no correction to choose from and cannot go on without one: there is no prepared correction behind a photograph nobody wrote an example for');
+    await c1.page.click('.dk-view.is-on ' + tb('Write my own')); await D.settle(c1.page, 400);
+    await c1.page.fill('.dk-view.is-on .dk-new .dk-input', 'Move the trailer off the gate and keep it clear');
+    await c1.page.click('.dk-view.is-on .dk-new ' + tb('Write it up')); await c1.page.waitForTimeout(2600);
+    ok(await c1.page.evaluate(() => { const V = window.Team.Desk.view(), s = V.draft.model.sols.find(x => x.kind === 'own'); return !!s && s.use && !document.querySelector('.dk-view.is-on .dk-foot .dk-primary').disabled; }),
+      'a correction of the inspector’s own is written and the step can go on');
+    // what grounds the drafting here is the note and nothing else, so the file document is written from those words
+    await D.desk.next(c1.page); await D.settle(c1.page, 700);
+    ok(await D.desk.step(c1.page) === 'file' && await c1.page.evaluate(() => /parked trailer/.test(document.querySelector('.dk-pane[data-step="file"] .wd-body').textContent)), 'the file document is written from the note, which is all this finding has');
     ok(!c1.errors.length, 'photo with no reading: no errors', c1.errors.join('|')); await c1.ctx.close();
 
     }

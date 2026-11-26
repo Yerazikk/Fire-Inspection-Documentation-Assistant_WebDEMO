@@ -63,6 +63,10 @@ const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f]+/g, 
 function readBody(raw, sb) {
   let b; try { b = JSON.parse(raw); } catch { return { error: 'bad JSON' }; }
   if (!b || !['problem', 'solution', 'own'].includes(b.target)) return { error: 'target must be problem, solution or own' };
+  // A photograph the inspector added has no example in the sources, so it brings its own: the field note and what
+  // the senior has written about the problem, and nothing else. It is built into this request's own copy of the
+  // content, so every piece below reads it exactly as it reads a prepared finding, the guard included.
+  if (b.scene === 'custom') sb.CONTENT.custom = sb.TeamDrafts.customContent({ title: clean(b.title, 120), note: clean(b.note, 1200), problem: clean((b.current || {}).text, 2400) });
   if (!sb.CONTENT[b.scene]) return { error: 'unknown scene' };
   if (!sb.TeamData.PLACES.includes(b.place)) return { error: 'unknown place' };
   const instruction = clean(b.instruction, 300); if (instruction.length < 2) return { error: 'say what to change' };
@@ -81,7 +85,7 @@ function readBody(raw, sb) {
   for (const k of ['touch', 'dry', 'beside', 'plant', 'paint', 'plate', 'door', 'held', 'closer', 'sign', 'latch', 'label']) if (word(f[k])) facts[k] = f[k];
   if (isFinite(f.year) && +f.year >= 1850 && +f.year <= 2100) facts.year = Math.round(+f.year);
   if (f.yearCant === true) facts.yearCant = true;
-  return { target: b.target, scene: b.scene, place: b.place, solution, instruction, current, facts };
+  return { target: b.target, scene: b.scene, place: b.place, solution, instruction, current, facts, title: clean(b.title, 120), note: clean(b.note, 1200) };
 }
 
 function prompt(b, material) {
@@ -236,15 +240,22 @@ let drawing = 0;
 async function visual(raw) {
   let b; try { b = JSON.parse(raw); } catch { return { code: 400, body: { error: 'bad JSON' } }; }
   let sb; try { sb = world(); } catch (e) { return { code: 500, body: { error: String(e.message).slice(0, 200) } }; }
-  const scene = b && b.scene, c = scene && sb.CONTENT[scene];
-  if (!c || !c.photo) return { code: 400, body: { error: 'unknown scene' } };
+  const scene = b && b.scene, custom = scene === 'custom', c = !custom && scene ? sb.CONTENT[scene] : null;
+  if (!custom && (!c || !c.photo)) return { code: 400, body: { error: 'unknown scene' } };
   const title = clean(b.title, 160), text = clean(b.text, 900), finding = clean(b.finding, 600);
   if (title.length < 2) return { code: 400, body: { error: 'say what the correction is' } };
 
   const mime = f => (/\.png$/i.test(f) ? 'image/png' : 'image/jpeg');
   let photo;
-  try { photo = { mimeType: mime(c.photo), data: fs.readFileSync(path.join(ROOT, c.photo)).toString('base64') }; }
-  catch { return { code: 500, body: { error: 'the inspection photograph could not be read' } }; }
+  if (custom) {
+    // the inspector's own photograph exists only in their browser, so it travels with the request
+    const p = b.photo || {}, data = typeof p.data === 'string' ? p.data.replace(/^data:[^,]*,/, '') : '';
+    if (!/^[A-Za-z0-9+/=\s]+$/.test(data) || data.length < 100) return { code: 400, body: { error: 'send the photograph with it' } };
+    photo = { mimeType: /^image\/(png|jpeg|webp)$/.test(p.mimeType || '') ? p.mimeType : 'image/jpeg', data: data.replace(/\s+/g, '') };
+  } else {
+    try { photo = { mimeType: mime(c.photo), data: fs.readFileSync(path.join(ROOT, c.photo)).toString('base64') }; }
+    catch { return { code: 500, body: { error: 'the inspection photograph could not be read' } }; }
+  }
 
   // the test switch: a prepared "after" for this scene stands in, so the page's own path runs without a model call.
   // A stand-in region comes with it, for the same reason: the ring the page draws round the change is part of that
@@ -253,7 +264,7 @@ async function visual(raw) {
     const region = { box: [0.18, 0.52, 0.74, 0.72], label: 'the changed area' };
     const dir = path.join(ROOT, 'assets', 'after');
     let f = null;
-    try { f = fs.readdirSync(dir).filter(n => n.indexOf(scene + '-') === 0).sort()[0]; } catch { }
+    if (!custom) try { f = fs.readdirSync(dir).filter(n => n.indexOf(scene + '-') === 0).sort()[0]; } catch { }
     if (!f) return { code: 200, body: { ok: true, source: 'fake', mimeType: photo.mimeType, data: photo.data, region } };
     return { code: 200, body: { ok: true, source: 'fake', mimeType: mime(f), data: fs.readFileSync(path.join(dir, f)).toString('base64'), region } };
   }
@@ -282,7 +293,8 @@ function handle(req, res) {
   if (req.method === 'GET' || req.method === 'HEAD') { json(200, { ok: true, fake: !!process.env.TEAM_DRAFT_FAKE }); return true; }
   if (req.method !== 'POST') { json(405, { error: 'POST only' }); return true; }
   const run = url === '/api/team/visual' ? visual : draft;
-  let raw = ''; req.on('data', d => { if (raw.length < 40000) raw += d; });
+  const cap = url === '/api/team/visual' ? 8e6 : 40000;      // a drafting request is a sentence; a visual one can carry a photograph
+  let raw = ''; req.on('data', d => { if (raw.length < cap) raw += d; });
   req.on('end', () => { run(raw).then(r => json(r.code, r.body), e => json(500, { error: String((e && e.message) || e).slice(0, 200) })); });
   return true;
 }
