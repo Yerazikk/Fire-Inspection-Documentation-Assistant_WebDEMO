@@ -16,15 +16,20 @@ window.TeamDesk = (function () {
   const STEPS = [['finding', 'Finding'], ['fix', 'How to fix it'], ['file', 'For the file'], ['owner', 'For the owner']];
   const WORD = { review: 'To review', fix: 'Fixes to choose', draft: 'Draft ready', published: 'Published' };
   const ORDER = ['red', 'yellow', 'green'];
-  const views = new Map(), hooks = { published: null, select: null };
+  const views = new Map(), hooks = { published: null, select: null, discarded: null };
   let root, panes, listEl, mainEl, emptyEl, zoomEl, tog = null, current = null, seedN = 0;
   const vd = () => D.VERDICT();
   const word = v => vd()[v].word;
 
   // ---------------------------------------------------------------- what was received. Shown only once there is more than one.
+  // The trash sits on the picture, under the pointer: with several of them in the rail, throwing one away should not
+  // mean opening it first and finding the trash at the foot of its finding. It is a sibling of the item's own button,
+  // not inside it (a button in a button is not a thing), and it is out of sight until the picture is pointed at or
+  // the key reaches it. It is the same door as the one beside Approve: nothing is asked first.
   function itemNode(f) {
     const b = P.photoBox(f.photo.src, f.photo.aspect, 'dk-item-thumb'); b.pct(4 / 3, { focus: f.focus });
-    return h('li', { class: 'dk-item', 'data-key': f.id, 'data-state': 'review' }, h('button', { class: 'dk-item-btn', type: 'button', onclick: () => select(f.id) }, b.el, h('span', { class: 'dk-item-title', text: f.title }), h('span', { class: 'dk-item-state', text: WORD.review })));
+    const drop = sym('trash', 'Delete ' + f.title, e => { e.stopPropagation(); const V = views.get(f.id); if (V) discard(V); }, 'dk-item-drop', 14);
+    return h('li', { class: 'dk-item', 'data-key': f.id, 'data-state': 'review' }, h('button', { class: 'dk-item-btn', type: 'button', onclick: () => select(f.id) }, b.el, h('span', { class: 'dk-item-title', text: f.title }), h('span', { class: 'dk-item-state', text: WORD.review })), drop);
   }
   const itemOf = id => listEl.querySelector('.dk-item[data-key="' + id + '"]');
   function setItem(V) {
@@ -347,7 +352,9 @@ window.TeamDesk = (function () {
   /** something the later steps depend on changed (a verdict, wording, the place) */
   function changed(V) { if (V.draft) V.draft.sync(); syncFlow(V); }
 
-  /** thrown away: the finding leaves the inbox, its draft with it, and whichever one is left opens in its place */
+  /** thrown away: the finding leaves the inbox, its draft with it, and whichever one is left opens in its place.
+      It leaves the phone's Sent list too: the two devices are one record of what was sent, and a finding nobody
+      is carrying is not still with the senior inspector. */
   function discard(V) {
     const id = V.f.id, item = itemOf(id);
     closeToggle(true);
@@ -359,6 +366,7 @@ window.TeamDesk = (function () {
     const top = listEl.querySelector('.dk-item');                                           // the one at the top of the inbox, as it is seen, not as it arrived
     if (top) select(top.dataset.key);
     else emptyEl.classList.add('is-on');
+    if (hooks.discarded) hooks.discarded(id);
   }
 
   function buildView(f) {
@@ -437,6 +445,6 @@ window.TeamDesk = (function () {
     view: () => current && views.get(current), views,
     relayout() { const V = current && views.get(current); if (V) placeCrumb(V, true); },
     shut() { closeToggle(true); },                                    // the laptop is going out of sight: nothing of it stays open
-    onPublished(fn) { hooks.published = fn; }, onSelect(fn) { hooks.select = fn; },
+    onPublished(fn) { hooks.published = fn; }, onSelect(fn) { hooks.select = fn; }, onDiscarded(fn) { hooks.discarded = fn; },
   };
 })();

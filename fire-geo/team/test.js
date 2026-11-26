@@ -382,15 +382,26 @@ function looseBars(rootSel) {
       const day1 = () => c.querySelector('.dk-cal-day').getAttribute('aria-label');
       const put = (sel, v) => { sel.value = String(v); sel.dispatchEvent(new Event('change', { bubbles: true })); };
       const start = [+m.value === on.getMonth(), +y.value === on.getFullYear(), m.options.length === 12, y.options.length >= 11, +y.options[0].value === ins.getFullYear()];
+      // with the kit on the two lists are its veil capsules, the same height and corner as the steps either side of
+      // them; and the longest month name still has to sit beside the year inside the head, so neither is cut
+      const kit = document.documentElement.classList.contains('gleb');
+      const caps = [m.closest('.dk-cal-listed'), y.closest('.dk-cal-listed')], stepH = c.querySelector('.dk-cal-step').getBoundingClientRect().height;
+      const dressed = !kit || caps.every(n => { const r = n.getBoundingClientRect(), s = getComputedStyle(n);
+        return Math.abs(r.height - stepH) < 1 && parseFloat(s.borderTopLeftRadius) >= r.height / 2 - 1 && s.backgroundColor !== 'rgba(0, 0, 0, 0)'; });
+      const room = c.querySelector('.dk-cal-month').getBoundingClientRect().width, ms = getComputedStyle(m), pad = parseFloat(ms.paddingLeft) + parseFloat(ms.paddingRight);
+      const probe = document.createElement('span'); probe.style.cssText = 'position:fixed;visibility:hidden;white-space:pre;font:' + ms.font + ';letter-spacing:' + ms.letterSpacing; document.body.append(probe);
+      const widest = Math.max(...[...m.options].map(o => { probe.textContent = o.text; return probe.getBoundingClientRect().width; })); probe.remove();
+      const fits = widest + pad + caps[1].getBoundingClientRect().width + 4 <= room + .5;
       const yN = +y.value + 1; put(y, yN);
       const jumped = [+y.value === yN, +m.value === on.getMonth(), day1().indexOf(String(yN)) > 0];
       put(y, y.options[0].value);                                                  // the inspection's own year: the months before it are shut
       const shut = [...m.options].filter(o => o.disabled).map(o => +o.value).join();
-      return { start, jumped, shut, want: Array.from({ length: ins.getMonth() }, (_, i) => i).join(), kept: d.due().text === text0, steps: c.querySelectorAll('.dk-cal-step').length };
+      return { start, jumped, shut, want: Array.from({ length: ins.getMonth() }, (_, i) => i).join(), kept: d.due().text === text0, steps: c.querySelectorAll('.dk-cal-step').length, dressed, fits, widest: Math.round(widest), room: Math.round(room) };
     });
     await page.keyboard.press('Escape'); await D.settle(page, 300);
     ok(cal.start.every(Boolean) && cal.jumped.every(Boolean) && cal.shut === cal.want && cal.kept && cal.steps === 2
       && await page.evaluate(() => !document.querySelector('.dk-cal')), 'the calendar opens on the month in force with that month and year in two lists: a year is picked in one go, the months before the inspection are not offered, and walking the lists does not set the date', cal);
+    ok(cal.dressed && cal.fits, 'with the kit on the two lists are its veil capsules, the same height and corner as the month steps either side of them, and the longest month name still fits beside the year', cal);
     await page.click('.dk-view.is-on .dk-crumb[data-step="owner"]'); await D.settle(page, 450);
     // the enlarged view is the same one document
     await page.dblclick('.dk-view.is-on .rp-bar [aria-label="Enlarge"]'); await D.settle(page, 500);
@@ -421,20 +432,22 @@ function looseBars(rootSel) {
       return { addr: v.querySelector('.rp-addr').textContent, covers: Math.round(wr.right - r.right) === 0 && Math.round(wr.bottom - r.bottom) === 0 && Math.abs(r.top - bar.bottom) < 1.5,
         shut: v.querySelector('.rp-scroll').inert && v.querySelector('.rp-act').inert, to: m.querySelector('.rp-mail-in').value, place: m.querySelector('.rp-mail-in').placeholder, caret: document.activeElement === m.querySelector('.rp-mail-in'),
         subject: m.querySelector('.rp-mail-subject').textContent, body, href, typed: m.querySelectorAll('[contenteditable="true"], [contenteditable="plaintext-only"]').length,
-        figs: m.querySelectorAll('.rp-mail-fig').length, pairs: m.querySelectorAll('.rp-mail-ba').length, tags: ba ? [...ba.querySelectorAll('.rp-mail-tag')].map(n => n.textContent) : [],
+        figs: m.querySelectorAll('.rp-mail-fig').length, pairs: m.querySelectorAll('.rp-mail-ba').length, ones: m.querySelectorAll('.rp-mail-one').length, tags: ba ? [...ba.querySelectorAll('.rp-mail-tag')].map(n => n.textContent) : [],
         beside: box.length === 2 && box[0].right <= box[1].left + 1 && Math.abs(box[0].top - box[1].top) < 2 && box.every(k => k.width > 24),
         apart: pair.length === 2 && pair[0].getAttribute('src') !== pair[1].getAttribute('src'),
         clips: [...m.querySelectorAll('.rp-mail-clip-name')].map(n => n.textContent), save: [...m.querySelectorAll('.rp-mail-foot .tm-btn')].some(n => /Save the photos/.test(n.textContent)),
-        same: ['What is wrong', 'Option 1: Remove the lower tier of bushes', 'Questions? Call Ross Valley Fire Department at ###-###-####.'].every(t => body.includes(t)), steps: /[\n]1\. .+[\n]2\. /.test(body), title: body.includes('From your fire inspection'), note: m.querySelector('.rp-mail-note').textContent };
+        same: ['What is wrong', 'Option 1: Remove the lower tier of bushes', 'Questions? Call Ross Valley Fire Department at ###-###-####.'].every(t => body.includes(t)), steps: /[\n]1\. .+[\n]2\. /.test(body), title: body.includes('From your fire inspection'), note: !!m.querySelector('.rp-mail-note') };
     });
     ok(mail.covers && mail.addr === 'A new message to the owner' && mail.shut && mail.to === '' && /email address/.test(mail.place) && mail.caret && mail.subject === 'From your fire inspection' && mail.typed === 0,
       'Email opens the message in the same window, under its bar, which says so: the page beneath cannot be reached, the caret is in the empty address, and nothing in the message is typed into', mail);
-    ok(mail.same && mail.steps && !mail.title && /mailto:\?subject=From%20your%20fire%20inspection&body=Ross%20Valley/.test(mail.href) && /Nothing is sent from here/.test(mail.note),
-      'the message is the owner’s page in its own words, the numbered steps included, with the page’s title as the subject; the mail app is offered a mailto: link of the same words, and the line under it says nothing is sent from here', mail);
-    ok(mail.figs >= 2 && mail.pairs >= 1 && mail.beside && mail.apart && mail.tags[0] === 'Before' && mail.tags[1] === 'After',
+    ok(mail.same && mail.steps && !mail.title && /mailto:\?subject=From%20your%20fire%20inspection&body=Ross%20Valley/.test(mail.href) && !mail.note,
+      'the message is the owner’s page in its own words, the numbered steps included, with the page’s title as the subject; the mail app is offered a mailto: link of the same words, and nothing explains the three buttons under it', mail);
+    ok(mail.figs >= 1 && mail.pairs >= 1 && mail.beside && mail.apart && mail.tags[0] === 'Before' && mail.tags[1] === 'After',
       'the pictures are in the message too, where the page puts them: a correction is its before beside its after, two different photographs, each under its own word', mail);
-    ok(mail.clips.length >= 3 && mail.clips.includes('the-finding.jpg') && mail.clips.includes('correction-1-before.jpg') && mail.clips.includes('correction-1-after.jpg') && mail.save && /photographs together/.test(mail.note) && /cannot carry an attachment/.test(mail.note),
-      'under the message the same pictures are named as the files to attach, with one button that saves them all; the line says Copy email brings them along and that a mailto: link cannot', mail);
+    ok(mail.ones === 0 && mail.figs === mail.pairs && !mail.clips.includes('the-finding.jpg'),
+      'the photograph that opens the owner’s page does not open the message: a correction’s before is that same photograph, and it is not sent twice', mail);
+    ok(mail.clips.length >= 2 && mail.clips.includes('correction-1-before.jpg') && mail.clips.includes('correction-1-after.jpg') && mail.save,
+      'under the message the same pictures are named as the files to attach, with one button that saves them all', mail);
     await page.fill('.dk-view.is-on .rp-mail-in', 'owner@example.com'); await D.settle(page, 250);
     ok(await page.evaluate(() => /^mailto:owner@example\.com\?subject=/.test(document.querySelector('.rp-mail-open').getAttribute('href'))), 'the address typed in is the one the mail app is given');
     await page.keyboard.press('Escape'); await D.settle(page, 450);
@@ -468,6 +481,19 @@ function looseBars(rootSel) {
     ok(rest2 <= 225 && await page.evaluate(() => { const V = window.Team.Desk.view(); return V.f.facts.year === 1996 && /Year on the sprinkler: 1996\./.test(document.querySelector('.dk-view.is-on .dk-fieldline').textContent); }), 'the sprinkler finding opens with the year, and a third or less of the words it used to show (676 before)', rest2); console.log('words on the laptop at rest, sprinkler: ' + rest2);
     await page.click('.dk-view.is-on .dk-recorded-toggle'); await D.settle(page, 400);
     ok(await page.evaluate(() => { const r = document.querySelector('.dk-view.is-on .dk-recorded'); return !r.hidden && /Asked on site/.test(r.textContent) && !r.querySelector('input, [role=checkbox], .tm-box') && /The app has neither list\./.test(r.textContent); }), '"What the field inspector recorded" opens to plain lines and says the app holds no age or recall list');
+    // ---- the trash on a sidebar picture: with several of them one can go without being opened first,
+    // and what the senior inspector throws away leaves the phone's Sent list with it
+    const dropRest = await page.evaluate(() => { const c = getComputedStyle(document.querySelector('.dk-item .dk-item-drop')); return { opacity: c.opacity, position: c.position, size: Math.round(parseFloat(c.width)) }; });
+    await page.hover('.dk-item:nth-child(2) .dk-item-thumb'); await D.settle(page, 300);
+    const dropOn = await page.evaluate(() => [...document.querySelectorAll('.dk-item')].map(n => getComputedStyle(n.querySelector('.dk-item-drop')).opacity));
+    ok(dropRest.opacity === '0' && dropRest.position === 'absolute' && dropRest.size === 26 && dropOn[1] === '1' && dropOn[0] === '0',
+      'every sidebar picture carries a trash on its corner: out of sight at rest, and up on the one the pointer is over, not on its neighbours', [dropRest, dropOn]);
+    const dropped = await page.evaluate(() => [...document.querySelectorAll('.dk-item')][1].dataset.key);
+    await page.click('.dk-item:nth-child(2) .dk-item-drop'); await D.settle(page, 700);
+    const gone = await page.evaluate(() => ({ items: [...document.querySelectorAll('.dk-item')].map(n => n.dataset.key), rail: document.querySelector('.dk-panes').dataset.rail,
+      views: window.Team.Desk.views.size, sent: window.Team.Phone.state.sent.map(f => f.id), rows: [...document.querySelectorAll('.ph-layer:not(.leaving) .ph-sent')].map(n => n.dataset.id), open: window.Team.Desk.view().f.id }));
+    ok(!gone.items.includes(dropped) && !gone.sent.includes(dropped) && !gone.rows.includes(dropped) && gone.views === 1 && gone.sent.length === 1 && gone.rail === 'off' && gone.open !== dropped,
+      'the trash throws that finding off the laptop and out of the phone’s Sent list at once, and the one left is the one open', gone);
     await page.evaluate(() => { window.__alive = true; }); await page.click('#tmReset'); await D.settle(page, 500);
     ok(await page.evaluate(() => window.__alive === true && window.Team.Desk.views.size === 0 && document.querySelector('.dk-empty.is-on') && document.getElementById('phone').dataset.screen === 'camera'), '"Start over" empties both devices without reloading the page');
     ok(!s1.errors.length, 'no page errors through the whole session', s1.errors.join(' | '));

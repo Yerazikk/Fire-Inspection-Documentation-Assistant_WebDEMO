@@ -318,6 +318,20 @@ window.TeamPhone = (function () {
     const row = layers.querySelector('.ph-sent[data-id="' + id + '"]');
     if (row && row.dataset.state !== state) { row.dataset.state = state; const st = row.querySelector('.ph-state'); st.dataset.state = state; swapText(st.querySelector('.ph-state-text'), stateWord(state), { size: false }); if (state === 'reviewed') U.pop(st.querySelector('.ph-state-mark')); }
   }
+  /** the senior inspector threw the finding away: it goes from the Sent list too. The list is what the field
+      inspector sent and who has it; a finding nobody is carrying any more does not belong on either device.
+      The row leaves where it stands, the rest close the gap, and the camera's count follows it down. */
+  function dropSent(id) {
+    const i = S.sent.findIndex(x => x.id === id); if (i < 0) return;
+    S.sent.splice(i, 1);
+    const live = '.ph-layer:not(.leaving) ';
+    const link = layers.querySelector(live + '.ph-sentlink');                                 // the camera's "Sent N", when that is the screen in view
+    if (link) { if (S.sent.length) swapText(link.querySelector('span'), 'Sent ' + S.sent.length, { size: false }); else link.replaceWith(h('span', { class: 'ph-spacer', 'aria-hidden': 'true' })); }
+    const row = layers.querySelector(live + '.ph-sent[data-id="' + id + '"]'); if (!row) return;
+    if (!S.sent.length) { camera(); return; }                                                 // the last one: there is no list left to stand on
+    const list = row.parentNode, rest = [...list.children].filter(n => n !== row), first = U.tops(rest);
+    row.remove(); U.glide(rest, first);
+  }
   /** kept for a finding whose place changes after it was sent, and for the place the next photo is taken in */
   function moved(f) { const n = layers.querySelector('.ph-layer:not(.leaving) .ph-sent[data-id="' + f.id + '"] .ph-sent-where'); if (n) swapText(n, whereLine(f), { size: false }); }
   function setLoc(loc) { S.loc = loc; }
@@ -372,7 +386,7 @@ window.TeamPhone = (function () {
   function reset() { S.run++; closeSheet(); S.sent = []; S.auto = false; S.scene = 'sprinkler'; S.screen = ''; endScan(true); layers.replaceChildren(); St.el.classList.remove('gone'); camera(); }
 
   return {
-    mount, reset, state: S, markReviewed, setLoc, moved, stage: St,
+    mount, reset, state: S, markReviewed, dropSent, setLoc, moved, stage: St,
     onSend(fn) { hooks.send = fn; }, onScreen(fn) { hooks.screen = fn; },
     relayout() { if (St.layout && !St.el.classList.contains('gone')) place(St.layout, St.view, true); U.syncAllSegs(root); },
     /** a hook for tests and screenshots only, with nothing in the interface: act as if the camera returned this picture */

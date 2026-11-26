@@ -2,7 +2,8 @@
 // Findings on this tab are taken in Ross, inside its mapped zone. How the codes change with the place is the
 // Technology tab's subject; here the place is kept in state and read by the rules, the owner's page and the file.
 //   phone -> desk          what the field inspector sends travels across the gap and arrives at the top of the inbox
-//   desk  -> phone         when the senior inspector publishes, the phone's sent item changes to "Reviewed"
+//   desk  -> phone         when the senior inspector publishes, the phone's sent item changes to "Reviewed";
+//                          when they throw a finding away, it leaves the phone's Sent list too
 // Nothing here depends on the page being reloaded: "Start over" resets the three parts itself, and all state lives
 // in memory, so the page can sit hidden inside the shell (see /shared/shell.js) and be exactly as it was left.
 (function () {
@@ -48,6 +49,7 @@
     travel(f, from, target, () => Desk.land(f));
   });
   Desk.onPublished((id, on) => Phone.markReviewed(id, on));
+  Desk.onDiscarded(id => Phone.dropSent(id));
 
   // ---- the stage: the two devices as a pair, each in its true shape. One scale for the whole phone (390 x 844);
   // a 16 : 10 screen for the laptop, as tall as the phone when the window is wide enough.

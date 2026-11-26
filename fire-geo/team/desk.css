@@ -34,6 +34,24 @@ html.gleb .dk-item.is-on .dk-item-thumb { outline-color: var(--gl-ink); }
 .dk-item-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .dk-item-state { position: relative; font-size: 11.5px; font-weight: 650; color: var(--ink2); text-align: center; white-space: nowrap; }
 .dk-item[data-state="published"] .dk-item-state { color: var(--hi); }
+/* the trash on the corner of the picture: out of sight until the item is pointed at or the key reaches it, so the
+   rail at rest is still only pictures. On a touch screen there is no pointing, so it simply stands there.
+   The child combinator is not decoration: the kit's own icon button is `html.gleb .gl-icon-button`, and it begins
+   with `all: unset`, so a rule for one of these has to out-weigh it or lose its size and its place (as the enlarge
+   symbol on the photograph above does, the same way).
+   Quiet: a thin translucent disc and a grey glyph, not a white button. It is the least of the things on the
+   picture, and only firms up under the pointer that is about to press it. */
+.dk-item { position: relative; }
+.dk-item > .dk-item-drop.tm-sym { position: absolute; right: 9px; top: 9px; width: 26px; height: 26px; border-color: transparent;
+  background: rgba(255, 255, 255, .52); color: rgba(var(--shade), .55); box-shadow: none; opacity: 0; transform: scale(.88);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: opacity 120ms var(--flat), transform 120ms var(--flat), background-color 110ms var(--flat), color 110ms var(--flat); }
+.dk-item:hover > .dk-item-drop.tm-sym, .dk-item > .dk-item-drop.tm-sym:focus-visible { opacity: 1; transform: none; }
+/* no red: that colour is a verdict here, not a warning. Pointing straight at it is the one thing that firms it up. */
+.dk-item > .dk-item-drop.tm-sym:hover { background: rgba(255, 255, 255, .86); color: var(--ink); }
+.dk-item.is-arriving > .dk-item-drop.tm-sym { display: none; }
+@media (hover: none) { .dk-item > .dk-item-drop.tm-sym { opacity: 1; transform: none; } }      /* nothing to point with: it stands there */
+html.gleb .dk-item > .dk-item-drop.tm-sym { box-shadow: var(--gl-lift); }
 
 .dk-main { position: relative; min-width: 0; min-height: 0; }
 .dk-empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; padding: 24px; opacity: 0; visibility: hidden; transition: opacity 110ms ease-in, visibility 0s 110ms; }
@@ -323,7 +341,6 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-mail-clip-img { flex: none; width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--tm-wash); }
 .rp-mail-clip-name { font-size: 11.5px; font-weight: 550; color: var(--ink2); }
 .rp-mail-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px 12px 18px; border-top: 1px solid var(--line); background: var(--tm-wash); }
-.rp-mail-note { flex: 1 1 100%; margin: 0; min-width: 0; font-size: 11.5px; line-height: 1.4; font-weight: 500; color: var(--ink2); }
 .rp-mail-foot > .tm-btn { margin-left: auto; }
 .rp-mail-foot > .tm-btn ~ .tm-btn { margin-left: 0; }
 .rp-mail-foot > .dk-primary { height: 34px; padding: 0 16px; font-size: 13px; }
@@ -463,8 +480,17 @@ html.gleb .wd-sheet.wd-sheet :is(.wd-letter, .wd-title, .wd-h, .wd-sub) { font-w
 html.gleb .dk-cal { border-radius: var(--gl-r-tile); background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 24px 48px -20px rgba(25, 34, 51, .35);
   -webkit-backdrop-filter: blur(30px) saturate(1.2); backdrop-filter: blur(30px) saturate(1.2); }
 html.gleb .dk-cal-week > span { color: var(--gl-text-quiet); }
-html.gleb .dk-cal-sel:hover { background: var(--gl-well); }
-html.gleb .dk-cal-listed-chev { color: var(--gl-text-quiet); }
+/* the month and the year are his veil capsules: the same material, height and corner as the two steps either side
+   of them, so every control in the calendar's head is one family and the lists read as things that are pressed */
+html.gleb .dk-cal-month { gap: 4px; }
+html.gleb .dk-cal-listed { height: 32px; border-radius: var(--gl-r-capsule); background: rgba(255, 255, 255, .78); box-shadow: var(--gl-lift);
+  transition: background-color 120ms var(--flat); }
+html.gleb .dk-cal-listed:hover { background: #fff; }
+html.gleb .dk-cal-listed:active { opacity: .86; }
+html.gleb .dk-cal-sel { height: 100%; padding: 0 20px 0 11px; border-radius: inherit; font-size: 13.5px; }
+html.gleb .dk-cal-sel:hover { background: none; }
+html.gleb .dk-cal-sel:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 0 0 4.5px var(--gl-sky); }
+html.gleb .dk-cal-listed-chev { right: 6px; color: var(--gl-text-quiet); }
 html.gleb .dk-cal-day:hover { background: var(--gl-well); }
 html.gleb .dk-cal-day.is-today { box-shadow: inset 0 0 0 1.5px rgba(25, 34, 51, .22); }
 html.gleb .dk-cal-day.is-on, html.gleb .dk-cal-day.is-on:hover { background: var(--gl-ink); color: #fff; }

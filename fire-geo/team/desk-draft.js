@@ -561,15 +561,19 @@ window.TeamDraft = (function () {
     // ---------------------------------------------------------------- the email to the owner
     // The owner's page is a website, and a website cannot be put in an email. So Email, beside Publish, writes the
     // same finding as a message: the page's own words in reading order, and the pictures that belong to them, each
-    // where the page puts it. The photograph of the finding is one picture; a correction is two, its before and its
-    // after side by side, each labelled. It opens as a message window in the same frame (the address bar says so).
-    // Nothing is sent from here. How the pictures travel is the one thing an email cannot hide, so the three ways
-    // out say plainly what each one carries:
+    // where the page puts it. A correction is two pictures, its before and its after side by side, each labelled.
+    // The photograph that opens the owner's page is not sent above them: the before of a correction is that same
+    // photograph, so the message would open with the same picture twice. It is sent on its own only when no
+    // correction carries a pair, so a message is never pictureless. It opens as a message window in the same
+    // frame (the address bar says so).
+    // Nothing is sent from here. The three ways out differ in what they carry, and their own names are now the
+    // only thing that says so (the paragraph that spelled it out under them came off on 2026-11-25: it was five
+    // sentences of explanation under a window with three buttons on it):
     //   Copy email        the words AND the pictures, as rich text. Pasted into a message written in a browser
     //                     (Gmail, Outlook on the web) the pictures come with it and go out as part of the message.
     //   Save the photos   every picture as its own file, named in reading order, to attach by hand in any mail app.
     //   Open in mail app  a mailto: link. A mailto: link carries text and nothing else: no attachment can be hung
-    //                     on one, by this page or any other, so that way sends the words alone and says so.
+    //                     on one, by this page or any other, so that way goes with the words alone.
     // The message is not typed into: the page is the one place these words are written, and the message follows it.
     const MAIL_MAX = 1100;                                                                   // the longest side a picture is sent at: an email is read, not zoomed into
     const picJobs = new Map();                                                               // src -> Promise<{ url, w, h }>: each picture is read and shrunk once, however often it is sent
@@ -619,6 +623,8 @@ window.TeamDraft = (function () {
         if (b.tag === 'li') { if (b.key !== listKey) { listKey = b.key; out.push({ kind: 'steps', items: [] }); } out[out.length - 1].items.push(text); continue; }
         listKey = ''; out.push({ kind: 'line', head: b.tag === 'h2' || b.tag === 'h3', text });
       }
+      const i = out.findIndex(b => b.kind === 'one' && b.id === 'photo');                    // the finding's photograph, which opens the page
+      if (i >= 0 && out.some(b => b.kind === 'pair')) out.splice(i, 1);                      // a correction's before is that photograph: it is not sent twice
       return out;
     }
     /** every picture in the message as a file to save: a pair gives two, named so their order is plain */
@@ -692,7 +698,6 @@ window.TeamDraft = (function () {
       X.mailTo.addEventListener('keydown', e => e.stopPropagation());                        // the laptop's own keys are not for a text field
       X.mailSubj = h('p', { class: 'rp-mail-subject' });
       X.mailText = h('div', { class: 'rp-mail-text' });
-      X.mailNote = h('p', { class: 'rp-mail-note' });
       X.mailClips = h('ul', { class: 'rp-mail-clips' });
       X.mailPics = h('div', { class: 'rp-mail-pics', hidden: true }, h('h4', { class: 'shell-label', text: 'Photos in this message' }), X.mailClips);
       // the words and the pictures together, as rich text: pasted into a message written in a browser, the pictures go with it
@@ -724,7 +729,7 @@ window.TeamDraft = (function () {
         h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'To' }), X.mailTo),
         h('div', { class: 'rp-mail-row' }, h('span', { class: 'rp-mail-label', text: 'Subject' }), X.mailSubj));
       X.mail = h('div', { class: 'rp-mail' }, head, h('div', { class: 'rp-mail-body tm-softscroll tm-thinscroll' }, X.mailText), X.mailPics,
-        h('div', { class: 'rp-mail-foot' }, X.mailNote, X.mailCopy, X.mailSave, X.mailOpen),
+        h('div', { class: 'rp-mail-foot' }, X.mailCopy, X.mailSave, X.mailOpen),
         sym('close', 'Close the message', () => showMail(false), 'rp-mail-x', 16));
       return X.mail;
     }
@@ -739,12 +744,6 @@ window.TeamDraft = (function () {
         X.mailClips.replaceChildren(...files.map(fi => h('li', { class: 'rp-mail-clip' }, h('img', { class: 'rp-mail-clip-img', src: fi.src, alt: '' }), h('span', { class: 'rp-mail-clip-name', text: fi.name }))));
       }
       X.mailOpen.href = href;
-      const lines = ['Nothing is sent from here: the message goes to your mail app, or to the clipboard.'];
-      lines.push(files.length
-        ? 'Copy email takes the words and the ' + files.length + ' photographs together, so pasting it into a message written in a browser brings the pictures with it. Save the photos gives them as files to attach. A mailto: link cannot carry an attachment, so the mail app is given the words alone.'
-        : 'The words are the owner’s page, as the text of an email. This finding has no picture to send with them.');
-      if (href.length > 1800) lines.push('A mail app can cut a message this long. Copy email gives all of it.');
-      swapText(X.mailNote, lines.join(' '), { size: false });
     }
     /** the message window over the owner's page, in the same frame: while it is there the page beneath cannot be reached */
     const mailEsc = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); showMail(false); } };

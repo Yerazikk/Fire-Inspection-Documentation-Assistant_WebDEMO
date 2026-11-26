@@ -239,6 +239,13 @@ cannot be reached a small built-in rewrite answers instead.
   the file document say the year looks unlikely and was kept.
 - **Arrival.** The first photo lands straight in the open finding; later ones land in the sidebar and do
   not take the laptop away from the finding being read.
+- **Throwing one away.** Two doors, the same one behind them: the trash beside Approve on the finding,
+  and a trash on the corner of a sidebar picture, out of sight until that picture is pointed at (on a
+  touch screen it simply stands there). The second was added on 2026-11-25: with several in the sidebar,
+  throwing one away should not mean opening it first. Nothing is asked; "Start over" brings the
+  demonstration back. What goes with it: the draft, the sidebar item, and the phone's Sent row — the two
+  devices are one record of what was sent, and a finding nobody is carrying is not outstanding. The
+  camera's "Sent N" counts down with it; if it was the last one, the phone goes back to the camera.
 - **Verdict switch under the kit.** The kit's own segmented control has an ink pill. This switch keeps a
   raised white pill with ink words in both looks, as asked ("no dark fills"), so with the kit on it is the
   top tabs' shape and motion but not their fill.
@@ -274,13 +281,17 @@ cannot be reached a small built-in rewrite answers instead.
   window: the address bar says "A new message to the owner", the page beneath cannot be reached, and in it
   are To (empty, the one thing to type, and where the caret starts), the subject, and the message itself.
   The message is the owner's page read in order: its words, and its pictures where it puts them, a correction
-  shown as its before beside its after, each under its own word. The words are not typed into here; the page
+  shown as its before beside its after, each under its own word. The photograph that opens the page does not
+  open the message: a correction's before is that same photograph, so sending it above them would be the same
+  picture twice. It goes on its own only when no correction has a pair to show, so a message is never
+  pictureless (changed on 2026-11-25). The words are not typed into here; the page
   is the one place they are written. Under the message the same pictures are listed again by file name, as
-  the files to attach. At the foot: what each way out carries, Copy email (the words and the pictures, as
-  rich text: pasted into a message written in a browser the pictures go with it), Save the photos (each as a
+  the files to attach. At the foot, three ways out and nothing but their own names on them (the paragraph
+  that said what each one carried came off on 2026-11-25): Copy email (the words and the pictures, as rich
+  text: pasted into a message written in a browser the pictures go with it), Save the photos (each as a
   file), and Open in mail app (a `mailto:` link with the subject and the whole message in it; a `mailto:`
-  link cannot carry an attachment at all, so that way sends the words alone, and when the link runs long the
-  line adds that a mail app can cut it and Copy email gives all of it). The close symbol, or Escape, puts the
+  link cannot carry an attachment at all, so that way goes with the words alone, and a mail app may cut a
+  long one, which is why Copy email is the first of the three). The close symbol, or Escape, puts the
   page back; Escape reaches the message before the enlargement under it. Leaving the step, or the finding,
   closes it.
 - **Enlarge.** Each draft has an Enlarge symbol (on the browser window's bar; at the top right of the
@@ -313,6 +324,10 @@ cannot be reached a small built-in rewrite answers instead.
   protected piece. Days are counted on the calendar, so a change of the clocks in between does not move
   the date. On a small laptop the date sits over its choices, still beside the button; in a narrow window
   the button takes a line of its own under them. The choices keep their place when the date changes.
+  In the calendar's head the month and the year are lists. With the kit on they are its veil capsules
+  (changed on 2026-11-25): the same material, height and corner as the two month steps either side of
+  them, so every control in that head is one family and the lists read as things that are pressed, not
+  as the heading they replace. With the kit off they stay the bare heading with a chevron.
 - **Approve, Send and Publish are single presses** with no confirmation. They stay recoverable: the
   breadcrumb leads back after Approve, a sent item is in the phone's Sent list, and Publish has Undo.
 - **A double press does not run on.** With one press per action, the second press of a double press
