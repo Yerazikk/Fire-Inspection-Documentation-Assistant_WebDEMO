@@ -313,7 +313,7 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
    pill below the window's bar (whose address says a message is being written), and it goes with the window when
    that is enlarged. The app's own type, and the page's own pictures: the photograph of the finding, and each
    correction's before beside its after. Under the message, the same pictures as the files that can be attached. */
-.rp-mail { position: absolute; left: 0; right: 0; top: 36px; bottom: 0; z-index: 8; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--tm-solid); }
+.rp-mail { position: absolute; left: 0; right: 0; top: 36px; bottom: 0; z-index: 8; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: var(--tm-solid); }
 .rp-mail-head { display: grid; gap: 8px; padding: 14px 52px 12px 18px; border-bottom: 1px solid var(--line); }
 .rp-mail-row { display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 10px; }
 .rp-mail-label { font-size: 12.5px; font-weight: 650; color: var(--ink2); }
@@ -336,16 +336,24 @@ html.gleb .dk-toggle.shell-seg > button.on .verdict-mark { filter: none; }
 .rp-mail-img { display: block; width: 100%; border-radius: 10px; background: var(--tm-wash); }
 .rp-mail-cap { margin: 7px 0 0; font-size: 11.5px; line-height: 1.45; font-weight: 500; color: var(--ink2); }
 /* the same pictures again, named, as the files to attach where a message is written somewhere else */
-.rp-mail-pics { padding: 10px 18px 12px; border-top: 1px solid var(--line); }
+/* whichever block is last has to clear the pill that floats over its corner: the photo list when there is one,
+   the message itself when there is not */
+.rp-mail-pics { padding: 10px 18px 92px; border-top: 1px solid var(--line); }      /* 64 px of pill, 16 below it, and room to spare */
+.rp-mail:has(.rp-mail-pics[hidden]) .rp-mail-body { padding-bottom: 92px; }
 .rp-mail-pics > .shell-label { margin: 0 0 8px; }
 .rp-mail-clips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .rp-mail-clip { display: flex; align-items: center; gap: 8px; padding: 4px 11px 4px 4px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--tm-surface); }
 .rp-mail-clip-img { flex: none; width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--tm-wash); }
 .rp-mail-clip-name { font-size: 11.5px; font-weight: 550; color: var(--ink2); }
-.rp-mail-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px 12px 18px; border-top: 1px solid var(--line); background: var(--tm-wash); }
-.rp-mail-foot > .tm-btn { margin-left: auto; }
-.rp-mail-foot > .tm-btn ~ .tm-btn { margin-left: 0; }
-.rp-mail-foot > .dk-primary { height: 34px; padding: 0 16px; font-size: 13px; }
+/* The three ways out float on the same soft pill as the file document's Copy, Print and Next, and the owner's page's
+   Email and Publish: same corner, same material, same button height. It was a bar across the foot of the window with
+   a rule over it, which read as part of the message rather than as what to do with it. The list of photographs above
+   keeps clear of the pill (.rp-mail-pics), so nothing is covered. */
+.rp-mail-foot { position: absolute; right: 18px; bottom: 16px; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 99px;
+  background: rgba(255, 255, 255, .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -14px rgba(var(--shade), .5); }
+.rp-mail-foot > .tm-btn { height: 40px; padding: 0 18px; font-size: 14px; justify-content: center; }
+.rp-mail-foot > .dk-primary { height: 40px; padding: 0 18px; font-size: 14px; }
+html.gleb .rp-mail-foot { border-radius: var(--gl-r-capsule); background: var(--gl-sheet-solid); box-shadow: var(--gl-sheet-edge), 0 14px 30px -14px rgba(25, 34, 51, .3); }
 .rp-window.is-big .rp-mail-text { font-size: 15px; }
 .rp-window.is-big .rp-mail-fig { max-width: 520px; }
 .rp-window.is-big .rp-mail-one { max-width: 250px; }

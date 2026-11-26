@@ -262,24 +262,26 @@ function looseBars(rootSel) {
     await page.click('.dk-view.is-on .dk-fix-row:nth-child(3)'); await D.settle(page, 450); await page.click('.dk-view.is-on .dk-detail ' + tb('Don’t use this one')); await D.settle(page, 550);
     ok(await page.evaluate(() => document.querySelectorAll('.dk-view.is-on .dk-fix-row:not(.tm-leaving)').length === 2 && !document.querySelector('.dk-view.is-on .dk-off').hidden && !!document.querySelector('.dk-view.is-on .dk-off-row [aria-label="Undo"]') && !!document.querySelector('.dk-view.is-on .dk-detail-pane')), 'a correction set aside goes to "Not used" with an Undo, and another is shown in its place');
     await page.click('.dk-view.is-on ' + tb('Write my own')); await D.settle(page, 400); await page.fill('.dk-view.is-on .dk-new .dk-input', 'Move the hedge back from the road inject'); await page.click('.dk-view.is-on .dk-new ' + tb('Write it up')); await page.waitForTimeout(2300);
-    ok(await page.evaluate(() => { const V = window.Team.Desk.view(), s = V.draft.model.sols.find(x => x.kind === 'own'), p = document.querySelector('.dk-view.is-on .dk-detail-pane'); return s && s.use && !/999|45 feet|7 days/.test(JSON.stringify(s.steps)) && p.dataset.kind === 'own' && !!s.after && !!p.querySelector('.tm-ba .tm-ba-afterimg') && /not a photograph of the property/.test(p.textContent); }), 'a correction of the inspector’s own is written up, shown large, and carries a picture of the result drawn from the sentence');
+    ok(await page.evaluate(() => { const V = window.Team.Desk.view(), s = V.draft.model.sols.find(x => x.kind === 'own'), p = document.querySelector('.dk-view.is-on .dk-detail-pane'); return s && s.use && !/999|45 feet|7 days/.test(JSON.stringify(s.steps)) && p.dataset.kind === 'own' && !!s.after && !!p.querySelector('.tm-ba .tm-ba-afterimg') && p.querySelector('.tm-ba-tag.after').textContent === 'After · proposed' && !p.querySelector('.dk-ownview'); }), 'a correction of the inspector’s own is written up and shown large as one view: the result under the divider, tagged a proposal, with no second view to choose');
     // the ring: where the drawing says it changed, with the same switch a prepared correction has, and a line that
     // says what kind of evidence it is (a prepared contour is measured offline; this is the model's own account)
     const ring = await page.evaluate(() => { const s = window.Team.Desk.view().draft.model.sols.find(x => x.kind === 'own'), p = document.querySelector('.dk-view.is-on .dk-detail-pane'), sw = p.querySelector('.ba-toggle');
       const poly = p.querySelector('.tm-ba-outline polygon'), pts = poly ? poly.getAttribute('points').split(' ').map(q => q.split(',').map(Number)) : [];
       return { outline: (s.outline || []).length, on: s.changed, sw: !!sw, pressed: sw && sw.getAttribute('aria-pressed'), polys: p.querySelectorAll('.tm-ba-outline polygon').length,
         label: (p.querySelector('.tm-ba-label') || {}).textContent, closed: pts.length >= 12, inside: pts.every(q => q[0] >= 0 && q[0] <= 1000 && q[1] >= 0 && q[1] <= 1000),
-        says: /not a measurement of the two pictures/.test(p.textContent) }; });
-    ok(ring.outline === 1 && ring.on && ring.sw && ring.pressed === 'true' && ring.polys === 1 && ring.closed && ring.inside && ring.label === 'the changed area' && ring.says,
-      'the picture comes back with a ring round where the drawing says it changed, labelled, on from the start, with the same "Show what changed" switch a prepared correction has, and a line saying it is not a measurement', ring);
+        say: (p.querySelector('.dk-plan-say') || {}).textContent || '' }; });
+    ok(ring.outline === 1 && ring.on && ring.sw && ring.pressed === 'true' && ring.polys === 1 && ring.closed && ring.inside && ring.label === 'the changed area' && ring.say === '',
+      'the picture comes back with a ring round where the drawing says it changed, labelled, on from the start, with the same "Show what changed" switch a prepared correction has, and no paragraph under it', ring);
     await page.click('.dk-view.is-on .dk-detail .ba-toggle'); await D.settle(page, 350);
     ok(await page.evaluate(() => { const p = document.querySelector('.dk-view.is-on .dk-detail-pane'); return !p.querySelector('.tm-ba-outline polygon') && p.querySelector('.ba-toggle').getAttribute('aria-pressed') === 'false' && !!p.querySelector('.tm-ba .tm-ba-afterimg'); }),
       'the switch takes the ring off and leaves the picture');
     await page.click('.dk-view.is-on .dk-detail .ba-toggle'); await D.settle(page, 350);
-    await page.click('.dk-view.is-on .dk-detail .dk-ownview button[data-value="mark"]'); await D.settle(page, 350);
-    ok(await page.evaluate(() => { const p = document.querySelector('.dk-view.is-on .dk-detail-pane'); return !!p.querySelector('.tm-markup') && !p.querySelector('.tm-ba'); }), 'the switch beside it turns the card to the photograph, to mark the area on');
+    // no picture is the only time marking the photograph by hand is the answer, so that is the only time it is offered
+    await page.evaluate(() => { const V = window.Team.Desk.view(), s = V.draft.model.sols.find(x => x.kind === 'own'); window.__keep = { after: s.after, outline: s.outline, changed: s.changed }; s.after = null; s.outline = []; s.changed = false; s.ui.repaint(); }); await D.settle(page, 350);
+    ok(await page.evaluate(() => { const p = document.querySelector('.dk-view.is-on .dk-detail-pane'); return !!p.querySelector('.tm-markup') && !p.querySelector('.tm-ba') && !p.querySelector('.ba-toggle'); }), 'with no picture the card falls back to the photograph, to mark the area on');
     await page.click('.dk-view.is-on .dk-detail ' + tb('Mark where the problem is')); await D.settle(page, 250);
     ok(await page.evaluate(() => window.Team.Desk.view().draft.model.sols.find(x => x.kind === 'own').regions.length === 1 && !!document.querySelector('.dk-view.is-on .dk-detail .tm-hatch')), 'the area is marked on the photo as a hatched plan');
+    await page.evaluate(() => { const V = window.Team.Desk.view(), s = V.draft.model.sols.find(x => x.kind === 'own'); Object.assign(s, window.__keep); s.ui.repaint(); }); await D.settle(page, 400);
     await D.desk.next(page);
     ok(await D.desk.step(page) === 'file' && await page.evaluate(() => document.querySelector('.dk-item.is-on .dk-item-state').textContent) === 'Draft ready', 'after the corrections comes the file document, and the finding is "Draft ready"');
     // ---- the file document: a plain office page, and one document to type into

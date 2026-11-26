@@ -236,13 +236,11 @@ window.TeamDraft = (function () {
         it cannot be drawn at all, the area is marked on the photograph instead, as a plan. */
     function ownPicture(s, view) {
       const C = s.ui, extra = h('div', { class: 'dk-plan' });
-      const wait = U.steps(['Reading your correction', 'Drawing the result', 'Placing it on the photograph'], 'dk-ask-steps');
-      // once there is a picture there are two views of the one correction, and one switch between them: the drawn
-      // result, or the photograph to mark the area on. Marking stays what it always was; the picture is the new part.
-      const which = () => U.seg([{ id: 'result', label: 'Result' }, { id: 'mark', label: 'Mark up' }], s.show, v => { s.show = v; U.frame().then(paint); }, 'dk-ownview');
-      // the switch takes a line of its own: this column is as narrow as the photograph, and beside the caption it
-      // squeezed the words into four lines
-      const head = text => [s.after ? which() : null, h('p', { class: 'dk-plan-say', text })];
+      const wait = U.steps(['Loading recommendation'], 'dk-ask-steps');
+      // One view, not two. There was a Result / Mark up switch here: marking the area by hand was what the card
+      // offered before it could draw anything, and once it draws, the result is the thing being looked at. Marking
+      // is still what the card falls back to when there is no picture, which is the only time it is the answer.
+      const head = text => (text ? [h('p', { class: 'dk-plan-say', text })] : []);
       const paint = () => { draw(); U.syncAllSegs(extra); };      // the pill is placed after every repaint
       view.addEventListener('ba:change', e => { if (e.detail && e.detail.position != null) M.pos = e.detail.position; });
       function draw() {
@@ -250,23 +248,21 @@ window.TeamDraft = (function () {
         view.replaceChildren(); extra.replaceChildren(); C.ba = null;
         view.classList.remove('tm-ba', 'tm-markup', 'dragging');
         view.style.removeProperty('aspect-ratio'); view.style.removeProperty('--p');
-        if (s.after && s.show !== 'mark') {
+        if (s.after) {
           const ring = (s.outline || []).length ? s.outline : null;
           C.ba = P.beforeAfter(view, { before: f.photo.src, after: s.after, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true },
             outline: ring && s.changed ? ring : [], position: M.pos, tags: { before: 'Before', after: 'After · proposed' } });
           // the same switch as a prepared correction's, and the same words, because it does the same thing to the
-          // same picture. What it is told about where the change is differs, and the line above it says so.
+          // same picture. The tag on the picture says it is proposed; the caption that said it again came off.
           const sw = !ring ? null : h('button', { class: 'shell-pill ba-toggle', type: 'button', 'aria-pressed': String(!!s.changed) },
             h('span', { class: 'ba-check', 'aria-hidden': 'true' }), 'Show what changed');
           if (sw) sw.addEventListener('click', () => { s.changed = !s.changed; sw.setAttribute('aria-pressed', String(s.changed)); C.ba.update({ outline: s.changed ? ring : [] }); });
-          fill(extra, head('Drawn from your sentence to show the result. It is not a photograph of the property.'
-            + (ring ? ' The ring is where the drawing says it changed, not a measurement of the two pictures.' : '')),
-            h('div', { class: 'tm-btns' }, sw, btn('Draw it again', () => drawAfter(s), 'is-quiet')));
+          fill(extra, h('div', { class: 'tm-btns' }, sw, btn('Draw it again', () => drawAfter(s), 'is-quiet')));
           return;
         }
         // the photograph itself, to mark the area on
         const mk = P.markup(view, { photo: f.photo.src, aspect: f.photo.aspect, frame: f.photo.aspect, view: { contain: true }, regions: s.regions, treat: s.treat, onChange: r => { s.regions = r; touch(); } });
-        if (s.drawing) { fill(extra, head('Drawing the result of your correction.'), wait.el); wait.run(1); return; }
+        if (s.drawing) { fill(extra, head('Loading recommendation…'), wait.el); wait.run(0); return; }
         const seg = U.seg(Object.keys(P.TREAT).map(id => ({ id, label: P.TREAT[id] })), s.treat, v => { s.treat = v; mk.setTreat(v); }, 'dk-treat');
         const fa = (D.scene(scene).annotations.find(a => a.finding) || {}).box;
         fill(extra, head(s.drawNote || (s.after ? 'The photograph, to mark the area on.' : 'No picture of this one yet.')),
@@ -280,13 +276,32 @@ window.TeamDraft = (function () {
         (tools/register.js, offline). The inspector's own correction is drawn while they wait, so there is no such
         pass: the server asks the model where it drew and sends back a box. A box is all a model can honestly give,
         so the page rounds it into an oval, which reads as "about here" rather than as a traced edge. */
-    const RING_N = 28;
+    const RING_N = 28, RING_GROW = 0.12, RING_PAD = 0.012;      // the ring stands off what it rings, so the edge of the change is inside the line and not under it
     function ringFrom(region) {
       const b = region && region.box; if (!Array.isArray(b) || b.length !== 4) return null;
-      const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, rx = (b[2] - b[0]) / 2, ry = (b[3] - b[1]) / 2;
+      const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+      const rx = (b[2] - b[0]) / 2 * (1 + RING_GROW) + RING_PAD, ry = (b[3] - b[1]) / 2 * (1 + RING_GROW) + RING_PAD;
       const at = v => Math.max(0.004, Math.min(0.996, v));
       const points = Array.from({ length: RING_N }, (_, i) => { const t = i / RING_N * Math.PI * 2; return [at(cx + rx * Math.cos(t)), at(cy + ry * Math.sin(t))]; });
       return { points, label: clean(region.label || '') || 'what changed' };
+    }
+    const DRAW_MAX = 1400;
+    /** The image model returns a large PNG, two and a half megabytes of it. The divider re-clips that layer on every
+        frame of a drag, and at full size that is what makes it stutter. It is re-encoded once, here, at a size the
+        card can never show more of than: the same picture to look at, a tenth of the work to move. */
+    function fitPicture(url) {
+      return new Promise(done => {
+        const im = new Image(); im.decoding = 'async';
+        im.onload = () => {
+          const k = Math.min(1, DRAW_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+          const w = Math.max(1, Math.round(im.naturalWidth * k)), ht = Math.max(1, Math.round(im.naturalHeight * k));
+          const cv = h('canvas'); cv.width = w; cv.height = ht;
+          const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, ht); cx.drawImage(im, 0, 0, w, ht);
+          done(cv.toDataURL('image/jpeg', .9));
+        };
+        im.onerror = () => done(url);                                                        // unreadable here is unreadable in the card too: let the card report it
+        im.src = url;
+      });
     }
     /** Ask the server to draw it (POST /api/team/visual -> ../ai/visual.js, the image model). Nothing waits on it:
         the senior carries on with the steps and the picture arrives in the card when it is ready. */
@@ -300,7 +315,7 @@ window.TeamDraft = (function () {
         // a reply that is not JSON at all is the one case the server cannot have written: say that, rather than
         // reporting it as the model's refusal
         const j = await r.json().catch(() => null);
-        if (r.ok && j && j.ok && j.data) { got = 'data:' + (j.mimeType || 'image/jpeg') + ';base64,' + j.data; ring = ringFrom(j.region); }
+        if (r.ok && j && j.ok && j.data) { got = await fitPicture('data:' + (j.mimeType || 'image/jpeg') + ';base64,' + j.data); ring = ringFrom(j.region); }
         else if (j && j.error) why = j.error;
         else why = 'the drafting server answered ' + r.status + ' and not in words this page can read';
       } catch (e) { why = 'the drafting server could not be reached from this page'; }
@@ -315,7 +330,7 @@ window.TeamDraft = (function () {
       const ask = h('div', { class: 'dk-ask' }), newPane = h('div', { class: 'dk-detail-pane', 'data-kind': 'new' }, h('div', { class: 'dk-new' }, h('h3', { class: 'dk-card-title', text: 'Your own correction' }), ask));
       const mine = btn('Write my own', () => { look('new'); if (ask.hidden || !ask.firstChild) { ask.hidden = true; askForm(ask, { placeholder: 'Your correction, in one sentence', go: 'Write it up', steps: ['Reading your sentence', 'Writing the steps', 'Checking against the sources'],
         body: text => ({ target: 'own', instruction: text, current: {} }),
-        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0, after: null, outline: [], changed: false, drawing: false, drawNote: '', show: 'result' }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); drawAfter(s); } }); } }, 'dk-mine', 'plus');
+        apply: (j, text) => { const steps = (j.steps || []).map(clean).filter(Boolean); if (!steps.length) return false; const s = { id: 'own' + (++M.ownN), kind: 'own', sol: null, standing: 'own', use: true, off: false, title: ref(clean(j.title) || text), plain: ref(''), steps: steps.map(t => ref(t)), regions: [], treat: 'remove', rewrites: 0, after: null, outline: [], changed: false, drawing: false, drawNote: '' }; M.sols.push(s); M.note = (j.removed || []).length ? 'Left out, because it is not in the sources: ' + j.removed.join(' ') : ''; touch(); look(s.id); drawAfter(s); } }); } }, 'dk-mine', 'plus');
       parts.fix = { list, offBox, offList, detail, newPane, mine };
       return h('section', { class: 'dk-pane', 'data-step': 'fix' }, h('div', { class: 'dk-fix' }, h('div', { class: 'dk-fix-list tm-softscroll' }, h('h2', { class: 'dk-h', text: 'How to fix it' }), list, mine, offBox), detail));
     }

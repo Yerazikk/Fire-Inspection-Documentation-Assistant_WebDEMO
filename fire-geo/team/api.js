@@ -9,7 +9,8 @@
 //             facts?: { ... } }                                 what the field inspector collected
 //     reply { ok, source: 'model' | 'builtin' | 'fake', title?, text?, steps?, standing?, removed: [..], note? }
 //
-// The model is the locally signed-in Claude CLI, called the way Andrew's other projects call it (tarot/read-api.js):
+// The model is Gemini where a key is configured (ai/draft.js backend and key, the same pair the pictures use),
+// and otherwise the locally signed-in Claude CLI, called the way Andrew's other projects call it (tarot/read-api.js):
 // find the real binary, drop CLAUDE* from the environment, prompt on stdin, hard timeout, one retry on bad JSON.
 // Nothing is sent but the finding's own content: the vetted source text for that finding and place, the draft on
 // screen and the inspector's request. The reply is checked here, before it reaches the page: any sentence with a
@@ -127,6 +128,41 @@ const ARGS = {
   plain: ['-p', '--model', MODEL, '--output-format', 'json'],
   bare: ['-p', '--output-format', 'json'],
 };
+// The CLI is one way to reach a model and it is not reachable everywhere: findClaude() looks in a macOS
+// application bundle, so on Windows every rewrite fell through to the built-in one, which only reshapes the
+// sentence the inspector typed. It became the title and the first step, word for word, which is the opposite of
+// asking for writing help. Gemini is already configured here for the pictures and the same key answers text, so
+// it is tried first whenever there is a key. The prompt, the parse and the guard are untouched: only the
+// transport differs, and a reply from either goes through the same check before it reaches the page.
+let AI;
+function ai() {
+  if (AI !== undefined) return AI;
+  try {
+    require(path.join(ROOT, '..', 'ai', 'env'))();
+    const d = require(path.join(ROOT, '..', 'ai', 'draft')), p = require(path.join(ROOT, '..', 'ai', 'prompts'));
+    AI = d.apiKey() ? { backend: d.backend, key: d.apiKey, model: process.env.TEAM_DRAFT_GEMINI || p.MODEL.name } : null;
+  } catch { AI = null; }
+  return AI;
+}
+async function gemini(text) {
+  const A = ai(); if (!A) throw new Error('no text model is configured');
+  const api = A.backend(), ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(api.generate(A.model), {
+      method: 'POST', signal: ctl.signal,
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': A.key() },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: SYSTEM + '\n\n' + text }] }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.3 },
+      }),
+    });
+    if (!res.ok) throw new Error('the text model answered ' + res.status);
+    const j = await res.json();
+    const said = ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || '').join('').trim();
+    if (!said) throw new Error('the text model replied with nothing');
+    return said;
+  } finally { clearTimeout(timer); }
+}
 function run(text, mode) {
   return new Promise((resolve, reject) => {
     const args = ARGS[mode] || ARGS.plain; let child, out = '', err = '';
@@ -178,10 +214,16 @@ async function draft(raw) {
   if (busy >= 2) return { code: 429, body: { error: 'busy' } };
   busy++;
   try {
-    const p = prompt(b, material); let out, mode = 'lean';
-    try { out = await run(p, mode); }
-    catch (e) { if (/timeout/.test(e.message)) throw e; mode = 'plain'; try { out = await run(p, mode); } catch (e2) { if (/timeout/.test(e2.message)) throw e2; mode = 'bare'; out = await run(p, mode); } }
-    let reply; try { reply = parse(out, b); } catch { reply = parse(await run(p, mode), b); }   // one retry on a bad reply
+    const p = prompt(b, material);
+    // Gemini where there is a key, the CLI where there is not. Either way one retry on a reply that will not parse.
+    let mode = 'lean';
+    const cli = async () => {
+      try { return await run(p, mode); }
+      catch (e) { if (/timeout/.test(e.message)) throw e; mode = 'plain'; try { return await run(p, mode); } catch (e2) { if (/timeout/.test(e2.message)) throw e2; mode = 'bare'; return run(p, mode); } }
+    };
+    const ask = ai() ? () => gemini(p) : cli;
+    const out = await ask();
+    let reply; try { reply = parse(out, b); } catch { reply = parse(await ask(), b); }
     try { return finish(reply, 'model'); } catch { return builtIn('The rewrite added facts that are not in the sources, so it was not used.'); }
   } catch (e) {
     return builtIn(/timeout/.test(e.message) ? 'The rewrite took too long. This is a simpler one.' : 'The writing help could not be reached. This is a simpler rewrite.');

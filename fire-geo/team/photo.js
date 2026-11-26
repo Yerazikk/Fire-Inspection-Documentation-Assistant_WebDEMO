@@ -69,10 +69,15 @@ window.TeamPhoto = (function () {
       handle.setAttribute('aria-valuenow', String(Math.round(p * 100))); handle.setAttribute('aria-valuetext', Math.round(p * 100) + ' per cent before');
       if (!quiet) el.dispatchEvent(new CustomEvent('ba:change', { detail: { position: p } }));
     };
-    const at = e => { const r = el.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };   // direct: the divider is under the pointer
-    div.addEventListener('pointerdown', e => { if (e.button > 0) return; div.setPointerCapture(e.pointerId); el.classList.add('dragging'); at(e); e.preventDefault(); handle.focus({ preventScroll: true }); });
+    // Direct: the divider is under the pointer. One move per frame, against a rect measured once at the start of the
+    // drag. A pointer reports faster than the screen repaints, and each of those reports was both forcing a layout
+    // (getBoundingClientRect) and re-clipping a layer the size of the photograph, several times per painted frame.
+    let dragRect = null, raf = 0, pendX = 0;
+    const apply = () => { raf = 0; const r = dragRect || el.getBoundingClientRect(); set((pendX - r.left) / r.width); };
+    const at = e => { pendX = e.clientX; if (!raf) raf = requestAnimationFrame(apply); };
+    div.addEventListener('pointerdown', e => { if (e.button > 0) return; div.setPointerCapture(e.pointerId); el.classList.add('dragging'); dragRect = el.getBoundingClientRect(); at(e); e.preventDefault(); handle.focus({ preventScroll: true }); });
     div.addEventListener('pointermove', e => { if (div.hasPointerCapture(e.pointerId)) at(e); });
-    const drop = e => { if (div.hasPointerCapture(e.pointerId)) div.releasePointerCapture(e.pointerId); el.classList.remove('dragging'); };
+    const drop = e => { if (div.hasPointerCapture(e.pointerId)) div.releasePointerCapture(e.pointerId); el.classList.remove('dragging'); dragRect = null; };
     div.addEventListener('pointerup', drop); div.addEventListener('pointercancel', drop);
     handle.addEventListener('keydown', e => {
       const step = e.shiftKey ? .1 : .01; let v = null;
